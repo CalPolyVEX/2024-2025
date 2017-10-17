@@ -24,5 +24,6 @@ public:
         void timer_expire();
         void ZoomIn();
         void GetLidarScan();
+        void show_lidar();
         void GetScreenshot();
 };

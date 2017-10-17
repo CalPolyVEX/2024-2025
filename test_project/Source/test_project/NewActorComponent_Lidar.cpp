@@ -7,7 +7,6 @@
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
 #include <string>
 
-UActorComponent* Lidar = NULL;
 UCameraComponent* L = NULL;
 AActor* floor_mesh = NULL;
 FString test_string = "";
@@ -15,14 +14,17 @@ FString floor_material_string = "";
 int test_size = -1;
 UMaterial* NFMaterial = NULL;
 FTimerHandle TestTimerHandle;
+int draw_lidar = 1;
 
 void UNewActorComponent_Lidar::timer_expire() {
     GetWorld()->GetTimerManager().SetTimer(TestTimerHandle, this, &UNewActorComponent_Lidar::timer_expire, 1.0f, true);
 }
 
-void UNewActorComponent_Lidar::ZoomIn()
-{
-    //bZoomingIn = true;
+void UNewActorComponent_Lidar::show_lidar() {
+    if (draw_lidar == 1)
+        draw_lidar = 0;
+    else
+        draw_lidar = 1;
 }
 
 // Sets default values for this component's properties
@@ -44,8 +46,7 @@ UNewActorComponent_Lidar::UNewActorComponent_Lidar()
 void UNewActorComponent_Lidar::BeginPlay()
 {
     Super::BeginPlay();
-    Lidar = (GetOwner()->GetComponentsByClass(UCameraComponent::StaticClass()))[1];
-    L = Cast<UCameraComponent> (Lidar);
+    L = Cast<UCameraComponent> ((GetOwner()->GetComponentsByClass(UCameraComponent::StaticClass()))[1]);
 
     //change floor texture
     //test_size = ChangeFloorTexture(&test_string);
@@ -54,6 +55,7 @@ void UNewActorComponent_Lidar::BeginPlay()
     //setup the input component to capture a screenshot on a keypress
     ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
     OwnerCharacter->InputComponent->BindAction("ScreenShotMode", IE_Pressed, this, &UNewActorComponent_Lidar::GetScreenshot);
+    OwnerCharacter->InputComponent->BindAction("ShowLidar", IE_Pressed, this, &UNewActorComponent_Lidar::show_lidar);
 }
 
 int UNewActorComponent_Lidar::ChangeFloorTexture(FString* f)
@@ -93,19 +95,16 @@ int UNewActorComponent_Lidar::ChangeFloorTexture(FString* f)
 }
 
 void UNewActorComponent_Lidar::GetLidarScan() {
-    float x=0;
     FString UE4Str;
     FVector current_location, end_location;
     FRotator current_rotation;
     FVector current_forward_vector;
     
-    if (Lidar == NULL) {
-        Lidar = (GetOwner()->GetComponentsByClass(UCameraComponent::StaticClass()))[1]; //Lidar needs to be the second camera in the component list
-        L = Cast<UCameraComponent> (Lidar);
+    if (L == NULL) {
+        L = Cast<UCameraComponent> ((GetOwner()->GetComponentsByClass(UCameraComponent::StaticClass()))[1]); //Lidar needs to be the second camera in the component list
     }
     
-    UE4Str = Lidar->GetName();
-    x = L->GetComponentLocation().X;
+    UE4Str = L->GetName();
     current_location = L->GetComponentLocation();
     current_rotation = L->GetComponentRotation();
     current_forward_vector = L->GetForwardVector();
@@ -130,19 +129,26 @@ void UNewActorComponent_Lidar::GetLidarScan() {
             //there was an impact, then draw the trace in red
             FVector impact = RV_Hit.Location;
 
-            DrawDebugLine(GetWorld(), current_location, impact, FColor(255,0,0), false, -1, 0, .33);
-            DrawDebugPoint(GetWorld(), impact, 20, FColor(255,0,255), false, 0.03);
+            if (draw_lidar) {
+                if (i==0)
+                    DrawDebugLine(GetWorld(), current_location, impact, FColor(0,0,255), false, -1, 0, .33);
+                else
+                    DrawDebugLine(GetWorld(), current_location, impact, FColor(255,0,0), false, -1, 0, .33);
+                DrawDebugPoint(GetWorld(), impact, 20, FColor(255,0,255), false, 0.03);
+            }
             GEngine->AddOnScreenDebugMessage(0, 5.f, FColor::Red, FString::Printf(TEXT("Lidar distance ~> %s %s %d"), *test_string, *floor_material_string, test_size));
         } else {
             //there was no impact, so draw the trace in green
-            DrawDebugLine(GetWorld(), current_location, end_location, FColor(0,255,0), false, -1, 0, .33);
+            if (draw_lidar) {
+                DrawDebugLine(GetWorld(), current_location, end_location, FColor(0,255,0), false, -1, 0, .33);
+            }
         }
 
     }
 }
 
 void UNewActorComponent_Lidar::GetScreenshot() {
-    GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, TEXT("Requesting screenshot")); 
+    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Requesting screenshot")); 
     FString fileName("/Users/jseng/screenshot.png");
     FScreenshotRequest::RequestScreenshot(fileName, false, false);
 }
