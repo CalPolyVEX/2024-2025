@@ -5,6 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "Runtime/Engine/Classes/GameFramework/Character.h"
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
+#include "Runtime/Engine/Classes/Engine/Brush.h"
 #include <string>
 
 UCameraComponent* L = NULL;
@@ -17,7 +18,6 @@ FTimerHandle TestTimerHandle;
 int draw_lidar = 1;
 
 void UNewActorComponent_Lidar::timer_expire() {
-    GetWorld()->GetTimerManager().SetTimer(TestTimerHandle, this, &UNewActorComponent_Lidar::timer_expire, 1.0f, true);
 }
 
 void UNewActorComponent_Lidar::show_lidar() {
@@ -56,6 +56,43 @@ void UNewActorComponent_Lidar::BeginPlay()
     ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
     OwnerCharacter->InputComponent->BindAction("ScreenShotMode", IE_Pressed, this, &UNewActorComponent_Lidar::GetScreenshot);
     OwnerCharacter->InputComponent->BindAction("ShowLidar", IE_Pressed, this, &UNewActorComponent_Lidar::show_lidar);
+
+    //setup periodic timer
+    GetWorld()->GetTimerManager().SetTimer(TestTimerHandle, this, &UNewActorComponent_Lidar::ChangeWallTexture, 2.0f, true);
+}
+
+void UNewActorComponent_Lidar::ChangeWallTexture()
+{
+    UWorld* World = GetWorld();
+    TArray<AActor*> FoundBrushes;
+    FString floor_string = "Floor";
+    FString brush_name;
+    int num_brushes = 0;
+
+    //get all the brushes actors
+    UGameplayStatics::GetAllActorsOfClass(World, ABrush::StaticClass(), FoundBrushes);
+    num_brushes = FoundBrushes.Num();
+
+    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, FString::Printf(TEXT("Number of brushes: %d"), num_brushes));
+
+    for (AActor* TActor: FoundBrushes) {
+        if(TActor != nullptr) {
+            brush_name = TActor->GetName();
+
+            //get the components of the floor
+            TArray <UBrushComponent *> Brush_Components;
+            //TActor->GetComponents<UBrushComponent>(Brush_Components);
+
+            //UMaterialInstanceDynamic* DMaterial = UMaterialInstanceDynamic::Create(Floor_Components[0]->GetMaterial(0), nullptr);
+            //floor_material_string = *DMaterial->GetName(); 
+
+            if (NFMaterial != NULL) {
+                //UMaterialInstanceDynamic* NFMaterial_Instance = UMaterialInstanceDynamic::Create(NFMaterial, Brush_Components[0]);
+                //set the new material to the floor
+                //Brush_Components[0]->SetMaterial(0,NFMaterial_Instance);
+            }
+        }
+    }
 }
 
 int UNewActorComponent_Lidar::ChangeFloorTexture(FString* f)
