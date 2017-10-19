@@ -65,7 +65,6 @@ void UNewActorComponent_Lidar::ChangeWallTexture()
 {
     UWorld* World = GetWorld();
     TArray<AActor*> FoundBrushes;
-    FString floor_string = "Floor";
     FString brush_name;
     int num_brushes = 0;
 
@@ -77,19 +76,19 @@ void UNewActorComponent_Lidar::ChangeWallTexture()
 
     for (AActor* TActor: FoundBrushes) {
         if(TActor != nullptr) {
+            ABrush* b = Cast<ABrush> (TActor);
             brush_name = TActor->GetName();
 
             //get the components of the floor
-            TArray <UBrushComponent *> Brush_Components;
-            //TActor->GetComponents<UBrushComponent>(Brush_Components);
+            UBrushComponent* Brush_Component = b->GetBrushComponent();
 
             //UMaterialInstanceDynamic* DMaterial = UMaterialInstanceDynamic::Create(Floor_Components[0]->GetMaterial(0), nullptr);
             //floor_material_string = *DMaterial->GetName(); 
 
             if (NFMaterial != NULL) {
-                //UMaterialInstanceDynamic* NFMaterial_Instance = UMaterialInstanceDynamic::Create(NFMaterial, Brush_Components[0]);
-                //set the new material to the floor
-                //Brush_Components[0]->SetMaterial(0,NFMaterial_Instance);
+                //UMaterialInstanceDynamic* NFMaterial_Instance = UMaterialInstanceDynamic::Create(NFMaterial, Brush_Component);
+                //set the new material to the brush
+                //Brush_Components->SetMaterial(0,NFMaterial_Instance);
             }
         }
     }
