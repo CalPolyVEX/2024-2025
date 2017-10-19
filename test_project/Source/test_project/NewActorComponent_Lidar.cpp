@@ -58,37 +58,33 @@ void UNewActorComponent_Lidar::BeginPlay()
     OwnerCharacter->InputComponent->BindAction("ShowLidar", IE_Pressed, this, &UNewActorComponent_Lidar::show_lidar);
 
     //setup periodic timer
-    GetWorld()->GetTimerManager().SetTimer(TestTimerHandle, this, &UNewActorComponent_Lidar::ChangeWallTexture, 2.0f, true);
+    //GetWorld()->GetTimerManager().SetTimer(TestTimerHandle, this, &UNewActorComponent_Lidar::ChangeWallTexture, 2.0f, true);
 }
 
 void UNewActorComponent_Lidar::ChangeWallTexture()
 {
     UWorld* World = GetWorld();
-    TArray<AActor*> FoundBrushes;
+    TArray<AActor*> FoundActors;
+    FString wall_string = "BrickWall";
     FString brush_name;
     int num_brushes = 0;
 
-    //get all the brushes actors
-    UGameplayStatics::GetAllActorsOfClass(World, ABrush::StaticClass(), FoundBrushes);
-    num_brushes = FoundBrushes.Num();
+    //get all the static mesh actors
+    UGameplayStatics::GetAllActorsOfClass(World, AStaticMeshActor::StaticClass(), FoundActors);
 
     GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, FString::Printf(TEXT("Number of brushes: %d"), num_brushes));
 
-    for (AActor* TActor: FoundBrushes) {
-        if(TActor != nullptr) {
-            ABrush* b = Cast<ABrush> (TActor);
-            brush_name = TActor->GetName();
-
-            //get the components of the floor
-            UBrushComponent* Brush_Component = b->GetBrushComponent();
-
-            //UMaterialInstanceDynamic* DMaterial = UMaterialInstanceDynamic::Create(Floor_Components[0]->GetMaterial(0), nullptr);
-            //floor_material_string = *DMaterial->GetName(); 
+    //set the new material to the walls
+    for (AActor* TActor: FoundActors) {
+        if(TActor != nullptr && (TActor->GetName()).Contains(wall_string) == true) {
+            //get the components of the wall
+            TArray <UStaticMeshComponent *> Wall_Components;
+            TActor->GetComponents<UStaticMeshComponent>(Wall_Components);
 
             if (NFMaterial != NULL) {
-                //UMaterialInstanceDynamic* NFMaterial_Instance = UMaterialInstanceDynamic::Create(NFMaterial, Brush_Component);
-                //set the new material to the brush
-                //Brush_Components->SetMaterial(0,NFMaterial_Instance);
+                UMaterialInstanceDynamic* NFMaterial_Instance = UMaterialInstanceDynamic::Create(NFMaterial, Wall_Components[0]);
+                //set the new material to the floor
+                Wall_Components[0]->SetMaterial(0,NFMaterial_Instance);
             }
         }
     }
