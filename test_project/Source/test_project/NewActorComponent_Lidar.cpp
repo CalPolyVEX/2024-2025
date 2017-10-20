@@ -5,7 +5,8 @@
 #include "Camera/CameraComponent.h"
 #include "Runtime/Engine/Classes/GameFramework/Character.h"
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
-#include "Runtime/Engine/Classes/Engine/Brush.h"
+#include "Runtime/Engine/Classes/Engine/DirectionalLight.h"
+#include "Runtime/Engine/Classes/Components/DirectionalLightComponent.h"
 #include <string>
 
 UCameraComponent* L = NULL;
@@ -17,6 +18,36 @@ UMaterial* NFMaterial = NULL;
 FTimerHandle TestTimerHandle;
 int draw_lidar = 1;
 
+void UNewActorComponent_Lidar::MoveSunToRandom() {
+    UWorld* World = GetWorld();
+    TArray<AActor*> FoundActors;
+    FString light_string = "LightSource";
+    FVector current_location;
+    FRotator current_rotation;
+    float rand_deg = FMath::RandRange((float)0.00001,(float)1.0);
+    FRotator r = FRotator(0,360.0 * rand_deg,0);
+
+    //get all the static mesh actors
+    UGameplayStatics::GetAllActorsOfClass(World, ADirectionalLight::StaticClass(), FoundActors);
+
+    //find the light source actor
+    for (AActor* TActor: FoundActors) {
+        if(TActor != nullptr && (TActor->GetName()).Contains(light_string) == true) {
+
+            ULightComponent* light = TActor->FindComponentByClass<ULightComponent>();
+            current_location = light->GetComponentLocation();
+            current_rotation = light->GetComponentRotation();
+
+            //FRotator ActorRotation = YourActorReference->GetActorRotation();
+              
+            current_rotation.Pitch = rand_deg*360.0;
+               
+            TActor->SetActorRotation(current_rotation);
+            //light->SetWorldLocationAndRotation(current_location, current_rotation);
+            GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, FString::Printf(TEXT("found light source %f %f %f"), current_rotation.Pitch, current_rotation.Yaw, current_rotation.Roll));
+        }
+    }
+    
 void UNewActorComponent_Lidar::timer_expire() {
 }
 
@@ -59,6 +90,7 @@ void UNewActorComponent_Lidar::BeginPlay()
 
     //setup periodic timer
     //GetWorld()->GetTimerManager().SetTimer(TestTimerHandle, this, &UNewActorComponent_Lidar::ChangeWallTexture, 2.0f, true);
+    GetWorld()->GetTimerManager().SetTimer(TestTimerHandle, this, &UNewActorComponent_Lidar::MoveSunToRandom, 2.0f, true);
 }
 
 void UNewActorComponent_Lidar::ChangeWallTexture()

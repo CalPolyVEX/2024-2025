@@ -22,6 +22,7 @@ public:
         virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
         int ChangeFloorTexture(FString* f);
         void ChangeWallTexture();
+        void MoveSunToRandom();
         void timer_expire();
         void ZoomIn();
         void GetLidarScan();
