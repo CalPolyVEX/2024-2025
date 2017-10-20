@@ -47,6 +47,7 @@ void UNewActorComponent_Lidar::MoveSunToRandom() {
             GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, FString::Printf(TEXT("found light source %f %f %f"), current_rotation.Pitch, current_rotation.Yaw, current_rotation.Roll));
         }
     }
+}
     
 void UNewActorComponent_Lidar::timer_expire() {
 }
