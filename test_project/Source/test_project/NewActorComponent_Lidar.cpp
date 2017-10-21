@@ -8,6 +8,7 @@
 #include "Runtime/Engine/Classes/Engine/DirectionalLight.h"
 #include "Runtime/Engine/Classes/Components/DirectionalLightComponent.h"
 #include "Runtime/Core/Public/Misc/Paths.h"
+#include "Runtime/Core/Public/Misc/DateTime.h"
 #include <string>
 
 #define NUM_LIDAR_POINTS 30
@@ -20,7 +21,7 @@ int test_size = -1;
 UMaterial* NFMaterial = NULL;
 FTimerHandle TestTimerHandle;
 FTimerHandle ScreenshotTimerHandle;
-int draw_lidar = 1;
+int draw_lidar = 0;
 float lidar_distance[NUM_LIDAR_POINTS*2 + 1];
 
 void UNewActorComponent_Lidar::MoveSunToRandom() {
@@ -222,9 +223,10 @@ void UNewActorComponent_Lidar::GetLidarScan() {
 }
 
 void UNewActorComponent_Lidar::GetScreenshot() {
+    FString time = FDateTime::Now().ToString();
 
     GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Requesting screenshot")); 
-    FString fileName("/Users/jseng/screenshot.png");
+    FString fileName("/Users/jseng/ue4/data/screenshot_" + time + ".png");
     FScreenshotRequest::RequestScreenshot(fileName, false, false);
 
     //get a low resolution screenshot
@@ -241,32 +243,31 @@ void UNewActorComponent_Lidar::GetScreenshot() {
     }
 
     //write screen data to file
-    FString SaveDirectory = FString("/Users/jseng");
-    FString FileName = FString("MyFileName.csv");
+    FString SaveDirectory = FString("/Users/jseng/ue4/data/");
+    FString FileName = FString("datafile.csv");
     FString TextToSave = FString("");
-    bool AllowOverwriting = false;
     
+    //store the lidar data to a string
+    TextToSave.Append("screenshot_" + time + FString(" "));
     for (int i=0;i<(2*NUM_LIDAR_POINTS + 1);i++) {
         TextToSave.Append( FString::SanitizeFloat(lidar_distance[i]) + FString(" "));
     }
     
     TextToSave.Append( FString("\n"));
 
-    // CreateDirectoryTree returns true if the destination
-    // directory existed prior to call or has been created
-    // during the call.
+    //check if the directory exists
     if (FPaths::DirectoryExists(SaveDirectory)) {
-	    // Get absolute file path
-	    FString AbsoluteFilePath = SaveDirectory + "/" + FileName;
-    
-	    // Allow overwriting or file doesn't already exist
-	    if (FPaths::FileExists(AbsoluteFilePath)) {
-                //append to the file
-                FFileHelper::SaveStringToFile(TextToSave, *AbsoluteFilePath, FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), EFileWrite::FILEWRITE_Append);
-	    } else {
-                //create a new file
-                FFileHelper::SaveStringToFile(TextToSave, *AbsoluteFilePath);
-            }
+        //created the absolute file path
+        FString AbsoluteFilePath = SaveDirectory + "/" + FileName;
+
+        //check if the file exists
+        if (FPaths::FileExists(AbsoluteFilePath)) {
+            //append to the file
+            FFileHelper::SaveStringToFile(TextToSave, *AbsoluteFilePath, FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), EFileWrite::FILEWRITE_Append);
+        } else {
+            //create a new file
+            FFileHelper::SaveStringToFile(TextToSave, *AbsoluteFilePath);
+        }
     }
 }
 
