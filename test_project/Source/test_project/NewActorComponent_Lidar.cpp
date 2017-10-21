@@ -7,7 +7,10 @@
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
 #include "Runtime/Engine/Classes/Engine/DirectionalLight.h"
 #include "Runtime/Engine/Classes/Components/DirectionalLightComponent.h"
+#include "Runtime/Core/Public/Misc/Paths.h"
 #include <string>
+
+#define NUM_LIDAR_POINTS 30
 
 UCameraComponent* L = NULL;
 AActor* floor_mesh = NULL;
@@ -16,7 +19,9 @@ FString floor_material_string = "";
 int test_size = -1;
 UMaterial* NFMaterial = NULL;
 FTimerHandle TestTimerHandle;
+FTimerHandle ScreenshotTimerHandle;
 int draw_lidar = 1;
+float lidar_distance[NUM_LIDAR_POINTS*2 + 1];
 
 void UNewActorComponent_Lidar::MoveSunToRandom() {
     UWorld* World = GetWorld();
@@ -92,6 +97,7 @@ void UNewActorComponent_Lidar::BeginPlay()
     //setup periodic timer
     //GetWorld()->GetTimerManager().SetTimer(TestTimerHandle, this, &UNewActorComponent_Lidar::ChangeWallTexture, 2.0f, true);
     GetWorld()->GetTimerManager().SetTimer(TestTimerHandle, this, &UNewActorComponent_Lidar::MoveSunToRandom, 2.0f, true);
+    GetWorld()->GetTimerManager().SetTimer(ScreenshotTimerHandle, this, &UNewActorComponent_Lidar::GetScreenshot, 1.5f, true);
 }
 
 void UNewActorComponent_Lidar::ChangeWallTexture()
@@ -182,7 +188,8 @@ void UNewActorComponent_Lidar::GetLidarScan() {
     TraceParams.bTraceAsyncScene = true;
     TraceParams.bReturnPhysicalMaterial = false;
 
-    for(int i=-30;i<30;i++) {
+    int counter = 0;
+    for(int i=-NUM_LIDAR_POINTS;i<NUM_LIDAR_POINTS+1;i++) {
         FRotator r = FRotator(0,i*1.5,0);
         end_location = current_location + (r.RotateVector(current_forward_vector) * 2500);
 
@@ -193,6 +200,7 @@ void UNewActorComponent_Lidar::GetLidarScan() {
         if (GetWorld()->LineTraceSingleByChannel(RV_Hit,current_location, end_location, ECC_Pawn, TraceParams) == true) {
             //there was an impact, then draw the trace in red
             FVector impact = RV_Hit.Location;
+            lidar_distance[counter] = FVector::Dist(impact, current_location);
 
             if (draw_lidar) {
                 if (i==0)
@@ -209,13 +217,57 @@ void UNewActorComponent_Lidar::GetLidarScan() {
             }
         }
 
+        counter++;
     }
 }
 
 void UNewActorComponent_Lidar::GetScreenshot() {
+
     GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Requesting screenshot")); 
     FString fileName("/Users/jseng/screenshot.png");
     FScreenshotRequest::RequestScreenshot(fileName, false, false);
+
+    //get a low resolution screenshot
+    if( GEngine && 0 == 5) {
+	UGameViewportClient *GameViewport = GEngine->GameViewport;
+	if( GameViewport ) {
+	    FViewport *Viewport = GameViewport->Viewport;
+	    if( Viewport ) {
+		GScreenshotResolutionX = 320;
+		GScreenshotResolutionY = 240;
+		Viewport->TakeHighResScreenShot( );
+	    }
+	}
+    }
+
+    //write screen data to file
+    FString SaveDirectory = FString("/Users/jseng");
+    FString FileName = FString("MyFileName.csv");
+    FString TextToSave = FString("");
+    bool AllowOverwriting = false;
+    
+    for (int i=0;i<(2*NUM_LIDAR_POINTS + 1);i++) {
+        TextToSave.Append( FString::SanitizeFloat(lidar_distance[i]) + FString(" "));
+    }
+    
+    TextToSave.Append( FString("\n"));
+
+    // CreateDirectoryTree returns true if the destination
+    // directory existed prior to call or has been created
+    // during the call.
+    if (FPaths::DirectoryExists(SaveDirectory)) {
+	    // Get absolute file path
+	    FString AbsoluteFilePath = SaveDirectory + "/" + FileName;
+    
+	    // Allow overwriting or file doesn't already exist
+	    if (FPaths::FileExists(AbsoluteFilePath)) {
+                //append to the file
+                FFileHelper::SaveStringToFile(TextToSave, *AbsoluteFilePath, FFileHelper::EEncodingOptions::AutoDetect, &IFileManager::Get(), EFileWrite::FILEWRITE_Append);
+	    } else {
+                //create a new file
+                FFileHelper::SaveStringToFile(TextToSave, *AbsoluteFilePath);
+            }
+    }
 }
 
 // Called every frame
