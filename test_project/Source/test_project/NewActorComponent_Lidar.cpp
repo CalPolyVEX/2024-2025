@@ -98,7 +98,7 @@ void UNewActorComponent_Lidar::BeginPlay()
     //setup periodic timer
     //GetWorld()->GetTimerManager().SetTimer(TestTimerHandle, this, &UNewActorComponent_Lidar::ChangeWallTexture, 2.0f, true);
     GetWorld()->GetTimerManager().SetTimer(TestTimerHandle, this, &UNewActorComponent_Lidar::MoveSunToRandom, 2.0f, true);
-    GetWorld()->GetTimerManager().SetTimer(ScreenshotTimerHandle, this, &UNewActorComponent_Lidar::GetScreenshot, 1.5f, true);
+    GetWorld()->GetTimerManager().SetTimer(ScreenshotTimerHandle, this, &UNewActorComponent_Lidar::GetScreenshot, .225f, true);
 }
 
 void UNewActorComponent_Lidar::ChangeWallTexture()
@@ -223,9 +223,10 @@ void UNewActorComponent_Lidar::GetLidarScan() {
 }
 
 void UNewActorComponent_Lidar::GetScreenshot() {
-    FString time = FDateTime::Now().ToString();
+    FDateTime x = FDateTime::Now();
+    FString time = x.ToString() + "." + FString::FromInt(x.GetMillisecond());
 
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Requesting screenshot")); 
+    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Requesting screenshot")); 
     FString fileName("/Users/jseng/ue4/data/screenshot_" + time + ".png");
     FScreenshotRequest::RequestScreenshot(fileName, false, false);
 
