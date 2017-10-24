@@ -29,4 +29,5 @@ public:
         void show_lidar();
         void GetScreenshot();
         void GetRandomObject();
+        void PlaceRandomObject();
 };

@@ -20,7 +20,7 @@ FString test_string = "";
 FString floor_material_string = "";
 int test_size = -1;
 UMaterial* NFMaterial = NULL;
-FTimerHandle TestTimerHandle;
+FTimerHandle SunTimerHandle;
 FTimerHandle ScreenshotTimerHandle;
 int draw_lidar = 0;
 float lidar_distance[NUM_LIDAR_POINTS*2 + 1];
@@ -67,28 +67,37 @@ void UNewActorComponent_Lidar::show_lidar() {
 }
 
 // Get random object to place in the world
+FString dirname;
 void UNewActorComponent_Lidar::GetRandomObject() {
     TArray<FString> FileNames;
     FFileManagerGeneric FileMgr;
     FileMgr.SetSandboxEnabled(true);// don't ask why, I don't know :P
-    FString wildcard(""); // May be "" (empty string) to search all files
-    FString search_path(FPaths::Combine(*FPaths::GameDir(), TEXT("StarterContent/Textures"), *wildcard));
+    FString wildcard("*"); // May be "" (empty string) to search all files
+    dirname = "Content/StarterContent/Textures/";
+    FString search_path(FPaths::Combine(*FPaths::GameDir(), *dirname, *wildcard));
 
     FileMgr.FindFiles(FileNames, *search_path, 
 	    true,  // to list files
-	    false); // to skip directories
+	    true); // to skip directories
 
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, FString::Printf(TEXT("searching for files")));
+    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, FString::Printf(TEXT("searching for files %s %d"), *FPaths::GameDir(), FileNames.Num()));
 
     for (auto f : FileNames)
     {
 	FString filename(f);
 	f.RemoveFromEnd(".xml");
-	//OutputDebugStringA(TCHAR_TO_ANSI(*(f+"\n")));
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, FString::Printf(TEXT("filename %s "), *f));
+	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, FString::Printf(TEXT("filename %s "), *f));
     }
 
     FileNames.Empty();// Clear array
+}
+
+
+void UNewActorComponent_Lidar::PlaceRandomObject() {
+    FVector Location(0.0f, 0.0f, 0.0f);
+    FRotator Rotation(0.0f, 0.0f, 0.0f);
+    FActorSpawnParameters SpawnInfo;
+    GetWorld()->SpawnActor<AActor>(Location, Rotation, SpawnInfo);
 }
 
 // Sets default values for this component's properties
@@ -123,7 +132,7 @@ void UNewActorComponent_Lidar::BeginPlay()
 
     //setup periodic timer
     //GetWorld()->GetTimerManager().SetTimer(TestTimerHandle, this, &UNewActorComponent_Lidar::ChangeWallTexture, 2.0f, true);
-    GetWorld()->GetTimerManager().SetTimer(TestTimerHandle, this, &UNewActorComponent_Lidar::MoveSunToRandom, 2.0f, true);
+    GetWorld()->GetTimerManager().SetTimer(SunTimerHandle, this, &UNewActorComponent_Lidar::MoveSunToRandom, 2.0f, true);
     //GetWorld()->GetTimerManager().SetTimer(ScreenshotTimerHandle, this, &UNewActorComponent_Lidar::GetScreenshot, .225f, true);
     GetWorld()->GetTimerManager().SetTimer(ScreenshotTimerHandle, this, &UNewActorComponent_Lidar::GetRandomObject, 2.0f, true);
 }
