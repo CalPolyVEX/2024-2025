@@ -9,6 +9,7 @@
 #include "Runtime/Engine/Classes/Components/DirectionalLightComponent.h"
 #include "Runtime/Core/Public/Misc/Paths.h"
 #include "Runtime/Core/Public/Misc/DateTime.h"
+#include "Runtime/Core/Public/HAL/FileManagerGeneric.h"
 #include <string>
 
 #define NUM_LIDAR_POINTS 30
@@ -65,6 +66,31 @@ void UNewActorComponent_Lidar::show_lidar() {
         draw_lidar = 1;
 }
 
+// Get random object to place in the world
+void UNewActorComponent_Lidar::GetRandomObject() {
+    TArray<FString> FileNames;
+    FFileManagerGeneric FileMgr;
+    FileMgr.SetSandboxEnabled(true);// don't ask why, I don't know :P
+    FString wildcard(""); // May be "" (empty string) to search all files
+    FString search_path(FPaths::Combine(*FPaths::GameDir(), TEXT("StarterContent/Textures"), *wildcard));
+
+    FileMgr.FindFiles(FileNames, *search_path, 
+	    true,  // to list files
+	    false); // to skip directories
+
+    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, FString::Printf(TEXT("searching for files")));
+
+    for (auto f : FileNames)
+    {
+	FString filename(f);
+	f.RemoveFromEnd(".xml");
+	//OutputDebugStringA(TCHAR_TO_ANSI(*(f+"\n")));
+	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, FString::Printf(TEXT("filename %s "), *f));
+    }
+
+    FileNames.Empty();// Clear array
+}
+
 // Sets default values for this component's properties
 UNewActorComponent_Lidar::UNewActorComponent_Lidar()
 {
@@ -98,7 +124,8 @@ void UNewActorComponent_Lidar::BeginPlay()
     //setup periodic timer
     //GetWorld()->GetTimerManager().SetTimer(TestTimerHandle, this, &UNewActorComponent_Lidar::ChangeWallTexture, 2.0f, true);
     GetWorld()->GetTimerManager().SetTimer(TestTimerHandle, this, &UNewActorComponent_Lidar::MoveSunToRandom, 2.0f, true);
-    GetWorld()->GetTimerManager().SetTimer(ScreenshotTimerHandle, this, &UNewActorComponent_Lidar::GetScreenshot, .225f, true);
+    //GetWorld()->GetTimerManager().SetTimer(ScreenshotTimerHandle, this, &UNewActorComponent_Lidar::GetScreenshot, .225f, true);
+    GetWorld()->GetTimerManager().SetTimer(ScreenshotTimerHandle, this, &UNewActorComponent_Lidar::GetRandomObject, 2.0f, true);
 }
 
 void UNewActorComponent_Lidar::ChangeWallTexture()
