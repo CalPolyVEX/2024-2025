@@ -20,7 +20,7 @@ protected:
 public:	
         // Called every frame
         virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-        int ChangeFloorTexture(FString* f);
+        void ChangeFloorTexture();
         void ChangeWallTexture();
         void MoveSunToRandom();
         void timer_expire();
@@ -28,6 +28,6 @@ public:
         void GetLidarScan();
         void show_lidar();
         void GetScreenshot();
-        void GetRandomObject();
         void PlaceRandomObject();
+        void GetRandomObject(FString *dirname);
 };
