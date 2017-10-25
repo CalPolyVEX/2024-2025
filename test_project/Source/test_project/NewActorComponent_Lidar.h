@@ -30,4 +30,5 @@ public:
         void GetScreenshot();
         void PlaceRandomObject();
         void GetRandomObject(FString *dirname);
+        void CreateObjects();
 };
