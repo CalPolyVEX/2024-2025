@@ -306,7 +306,7 @@ void UNewActorComponent_Lidar::GetLidarScan() {
     FCollisionQueryParams TraceParams;
     TraceParams.bFindInitialOverlaps = true; // Doesn't change anything whether it's true by default or false in my case
     TraceParams.AddIgnoredActor(GetOwner());
-    TraceParams.bTraceComplex = true;
+    TraceParams.bTraceComplex = false;
     TraceParams.bTraceAsyncScene = true;
     TraceParams.bReturnPhysicalMaterial = false;
 
