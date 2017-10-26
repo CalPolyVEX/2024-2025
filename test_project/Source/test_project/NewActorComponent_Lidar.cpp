@@ -23,6 +23,7 @@ UMaterial* NFMaterial = NULL;
 FTimerHandle SunTimerHandle;
 FTimerHandle ScreenshotTimerHandle;
 FTimerHandle FloorTimerHandle;
+FTimerHandle WallTimerHandle;
 int draw_lidar = 0;
 float lidar_distance[NUM_LIDAR_POINTS*2 + 1];
 
@@ -68,33 +69,33 @@ void UNewActorComponent_Lidar::CreateObjects() {
     // create a new static mesh
     FString props_dir = "Content/StarterContent/JS_Props";
     FString p_dir = "/Game/StarterContent/JS_Props/";
-    GetRandomObject(&props_dir);
+    GetRandomObject(&props_dir); //get a random object from the directory
     props_dir.RemoveFromEnd(".uasset");
+    p_dir = p_dir + props_dir + "." + props_dir;
 
+    //skip the Material directory
     if (props_dir.Contains("Materials"))
         return;
 
-    p_dir = p_dir + props_dir + "." + props_dir;
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, FString::Printf(TEXT("searching for files %s "), *p_dir));
+    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, FString::Printf(TEXT("loading mesh %s "), *p_dir));
 
     FActorSpawnParameters SpawnInfo;
     SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding;
 
+    //set the location and rotation of the new mesh
+    FVector SpawnLoc(FMath::RandRange(-1300.0f, 2000.0f), FMath::RandRange(-800.0f, 4500.0f), 0.0f);
+    FRotator SpawnRot(0.0f, FMath::RandRange(0.0f, 360.0f), 0.0f);
 
-    FVector TileSpawnLoc(FMath::RandRange(-1300.0f, 2000.0f), FMath::RandRange(-800.0f, 4500.0f), 0.0f);
-    FRotator TileSpawnRotation(0.0f, 0.0f, 0.0f);
+    AStaticMeshActor* NewActor = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), SpawnLoc, SpawnRot, SpawnInfo);
 
-    AStaticMeshActor* NewTile =	GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), TileSpawnLoc, TileSpawnRotation, SpawnInfo);
-
+    //load the static mesh from the path
     UStaticMesh* StaticMesh = LoadObject<UStaticMesh>(NULL, *p_dir, NULL, LOAD_None, NULL);
-    //UStaticMeshComponent* Test = NewObject<UStaticMeshComponent>(UStaticMeshComponent::StaticClass());
-    //Test->SetMobility(EComponentMobility::Movable);
-    //Test->SetWorldLocation(TileSpawnLoc);
-    //Test->RegisterComponentWithWorld(GetWorld());
-    //Test->SetStaticMesh(StaticMesh);
 
+    //get the components of the newly created actor
     TArray<UStaticMeshComponent*> Components;
-    NewTile->GetComponents<UStaticMeshComponent>(Components);
+    NewActor->GetComponents<UStaticMeshComponent>(Components);
+
+    //set the first component to the static mesh
     Components[0]->SetMobility(EComponentMobility::Movable);
     Components[0]->SetStaticMesh(StaticMesh);
 		
@@ -185,43 +186,18 @@ void UNewActorComponent_Lidar::BeginPlay()
     OwnerCharacter->InputComponent->BindAction("ScreenShotMode", IE_Pressed, this, &UNewActorComponent_Lidar::GetScreenshot);
     OwnerCharacter->InputComponent->BindAction("ShowLidar", IE_Pressed, this, &UNewActorComponent_Lidar::show_lidar);
 
-    //setup periodic timer
-    //GetWorld()->GetTimerManager().SetTimer(TestTimerHandle, this, &UNewActorComponent_Lidar::ChangeWallTexture, 2.0f, true);
+    //move the sun position 
     GetWorld()->GetTimerManager().SetTimer(SunTimerHandle, this, &UNewActorComponent_Lidar::MoveSunToRandom, 2.0f, true);
-    //GetWorld()->GetTimerManager().SetTimer(ScreenshotTimerHandle, this, &UNewActorComponent_Lidar::GetScreenshot, .225f, true);
-    GetWorld()->GetTimerManager().SetTimer(ScreenshotTimerHandle, this, &UNewActorComponent_Lidar::CreateObjects, 2.0f, true);
+
+    //get screenshots
+    GetWorld()->GetTimerManager().SetTimer(ScreenshotTimerHandle, this, &UNewActorComponent_Lidar::GetScreenshot, .225f, true);
+    //GetWorld()->GetTimerManager().SetTimer(ScreenshotTimerHandle, this, &UNewActorComponent_Lidar::CreateObjects, 2.0f, true);
 
     //change the floor texture 	
     GetWorld()->GetTimerManager().SetTimer(FloorTimerHandle, this, &UNewActorComponent_Lidar::ChangeFloorTexture, 5.0f, true);
-}
 
-void UNewActorComponent_Lidar::ChangeWallTexture()
-{
-    UWorld* World = GetWorld();
-    TArray<AActor*> FoundActors;
-    FString wall_string = "BrickWall";
-    FString brush_name;
-    int num_brushes = 0;
-
-    //get all the static mesh actors
-    UGameplayStatics::GetAllActorsOfClass(World, AStaticMeshActor::StaticClass(), FoundActors);
-
-    GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, FString::Printf(TEXT("Number of brushes: %d"), num_brushes));
-
-    //set the new material to the walls
-    for (AActor* TActor: FoundActors) {
-        if(TActor != nullptr && (TActor->GetName()).Contains(wall_string) == true) {
-            //get the components of the wall
-            TArray <UStaticMeshComponent *> Wall_Components;
-            TActor->GetComponents<UStaticMeshComponent>(Wall_Components);
-
-            if (NFMaterial != NULL) {
-                UMaterialInstanceDynamic* NFMaterial_Instance = UMaterialInstanceDynamic::Create(NFMaterial, Wall_Components[0]);
-                //set the new material to the floor
-                Wall_Components[0]->SetMaterial(0,NFMaterial_Instance);
-            }
-        }
-    }
+    //change the wall texture
+    GetWorld()->GetTimerManager().SetTimer(WallTimerHandle, this, &UNewActorComponent_Lidar::ChangeWallTexture, 4.0f, true);
 }
 
 //TEMPLATE Load Obj From Path
@@ -241,6 +217,42 @@ static FORCEINLINE UMaterialInterface* LoadMatFromPath(const FName& Path)
 	return LoadObjFromPath<UMaterialInterface>(Path);
 }
 
+void UNewActorComponent_Lidar::ChangeWallTexture()
+{
+    UWorld* World = GetWorld();
+    TArray<AActor*> FoundActors;
+    FString wall_string = "BrickWall";
+    
+    //get random floor texture
+    FString wall_dir = "Content/StarterContent/Materials/Wall/";
+    FString mat_dir = "/Game/StarterContent/Materials/Wall/";
+    FString f_dir = *wall_dir;
+    GetRandomObject(&wall_dir);
+    wall_dir.RemoveFromEnd(".uasset");
+    wall_dir = "Material'" + mat_dir + wall_dir + "." + wall_dir + "'";
+
+    UMaterialInterface* u = LoadMatFromPath(*wall_dir);	
+
+    //get all the static mesh actors
+    UGameplayStatics::GetAllActorsOfClass(World, AStaticMeshActor::StaticClass(), FoundActors);
+
+    //set the new material to the walls
+    for (AActor* TActor: FoundActors) {
+        if(TActor != nullptr && (TActor->GetName()).Contains(wall_string) == true) {
+            //get the components of the wall
+            TArray <UStaticMeshComponent *> Wall_Components;
+            TActor->GetComponents<UStaticMeshComponent>(Wall_Components);
+
+            if (NFMaterial != NULL) {
+                UMaterialInstanceDynamic* NFMaterial_Instance = UMaterialInstanceDynamic::Create(u, Wall_Components[0]);
+                //set the new material to the floor
+                Wall_Components[0]->SetMaterial(0,NFMaterial_Instance);
+            }
+        }
+    }
+}
+
+
 void UNewActorComponent_Lidar::ChangeFloorTexture() {
     UWorld* World = GetWorld();
     TArray<AActor*> FoundActors;
@@ -256,10 +268,8 @@ void UNewActorComponent_Lidar::ChangeFloorTexture() {
     GetRandomObject(&floor_dir);
     floor_dir.RemoveFromEnd(".uasset");
     floor_dir = "Material'" + mat_dir + floor_dir + "." + floor_dir + "'";
-    //GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, FString::Printf(TEXT("floor texture %s "), *floor_dir));
 
     UMaterialInterface* u = LoadMatFromPath(*floor_dir);	
-
 
     //find the floor mesh
     for (AActor* TActor: FoundActors)
