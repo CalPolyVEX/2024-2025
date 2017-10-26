@@ -66,66 +66,39 @@ void UNewActorComponent_Lidar::show_lidar() {
 
 void UNewActorComponent_Lidar::CreateObjects() {
     // create a new static mesh
-    FString props_dir = "Content/StarterContent/Props";
-    FString p_dir = "/Game/StarterContent/Props/";
+    FString props_dir = "Content/StarterContent/JS_Props";
+    FString p_dir = "/Game/StarterContent/JS_Props/";
     GetRandomObject(&props_dir);
     props_dir.RemoveFromEnd(".uasset");
+
+    if (props_dir.Contains("Materials"))
+        return;
+
     p_dir = p_dir + props_dir + "." + props_dir;
     GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, FString::Printf(TEXT("searching for files %s "), *p_dir));
 
     FActorSpawnParameters SpawnInfo;
-    SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+    SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::DontSpawnIfColliding;
 
-    //SpawnInfo.Owner = (AActor*)this;
 
-    FVector TileSpawnLoc(0.0f, 0.0f, 0.0f);
+    FVector TileSpawnLoc(FMath::RandRange(-1300.0f, 2000.0f), FMath::RandRange(-800.0f, 4500.0f), 0.0f);
     FRotator TileSpawnRotation(0.0f, 0.0f, 0.0f);
 
     AStaticMeshActor* NewTile =	GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(), TileSpawnLoc, TileSpawnRotation, SpawnInfo);
 
-
-
-
     UStaticMesh* StaticMesh = LoadObject<UStaticMesh>(NULL, *p_dir, NULL, LOAD_None, NULL);
-    UStaticMeshComponent* Test = NewObject<UStaticMeshComponent>(UStaticMeshComponent::StaticClass());
-    Test->SetStaticMesh(StaticMesh);
-    Test->SetWorldLocation(TileSpawnLoc);
-    Test->RegisterComponentWithWorld(GetWorld());
+    //UStaticMeshComponent* Test = NewObject<UStaticMeshComponent>(UStaticMeshComponent::StaticClass());
+    //Test->SetMobility(EComponentMobility::Movable);
+    //Test->SetWorldLocation(TileSpawnLoc);
+    //Test->RegisterComponentWithWorld(GetWorld());
+    //Test->SetStaticMesh(StaticMesh);
 
     TArray<UStaticMeshComponent*> Components;
     NewTile->GetComponents<UStaticMeshComponent>(Components);
+    Components[0]->SetMobility(EComponentMobility::Movable);
     Components[0]->SetStaticMesh(StaticMesh);
 		
-    //NewTile->AttachToComponent(Test, FAttachmentTransformRules::KeepWorldTransform);
-
-    //NewTile->GetComponents<UStaticMeshComponent>(Components);
-    //for( int32 i=0; i<Components.Num(); i++ )
-    //{
-//	UStaticMeshComponent* StaticMeshComponent = Components[i];
-//	UStaticMesh* StaticMesh = StaticMeshComponent->StaticMesh;
-   // }
-
-    //AStaticMeshActor* s = Cast<AStaticMeshActor>(StaticLoadObject(AStaticMeshActor::StaticClass(), NULL, *p_dir));
-    //s->SetActorLabel("newactor");
-    //s->RegisterAllComponents();
-
     return;
-
-    UStaticMesh* Mesh = LoadObject<UStaticMesh>(nullptr, *p_dir);
-
-    // Make a location for the new actor to spawn at (300 units above this actor)  
-    FVector NewLocation = FVector(0.f, 0.f, 0.f);  
-    AStaticMeshActor* A = GetWorld()->SpawnActor<AStaticMeshActor>(AStaticMeshActor::StaticClass(),NewLocation, FRotator::ZeroRotator);
-
-    UStaticMeshComponent* NewComp = NewObject<UStaticMeshComponent>(UStaticMeshComponent::StaticClass());
-    //A->RootComponent = NewComp;
-    if (NewComp)
-    {
-	NewComp->RegisterComponent();
-	NewComp->SetRelativeLocation(NewLocation);
-	NewComp->SetStaticMesh(Mesh);
-    }
-
 }
 
 // Get random object to place in the world
