@@ -25,6 +25,7 @@ FTimerHandle ScreenshotTimerHandle;
 FTimerHandle FloorTimerHandle;
 FTimerHandle WallTimerHandle;
 int draw_lidar = 0;
+int capture_data = 0;
 float lidar_distance[NUM_LIDAR_POINTS*2 + 1];
 
 void UNewActorComponent_Lidar::MoveSunToRandom() {
@@ -63,6 +64,13 @@ void UNewActorComponent_Lidar::show_lidar() {
         draw_lidar = 0;
     else
         draw_lidar = 1;
+}
+
+void UNewActorComponent_Lidar::capture_data_func() {
+    if (capture_data== 1)
+        capture_data = 0;
+    else
+        capture_data = 1;
 }
 
 void UNewActorComponent_Lidar::CreateObjects() {
@@ -185,6 +193,7 @@ void UNewActorComponent_Lidar::BeginPlay()
     ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner());
     OwnerCharacter->InputComponent->BindAction("ScreenShotMode", IE_Pressed, this, &UNewActorComponent_Lidar::GetScreenshot);
     OwnerCharacter->InputComponent->BindAction("ShowLidar", IE_Pressed, this, &UNewActorComponent_Lidar::show_lidar);
+    OwnerCharacter->InputComponent->BindAction("CaptureData", IE_Pressed, this, &UNewActorComponent_Lidar::capture_data_func);
 
     //move the sun position 
     GetWorld()->GetTimerManager().SetTimer(SunTimerHandle, this, &UNewActorComponent_Lidar::MoveSunToRandom, 2.0f, true);
@@ -354,6 +363,9 @@ void UNewActorComponent_Lidar::GetLidarScan() {
 }
 
 void UNewActorComponent_Lidar::GetScreenshot() {
+    if (capture_data == 0)
+        return;
+
     FDateTime x = FDateTime::Now();
     FString time = x.ToString() + "." + FString::FromInt(x.GetMillisecond());
 

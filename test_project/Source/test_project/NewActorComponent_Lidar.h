@@ -27,6 +27,7 @@ public:
         void ZoomIn();
         void GetLidarScan();
         void show_lidar();
+        void capture_data_func();
         void GetScreenshot();
         void PlaceRandomObject();
         void GetRandomObject(FString *dirname);
