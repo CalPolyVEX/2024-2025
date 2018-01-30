@@ -4,10 +4,8 @@
 #directory_of_files/Images
 #directory_of_files/Annotations
 
-import os
-import sys
-import random
-import cv2
+import os, sys, random
+import cv2, numpy as np
 import xml.etree.ElementTree
 
 random.seed(101)
@@ -15,13 +13,15 @@ random.seed(101)
 if len(sys.argv) <= 1:
     print "need command line arguments"
 
-files = os.listdir(sys.argv[1]+"/Images/users/jseng/building14")
+jpg_dir = sys.argv[1]+"/Images/users/jseng/building14"
+files = os.listdir(jpg_dir)
 #print files
 
 xml_dir = sys.argv[1]+"/Annotations/users/jseng/building14"
 xml_files = os.listdir(xml_dir)
 #print xml_files
 
+#get all the points in a polygon annotation file
 for x in xml_files:
     e = xml.etree.ElementTree.parse(xml_dir + "/" + x).getroot()
     print e
@@ -29,6 +29,29 @@ for x in xml_files:
         print child[0].text
         print child[1].text
 
+for f in files:
+    polygon_list = []
+
+    #get all the points in a polygon annotation file
+    x_filename = f.replace('.jpg', '.xml')
+    e = xml.etree.ElementTree.parse(xml_dir + "/" + x_filename).getroot()
+    print e
+    for child in e.iter('pt'):
+        polygon_list.append([int(child[0].text), int(child[1].text)])
+
+    print polygon_list
+
+    img = cv2.imread(jpg_dir + '/' + f)
+    height, width, channels = img.shape
+    print width,height
+
+    #create new annotation image
+    img_new = np.zeros((width,height,3), np.uint8)
+    pts = np.array(polygon_list, np.int32)
+    pts = pts.reshape((-1,1,2))
+    cv2.polylines(img_new,[pts], True, (0,255,255))
+
+    cv2.imwrite(xml_dir + '/test' + f, img_new)
 
 jpg_files = [f for f in files if 'jpg' in f]
 print jpg_files
@@ -36,13 +59,4 @@ num_jpg_files = len(jpg_files)
 
 sys.exit()
 
-for x in range(100):
-    rand_name = jpg_files[random.randint(0,num_jpg_files-1)]
-    print rand_name
-
-    #copy file to this directory
-    os.system("cp " + sys.argv[1] + "/" + rand_name + " ./testdir/" + str(x) + ".jpg")
-
-
-    
-    
+#os.system("cp " + sys.argv[1] + "/" + rand_name + " ./testdir/" + str(x) + ".jpg")
