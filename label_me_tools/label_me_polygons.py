@@ -20,6 +20,9 @@ files = os.listdir(jpg_dir)
 xml_dir = sys.argv[1]+"/Annotations/users/jseng/building14"
 xml_files = os.listdir(xml_dir)
 #print xml_files
+output_dir = sys.argv[1]+"/output"
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
 
 for f in files:
     polygon_list = []
@@ -44,7 +47,7 @@ for f in files:
     #cv2.polylines(img_new,[pts], True, (0,255,255))
     cv2.fillConvexPoly(img_new,pts, (0,255,255))
 
-    cv2.imwrite(xml_dir + '/test' + f, img_new)
+    cv2.imwrite(output_dir + '/test' + f, img_new)
 
 jpg_files = [f for f in files if 'jpg' in f]
 print jpg_files
