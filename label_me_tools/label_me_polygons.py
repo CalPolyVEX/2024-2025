@@ -21,14 +21,6 @@ xml_dir = sys.argv[1]+"/Annotations/users/jseng/building14"
 xml_files = os.listdir(xml_dir)
 #print xml_files
 
-#get all the points in a polygon annotation file
-for x in xml_files:
-    e = xml.etree.ElementTree.parse(xml_dir + "/" + x).getroot()
-    print e
-    for child in e.iter('pt'):
-        print child[0].text
-        print child[1].text
-
 for f in files:
     polygon_list = []
 
@@ -46,10 +38,11 @@ for f in files:
     print width,height
 
     #create new annotation image
-    img_new = np.zeros((width,height,3), np.uint8)
+    img_new = np.zeros((height,width,3), np.uint8)
     pts = np.array(polygon_list, np.int32)
     pts = pts.reshape((-1,1,2))
-    cv2.polylines(img_new,[pts], True, (0,255,255))
+    #cv2.polylines(img_new,[pts], True, (0,255,255))
+    cv2.fillConvexPoly(img_new,pts, (0,255,255))
 
     cv2.imwrite(xml_dir + '/test' + f, img_new)
 
