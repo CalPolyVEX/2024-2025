@@ -8,14 +8,40 @@ import os, sys, random
 import cv2, numpy as np
 import xml.etree.ElementTree
 
+def crop_left_edge(jpg_dir, jpg_files, output_dir):
+    crop_amount = 150
+    file1 = jpg_files[0]
+    print file1
+    img = cv2.imread(jpg_dir + '/' + file1)
+    height, width, channels = img.shape
+    y=0
+    x=crop_amount
+    crop_left_img = img[y:y+height, x:width] #trim left edge
+    crop_right_img = img[y:y+height, 0:width-x] #trim right edge
+    crop_top_img = img[crop_amount:height, 0:width] #trim left edge
+    crop_bottom_img = img[0:height-crop_amount, 0:width] #trim left edge
+
+    crop_left_img = cv2.resize(crop_left_img, (width,height), interpolation=cv2.INTER_CUBIC)
+    crop_right_img = cv2.resize(crop_right_img, (width,height), interpolation=cv2.INTER_CUBIC)
+    crop_top_img = cv2.resize(crop_top_img, (width,height), interpolation=cv2.INTER_CUBIC)
+    crop_bottom_img = cv2.resize(crop_bottom_img, (width,height), interpolation=cv2.INTER_CUBIC)
+    #cv2.imshow("cropped", crop_img)
+    #cv2.waitKey(0)
+
+    cv2.imwrite(output_dir + '/crop_left_test' + file1, crop_left_img)
+    cv2.imwrite(output_dir + '/crop_right_test' + file1, crop_right_img)
+    cv2.imwrite(output_dir + '/crop_top_test' + file1, crop_top_img)
+    cv2.imwrite(output_dir + '/crop_bottom_test' + file1, crop_bottom_img)
+
 random.seed(101)
 
 if len(sys.argv) <= 1:
     print "need command line arguments"
 
 jpg_dir = sys.argv[1]+"/Images/users/jseng/building14"
-files = os.listdir(jpg_dir)
+jpg_files = os.listdir(jpg_dir)
 #print files
+
 
 xml_dir = sys.argv[1]+"/Annotations/users/jseng/building14"
 xml_files = os.listdir(xml_dir)
@@ -24,7 +50,9 @@ output_dir = sys.argv[1]+"/output"
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-for f in files:
+crop_left_edge(jpg_dir, jpg_files, output_dir)
+
+for f in jpg_files:
     polygon_list = []
 
     #get all the points in a polygon annotation file
@@ -49,9 +77,9 @@ for f in files:
 
     cv2.imwrite(output_dir + '/test' + f, img_new)
 
-jpg_files = [f for f in files if 'jpg' in f]
-print jpg_files
-num_jpg_files = len(jpg_files)
+#jpg_files = [f for f in files if 'jpg' in f]
+#print jpg_files
+#num_jpg_files = len(jpg_files)
 
 sys.exit()
 
