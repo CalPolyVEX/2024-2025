@@ -8,30 +8,30 @@ import os, sys, random
 import cv2, numpy as np
 import xml.etree.ElementTree
 
-def crop_left_edge(jpg_dir, jpg_files, output_dir):
-    crop_amount = 150
+def crop_images(jpg_dir, jpg_files, output_dir):
+    crop_amount = 50
     file1 = jpg_files[0]
-    print file1
-    img = cv2.imread(jpg_dir + '/' + file1)
-    height, width, channels = img.shape
-    y=0
-    x=crop_amount
-    crop_left_img = img[y:y+height, x:width] #trim left edge
-    crop_right_img = img[y:y+height, 0:width-x] #trim right edge
-    crop_top_img = img[crop_amount:height, 0:width] #trim left edge
-    crop_bottom_img = img[0:height-crop_amount, 0:width] #trim left edge
+    for f in jpg_files:
+        print "cropping " + f
+        img = cv2.imread(jpg_dir + '/' + f)
+        height, width, channels = img.shape
 
-    crop_left_img = cv2.resize(crop_left_img, (width,height), interpolation=cv2.INTER_CUBIC)
-    crop_right_img = cv2.resize(crop_right_img, (width,height), interpolation=cv2.INTER_CUBIC)
-    crop_top_img = cv2.resize(crop_top_img, (width,height), interpolation=cv2.INTER_CUBIC)
-    crop_bottom_img = cv2.resize(crop_bottom_img, (width,height), interpolation=cv2.INTER_CUBIC)
-    #cv2.imshow("cropped", crop_img)
-    #cv2.waitKey(0)
+        crop_left_img = img[0:height, crop_amount:width] #trim left edge
+        crop_right_img = img[0:height, 0:width-crop_amount] #trim right edge
+        crop_top_img = img[crop_amount:height, 0:width] #trim top edge
+        crop_bottom_img = img[0:height-crop_amount, 0:width] #trim bottom edge
 
-    cv2.imwrite(output_dir + '/crop_left_test' + file1, crop_left_img)
-    cv2.imwrite(output_dir + '/crop_right_test' + file1, crop_right_img)
-    cv2.imwrite(output_dir + '/crop_top_test' + file1, crop_top_img)
-    cv2.imwrite(output_dir + '/crop_bottom_test' + file1, crop_bottom_img)
+        crop_left_img = cv2.resize(crop_left_img, (width,height), interpolation=cv2.INTER_CUBIC)
+        crop_right_img = cv2.resize(crop_right_img, (width,height), interpolation=cv2.INTER_CUBIC)
+        crop_top_img = cv2.resize(crop_top_img, (width,height), interpolation=cv2.INTER_CUBIC)
+        crop_bottom_img = cv2.resize(crop_bottom_img, (width,height), interpolation=cv2.INTER_CUBIC)
+        #cv2.imshow("cropped", crop_img)
+        #cv2.waitKey(0)
+
+        cv2.imwrite(output_dir + '/crop_left_test' + f, crop_left_img)
+        cv2.imwrite(output_dir + '/crop_right_test' + f, crop_right_img)
+        cv2.imwrite(output_dir + '/crop_top_test' + f, crop_top_img)
+        cv2.imwrite(output_dir + '/crop_bottom_test' + f, crop_bottom_img)
 
 random.seed(101)
 
@@ -42,7 +42,6 @@ jpg_dir = sys.argv[1]+"/Images/users/jseng/building14"
 jpg_files = os.listdir(jpg_dir)
 #print files
 
-
 xml_dir = sys.argv[1]+"/Annotations/users/jseng/building14"
 xml_files = os.listdir(xml_dir)
 #print xml_files
@@ -50,7 +49,7 @@ output_dir = sys.argv[1]+"/output"
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-crop_left_edge(jpg_dir, jpg_files, output_dir)
+crop_images(jpg_dir, jpg_files, output_dir)
 
 for f in jpg_files:
     polygon_list = []
