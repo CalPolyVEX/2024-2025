@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!usr/bin/python
 
 #usage ./label_me_polygons.py directory_of_files
 #directory_of_files/Images
@@ -8,9 +8,13 @@ import os, sys, random
 import cv2, numpy as np
 import xml.etree.ElementTree
 
+jpg_files = [] #a list of the original .jpg files
+input_files = [] #list of the files renamed: 0.jpg, 1.jpg, ...
+input_dir = sys.argv[1] + "/input"
+
 def crop_images(jpg_dir, jpg_files, output_dir):
     crop_amount = 50
-    file1 = jpg_files[0]
+
     for f in jpg_files:
         print "cropping " + f
         img = cv2.imread(jpg_dir + '/' + f)
@@ -28,18 +32,80 @@ def crop_images(jpg_dir, jpg_files, output_dir):
         #cv2.imshow("cropped", crop_img)
         #cv2.waitKey(0)
 
-        cv2.imwrite(output_dir + '/crop_left_test' + f, crop_left_img)
-        cv2.imwrite(output_dir + '/crop_right_test' + f, crop_right_img)
-        cv2.imwrite(output_dir + '/crop_top_test' + f, crop_top_img)
-        cv2.imwrite(output_dir + '/crop_bottom_test' + f, crop_bottom_img)
+        cv2.imwrite(output_dir + '/crop_left_' + f, crop_left_img)
+        cv2.imwrite(output_dir + '/crop_right_' + f, crop_right_img)
+        cv2.imwrite(output_dir + '/crop_top_' + f, crop_top_img)
+        cv2.imwrite(output_dir + '/crop_bottom_' + f, crop_bottom_img)
+
+def rename_images(jpg_dir):
+    #this function renames all the original input images to
+    #a sequence:  0.jpg, 1.jpg, ...
+    global jpg_files, input_files, xml_dir
+    counter=0
+
+    jpg_files = os.listdir(jpg_dir)
+    
+    #if the input directory does not exist, then create it
+    if not os.path.exists(input_dir):
+        os.makedirs(input_dir)
+
+    #if the input annotation directory does not exist, then create it
+    if not os.path.exists(sys.argv[1] + 'input_annotation'):
+        os.makedirs(sys.argv[1] + 'input_annotation')
+
+    #print jpg_files
+
+    #for each file, copy and rename it to the input directory
+    for f in jpg_files:
+        new_name = str(counter) + '.jpg'
+        img = cv2.imread(jpg_dir + '/' + f)
+
+        cv2.imwrite(sys.argv[1] + '/input/' + new_name, img)
+        input_files.append(new_name)
+
+        x_filename = f.replace('.jpg', '.xml')
+        #os.system("cp " + sys.argv[1] + "/" + rand_name + " ./testdir/" + str(x) + ".jpg")
+        os.system("cp " + xml_dir + '/' + x_filename + " " + sys.argv[1] + "/input_annotation/" + str(counter) + ".xml")
+
+        counter += 1
+
+def build_annotation_images(output_dir):
+    global jpg_files
+
+    for f in jpg_files:
+        polygon_list = []
+
+        #get all the points in a polygon annotation file
+        x_filename = f.replace('.jpg', '.xml')
+        e = xml.etree.ElementTree.parse(xml_dir + "/" + x_filename).getroot()
+        print e
+        for child in e.iter('pt'):
+            polygon_list.append([int(child[0].text), int(child[1].text)])
+
+        print polygon_list
+
+        img = cv2.imread(jpg_dir + '/' + f)
+        height, width, channels = img.shape
+        print width,height
+
+        #create new annotation image
+        img_new = np.zeros((height,width,3), np.uint8)
+        pts = np.array(polygon_list, np.int32)
+        pts = pts.reshape((-1,1,2))
+        #cv2.polylines(img_new,[pts], True, (0,255,255))
+        cv2.fillConvexPoly(img_new,pts, (0,255,255))
+
+        cv2.imwrite(output_dir + '/test' + f, img_new)
+
+
 
 random.seed(101)
 
 if len(sys.argv) <= 1:
     print "need command line arguments"
+    sys.exit()
 
 jpg_dir = sys.argv[1]+"/Images/users/jseng/building14"
-jpg_files = os.listdir(jpg_dir)
 #print files
 
 xml_dir = sys.argv[1]+"/Annotations/users/jseng/building14"
@@ -49,37 +115,13 @@ output_dir = sys.argv[1]+"/output"
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-crop_images(jpg_dir, jpg_files, output_dir)
+ground_output_dir = sys.argv[1]+"/ground_output"
+if not os.path.exists(ground_output_dir):
+    os.makedirs(ground_output_dir)
+    
+rename_images(jpg_dir)
+crop_images(input_dir, input_files, output_dir)
+build_annotation_images(ground_output_dir)
 
-for f in jpg_files:
-    polygon_list = []
-
-    #get all the points in a polygon annotation file
-    x_filename = f.replace('.jpg', '.xml')
-    e = xml.etree.ElementTree.parse(xml_dir + "/" + x_filename).getroot()
-    print e
-    for child in e.iter('pt'):
-        polygon_list.append([int(child[0].text), int(child[1].text)])
-
-    print polygon_list
-
-    img = cv2.imread(jpg_dir + '/' + f)
-    height, width, channels = img.shape
-    print width,height
-
-    #create new annotation image
-    img_new = np.zeros((height,width,3), np.uint8)
-    pts = np.array(polygon_list, np.int32)
-    pts = pts.reshape((-1,1,2))
-    #cv2.polylines(img_new,[pts], True, (0,255,255))
-    cv2.fillConvexPoly(img_new,pts, (0,255,255))
-
-    cv2.imwrite(output_dir + '/test' + f, img_new)
-
-#jpg_files = [f for f in files if 'jpg' in f]
-#print jpg_files
-#num_jpg_files = len(jpg_files)
-
-sys.exit()
 
 #os.system("cp " + sys.argv[1] + "/" + rand_name + " ./testdir/" + str(x) + ".jpg")
