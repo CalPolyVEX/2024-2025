@@ -16,6 +16,23 @@ jpg_files = [] #a list of the original .jpg files
 input_files = [] #list of the files renamed: 0.jpg, 1.jpg, ...
 input_dir = sys.argv[1] + "/input"
 
+def fill_polygon(img):
+    height, width, channels = img.shape
+
+    for x in range(height):
+        fill = 0
+        for y in range(width):
+            if fill == 1:
+                print "filling" + str(x) + ',' + str(y)
+                img[x,y][1] = 255
+                img[x,y][2] = 255
+
+            if img[x,y][1] != 0 and fill == 1: #fill is currently on
+                fill = 0
+            elif img[x,y][1] != 0: #this has an edge pixel
+                fill = 1
+    return img
+
 def crop_images(jpg_dir, jpg_files, output_dir):
     crop_amount = 50
 
@@ -98,11 +115,11 @@ def build_annotation_images(output_dir):
         for child in e.iter('pt'):
             polygon_list.append([int(child[0].text), int(child[1].text)])
 
-        print polygon_list
+        #print polygon_list
 
         img = cv2.imread(sys.argv[1] + "/input/" + f)
         height, width, channels = img.shape
-        print width,height
+        #print width,height
 
         #create new annotation image
         img_new = np.zeros((height,width,3), np.uint8)
@@ -111,7 +128,7 @@ def build_annotation_images(output_dir):
 
         #move in any points that are outside the image
         for i in range(len(pts)):
-            print pts[i][0]
+            #print pts[i][0]
             if (pts[i][0])[0] >= width:
                 (pts[i][0])[0] = width-1
             assert (pts[i][0])[0] < width
@@ -120,13 +137,24 @@ def build_annotation_images(output_dir):
                 (pts[i][0])[1] = height-1
             assert (pts[i][0])[1] < height
 
+        cv2.polylines(img_new,[pts], True, (0,255,255))
+        #cv2.fillConvexPoly(img_new,pts, (0,255,255))
+        #cv2.fillConvexPoly(img_new,pts, (0,255,255))
 
-        #cv2.polylines(img_new,[pts], True, (0,255,255))
-        cv2.fillConvexPoly(img_new,pts, (0,255,255))
+        gray = cv2.cvtColor(img_new, cv2.COLOR_BGR2GRAY) #convert to grayscale
+        edged = cv2.Canny(gray, 30, 200)
 
+        im2, cnts, hierarchy = cv2.findContours(gray.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        #cnts = sorted(cnts, key=cv2.contourArea, reverse=True)[:10]
+        print len(cnts)
+
+        #cv2.drawContours(img_new, cnts, -1, (0,255,0), -1)
+        img_new = fill_polygon(img_new)
+        cv2.imshow("cropped", img_new)
+        cv2.waitKey(0)
+        #cv2.fillConvexPoly(img_new,cnts, (0,255,255))
         cv2.imwrite(output_dir + '/test' + f, img_new)
-
-
+        sys.exit()
 
 random.seed(101)
 
