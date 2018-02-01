@@ -8,6 +8,10 @@ import os, sys, random
 import cv2, numpy as np
 import xml.etree.ElementTree
 
+if len(sys.argv) <= 1:
+    print "need command line arguments"
+    sys.exit()
+
 jpg_files = [] #a list of the original .jpg files
 input_files = [] #list of the files renamed: 0.jpg, 1.jpg, ...
 input_dir = sys.argv[1] + "/input"
@@ -37,6 +41,18 @@ def crop_images(jpg_dir, jpg_files, output_dir):
         cv2.imwrite(output_dir + '/crop_top_' + f, crop_top_img)
         cv2.imwrite(output_dir + '/crop_bottom_' + f, crop_bottom_img)
 
+def mirror_images(jpg_dir, jpg_files, output_dir):
+    for f in jpg_files:
+        print "mirroring " + f
+        img = cv2.imread(jpg_dir + '/' + f)
+        height, width, channels = img.shape
+
+        mirror_img = cv2.flip(img,1)
+        cv2.imshow("mirrored", mirror_img)
+        cv2.waitKey(0)
+
+        cv2.imwrite(output_dir + '/mirror_' + f, mirror_img)
+        
 def rename_images(jpg_dir):
     #this function renames all the original input images to
     #a sequence:  0.jpg, 1.jpg, ...
@@ -50,8 +66,8 @@ def rename_images(jpg_dir):
         os.makedirs(input_dir)
 
     #if the input annotation directory does not exist, then create it
-    if not os.path.exists(sys.argv[1] + 'input_annotation'):
-        os.makedirs(sys.argv[1] + 'input_annotation')
+    if not os.path.exists(sys.argv[1] + '/input_annotation'):
+        os.makedirs(sys.argv[1] + '/input_annotation')
 
     #print jpg_files
 
@@ -101,9 +117,6 @@ def build_annotation_images(output_dir):
 
 random.seed(101)
 
-if len(sys.argv) <= 1:
-    print "need command line arguments"
-    sys.exit()
 
 jpg_dir = sys.argv[1]+"/Images/users/jseng/building14"
 #print files
@@ -111,7 +124,7 @@ jpg_dir = sys.argv[1]+"/Images/users/jseng/building14"
 xml_dir = sys.argv[1]+"/Annotations/users/jseng/building14"
 xml_files = os.listdir(xml_dir)
 #print xml_files
-output_dir = sys.argv[1]+"/output"
+output_dir = sys.argv[1]+"/augmented_output"
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
@@ -121,6 +134,7 @@ if not os.path.exists(ground_output_dir):
     
 rename_images(jpg_dir)
 crop_images(input_dir, input_files, output_dir)
+mirror_images(input_dir, input_files, output_dir)
 build_annotation_images(ground_output_dir)
 
 
