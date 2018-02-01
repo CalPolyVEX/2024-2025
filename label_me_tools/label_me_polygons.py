@@ -48,8 +48,8 @@ def mirror_images(jpg_dir, jpg_files, output_dir):
         height, width, channels = img.shape
 
         mirror_img = cv2.flip(img,1)
-        cv2.imshow("mirrored", mirror_img)
-        cv2.waitKey(0)
+        #cv2.imshow("mirrored", mirror_img)
+        #cv2.waitKey(0)
 
         cv2.imwrite(output_dir + '/mirror_' + f, mirror_img)
         
@@ -86,21 +86,21 @@ def rename_images(jpg_dir):
         counter += 1
 
 def build_annotation_images(output_dir):
-    global jpg_files
+    global input_files
 
-    for f in jpg_files:
+    for f in input_files:
         polygon_list = []
 
         #get all the points in a polygon annotation file
         x_filename = f.replace('.jpg', '.xml')
-        e = xml.etree.ElementTree.parse(xml_dir + "/" + x_filename).getroot()
-        print e
+        e = xml.etree.ElementTree.parse(sys.argv[1] + "/input_annotation/" + x_filename).getroot()
+        print x_filename, e
         for child in e.iter('pt'):
             polygon_list.append([int(child[0].text), int(child[1].text)])
 
         print polygon_list
 
-        img = cv2.imread(jpg_dir + '/' + f)
+        img = cv2.imread(sys.argv[1] + "/input/" + f)
         height, width, channels = img.shape
         print width,height
 
@@ -108,6 +108,19 @@ def build_annotation_images(output_dir):
         img_new = np.zeros((height,width,3), np.uint8)
         pts = np.array(polygon_list, np.int32)
         pts = pts.reshape((-1,1,2))
+
+        #move in any points that are outside the image
+        for i in range(len(pts)):
+            print pts[i][0]
+            if (pts[i][0])[0] >= width:
+                (pts[i][0])[0] = width-1
+            assert (pts[i][0])[0] < width
+            
+            if (pts[i][0])[1] >= height:
+                (pts[i][0])[1] = height-1
+            assert (pts[i][0])[1] < height
+
+
         #cv2.polylines(img_new,[pts], True, (0,255,255))
         cv2.fillConvexPoly(img_new,pts, (0,255,255))
 
@@ -133,9 +146,9 @@ if not os.path.exists(ground_output_dir):
     os.makedirs(ground_output_dir)
     
 rename_images(jpg_dir)
+build_annotation_images(ground_output_dir)
 crop_images(input_dir, input_files, output_dir)
 mirror_images(input_dir, input_files, output_dir)
-build_annotation_images(ground_output_dir)
 
 
 #os.system("cp " + sys.argv[1] + "/" + rand_name + " ./testdir/" + str(x) + ".jpg")
