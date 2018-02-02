@@ -27,7 +27,7 @@ def fill_polygon(img):
                 img[x,y][1] = 255
                 img[x,y][2] = 255
 
-            if img[x,y][1] != 0 and fill == 1: #fill is currently on
+            if img[x,y][1] == 0 and fill == 1: #fill is currently on
                 fill = 0
             elif img[x,y][1] != 0: #this has an edge pixel
                 fill = 1
@@ -149,12 +149,16 @@ def build_annotation_images(output_dir):
         print len(cnts)
 
         #cv2.drawContours(img_new, cnts, -1, (0,255,0), -1)
-        img_new = fill_polygon(img_new)
+        #img_new = fill_polygon(img_new)
+
+        mask=np.zeros((height+2, width+2), np.uint8)
+        cv2.floodFill(img_new, mask, (0,0), 255)
+
         cv2.imshow("cropped", img_new)
         cv2.waitKey(0)
         #cv2.fillConvexPoly(img_new,cnts, (0,255,255))
         cv2.imwrite(output_dir + '/test' + f, img_new)
-        sys.exit()
+        #sys.exit()
 
 random.seed(101)
 
