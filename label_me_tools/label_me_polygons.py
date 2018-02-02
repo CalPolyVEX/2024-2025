@@ -19,18 +19,21 @@ input_dir = sys.argv[1] + "/input"
 def fill_polygon(img):
     height, width, channels = img.shape
 
-    for x in range(height):
-        fill = 0
-        for y in range(width):
-            if fill == 1:
-                print "filling" + str(x) + ',' + str(y)
-                img[x,y][1] = 255
-                img[x,y][2] = 255
+    mask=np.zeros((height+2, width+2), np.uint8)
+    cv2.floodFill(img, mask, (0,0), 255)
 
-            if img[x,y][1] == 0 and fill == 1: #fill is currently on
-                fill = 0
-            elif img[x,y][1] != 0: #this has an edge pixel
-                fill = 1
+    for y in range(height):
+        x=0
+        if img[y,x][2] != 255:
+            #print "filling" + str(x) + ',' + str(y)
+            cv2.floodFill(img, mask, (x,y), 255)
+
+    for y in range(height):
+        x=width-1
+        if img[y,x][2] != 255:
+            #print "filling" + str(x) + ',' + str(y)
+            cv2.floodFill(img, mask, (x,y), 255)
+
     return img
 
 def crop_images(jpg_dir, jpg_files, output_dir):
@@ -108,18 +111,23 @@ def build_annotation_images(output_dir):
     for f in input_files:
         polygon_list = []
 
+        img = cv2.imread(sys.argv[1] + "/input/" + f)
+        height, width, channels = img.shape
+        print width,height
+
         #get all the points in a polygon annotation file
         x_filename = f.replace('.jpg', '.xml')
         e = xml.etree.ElementTree.parse(sys.argv[1] + "/input_annotation/" + x_filename).getroot()
         print x_filename, e
         for child in e.iter('pt'):
+            x = int(child[0].text)
+            y = int(child[1].text)
+            if (height-y) <= 2:
+                y = height
+            print x,y
             polygon_list.append([int(child[0].text), int(child[1].text)])
 
         #print polygon_list
-
-        img = cv2.imread(sys.argv[1] + "/input/" + f)
-        height, width, channels = img.shape
-        #print width,height
 
         #create new annotation image
         img_new = np.zeros((height,width,3), np.uint8)
@@ -141,18 +149,8 @@ def build_annotation_images(output_dir):
         #cv2.fillConvexPoly(img_new,pts, (0,255,255))
         #cv2.fillConvexPoly(img_new,pts, (0,255,255))
 
-        gray = cv2.cvtColor(img_new, cv2.COLOR_BGR2GRAY) #convert to grayscale
-        edged = cv2.Canny(gray, 30, 200)
-
-        im2, cnts, hierarchy = cv2.findContours(gray.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        #cnts = sorted(cnts, key=cv2.contourArea, reverse=True)[:10]
-        print len(cnts)
-
         #cv2.drawContours(img_new, cnts, -1, (0,255,0), -1)
-        #img_new = fill_polygon(img_new)
-
-        mask=np.zeros((height+2, width+2), np.uint8)
-        cv2.floodFill(img_new, mask, (0,0), 255)
+        img_new = fill_polygon(img_new)
 
         cv2.imshow("cropped", img_new)
         cv2.waitKey(0)
