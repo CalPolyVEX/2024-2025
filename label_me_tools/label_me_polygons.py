@@ -19,9 +19,12 @@ input_dir = sys.argv[1] + "/input"
 def fill_polygon(img):
     height, width, channels = img.shape
 
+    #build a mask that is 2 pixels wider and taller
     mask=np.zeros((height+2, width+2), np.uint8)
     cv2.floodFill(img, mask, (0,0), 255)
 
+    #run down the left side of the image and if there is a 
+    #black pixel, then do a floodfill
     for y in range(height):
         x=0
         if img[y,x][2] != 255:
@@ -119,13 +122,15 @@ def build_annotation_images(output_dir):
         x_filename = f.replace('.jpg', '.xml')
         e = xml.etree.ElementTree.parse(sys.argv[1] + "/input_annotation/" + x_filename).getroot()
         print x_filename, e
+
+        #build a polygon
         for child in e.iter('pt'):
             x = int(child[0].text)
             y = int(child[1].text)
-            if (height-y) <= 2:
+            if (height-y) <= 3:
                 y = height
             print x,y
-            polygon_list.append([int(child[0].text), int(child[1].text)])
+            polygon_list.append([x,y])
 
         #print polygon_list
 
