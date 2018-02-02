@@ -28,14 +28,20 @@ def fill_polygon(img):
     for y in range(height):
         x=0
         if img[y,x][2] != 255:
-            #print "filling" + str(x) + ',' + str(y)
             cv2.floodFill(img, mask, (x,y), 255)
 
     for y in range(height):
         x=width-1
         if img[y,x][2] != 255:
-            #print "filling" + str(x) + ',' + str(y)
             cv2.floodFill(img, mask, (x,y), 255)
+
+    #invert the image
+    for y in range(height):
+        for x in range(width):
+            if img[y,x][0] != 255:
+                img[y,x] = [255,255,255]
+            else:
+                img[y,x] = [0,0,0]
 
     return img
 
@@ -45,6 +51,7 @@ def crop_images(jpg_dir, jpg_files, output_dir):
     for f in jpg_files:
         print "cropping " + f
         img = cv2.imread(jpg_dir + '/' + f)
+        gt_img = cv2.imread(ground_output_dir + '/gt_' + f)
         height, width, channels = img.shape
 
         crop_left_img = img[0:height, crop_amount:width] #trim left edge
@@ -52,17 +59,34 @@ def crop_images(jpg_dir, jpg_files, output_dir):
         crop_top_img = img[crop_amount:height, 0:width] #trim top edge
         crop_bottom_img = img[0:height-crop_amount, 0:width] #trim bottom edge
 
+        crop_gt_left_img = gt_img[0:height, crop_amount:width] #trim left edge
+        crop_gt_right_img = gt_img[0:height, 0:width-crop_amount] #trim right edge
+        crop_gt_top_img = gt_img[crop_amount:height, 0:width] #trim top edge
+        crop_gt_bottom_img = gt_img[0:height-crop_amount, 0:width] #trim bottom edge
+        
         crop_left_img = cv2.resize(crop_left_img, (width,height), interpolation=cv2.INTER_CUBIC)
         crop_right_img = cv2.resize(crop_right_img, (width,height), interpolation=cv2.INTER_CUBIC)
         crop_top_img = cv2.resize(crop_top_img, (width,height), interpolation=cv2.INTER_CUBIC)
         crop_bottom_img = cv2.resize(crop_bottom_img, (width,height), interpolation=cv2.INTER_CUBIC)
-        #cv2.imshow("cropped", crop_img)
-        #cv2.waitKey(0)
+
+        crop_gt_left_img = cv2.resize(crop_gt_left_img, (width,height), interpolation=cv2.INTER_CUBIC)
+        crop_gt_right_img = cv2.resize(crop_gt_right_img, (width,height), interpolation=cv2.INTER_CUBIC)
+        crop_gt_top_img = cv2.resize(crop_gt_top_img, (width,height), interpolation=cv2.INTER_CUBIC)
+        crop_gt_bottom_img = cv2.resize(crop_gt_bottom_img, (width,height), interpolation=cv2.INTER_CUBIC)
 
         cv2.imwrite(output_dir + '/crop_left_' + f, crop_left_img)
         cv2.imwrite(output_dir + '/crop_right_' + f, crop_right_img)
         cv2.imwrite(output_dir + '/crop_top_' + f, crop_top_img)
         cv2.imwrite(output_dir + '/crop_bottom_' + f, crop_bottom_img)
+
+        cv2.imwrite(ground_output_dir + '/crop_gt_left_' + f, crop_gt_left_img)
+        cv2.imwrite(ground_output_dir + '/crop_gt_right_' + f, crop_gt_right_img)
+        cv2.imwrite(ground_output_dir + '/crop_gt_top_' + f, crop_gt_top_img)
+        cv2.imwrite(ground_output_dir + '/crop_gt_bottom_' + f, crop_gt_bottom_img)
+
+        crop_img = cv2.add(crop_left_img, crop_gt_left_img)
+        cv2.imshow("cropped", crop_img)
+        cv2.waitKey(0)
 
 def mirror_images(jpg_dir, jpg_files, output_dir):
     for f in jpg_files:
@@ -127,9 +151,8 @@ def build_annotation_images(output_dir):
         for child in e.iter('pt'):
             x = int(child[0].text)
             y = int(child[1].text)
-            if (height-y) <= 3:
+            if (height-y) <= 3: #if the ground truth does not reach bottom of image
                 y = height
-            print x,y
             polygon_list.append([x,y])
 
         #print polygon_list
@@ -151,20 +174,14 @@ def build_annotation_images(output_dir):
             assert (pts[i][0])[1] < height
 
         cv2.polylines(img_new,[pts], True, (0,255,255))
-        #cv2.fillConvexPoly(img_new,pts, (0,255,255))
-        #cv2.fillConvexPoly(img_new,pts, (0,255,255))
 
-        #cv2.drawContours(img_new, cnts, -1, (0,255,0), -1)
-        img_new = fill_polygon(img_new)
+        #img_new = fill_polygon(img_new) #fill in the polygon
 
-        cv2.imshow("cropped", img_new)
-        cv2.waitKey(0)
-        #cv2.fillConvexPoly(img_new,cnts, (0,255,255))
-        cv2.imwrite(output_dir + '/test' + f, img_new)
-        #sys.exit()
+        #cv2.imshow("cropped", img_new)
+        #cv2.waitKey(0)
+        #cv2.imwrite(output_dir + '/gt_' + f, img_new)
 
 random.seed(101)
-
 
 jpg_dir = sys.argv[1]+"/Images/users/jseng/building14"
 #print files
@@ -184,6 +201,3 @@ rename_images(jpg_dir)
 build_annotation_images(ground_output_dir)
 crop_images(input_dir, input_files, output_dir)
 mirror_images(input_dir, input_files, output_dir)
-
-
-#os.system("cp " + sys.argv[1] + "/" + rand_name + " ./testdir/" + str(x) + ".jpg")
