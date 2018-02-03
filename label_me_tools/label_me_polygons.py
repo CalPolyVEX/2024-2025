@@ -92,13 +92,16 @@ def mirror_images(jpg_dir, jpg_files, output_dir):
     for f in jpg_files:
         print "mirroring " + f
         img = cv2.imread(jpg_dir + '/' + f)
+        gt_img = cv2.imread(ground_output_dir + '/gt_' + f)
         height, width, channels = img.shape
 
         mirror_img = cv2.flip(img,1)
+        gt_mirror_img = cv2.flip(gt_img,1)
         #cv2.imshow("mirrored", mirror_img)
         #cv2.waitKey(0)
 
         cv2.imwrite(output_dir + '/mirror_' + f, mirror_img)
+        cv2.imwrite(ground_output_dir + '/mirror_gt_' + f, gt_mirror_img)
         
 def rename_images(jpg_dir):
     #this function renames all the original input images to
@@ -175,11 +178,11 @@ def build_annotation_images(output_dir):
 
         cv2.polylines(img_new,[pts], True, (0,255,255))
 
-        #img_new = fill_polygon(img_new) #fill in the polygon
+        img_new = fill_polygon(img_new) #fill in the polygon
 
         #cv2.imshow("cropped", img_new)
         #cv2.waitKey(0)
-        #cv2.imwrite(output_dir + '/gt_' + f, img_new)
+        cv2.imwrite(output_dir + '/gt_' + f, img_new)
 
 random.seed(101)
 
