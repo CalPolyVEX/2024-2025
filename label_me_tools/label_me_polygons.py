@@ -86,7 +86,7 @@ def crop_images(jpg_dir, jpg_files, output_dir):
 
         crop_img = cv2.add(crop_left_img, crop_gt_left_img)
         cv2.imshow("cropped", crop_img)
-        cv2.waitKey(0)
+        #cv2.waitKey(0)
 
 def mirror_images(jpg_dir, jpg_files, output_dir):
     for f in jpg_files:
@@ -110,6 +110,7 @@ def rename_images(jpg_dir):
     counter=0
 
     jpg_files = os.listdir(jpg_dir)
+    jpg_files.sort()
     
     #if the input directory does not exist, then create it
     if not os.path.exists(input_dir):
@@ -191,6 +192,7 @@ jpg_dir = sys.argv[1]+"/Images/users/jseng/building14"
 
 xml_dir = sys.argv[1]+"/Annotations/users/jseng/building14"
 xml_files = os.listdir(xml_dir)
+xml_files.sort()
 #print xml_files
 output_dir = sys.argv[1]+"/augmented_output"
 if not os.path.exists(output_dir):
