@@ -102,6 +102,32 @@ def mirror_images(jpg_dir, jpg_files, output_dir):
 
         cv2.imwrite(output_dir + '/mirror_' + f, mirror_img)
         cv2.imwrite(ground_output_dir + '/mirror_gt_' + f, gt_mirror_img)
+
+def get_range_data(dirs):
+    for d in dirs:
+        files = os.listdir(d)
+        files.sort()
+        for f in files:
+            if 'lidar' in f:
+                continue
+            print f
+            img = cv2.imread(d + '/' + f)
+            height, width, channels = img.shape
+            step = width / 31
+            blank_image = np.zeros((height,width,3), np.uint8)
+
+            for x in range(0,width,step):
+                temp = height-1
+                while temp > 0:
+                    pixel = img[temp,x]
+                    temp = temp - 1
+                    if pixel[0] == 0:
+                        #sys.stdout.write('%d, ' % temp)
+                        cv2.circle(blank_image,(x,temp),5,(0,0,255),-1)
+                        #blank_image[temp,x] = [0,0,255]
+                        break
+            #print ''
+            cv2.imwrite(ground_output_dir + '/lidar_' + f, blank_image)
         
 def rename_images(jpg_dir):
     #this function renames all the original input images to
@@ -202,7 +228,8 @@ ground_output_dir = sys.argv[1]+"/ground_output"
 if not os.path.exists(ground_output_dir):
     os.makedirs(ground_output_dir)
     
-rename_images(jpg_dir)
-build_annotation_images(ground_output_dir)
-crop_images(input_dir, input_files, output_dir)
-mirror_images(input_dir, input_files, output_dir)
+#rename_images(jpg_dir)
+#build_annotation_images(ground_output_dir)
+#crop_images(input_dir, input_files, output_dir)
+#mirror_images(input_dir, input_files, output_dir)
+get_range_data([ground_output_dir])
