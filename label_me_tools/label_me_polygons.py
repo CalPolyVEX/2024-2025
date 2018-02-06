@@ -103,7 +103,7 @@ def mirror_images(jpg_dir, jpg_files, output_dir):
         cv2.imwrite(output_dir + '/mirror_' + f, mirror_img)
         cv2.imwrite(ground_output_dir + '/mirror_gt_' + f, gt_mirror_img)
 
-def get_range_data(dirs):
+def get_range_data(dirs, out):
     for d in dirs:
         files = os.listdir(d)
         files.sort()
@@ -116,6 +116,7 @@ def get_range_data(dirs):
             step = width / 31
             blank_image = np.zeros((height,width,3), np.uint8)
 
+            data=[]
             for x in range(0,width,step):
                 temp = height-1
                 while temp > 0:
@@ -124,11 +125,41 @@ def get_range_data(dirs):
                     if pixel[0] == 0:
                         #sys.stdout.write('%d, ' % temp)
                         cv2.circle(blank_image,(x,temp),5,(0,0,255),-1)
+                        data.append((x,temp))
                         #blank_image[temp,x] = [0,0,255]
                         break
-            #print ''
-            cv2.imwrite(ground_output_dir + '/lidar_' + f, blank_image)
+            print data
+            #cv2.imwrite(out + '/lidar_' + f, blank_image)
         
+def build_320_240_images(in_dir, gt_dir):
+    files = os.listdir(in_dir)
+    files.sort()
+
+    gt_files = os.listdir(gt_dir)
+    gt_files.sort()
+
+    #create directory for 320x240 input files
+    input_dir_320 = sys.argv[1]+"/320_input"
+    if not os.path.exists(input_dir_320):
+        os.makedirs(input_dir_320)
+
+    #create directory for 320x240 ground truth files
+    gt_dir_320 = sys.argv[1]+"/320_ground_truth"
+    if not os.path.exists(gt_dir_320):
+        os.makedirs(gt_dir_320)
+
+    for f in files:  #resize all the input files
+        img = cv2.imread(in_dir + '/' + f)
+        img320 = cv2.resize(img,(320,240), interpolation=cv2.INTER_CUBIC)
+        new_name = '320_' + f
+        cv2.imwrite(input_dir_320 + '/' + new_name, img320)
+
+    for f in gt_files:  #resize all the input files
+        img = cv2.imread(gt_dir + '/' + f)
+        img320 = cv2.resize(img,(320,240), interpolation=cv2.INTER_CUBIC)
+        new_name = '320_' + f 
+        cv2.imwrite(gt_dir_320 + '/' + new_name, img320)
+
 def rename_images(jpg_dir):
     #this function renames all the original input images to
     #a sequence:  0.jpg, 1.jpg, ...
@@ -232,4 +263,8 @@ if not os.path.exists(ground_output_dir):
 #build_annotation_images(ground_output_dir)
 #crop_images(input_dir, input_files, output_dir)
 #mirror_images(input_dir, input_files, output_dir)
-get_range_data([ground_output_dir])
+#get_range_data([ground_output_dir])
+
+
+#build_320_240_images(sys.argv[1] + "/augmented_output", sys.argv[1] + "/ground_output")
+get_range_data([sys.argv[1] + '/320_ground_truth'], '') #output range data for the 320x240 files
