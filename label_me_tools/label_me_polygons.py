@@ -154,7 +154,7 @@ def build_320_240_images(in_dir, gt_dir):
         new_name = '320_' + f
         cv2.imwrite(input_dir_320 + '/' + new_name, img320)
 
-    for f in gt_files:  #resize all the input files
+    for f in gt_files:  #resize all the ground_truth files
         img = cv2.imread(gt_dir + '/' + f)
         img320 = cv2.resize(img,(320,240), interpolation=cv2.INTER_CUBIC)
         new_name = '320_' + f 
@@ -266,5 +266,5 @@ if not os.path.exists(ground_output_dir):
 #get_range_data([ground_output_dir])
 
 
-#build_320_240_images(sys.argv[1] + "/augmented_output", sys.argv[1] + "/ground_output")
-get_range_data([sys.argv[1] + '/320_ground_truth'], '') #output range data for the 320x240 files
+build_320_240_images(sys.argv[1] + "/augmented_output", sys.argv[1] + "/ground_output")
+#get_range_data([sys.argv[1] + '/ground_output'], '') #output range data for the 320x240 files
