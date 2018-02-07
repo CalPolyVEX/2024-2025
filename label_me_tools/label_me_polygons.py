@@ -103,7 +103,11 @@ def mirror_images(jpg_dir, jpg_files, output_dir):
         cv2.imwrite(output_dir + '/mirror_' + f, mirror_img)
         cv2.imwrite(ground_output_dir + '/mirror_gt_' + f, gt_mirror_img)
 
+#create the actual data to feed to neural network
 def get_range_data(dirs, out):
+    if not os.path.exists(out):
+        os.makedirs(out)
+
     for d in dirs:
         files = os.listdir(d)
         files.sort()
@@ -117,17 +121,22 @@ def get_range_data(dirs, out):
             blank_image = np.zeros((height,width,3), np.uint8)
 
             data=[]
+            f_out = open(out + '/' + f.replace('.jpg', '.txt'), 'w')
             for x in range(0,width,step):
                 temp = height-1
-                while temp > 0:
+                while temp >= 0:
                     pixel = img[temp,x]
-                    temp = temp - 1
-                    if pixel[0] == 0:
+                    if pixel[0] == 0 or temp == 0:
                         #sys.stdout.write('%d, ' % temp)
                         cv2.circle(blank_image,(x,temp),5,(0,0,255),-1)
                         data.append((x,temp))
+                        f_out.write(str(x) + ',' + str(temp) + '\n')
                         #blank_image[temp,x] = [0,0,255]
+                        found=1
                         break
+                    temp = temp - 1
+
+            f_out.close()
             print data
             #cv2.imwrite(out + '/lidar_' + f, blank_image)
         
@@ -263,8 +272,7 @@ if not os.path.exists(ground_output_dir):
 #build_annotation_images(ground_output_dir)
 #crop_images(input_dir, input_files, output_dir)
 #mirror_images(input_dir, input_files, output_dir)
-#get_range_data([ground_output_dir])
 
 
-build_320_240_images(sys.argv[1] + "/augmented_output", sys.argv[1] + "/ground_output")
-#get_range_data([sys.argv[1] + '/ground_output'], '') #output range data for the 320x240 files
+#build_320_240_images(sys.argv[1] + "/augmented_output", sys.argv[1] + "/ground_output")
+get_range_data([sys.argv[1] + '/320_ground_truth'], sys.argv[1] + '/320_data') #output range data for the 320x240 files
