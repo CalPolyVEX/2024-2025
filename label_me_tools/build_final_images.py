@@ -26,7 +26,7 @@ def build_output_images(in_dir, out_dir):
     for f in files:
         if '.jpg' in f:
             jpg_list.append(f)
-            new_jpg_list.append('new' + f)
+            new_jpg_list.append('new_' + f)
         if '.txt' in f:
             datafile.append(f)
 
@@ -37,9 +37,8 @@ def build_output_images(in_dir, out_dir):
     for i in range(len(jpg_list)):  #process each file
         img = cv2.imread(in_dir + '/' + jpg_list[i])
 
-
         #read in the datafile
-        with open(out_dir+'/'+datafile_list[i]) as f:
+        with open(in_dir+'/'+datafile_list[i]) as f:
             f.readlines()
 
         f.close()
@@ -48,6 +47,7 @@ def build_output_images(in_dir, out_dir):
 
         new_f = []
         for x in f:
+            x = [int(y) for y in x]
             if x[1] < 0:
                 new_f.append((x[0],0))
             elif x[1] > 239:
@@ -58,9 +58,8 @@ def build_output_images(in_dir, out_dir):
         for x in f:
             cv2.circle(img,x,5,(0,0,255),-1)
 
-
         #write the image
-        cv2.imwrite(out_dir + '/' + new_name, img)
+        cv2.imwrite(out_dir + '/' + new_jpg_list[i], img)
 
 
 output_dir = sys.argv[1] + "/320_final_inference_output"
