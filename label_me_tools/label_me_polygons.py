@@ -46,47 +46,48 @@ def fill_polygon(img):
     return img
 
 def crop_images(jpg_dir, jpg_files, output_dir):
-    crop_amount = 50
+    ca_list = [25,50]
 
-    for f in jpg_files:
-        print "cropping " + f
-        img = cv2.imread(jpg_dir + '/' + f)
-        gt_img = cv2.imread(ground_output_dir + '/gt_' + f)
-        height, width, channels = img.shape
+    for crop_amount in ca_list:
+        for f in jpg_files:
+            print "cropping " + f
+            img = cv2.imread(jpg_dir + '/' + f)
+            gt_img = cv2.imread(ground_output_dir + '/gt_' + f)
+            height, width, channels = img.shape
 
-        crop_left_img = img[0:height, crop_amount:width] #trim left edge
-        crop_right_img = img[0:height, 0:width-crop_amount] #trim right edge
-        crop_top_img = img[crop_amount:height, 0:width] #trim top edge
-        crop_bottom_img = img[0:height-crop_amount, 0:width] #trim bottom edge
+            crop_left_img = img[0:height-1, crop_amount:width-1] #trim left edge
+            crop_right_img = img[0:height-1, 0:width-1-crop_amount] #trim right edge
+            crop_top_img = img[crop_amount:height-1, 0:width-1] #trim top edge
+            crop_bottom_img = img[0:height-1-crop_amount, 0:width-1] #trim bottom edge
 
-        crop_gt_left_img = gt_img[0:height, crop_amount:width] #trim left edge
-        crop_gt_right_img = gt_img[0:height, 0:width-crop_amount] #trim right edge
-        crop_gt_top_img = gt_img[crop_amount:height, 0:width] #trim top edge
-        crop_gt_bottom_img = gt_img[0:height-crop_amount, 0:width] #trim bottom edge
-        
-        crop_left_img = cv2.resize(crop_left_img, (width,height), interpolation=cv2.INTER_CUBIC)
-        crop_right_img = cv2.resize(crop_right_img, (width,height), interpolation=cv2.INTER_CUBIC)
-        crop_top_img = cv2.resize(crop_top_img, (width,height), interpolation=cv2.INTER_CUBIC)
-        crop_bottom_img = cv2.resize(crop_bottom_img, (width,height), interpolation=cv2.INTER_CUBIC)
+            crop_gt_left_img = gt_img[0:height-1, crop_amount:width-1] #trim left edge
+            crop_gt_right_img = gt_img[0:height-1, 0:width-1-crop_amount] #trim right edge
+            crop_gt_top_img = gt_img[crop_amount:height-1, 0:width-1] #trim top edge
+            crop_gt_bottom_img = gt_img[0:height-1-crop_amount, 0:width-1] #trim bottom edge
+            
+            crop_left_img = cv2.resize(crop_left_img, (width,height), interpolation=cv2.INTER_CUBIC)
+            crop_right_img = cv2.resize(crop_right_img, (width,height), interpolation=cv2.INTER_CUBIC)
+            crop_top_img = cv2.resize(crop_top_img, (width,height), interpolation=cv2.INTER_CUBIC)
+            crop_bottom_img = cv2.resize(crop_bottom_img, (width,height), interpolation=cv2.INTER_CUBIC)
 
-        crop_gt_left_img = cv2.resize(crop_gt_left_img, (width,height), interpolation=cv2.INTER_CUBIC)
-        crop_gt_right_img = cv2.resize(crop_gt_right_img, (width,height), interpolation=cv2.INTER_CUBIC)
-        crop_gt_top_img = cv2.resize(crop_gt_top_img, (width,height), interpolation=cv2.INTER_CUBIC)
-        crop_gt_bottom_img = cv2.resize(crop_gt_bottom_img, (width,height), interpolation=cv2.INTER_CUBIC)
+            crop_gt_left_img = cv2.resize(crop_gt_left_img, (width,height), interpolation=cv2.INTER_CUBIC)
+            crop_gt_right_img = cv2.resize(crop_gt_right_img, (width,height), interpolation=cv2.INTER_CUBIC)
+            crop_gt_top_img = cv2.resize(crop_gt_top_img, (width,height), interpolation=cv2.INTER_CUBIC)
+            crop_gt_bottom_img = cv2.resize(crop_gt_bottom_img, (width,height), interpolation=cv2.INTER_CUBIC)
 
-        cv2.imwrite(output_dir + '/crop_left_' + f, crop_left_img)
-        cv2.imwrite(output_dir + '/crop_right_' + f, crop_right_img)
-        cv2.imwrite(output_dir + '/crop_top_' + f, crop_top_img)
-        cv2.imwrite(output_dir + '/crop_bottom_' + f, crop_bottom_img)
+            cv2.imwrite(output_dir + '/crop_left' + str(crop_amount) + '_' + f, crop_left_img)
+            cv2.imwrite(output_dir + '/crop_right' + str(crop_amount) + '_' + f, crop_right_img)
+            cv2.imwrite(output_dir + '/crop_top' + str(crop_amount) + '_' + f, crop_top_img)
+            cv2.imwrite(output_dir + '/crop_bottom' + str(crop_amount) + '_' + f, crop_bottom_img)
 
-        cv2.imwrite(ground_output_dir + '/crop_gt_left_' + f, crop_gt_left_img)
-        cv2.imwrite(ground_output_dir + '/crop_gt_right_' + f, crop_gt_right_img)
-        cv2.imwrite(ground_output_dir + '/crop_gt_top_' + f, crop_gt_top_img)
-        cv2.imwrite(ground_output_dir + '/crop_gt_bottom_' + f, crop_gt_bottom_img)
+            cv2.imwrite(ground_output_dir + '/gt_crop_left' + str(crop_amount) + '_' + f, crop_gt_left_img)
+            cv2.imwrite(ground_output_dir + '/gt_crop_right' + str(crop_amount) + '_' + f, crop_gt_right_img)
+            cv2.imwrite(ground_output_dir + '/gt_crop_top' + str(crop_amount) + '_' + f, crop_gt_top_img)
+            cv2.imwrite(ground_output_dir + '/gt_crop_bottom' + str(crop_amount) + '_' + f, crop_gt_bottom_img)
 
-        crop_img = cv2.add(crop_bottom_img, crop_gt_bottom_img)
-        cv2.imshow("cropped", crop_img)
-        cv2.waitKey(0)
+            crop_img = cv2.add(crop_bottom_img, crop_gt_bottom_img)
+            cv2.imshow("cropped", crop_img)
+            #cv2.waitKey(0)
 
 def mirror_images(jpg_dir, jpg_files, output_dir):
     for f in jpg_files:
@@ -101,7 +102,7 @@ def mirror_images(jpg_dir, jpg_files, output_dir):
         #cv2.waitKey(0)
 
         cv2.imwrite(output_dir + '/mirror_' + f, mirror_img)
-        cv2.imwrite(ground_output_dir + '/mirror_gt_' + f, gt_mirror_img)
+        cv2.imwrite(ground_output_dir + '/gt_mirror_' + f, gt_mirror_img)
 
 #create the actual data to feed to neural network
 def get_range_data(dirs, out):
@@ -140,28 +141,29 @@ def get_range_data(dirs, out):
             print data
             #cv2.imwrite(out + '/lidar_' + f, blank_image)
         
-def build_320_240_images(in_dir, gt_dir):
+def build_320_240_images(in_dir):
     files = os.listdir(in_dir)
     files.sort()
-
-    gt_files = os.listdir(gt_dir)
-    gt_files.sort()
 
     #create directory for 320x240 input files
     input_dir_320 = sys.argv[1]+"/320_input"
     if not os.path.exists(input_dir_320):
         os.makedirs(input_dir_320)
 
-    #create directory for 320x240 ground truth files
-    gt_dir_320 = sys.argv[1]+"/320_ground_truth"
-    if not os.path.exists(gt_dir_320):
-        os.makedirs(gt_dir_320)
-
     for f in files:  #resize all the input files
         img = cv2.imread(in_dir + '/' + f)
         img320 = cv2.resize(img,(320,240), interpolation=cv2.INTER_CUBIC)
         new_name = '320_' + f
         cv2.imwrite(input_dir_320 + '/' + new_name, img320)
+
+def build_320_240_gt_images(gt_dir):
+    gt_files = os.listdir(gt_dir)
+    gt_files.sort()
+
+    #create directory for 320x240 ground truth files
+    gt_dir_320 = sys.argv[1]+"/320_ground_truth"
+    if not os.path.exists(gt_dir_320):
+        os.makedirs(gt_dir_320)
 
     for f in gt_files:  #resize all the ground_truth files
         img = cv2.imread(gt_dir + '/' + f)
@@ -252,27 +254,33 @@ def build_annotation_images(output_dir):
         cv2.imwrite(output_dir + '/gt_' + f, img_new)
 
 random.seed(101)
-
-jpg_dir = sys.argv[1]+"/Images/users/jseng/building14"
-#print files
-
 xml_dir = sys.argv[1]+"/Annotations/users/jseng/building14"
-xml_files = os.listdir(xml_dir)
-xml_files.sort()
-#print xml_files
-output_dir = sys.argv[1]+"/augmented_output"
-if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
-
 ground_output_dir = sys.argv[1]+"/ground_output"
-if not os.path.exists(ground_output_dir):
-    os.makedirs(ground_output_dir)
-    
-rename_images(jpg_dir)
-#build_annotation_images(ground_output_dir)
-crop_images(input_dir, input_files, output_dir)
-mirror_images(input_dir, input_files, output_dir)
 
+def run_full():
+    global xml_dir, ground_output_dir
 
-build_320_240_images(sys.argv[1] + "/augmented_output", sys.argv[1] + "/ground_output")
-get_range_data([sys.argv[1] + '/320_ground_truth'], sys.argv[1] + '/320_data') #output range data for the 320x240 files
+    jpg_dir = sys.argv[1]+"/Images/users/jseng/building14"
+    #print files
+
+    xml_files = os.listdir(xml_dir)
+    xml_files.sort()
+    #print xml_files
+    output_dir = sys.argv[1]+"/augmented_output"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    if not os.path.exists(ground_output_dir):
+        os.makedirs(ground_output_dir)
+        
+    rename_images(jpg_dir)
+    build_annotation_images(ground_output_dir)
+    crop_images(input_dir, input_files, output_dir)
+    mirror_images(input_dir, input_files, output_dir)
+
+    build_320_240_images(sys.argv[1] + "/augmented_output")
+    build_320_240_images(sys.argv[1] + "/input")
+    build_320_240_gt_images(sys.argv[1] + "/ground_output")
+    get_range_data([sys.argv[1] + '/320_ground_truth'], sys.argv[1] + '/320_data') #output range data for the 320x240 files
+
+run_full()
