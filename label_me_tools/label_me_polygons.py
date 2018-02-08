@@ -84,9 +84,9 @@ def crop_images(jpg_dir, jpg_files, output_dir):
         cv2.imwrite(ground_output_dir + '/crop_gt_top_' + f, crop_gt_top_img)
         cv2.imwrite(ground_output_dir + '/crop_gt_bottom_' + f, crop_gt_bottom_img)
 
-        crop_img = cv2.add(crop_left_img, crop_gt_left_img)
+        crop_img = cv2.add(crop_bottom_img, crop_gt_bottom_img)
         cv2.imshow("cropped", crop_img)
-        #cv2.waitKey(0)
+        cv2.waitKey(0)
 
 def mirror_images(jpg_dir, jpg_files, output_dir):
     for f in jpg_files:
@@ -269,7 +269,7 @@ if not os.path.exists(ground_output_dir):
     os.makedirs(ground_output_dir)
     
 rename_images(jpg_dir)
-build_annotation_images(ground_output_dir)
+#build_annotation_images(ground_output_dir)
 crop_images(input_dir, input_files, output_dir)
 mirror_images(input_dir, input_files, output_dir)
 

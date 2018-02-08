@@ -28,7 +28,7 @@ def build_output_images(in_dir, out_dir):
             jpg_list.append(f)
             new_jpg_list.append('new_' + f)
         if '.txt' in f:
-            datafile.append(f)
+            datafile_list.append(f)
 
     #create directory for 320x240 input files
     if not os.path.exists(out_dir):
@@ -36,13 +36,14 @@ def build_output_images(in_dir, out_dir):
 
     for i in range(len(jpg_list)):  #process each file
         img = cv2.imread(in_dir + '/' + jpg_list[i])
+        print 'opening ' + jpg_list[i]
 
         #read in the datafile
         with open(in_dir+'/'+datafile_list[i]) as f:
-            f.readlines()
+            lines = f.readlines()
 
         f.close()
-        f = [x.strip() for x in f] #remove newlines
+        f = [x.strip() for x in lines] #remove newlines
         f = [x.split(',') for x in f]
 
         new_f = []
@@ -55,8 +56,10 @@ def build_output_images(in_dir, out_dir):
             else:
                 new_f.append((x[0],x[1]))
 
-        for x in f:
-            cv2.circle(img,x,5,(0,0,255),-1)
+        for x in new_f:
+            y = (x[0], x[1])
+            print y
+            cv2.circle(img,y,5,(0,0,255),-1)
 
         #write the image
         cv2.imwrite(out_dir + '/' + new_jpg_list[i], img)
@@ -67,3 +70,4 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 input_dir = sys.argv[1] + "/320_inference_input"
+build_output_images(input_dir, output_dir)
