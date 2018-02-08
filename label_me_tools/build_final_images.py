@@ -59,7 +59,7 @@ def build_output_images(in_dir, out_dir):
         for x in new_f:
             y = (x[0], x[1])
             print y
-            cv2.circle(img,y,5,(0,0,255),-1)
+            cv2.circle(img,y,4,(0,0,255),-1)
 
         #write the image
         cv2.imwrite(out_dir + '/' + new_jpg_list[i], img)
