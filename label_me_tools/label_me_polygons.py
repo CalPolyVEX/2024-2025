@@ -268,11 +268,11 @@ ground_output_dir = sys.argv[1]+"/ground_output"
 if not os.path.exists(ground_output_dir):
     os.makedirs(ground_output_dir)
     
-#rename_images(jpg_dir)
-#build_annotation_images(ground_output_dir)
-#crop_images(input_dir, input_files, output_dir)
-#mirror_images(input_dir, input_files, output_dir)
+rename_images(jpg_dir)
+build_annotation_images(ground_output_dir)
+crop_images(input_dir, input_files, output_dir)
+mirror_images(input_dir, input_files, output_dir)
 
 
-#build_320_240_images(sys.argv[1] + "/augmented_output", sys.argv[1] + "/ground_output")
+build_320_240_images(sys.argv[1] + "/augmented_output", sys.argv[1] + "/ground_output")
 get_range_data([sys.argv[1] + '/320_ground_truth'], sys.argv[1] + '/320_data') #output range data for the 320x240 files
