@@ -1,3 +1,5 @@
+# Create a .h5 file containing the labels for the training data
+
 import matplotlib 
 matplotlib.use('Agg') 
 
@@ -5,7 +7,6 @@ import h5py, os, sys
 import caffe
 import numpy as np
 
-#image_dir = '/home/nvidia/cnn_test/320_images'
 data_dir = '/home/nvidia/cnn_test/320_data'
 
 data_files = os.listdir(data_dir)
@@ -37,5 +38,5 @@ for i in range(len(data_files)):
 
 #f.close()
 with h5py.File('train.h5','w') as H:
-   H.create_dataset( 'X', data=img_data ) # note the name X given to the dataset!
-   #H.create_dataset( 'y', data=y ) # note the name y given to the dataset!
+   H.create_dataset( 'data', data=data_files ) # note the name y given to the dataset!
+   H.create_dataset( 'label', data=img_data ) # note the name X given to the dataset!
