@@ -20,8 +20,9 @@ def fill_polygon(img):
     height, width, channels = img.shape
 
     #build a mask that is 2 pixels wider and taller
+
     mask=np.zeros((height+2, width+2), np.uint8)
-    cv2.floodFill(img, mask, (0,0), 255)
+    cv2.floodFill(img, mask, (0,0), (255,255,255))
 
     #run down the left side of the image and if there is a 
     #black pixel, then do a floodfill
@@ -36,21 +37,22 @@ def fill_polygon(img):
             cv2.floodFill(img, mask, (x,y), 255)
 
     #invert the image
-    for y in range(height):
-        for x in range(width):
-            if img[y,x][0] != 255:
-                img[y,x] = [255,255,255]
-            else:
-                img[y,x] = [0,0,0]
+    img = cv2.bitwise_not(img)
+    #for y in range(height):
+    #    for x in range(width):
+    #        if img[y,x][0] != 255:
+    #            img[y,x] = [255,255,255]
+    #        else:
+    #            img[y,x] = [0,0,0]
 
     return img
 
 def crop_images(jpg_dir, jpg_files, output_dir):
-    ca_list = [25,50]
+    ca_list = [15,30,45]
 
     for crop_amount in ca_list:
         for f in jpg_files:
-            print "cropping " + f
+            print "cropping " + str(crop_amount) + " " + f
             img = cv2.imread(jpg_dir + '/' + f)
             gt_img = cv2.imread(ground_output_dir + '/gt_' + f)
             height, width, channels = img.shape
@@ -85,8 +87,8 @@ def crop_images(jpg_dir, jpg_files, output_dir):
             cv2.imwrite(ground_output_dir + '/gt_crop_top' + str(crop_amount) + '_' + f, crop_gt_top_img)
             cv2.imwrite(ground_output_dir + '/gt_crop_bottom' + str(crop_amount) + '_' + f, crop_gt_bottom_img)
 
-            crop_img = cv2.add(crop_bottom_img, crop_gt_bottom_img)
-            cv2.imshow("cropped", crop_img)
+            #crop_img = cv2.add(crop_bottom_img, crop_gt_bottom_img)
+            #cv2.imshow("cropped", crop_img)
             #cv2.waitKey(0)
 
 def mirror_images(jpg_dir, jpg_files, output_dir):
@@ -106,6 +108,8 @@ def mirror_images(jpg_dir, jpg_files, output_dir):
 
 #create the actual data to feed to neural network
 def get_range_data(dirs, out):
+    print "Generating data files for images"
+
     if not os.path.exists(out):
         os.makedirs(out)
 
@@ -119,17 +123,19 @@ def get_range_data(dirs, out):
             img = cv2.imread(d + '/' + f)
             height, width, channels = img.shape
             step = width / 31
-            blank_image = np.zeros((height,width,3), np.uint8)
+            #blank_image = np.zeros((height,width,3), np.uint8)
 
             data=[]
             f_out = open(out + '/' + f.replace('.jpg', '.txt'), 'w')
+
+            #run from 0 to the right edge of the image
             for x in range(0,width,step):
-                temp = height-1
+                temp = height-1  #start at the bottom of the image
                 while temp >= 0:
                     pixel = img[temp,x]
-                    if pixel[0] == 0 or temp == 0:
+                    if pixel[0] == 0 or temp == 0: #if the pixel is black or reach the top of image
                         #sys.stdout.write('%d, ' % temp)
-                        cv2.circle(blank_image,(x,temp),5,(0,0,255),-1)
+                        #cv2.circle(blank_image,(x,temp),5,(0,0,255),-1)
                         data.append((x,temp))
                         f_out.write(str(x) + ',' + str(temp) + '\n')
                         #blank_image[temp,x] = [0,0,255]
@@ -142,6 +148,7 @@ def get_range_data(dirs, out):
             #cv2.imwrite(out + '/lidar_' + f, blank_image)
         
 def build_320_240_images(in_dir):
+    print "Converting input images to 320x240"
     files = os.listdir(in_dir)
     files.sort()
 
@@ -157,6 +164,7 @@ def build_320_240_images(in_dir):
         cv2.imwrite(input_dir_320 + '/' + new_name, img320)
 
 def build_320_240_gt_images(gt_dir):
+    print "Converting ground truth images to 320x240"
     gt_files = os.listdir(gt_dir)
     gt_files.sort()
 
@@ -174,6 +182,7 @@ def build_320_240_gt_images(gt_dir):
 def rename_images(jpg_dir):
     #this function renames all the original input images to
     #a sequence:  0.jpg, 1.jpg, ...
+    print "Renaming input images"
     global jpg_files, input_files, xml_dir
     counter=0
 
@@ -245,7 +254,8 @@ def build_annotation_images(output_dir):
                 (pts[i][0])[1] = height-1
             assert (pts[i][0])[1] < height
 
-        cv2.polylines(img_new,[pts], True, (0,255,255))
+        #cv2.polylines(img_new,[pts], True, (0,255,255))
+        cv2.polylines(img_new,[pts], True, (255,255,255))
 
         img_new = fill_polygon(img_new) #fill in the polygon
 
