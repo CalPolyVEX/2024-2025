@@ -1,30 +1,26 @@
 name: "Building14Net"
 layer {
-  name: "data"
-  type: "Data"
+  name: "data1"
+  type: "ImageData"
   top: "data"
+  include {
+    phase: TRAIN
+  }
+  image_data_param {
+    source: "data_names.txt"
+    batch_size: 32
+  }
+}
+layer {
+  name: "data2"
+  type: "HDF5Data"
   top: "label"
   include {
     phase: TRAIN
   }
-  data_param {
-    source: "examples/imagenet/ilsvrc12_train_lmdb"
+  hdf5_data_param {
+    source: "train.h5"
     batch_size: 32
-    backend: LMDB
-  }
-}
-layer {
-  name: "data"
-  type: "Data"
-  top: "data"
-  top: "label"
-  include {
-    phase: TEST
-  }
-  data_param {
-    source: "examples/imagenet/ilsvrc12_val_lmdb"
-    batch_size: 50
-    backend: LMDB
   }
 }
 layer {

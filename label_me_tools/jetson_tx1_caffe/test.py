@@ -23,11 +23,13 @@ print data_files
 # Regularize values to between 0 and 1, or SigmoidCrossEntropyLoss will not work
 
 img_data = []
+img_names = []
 
 for i in range(len(data_files)):
-   print data_files[i]
+   name = data_dir + '/' + data_files[i]
+   print name
 
-   with open (data_dir + '/' + data_files[i]) as H:
+   with open (name) as H:
       lines = H.readlines()
 
    lines = [x.strip() for x in lines]
@@ -35,8 +37,10 @@ for i in range(len(data_files)):
    print lines
 
    img_data.append(lines)
+   img_names.append(name)
+
 
 #f.close()
 with h5py.File('train.h5','w') as H:
-   H.create_dataset( 'data', data=data_files ) # note the name y given to the dataset!
+   H.create_dataset( 'data', data=img_names ) # note the name y given to the dataset!
    H.create_dataset( 'label', data=img_data ) # note the name X given to the dataset!
