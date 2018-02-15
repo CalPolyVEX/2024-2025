@@ -87,6 +87,27 @@ def crop_images(jpg_dir, jpg_files, output_dir):
             cv2.imwrite(ground_output_dir + '/gt_crop_top' + str(crop_amount) + '_' + f, crop_gt_top_img)
             cv2.imwrite(ground_output_dir + '/gt_crop_bottom' + str(crop_amount) + '_' + f, crop_gt_bottom_img)
 
+            #write mirror images
+            crop_leftm_img = cv2.flip(crop_left_img,1)
+            crop_rightm_img = cv2.flip(crop_right_img,1)
+            crop_topm_img = cv2.flip(crop_top_img,1)
+            crop_bottomm_img = cv2.flip(crop_bottom_img,1)
+                                
+            crop_gt_leftm_img =cv2.flip(crop_gt_left_img,1)
+            crop_gt_rightm_img =cv2.flip(crop_gt_right_img,1)
+            crop_gt_topm_img = cv2.flip(crop_gt_top_img,1)
+            crop_gt_bottomm_img =cv2.flip(crop_gt_bottom_img,1)
+             
+            cv2.imwrite(output_dir + '/crop_leftm' + str(crop_amount) + '_' + f, crop_leftm_img)
+            cv2.imwrite(output_dir + '/crop_rightm' + str(crop_amount) + '_' + f, crop_rightm_img)
+            cv2.imwrite(output_dir + '/crop_topm' + str(crop_amount) + '_' + f, crop_topm_img)
+            cv2.imwrite(output_dir + '/crop_bottomm' + str(crop_amount) + '_' + f, crop_bottomm_img)
+
+            cv2.imwrite(ground_output_dir + '/gt_crop_leftm' + str(crop_amount) + '_' + f, crop_gt_leftm_img)
+            cv2.imwrite(ground_output_dir + '/gt_crop_rightm' + str(crop_amount) + '_' + f, crop_gt_rightm_img)
+            cv2.imwrite(ground_output_dir + '/gt_crop_topm' + str(crop_amount) + '_' + f, crop_gt_topm_img)
+            cv2.imwrite(ground_output_dir + '/gt_crop_bottomm' + str(crop_amount) + '_' + f, crop_gt_bottomm_img)
+
             #crop_img = cv2.add(crop_bottom_img, crop_gt_bottom_img)
             #cv2.imshow("cropped", crop_img)
             #cv2.waitKey(0)
