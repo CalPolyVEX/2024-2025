@@ -3,6 +3,7 @@
 import os
 import sys
 import random
+import datetime
 
 random.seed(101)
 
@@ -18,13 +19,23 @@ jpg_files = [f for f in files if 'jpg' in f]
 print jpg_files
 num_jpg_files = len(jpg_files)
 
+rand_num_list = []
+
+while len(rand_num_list) < 300:
+    x = random.randint(0,num_jpg_files-1)
+
+    if x not in rand_num_list:
+        rand_num_list.append(x)
+
+print rand_num_list
+now = datetime.datetime.now()
 #randomly select files
-for x in range(100):
-    rand_name = jpg_files[random.randint(0,num_jpg_files-1)]
+for x in range(len(rand_num_list)):
+    rand_name = jpg_files[rand_num_list[x]]
     print rand_name
 
     #copy file to this directory
-    os.system("cp " + sys.argv[1] + "/" + rand_name + " ./testdir/" + str(x) + ".jpg")
+    os.system("cp " + sys.argv[1] + "/" + rand_name + " ./testdir/" + str(now.month) + '_' + str(now.day) + '_' + str(x) + ".jpg")
 
 
     
