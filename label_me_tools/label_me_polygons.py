@@ -27,6 +27,7 @@ if sys.argv[1] == 'clean':
 jpg_files = [] #a list of the original .jpg files
 input_files = [] #list of the files renamed: 0.jpg, 1.jpg, ...
 input_dir = sys.argv[1] + "/input"
+remove_image_with_no_polygon = 1
 
 def fill_polygon(img):
     height, width, channels = img.shape
@@ -247,7 +248,28 @@ def rename_images(jpg_dir):
         counter += 1
 
 def build_annotation_images(output_dir):
-    global input_files
+    global input_files, remove_image_with_no_polygon
+
+    temp_input_files = input_files[:]
+
+    #check if no annotation
+    counter = 0
+    if remove_image_with_no_polygon == 1:
+        for f in temp_input_files:
+            x_filename = f.replace('.jpg', '.xml')
+            e = xml.etree.ElementTree.parse(sys.argv[1] + "/input_annotation/" + x_filename).getroot()
+            #print x_filename, e
+
+            pt_list = e.iter('polygon')
+            pt_list = len(list(pt_list))
+            if pt_list == 0:
+                #there is no polygon
+                input_files.remove(f)
+                print f
+                counter += 1
+                os.system('cd ' + sys.argv[1] + '/input; rm ' + f)
+                os.system('cd ' + sys.argv[1] + '/input_annotation; rm ' + x_filename)
+        print "Counter: " + str(counter)
 
     for f in input_files:
         polygon_list = []
@@ -318,6 +340,9 @@ def run_full():
         
     rename_images(jpg_dir)
     build_annotation_images(ground_output_dir)
+
+    #sys.exit()
+
     crop_images(input_dir, input_files, output_dir)
     mirror_images(input_dir, input_files, output_dir)
 
