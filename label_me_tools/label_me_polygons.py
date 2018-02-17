@@ -11,6 +11,18 @@ import xml.etree.ElementTree
 if len(sys.argv) <= 1:
     print "need command line arguments"
     sys.exit()
+if sys.argv[1] == 'clean':
+    print "clean"
+    os.system('cd ' + sys.argv[2] + '/320_input; rm *')
+    os.system('cd ' + sys.argv[2] + '/320_data; rm *')
+    os.system('cd ' + sys.argv[2] + '/320_ground_truth; rm *')
+    os.system('cd ' + sys.argv[2] + '/320_inference_input; rm *')
+    os.system('cd ' + sys.argv[2] + '/320_final_inference_output; rm *')
+    os.system('cd ' + sys.argv[2] + '/input; rm *')
+    os.system('cd ' + sys.argv[2] + '/input_annotation; rm *')
+    os.system('cd ' + sys.argv[2] + '/ground_output; rm *')
+    os.system('cd ' + sys.argv[2] + '/augmented_output; rm *')
+    sys.exit()
 
 jpg_files = [] #a list of the original .jpg files
 input_files = [] #list of the files renamed: 0.jpg, 1.jpg, ...
