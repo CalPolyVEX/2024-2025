@@ -163,7 +163,7 @@ def get_range_data(dirs, out):
             f_out = open(out + '/' + f.replace('.jpg', '.txt'), 'w')
 
             #run from 0 to the right edge of the image
-            for x in range(0,width,step):
+            for x in range(5,width,step):
                 temp = height-1  #start at the bottom of the image
                 while temp >= 0:
                     pixel = img[temp,x]
