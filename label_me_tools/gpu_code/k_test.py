@@ -6,10 +6,12 @@ from keras.layers import Conv2D, MaxPooling2D
 from keras.wrappers.scikit_learn import KerasRegressor
 from keras import optimizers
 from keras.regularizers import l2
+from keras.layers.normalization import BatchNormalization
+from keras.callbacks import ModelCheckpoint
 import keras
 
 import numpy as np
-import os, random
+import os, random, sys
 
 l2_lambda = .0001
 num_lidar_points = 0
@@ -21,7 +23,7 @@ img_rows = 240
 img_cols = 320
 batch_size = 32
 #batch_size = 16
-epochs = 150
+epochs = 400
 
 def init_program():
    global images, num_lidar_points, x_train, y_train, all_filenames
@@ -102,20 +104,32 @@ def baseline_model():
    rmsprop = optimizers.RMSprop(lr=0.1)
    sgd = optimizers.SGD(lr=0.01)
    model = Sequential()
-   model.add(Conv2D(64, kernel_size=(5,5), strides=2, activation='relu', input_shape=(240, 320, 3), kernel_regularizer=l2(l2_lambda)))
-   #model.add(Conv2D(64, kernel_size=(5,5), strides=2, activation='relu', input_shape=(240, 320, 1), kernel_regularizer=l2(l2_lambda)))
+   model.add(Conv2D(96, kernel_size=(5,5), strides=2, activation='relu', input_shape=(240, 320, 3)))
+   #model.add(Conv2D(96, kernel_size=(5,5), strides=2, activation='relu', input_shape=(240, 320, 3), kernel_regularizer=l2(l2_lambda)))
+   model.add(BatchNormalization())
    model.add(MaxPooling2D(pool_size=(2, 2)))
+   model.add(Dropout(0.35))
+   #model.add(Conv2D(128, (5, 5), activation='relu', kernel_regularizer=l2(l2_lambda)))
+   model.add(Conv2D(96, (5, 5), activation='relu'))
+   model.add(BatchNormalization())
+   model.add(MaxPooling2D(pool_size=(2, 2)))
+   model.add(Dropout(0.35))
+   #model.add(Conv2D(128, (3, 3), activation='relu', kernel_regularizer=l2(l2_lambda)))
+   model.add(Conv2D(96, (3, 3), activation='relu'))
+   model.add(BatchNormalization())
+   model.add(MaxPooling2D(pool_size=(2, 2)))
+   model.add(Dropout(0.35))
+   #model.add(Conv2D(128, (3, 3), activation='relu', kernel_regularizer=l2(l2_lambda)))
+   model.add(Conv2D(96, (3, 3), activation='relu'))
+   model.add(BatchNormalization())
+   model.add(MaxPooling2D(pool_size=(2, 2)))
+   model.add(Dense(96, activation='relu'))
+   model.add(BatchNormalization())
    model.add(Dropout(0.25))
-   model.add(Conv2D(128, (5, 5), activation='relu', kernel_regularizer=l2(l2_lambda)))
-   model.add(MaxPooling2D(pool_size=(2, 2)))
+   model.add(Dense(96, activation='relu'))
+   model.add(BatchNormalization())
    model.add(Dropout(0.25))
-   model.add(Conv2D(64, (3, 3), activation='relu', kernel_regularizer=l2(l2_lambda)))
-   model.add(MaxPooling2D(pool_size=(2, 2)))
-   #model.add(Dropout(0.25))
-   #model.add(Conv2D(192, (3, 3), activation='relu', kernel_regularizer=l2(l2_lambda)))
-   model.add(Dropout(0.25))
-   model.add(Conv2D(128, (3, 3), activation='relu', kernel_regularizer=l2(l2_lambda)))
-   model.add(MaxPooling2D(pool_size=(2, 2)))
+   model.add(Dense(96, activation='relu'))
    #model.add(Dropout(0.25))
    model.add(Flatten())
    model.add(Dense(num_lidar_points))
@@ -127,10 +141,25 @@ def baseline_model():
                  metrics=['accuracy'])
    return model
 
+# Prepare model model saving directory.
+save_dir = os.path.join(os.getcwd(), 'saved_models')
+model_name = sys.argv[0] + '_model.h5' 
+if not os.path.isdir(save_dir):
+    os.makedirs(save_dir)
+filepath = os.path.join(save_dir, model_name)
+
+# Prepare callbacks for model saving and for learning rate adjustment.
+checkpoint = ModelCheckpoint(filepath=filepath,
+                             monitor='val_loss',
+                             verbose=1,
+                             save_best_only=True)
+
+callbacks = [checkpoint]
+
 model = baseline_model()
 print model.summary()
 
 for x in range(epochs):
    print 'Epoch' + str(x)
-   model.fit(x_train, y_train, batch_size=batch_size, epochs=1, verbose=1, validation_split=.01)
+   model.fit(x_train, y_train, batch_size=batch_size, epochs=1, verbose=1, validation_split=.015, shuffle=True, callbacks=callbacks)
    model.save('my_model.h5')

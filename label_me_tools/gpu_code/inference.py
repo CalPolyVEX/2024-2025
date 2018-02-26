@@ -9,13 +9,12 @@ import keras
 
 import numpy as np
 import os, random
-import sys
+import sys, time
 
 #if len(sys.argv) < 2:
 #   print "need directory"
 #   sys.exit(0)
 
-num_lidar_points = 30
 images = {}
 img_rows = 240
 img_cols = 320
@@ -23,11 +22,11 @@ model = ''
 file_data = []
 
 def baseline_model():
-   model = load_model('my_model.h5')
+   model = load_model('saved_models/k_test.py_model.h5')
    return model
 
 def init_program():
-   global images, num_lidar_points, x_train, y_train, model, file_data
+   global images, x_train, y_train, model, file_data
 
    for file in os.listdir("test_files"):
       if file.endswith(".jpg"):
@@ -49,17 +48,20 @@ def run_inference_test():
          img_input = img_input.astype('float32')
          img_input /= 255
 
+         time1 = time.time()
          prediction = model.predict(img_input, 1, 1)
+         time2 = time.time()
+         print 'function took %0.3f ms' % ((time2-time1)*1000.0)
          prediction = [int(x*240) for x in prediction[0]]
 
-         counter = 0
+         counter = 5
          f = open(in_dir+'/'+filename.replace('jpg','txt'),'w')
          for x in prediction:
             f.write(str(counter)+','+str(x)+'\n')
             counter += 10
          f.close()
 
-         print prediction
+         #print prediction
 
          #prediction.tofile('foo3.csv',sep=',',format='%10.5f')
 
