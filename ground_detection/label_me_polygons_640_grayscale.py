@@ -164,7 +164,7 @@ def get_range_data(dirs, out):
 
             #run from 0 to the right edge of the image
             for x in range(5,width,step):
-                temp = height-1  #start at the bottom of the image
+                temp = height-2  #start at the bottom of the image
                 while temp >= 0:
                     pixel = img[temp,x]
                     if pixel[0] == 0 or temp == 0: #if the pixel is black or reach the top of image
@@ -178,7 +178,7 @@ def get_range_data(dirs, out):
                     temp = temp - 1
 
             f_out.close()
-            print data
+            #print data
             #cv2.imwrite(out + '/lidar_' + f, blank_image)
         
 def build_640_480_images(in_dir):
@@ -287,7 +287,7 @@ def build_annotation_images(output_dir):
         for child in e.iter('pt'):
             x = int(child[0].text)
             y = int(child[1].text)
-            if (height-y) <= 3: #if the ground truth does not reach bottom of image
+            if (height-y) <= 5: #if the ground truth does not reach bottom of image
                 y = height
             polygon_list.append([x,y])
 
@@ -338,17 +338,17 @@ def run_full():
     if not os.path.exists(ground_output_dir):
         os.makedirs(ground_output_dir)
         
-    rename_images(jpg_dir)
-    build_annotation_images(ground_output_dir)
+    #rename_images(jpg_dir)
+    #build_annotation_images(ground_output_dir)
 
     #sys.exit()
 
-    crop_images(input_dir, input_files, output_dir)
-    mirror_images(input_dir, input_files, output_dir)
+    #crop_images(input_dir, input_files, output_dir)
+    #mirror_images(input_dir, input_files, output_dir)
 
-    build_640_480_images(sys.argv[1] + "/augmented_output")
-    build_640_480_images(sys.argv[1] + "/input")
-    build_640_480_gt_images(sys.argv[1] + "/ground_output")
+    #build_640_480_images(sys.argv[1] + "/augmented_output")
+    #build_640_480_images(sys.argv[1] + "/input")
+    #build_640_480_gt_images(sys.argv[1] + "/ground_output")
     get_range_data([sys.argv[1] + '/640_ground_truth'], sys.argv[1] + '/640_data') #output range data for the 640x480 files
 
 run_full()
