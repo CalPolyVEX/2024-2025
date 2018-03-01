@@ -32,7 +32,7 @@ data_augmentation = True
 num_classes = 10
 
 # Subtracting pixel mean improves accuracy
-subtract_pixel_mean = True
+subtract_pixel_mean = False
 
 # Model parameter
 # ----------------------------------------------------------------------------
@@ -139,13 +139,13 @@ load_data()
 input_shape = x_train.shape[1:]
 
 # Normalize data.
-x_train = x_train.astype('float32') / 255
+#x_train = x_train.astype('float32') / 255
 #x_test = x_train
 #y_test = y_train
 #x_test = x_test.astype('float32') / 255
 
 # If subtract pixel mean is enabled
-if subtract_pixel_mean:
+if subtract_pixel_mean != True:
     x_train_mean = np.mean(x_train, axis=0)
     x_train -= x_train_mean
     #x_test -= x_train_mean
