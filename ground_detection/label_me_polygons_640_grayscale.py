@@ -236,7 +236,7 @@ def rename_images(jpg_dir):
     #for each file, copy and rename it to the input directory
     for f in jpg_files:
         new_name = str(counter) + '.jpg'
-        img = cv2.imread(jpg_dir + '/' + f, cv2.CV_LOAD_IMAGE_GRAYSCALE)
+        img = cv2.imread(jpg_dir + '/' + f, cv2.IMREAD_GRAYSCALE)
 
         cv2.imwrite(sys.argv[1] + '/input/' + new_name, img)
         input_files.append(new_name)
