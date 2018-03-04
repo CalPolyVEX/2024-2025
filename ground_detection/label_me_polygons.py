@@ -240,7 +240,7 @@ def rename_images(jpg_dir):
         new_name = str(counter) + '.jpg'
         img = cv2.imread(jpg_dir + '/' + f)
         
-        if counter in bad_list:
+        if counter == 139:
             print f
 
         cv2.imwrite(sys.argv[1] + '/input/' + new_name, img)
