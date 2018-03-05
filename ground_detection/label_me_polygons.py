@@ -237,7 +237,7 @@ def rename_images(jpg_dir):
 
     #for each file, copy and rename it to the input directory
     for f in jpg_files:
-        new_name = str(counter) + '.jpg'
+        new_name = format(counter, '04d') + '.jpg'
         img = cv2.imread(jpg_dir + '/' + f)
         
         if counter == 139:
@@ -248,7 +248,7 @@ def rename_images(jpg_dir):
 
         x_filename = f.replace('.jpg', '.xml')
         #os.system("cp " + sys.argv[1] + "/" + rand_name + " ./testdir/" + str(x) + ".jpg")
-        os.system("cp " + xml_dir + '/' + x_filename + " " + sys.argv[1] + "/input_annotation/" + str(counter) + ".xml")
+        os.system("cp " + xml_dir + '/' + x_filename + " " + sys.argv[1] + "/input_annotation/" + format(counter, '04d') + ".xml")
 
         counter += 1
 
