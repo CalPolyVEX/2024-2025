@@ -8,6 +8,8 @@ import os, sys, random
 import cv2, numpy as np
 import xml.etree.ElementTree
 
+bad_list = [ 62, 64, 83, 102, 109, 110, 121, 122, 142, 805, 846, 1271, 1334, 1386]
+
 if len(sys.argv) <= 1:
     print "need command line arguments"
     sys.exit()
@@ -217,7 +219,7 @@ def rename_images(jpg_dir):
     #this function renames all the original input images to
     #a sequence:  0.jpg, 1.jpg, ...
     print "Renaming input images"
-    global jpg_files, input_files, xml_dir
+    global jpg_files, input_files, xml_dir, bad_list
     counter=0
 
     jpg_files = os.listdir(jpg_dir)
@@ -235,15 +237,18 @@ def rename_images(jpg_dir):
 
     #for each file, copy and rename it to the input directory
     for f in jpg_files:
-        new_name = str(counter) + '.jpg'
+        new_name = format(counter, '04d') + '.jpg'
         img = cv2.imread(jpg_dir + '/' + f)
+        
+        if counter == 139:
+            print f
 
         cv2.imwrite(sys.argv[1] + '/input/' + new_name, img)
         input_files.append(new_name)
 
         x_filename = f.replace('.jpg', '.xml')
         #os.system("cp " + sys.argv[1] + "/" + rand_name + " ./testdir/" + str(x) + ".jpg")
-        os.system("cp " + xml_dir + '/' + x_filename + " " + sys.argv[1] + "/input_annotation/" + str(counter) + ".xml")
+        os.system("cp " + xml_dir + '/' + x_filename + " " + sys.argv[1] + "/input_annotation/" + format(counter, '04d') + ".xml")
 
         counter += 1
 
@@ -287,6 +292,9 @@ def build_annotation_images(output_dir):
         for child in e.iter('pt'):
             x = int(child[0].text)
             y = int(child[1].text)
+            if (height-y) <= 7 and (height-y) >= 3:
+                print "test: " + x_filename
+                #sys.exit()
             if (height-y) <= 3: #if the ground truth does not reach bottom of image
                 y = height
             polygon_list.append([x,y])
