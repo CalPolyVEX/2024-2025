@@ -29,28 +29,28 @@ QTextStream out(stdout);
 
 Cameraproperty::Cameraproperty()
 {
-    connect(this,SIGNAL(setFirstCamDevice(int)),&vidStr,SLOT(getFirstDevice(int)));
-    connect(this,SIGNAL(setCamName(QString)),&vidStr,SLOT(getCameraName(QString)));
+//    connect(this,SIGNAL(setFirstCamDevice(int)),&vidStr,SLOT(getFirstDevice(int)));
+//    connect(this,SIGNAL(setCamName(QString)),&vidStr,SLOT(getCameraName(QString)));
     //Added by Dhurka - 13th Oct 2016
     /**
      * @brief connect - This signal is used to send the currently selected device to uvccamera.cpp filr
      */
-    connect(this,SIGNAL(setCamName(QString)),&uvccam,SLOT(currentlySelectedDevice(QString)));
-    connect(this,SIGNAL(logHandle(QtMsgType,QString)),this,SLOT(logWriter(QtMsgType,QString)));
-    connect(&uvccam,SIGNAL(logHandle(QtMsgType,QString)),this,SLOT(logWriter(QtMsgType,QString)));
+//    connect(this,SIGNAL(setCamName(QString)),&uvccam,SLOT(currentlySelectedDevice(QString)));
+//    connect(this,SIGNAL(logHandle(QtMsgType,QString)),this,SLOT(logWriter(QtMsgType,QString)));
+//    connect(&uvccam,SIGNAL(logHandle(QtMsgType,QString)),this,SLOT(logWriter(QtMsgType,QString)));
     //Added by Dhurka - 13th Oct 2016
     /**
      * @brief connect - This signal is used to send the currently selected camera enum to videostreaming.cpp
      */
-    connect(&uvccam,SIGNAL(currentlySelectedCameraEnum(CommonEnums::ECameraNames)),&vidStr,SLOT(selectedCameraEnum(CommonEnums::ECameraNames)));
+//    connect(&uvccam,SIGNAL(currentlySelectedCameraEnum(CommonEnums::ECameraNames)),&vidStr,SLOT(selectedCameraEnum(CommonEnums::ECameraNames)));
     //Added by Dhurka - 13th Oct 2016
     /**
      * @brief connect - This signal is used to send the selected camera enum value to QML for commparision instead of camera name
      */
-    connect(&uvccam,SIGNAL(currentlySelectedCameraEnum(CommonEnums::ECameraNames)),this,SLOT(selectedDeviceEnum(CommonEnums::ECameraNames)));
+//    connect(&uvccam,SIGNAL(currentlySelectedCameraEnum(CommonEnums::ECameraNames)),this,SLOT(selectedDeviceEnum(CommonEnums::ECameraNames)));
     // Added by Sankari: To notify user about hid access 
     // 07 Dec 2017
-    connect(&uvccam,SIGNAL(hidWarningReceived(QString, QString)),this,SLOT(notifyUser(QString, QString)));
+//    connect(&uvccam,SIGNAL(hidWarningReceived(QString, QString)),this,SLOT(notifyUser(QString, QString)));
 }
 
 Cameraproperty::Cameraproperty(bool enableLog) {
@@ -182,9 +182,15 @@ void Cameraproperty::logCriticalWriter(QString tmpStr) {
 //Added by Dhurka - 17th Oct 2016
 void Cameraproperty::openHIDDevice(QString deviceName)
 {
+   QTextStream(stdout) << "---start openHIDDevice---" << endl;
+   QTextStream(stdout) << "device name: ";
+   QTextStream(stdout) << deviceName << endl;
     uvccam.exitExtensionUnit();
     deviceName.remove(QRegExp("[\n\t\r]"));
     bool hidInit = uvccam.initExtensionUnit(deviceName);    
+   QTextStream(stdout) << "---hidInit success: ";
+   QTextStream(stdout) << hidInit << endl;
+   QTextStream(stdout) << "---end openHIDDevice---" << endl;
     if(hidInit)
     {
         emit initExtensionUnitSuccess();
