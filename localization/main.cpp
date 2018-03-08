@@ -121,17 +121,17 @@ int main(int argc, char *argv[])
 
     /* JS */
     if (0 == 0) {
+        QTextStream(stdout) << "test";
         uvccamera test_cam;
         test_cam.findEconDevice("");
         test_cam.initExtensionUnit("");
-        QTextStream(stdout) << "test";
         camProperty.checkforDevice();
         camProperty.setCurrentDevice("0","1");
         camProperty.openHIDDevice("/dev/video10");
         std::cout << uvccamera::hid_fd; 
 
         See3CAM_CU20 s;
-        //s.setSensorMode(0x02);
+        s.setSensorMode(See3CAM_CU20::SENSOR_HDR_DLO);
         //s.getSensorMode();
 
         exit(0);
