@@ -104,7 +104,7 @@ def baseline_model():
    rmsprop = optimizers.RMSprop(lr=0.1)
    sgd = optimizers.SGD(lr=0.01)
    model = Sequential()
-   model.add(Conv2D(96, kernel_size=(5,5), strides=2, activation='relu', input_shape=(480, 640, 1)))
+   model.add(Conv2D(96, kernel_size=(5,5), strides=2, activation='relu', input_shape=(480, 640, 3)))
    #model.add(Conv2D(96, kernel_size=(5,5), strides=2, activation='relu', input_shape=(480, 640, 3), kernel_regularizer=l2(l2_lambda)))
    model.add(BatchNormalization())
    model.add(MaxPooling2D(pool_size=(2, 2)))

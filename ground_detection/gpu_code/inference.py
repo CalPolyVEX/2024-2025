@@ -22,7 +22,7 @@ model = ''
 file_data = []
 
 def baseline_model():
-   model = load_model('saved_models/k_test.py_model.h5')
+   model = load_model('saved_models/k_test2.py_model.h5')
    return model
 
 def init_program():
