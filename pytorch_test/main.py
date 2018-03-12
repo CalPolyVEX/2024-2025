@@ -1,5 +1,6 @@
-from __future__ import print_function
+#from __future__ import print_function
 import argparse
+import pandas as pd
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -8,11 +9,9 @@ from torchvision import datasets, transforms
 from torch.autograd import Variable
 from torchvision.datasets import ImageFolder
 from torchvision.transforms import ToTensor
-import sys
-
-#data = ImageFolder(root='../ground_detection/gpu_code', transform=ToTensor())
-#print (data.classes)
-sys.exit(0)
+from torch.utils.data import Dataset, DataLoader
+from skimage import io,transform
+import sys, os
 
 # Training settings
 parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
@@ -39,50 +38,58 @@ torch.manual_seed(args.seed)
 if args.cuda:
     torch.cuda.manual_seed(args.seed)
 
-kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
-train_loader = torch.utils.data.DataLoader(
-    datasets.MNIST('../data', train=True, download=True,
-                   transform=transforms.Compose([
-                       transforms.ToTensor(),
-                       transforms.Normalize((0.1307,), (0.3081,))
-                   ])),
-    batch_size=args.batch_size, shuffle=True, **kwargs)
-test_loader = torch.utils.data.DataLoader(
-    datasets.MNIST('../data', train=False, transform=transforms.Compose([
-                       transforms.ToTensor(),
-                       transforms.Normalize((0.1307,), (0.3081,))
-                   ])),
-    batch_size=args.test_batch_size, shuffle=True, **kwargs)
+#kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
+#train_loader = torch.utils.data.DataLoader(
+#    datasets.MNIST('../data', train=True, download=True,
+#                   transform=transforms.Compose([
+#                       transforms.ToTensor(),
+#                       transforms.Normalize((0.1307,), (0.3081,))
+#                   ])),
+#    batch_size=args.batch_size, shuffle=True, **kwargs)
+#test_loader = torch.utils.data.DataLoader(
+#    datasets.MNIST('../data', train=False, transform=transforms.Compose([
+#                       transforms.ToTensor(),
+#                       transforms.Normalize((0.1307,), (0.3081,))
+#                   ])),
+#    batch_size=args.test_batch_size, shuffle=True, **kwargs)
 
-class FaceLandmarksDataset(Dataset):
-    def __init__(self, root_dir, transform=None):
-        """
-        Args:
-            csv_file (string): Path to the csv file with annotations.
-            root_dir (string): Directory with all the images.
-            transform (callable, optional): Optional transform to be applied
-                on a sample.
-        """
-        self.image_list = os.listdir(root_dir + "/320_images")
-        self.landmarks_frame = pd.read_csv(csv_file)
-        self.root_dir = root_dir
-        self.transform = transform
+class TestDataset(Dataset):
+   def __init__(self, root_dir, transform=None):
+      self.image_list = os.listdir(root_dir + "/320_images")
+      #self.landmarks_frame = pd.read_csv(csv_file)
+      self.root_dir = root_dir
+      self.transform = transform
+      self.point_list = []
 
-    def __len__(self):
-        return len(self.landmarks_frame)
+      for x in range(len(self.image_list)):
+         i_name = self.image_list[x]
+         text_x = i_name.replace('jpg','txt')
+         text_x = text_x.replace('320_','320_gt_')
+         x_list = pd.read_csv(root_dir + '/320_data/' + text_x, header=None)
+         x_list = x_list.as_matrix()
+         x_list = x_list[:,1]
+         #print x_list.shape
+         self.point_list.append(x_list)
 
-    def __getitem__(self, idx):
-        img_name = os.path.join(self.root_dir,
-                                self.landmarks_frame.iloc[idx, 0])
-        image = io.imread(img_name)
-        landmarks = self.landmarks_frame.iloc[idx, 1:].as_matrix()
-        landmarks = landmarks.astype('float').reshape(-1, 2)
-        sample = {'image': image, 'landmarks': landmarks}
+   def __len__(self):
+      return len(self.landmarks_frame)
 
-        if self.transform:
-            sample = self.transform(sample)
+   def __getitem__(self, idx):
+      img_name = os.path.join(self.root_dir + '/320_images', self.image_list[idx])
+      image = io.imread(img_name)
+      points = self.point_list[idx]
+      #points = points.astype('float').reshape(-1, 2)
+      sample = {'image': image, 'points': points}
 
-        return sample
+      if self.transform:
+         sample = self.transform(sample)
+
+      return sample
+
+t_dataset = TestDataset(root_dir='../ground_detection/gpu_code')
+print t_dataset[0]
+sys.exit(0)
+
 
 class Net(nn.Module):
     def __init__(self):
