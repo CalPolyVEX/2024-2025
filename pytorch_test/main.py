@@ -11,6 +11,8 @@ from torchvision.datasets import ImageFolder
 from torchvision.transforms import ToTensor
 from torch.utils.data import Dataset, DataLoader
 from skimage import io,transform
+from augment_images import ImageAugmentor
+import Augmentor
 import sys, os
 
 # Training settings
@@ -70,6 +72,10 @@ class TestDataset(Dataset):
       self.transform = transform
       self.point_list = []
       #self.new_list = []
+      self.p = Augmentor.Pipeline()
+      self.p.rotate(probability=1, max_left_rotation=5, max_right_rotation=5)
+      self.p.flip_left_right(probability=0.5)
+      self.p.zoom_random(probability=0.5, percentage_area=0.8)
 
       for x in range(len(self.image_list)):
       #for x in range(13000):
@@ -87,6 +93,19 @@ class TestDataset(Dataset):
       return len(self.image_list)
 
    def __getitem__(self, idx):
+      img_name = os.path.join(self.root_dir + '/320_images', self.image_list[idx])
+      image = io.imread(img_name)
+      image = image.astype('float32')
+      image = image / 255.0
+      points = self.point_list[idx]
+      sample = (image, points)
+
+      if self.transform:
+         sample = self.transform(sample)
+
+      return sample
+
+   def __getitem1__(self, idx):
       img_name = os.path.join(self.root_dir + '/320_images', self.image_list[idx])
       image = io.imread(img_name)
       image = image.astype('float32')
@@ -118,7 +137,7 @@ class Net(nn.Module):
       self.conv2 = nn.Conv2d(64, 96, kernel_size=5)
       self.conv3 = nn.Conv2d(96, 128, kernel_size=3)
       self.conv4 = nn.Conv2d(128, 192, kernel_size=3)
-      self.conv2_drop = nn.Dropout2d()
+      self.conv2_drop = nn.Dropout2d(p=.35)
       self.bn1 = nn.BatchNorm2d(64)
       self.bn2 = nn.BatchNorm2d(96)
       self.bn3 = nn.BatchNorm2d(128)
@@ -132,10 +151,12 @@ class Net(nn.Module):
    def forward(self, x):
       x = F.relu(F.max_pool2d(self.conv1(x), 2))
       x = self.bn1(x)
+      x = self.conv2_drop(x)
       x = F.relu(F.max_pool2d(self.conv2_drop(self.conv2(x)), 2))
       x = self.bn2(x)
       x = F.relu(F.max_pool2d(self.conv3(x), 2))
       x = self.bn3(x)
+      x = self.conv2_drop(x)
       x = F.relu(F.max_pool2d(self.conv4(x), 2))
       x = self.bn4(x)
       #print x.shape
@@ -153,9 +174,12 @@ class Net(nn.Module):
       return x
 
 model = Net()
-print(model)
 if args.cuda:
    model.cuda()
+
+print(model)
+for parameter in model.parameters():
+    print(parameter)
 
 #optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 optimizer = optim.Adam(model.parameters())

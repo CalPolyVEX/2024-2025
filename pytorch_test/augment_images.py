@@ -10,22 +10,6 @@ import cv2, numpy as np
 import xml.etree.ElementTree
 import Augmentor
 
-if len(sys.argv) <= 1:
-   print "need command line arguments"
-   #sys.exit()
-elif sys.argv[1] == 'clean':
-   print "clean"
-   os.system('cd ' + sys.argv[2] + '/320_input; rm *.jpg')
-   os.system('cd ' + sys.argv[2] + '/320_data; rm *.txt')
-   os.system('cd ' + sys.argv[2] + '/320_ground_truth; rm *.jpg')
-   os.system('cd ' + sys.argv[2] + '/320_inference_input; rm *.jpg')
-   os.system('cd ' + sys.argv[2] + '/320_final_inference_output; rm *.jpg')
-   os.system('cd ' + sys.argv[2] + '/input; rm *.jpg')
-   os.system('cd ' + sys.argv[2] + '/input_annotation; rm *.xml')
-   os.system('cd ' + sys.argv[2] + '/ground_output; rm *.jpg')
-   os.system('cd ' + sys.argv[2] + '/augmented_output; rm *.jpg')
-   sys.exit()
-
 class ImageAugmentor:
    def __init__(self, collection_dir):
       os.system('rm -f -r ' + path.join(collection_dir,'input','output'))
@@ -317,9 +301,26 @@ def run_full():
    get_range_data([sys.argv[1] + '/320_ground_truth'], sys.argv[1] + '/320_data') #output range data for the 320x240 files
 
 #run_full()
-a = ImageAugmentor(sys.argv[1])
-a.rename_images()
-a.build_annotation_images()
-a.build_320_240_images()
-a.build_320_240_gt_images()
-a.augment_test(30000)
+if __name__ == '__main__':
+   if len(sys.argv) <= 1:
+      print "need command line arguments"
+      #sys.exit()
+   elif sys.argv[1] == 'clean':
+      print "clean"
+      os.system('cd ' + sys.argv[2] + '/320_input; rm *.jpg')
+      os.system('cd ' + sys.argv[2] + '/320_data; rm *.txt')
+      os.system('cd ' + sys.argv[2] + '/320_ground_truth; rm *.jpg')
+      os.system('cd ' + sys.argv[2] + '/320_inference_input; rm *.jpg')
+      os.system('cd ' + sys.argv[2] + '/320_final_inference_output; rm *.jpg')
+      os.system('cd ' + sys.argv[2] + '/input; rm *.jpg')
+      os.system('cd ' + sys.argv[2] + '/input_annotation; rm *.xml')
+      os.system('cd ' + sys.argv[2] + '/ground_output; rm *.jpg')
+      os.system('cd ' + sys.argv[2] + '/augmented_output; rm *.jpg')
+      sys.exit()
+
+   a = ImageAugmentor(sys.argv[1])
+   a.rename_images()
+   a.build_annotation_images()
+   a.build_320_240_images()
+   a.build_320_240_gt_images()
+   a.augment_test(30000)
