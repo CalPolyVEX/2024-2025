@@ -72,10 +72,6 @@ class TestDataset(Dataset):
       self.transform = transform
       self.point_list = []
       #self.new_list = []
-      self.p = Augmentor.Pipeline()
-      self.p.rotate(probability=1, max_left_rotation=5, max_right_rotation=5)
-      self.p.flip_left_right(probability=0.5)
-      self.p.zoom_random(probability=0.5, percentage_area=0.8)
 
       for x in range(len(self.image_list)):
       #for x in range(13000):
