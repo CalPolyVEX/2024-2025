@@ -15,6 +15,7 @@ class ImageAugmentor:
       os.system('rm -f -r ' + path.join(collection_dir,'input','output'))
       self.width = 320
       self.height = 240
+      self.image_counter = 0
       self.collection_dir = collection_dir
       self.jpg_files = [] #a list of the original .jpg files
       self.input_files = [] #list of the files renamed: 0.jpg, 1.jpg, ...
@@ -34,7 +35,29 @@ class ImageAugmentor:
       p.rotate(probability=1, max_left_rotation=5, max_right_rotation=5)
       p.flip_left_right(probability=0.5)
       p.zoom_random(probability=0.5, percentage_area=0.8)
+      p.resize(probability=1.0, width=self.width, height=self.height)
       p.sample(num)
+      
+      files = os.listdir(path.join(self.input_dir,'output'))
+      files.sort()
+      original_files = [x for x in files if 'original' in x]
+      gt_files = [x for x in files if 'ground' in x]
+
+      for x in original_files:
+         new_name = x.replace('input_original_','')
+         new_name = '320_' + format(self.image_counter, '04d') + '.jpg'
+         os.system('cd ' + self.input_dir + '/output; mv ' + x + ' ../../320_input/' + new_name)
+         self.image_counter += 1
+      self.image_counter -= len(original_files)
+      for x in gt_files:
+         new_name = x.replace('_groundtruth_(1)_input_','')
+         new_name = '320_' + format(self.image_counter, '04d') + '.jpg'
+         x= x.replace('(','\(')
+         x= x.replace(')','\)')
+         print new_name
+         #sys.exit(0)
+         os.system('cd ' + self.input_dir + '/output; mv ' + x + ' ../../320_ground_truth/' + new_name)
+         self.image_counter += 1
 
    def fill_polygon(self, img):
       height, width, channels = img.shape
@@ -63,33 +86,6 @@ class ImageAugmentor:
       img = cv2.bitwise_not(img)
 
       return img
-
-   def crop_images(jpg_dir, jpg_files, output_dir):
-      ca_list = [15,30,45]
-
-      for crop_amount in ca_list:
-         for f in jpg_files:
-            print "cropping " + str(crop_amount) + " " + f
-            img = cv2.imread(jpg_dir + '/' + f)
-            gt_img = cv2.imread(ground_output_dir + '/gt_' + f)
-            height, width, channels = img.shape
-
-            crop_left_img = img[0:height-1, crop_amount:width-1] #trim left edge
-            crop_gt_left_img = gt_img[0:height-1, crop_amount:width-1] #trim left edge
-            
-            crop_left_img = cv2.resize(crop_left_img, (width,height), interpolation=cv2.INTER_CUBIC)
-            crop_gt_left_img = cv2.resize(crop_gt_left_img, (width,height), interpolation=cv2.INTER_CUBIC)
-            cv2.imwrite(output_dir + '/crop_left' + str(crop_amount) + '_' + f, crop_left_img)
-            cv2.imwrite(ground_output_dir + '/gt_crop_left' + str(crop_amount) + '_' + f, crop_gt_left_img)
-
-
-   def mirror_images(jpg_dir, jpg_files, output_dir):
-      for f in jpg_files:
-         print "mirroring " + f
-         img = cv2.imread(jpg_dir + '/' + f)
-         gt_img = cv2.imread(ground_output_dir + '/gt_' + f)
-         height, width, channels = img.shape
-
 
    #create the actual data to feed to neural network
    def get_range_data(dirs, out):
@@ -181,12 +177,12 @@ class ImageAugmentor:
          os.makedirs(path.join(self.collection_dir, 'input_annotation'))
 
       #for each file, copy and rename it to the input directory
-      counter=0
+      self.image_counter=0
       for f in self.jpg_files:
-         new_name = format(counter, '04d') + '.jpg'
+         new_name = format(self.image_counter, '04d') + '.jpg'
          img = cv2.imread(path.join(self.orig_jpg_dir,f))
          
-         if counter == 139:
+         if self.image_counter == 139:
                print f
 
          cv2.imwrite(path.join(self.input_dir, new_name), img)
@@ -194,9 +190,9 @@ class ImageAugmentor:
 
          #renaming xml files
          x_filename = f.replace('.jpg', '.xml')
-         os.system("cp " + path.join(self.xml_dir, x_filename) + " " + path.join(self.collection_dir, "input_annotation", format(counter, '04d') + ".xml"))
+         os.system("cp " + path.join(self.xml_dir, x_filename) + " " + path.join(self.collection_dir, "input_annotation", format(self.image_counter, '04d') + ".xml"))
 
-         counter += 1
+         self.image_counter += 1
 
    def build_annotation_images(self):
       temp_input_files = self.input_files[:]
@@ -323,4 +319,4 @@ if __name__ == '__main__':
    a.build_annotation_images()
    a.build_320_240_images()
    a.build_320_240_gt_images()
-   a.augment_test(30000)
+   a.augment_test(30)
