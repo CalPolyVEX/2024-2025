@@ -32,9 +32,10 @@ class ImageAugmentor:
       # and augmented in parallel to the original data.
       p.ground_truth(self.ground_output_dir)
       # Add operations to the pipeline as normal:
-      p.rotate(probability=1, max_left_rotation=5, max_right_rotation=5)
+      #p.rotate(probability=1, max_left_rotation=5, max_right_rotation=5)
       p.flip_left_right(probability=0.5)
       p.zoom_random(probability=0.5, percentage_area=0.8)
+      p.skew_left_right(probability=0.85, magnitude=.945)
       p.resize(probability=1.0, width=self.width, height=self.height)
       p.sample(num)
       
@@ -88,45 +89,44 @@ class ImageAugmentor:
       return img
 
    #create the actual data to feed to neural network
-   def get_range_data(dirs, out):
+   def get_range_data(self, dirs, out):
       print "Generating data files for images"
 
       if not os.path.exists(out):
          os.makedirs(out)
 
-      for d in dirs:
-         files = os.listdir(d)
-         files.sort()
-         for f in files:
-            if 'lidar' in f:
-               continue
-            print f
-            img = cv2.imread(d + '/' + f)
-            height, width, channels = img.shape
-            step = width / 31
-            #blank_image = np.zeros((height,width,3), np.uint8)
+      files = os.listdir(dirs)
+      files.sort()
+      for f in files:
+         if 'lidar' in f:
+            continue
+         print f
+         img = cv2.imread(path.join(dirs,f))
+         height, width, channels = img.shape
+         step = width / 31
+         #blank_image = np.zeros((height,width,3), np.uint8)
 
-            data=[]
-            f_out = open(out + '/' + f.replace('.jpg', '.txt'), 'w')
+         data=[]
+         f_out = open(out + '/' + f.replace('.jpg', '.txt'), 'w')
 
-            #run from 0 to the right edge of the image
-            for x in range(5,width,step):
-               temp = height-1  #start at the bottom of the image
-               while temp >= 0:
-                  pixel = img[temp,x]
-                  if pixel[0] == 0 or temp == 0: #if the pixel is black or reach the top of image
-                        #sys.stdout.write('%d, ' % temp)
-                        #cv2.circle(blank_image,(x,temp),5,(0,0,255),-1)
-                        data.append((x,temp))
-                        f_out.write(str(x) + ',' + str(temp) + '\n')
-                        #blank_image[temp,x] = [0,0,255]
-                        found=1
-                        break
-                  temp = temp - 1
+         #run from 0 to the right edge of the image
+         for x in range(5,width,step):
+            temp = height-1  #start at the bottom of the image
+            while temp >= 0:
+               pixel = img[temp,x]
+               if pixel[0] == 0 or temp == 0: #if the pixel is black or reach the top of image
+                     #sys.stdout.write('%d, ' % temp)
+                     #cv2.circle(blank_image,(x,temp),5,(0,0,255),-1)
+                     data.append((x,temp))
+                     f_out.write(str(x) + ',' + str(temp) + '\n')
+                     #blank_image[temp,x] = [0,0,255]
+                     found=1
+                     break
+               temp = temp - 1
 
-            f_out.close()
-            print data
-            #cv2.imwrite(out + '/lidar_' + f, blank_image)
+         f_out.close()
+         print data
+         #cv2.imwrite(out + '/lidar_' + f, blank_image)
       
    def build_320_240_images(self):
       print "Converting input images to 320x240"
@@ -319,4 +319,5 @@ if __name__ == '__main__':
    a.build_annotation_images()
    a.build_320_240_images()
    a.build_320_240_gt_images()
-   a.augment_test(30)
+   a.augment_test(300)
+   a.get_range_data(path.join(sys.argv[1],'320_ground_truth'), path.join(sys.argv[1],'320_data'))
