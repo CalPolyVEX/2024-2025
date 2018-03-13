@@ -40,7 +40,7 @@ class ImageAugmentor:
       self.orig_jpg_dir = path.join(collection_dir,"Images/users/jseng/building14")
       self.ground_output_dir = path.join(collection_dir,"ground_output")
    
-   def augment_test(self):
+   def augment_test(self,num):
       p = Augmentor.Pipeline(self.input_dir)
       # Point to a directory containing ground truth data.
       # Images with the same file names will be added as ground truth data
@@ -50,8 +50,7 @@ class ImageAugmentor:
       p.rotate(probability=1, max_left_rotation=5, max_right_rotation=5)
       p.flip_left_right(probability=0.5)
       p.zoom_random(probability=0.5, percentage_area=0.8)
-      #p.flip_top_bottom(probability=0.5)
-      p.sample(500)
+      p.sample(num)
 
    def fill_polygon(self, img):
       height, width, channels = img.shape
@@ -323,4 +322,4 @@ a.rename_images()
 a.build_annotation_images()
 a.build_320_240_images()
 a.build_320_240_gt_images()
-a.augment_test()
+a.augment_test(30000)
