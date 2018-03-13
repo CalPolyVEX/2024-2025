@@ -27,32 +27,53 @@ elif sys.argv[1] == 'clean':
    sys.exit()
 
 class ImageAugmentor:
-   def __init__(self):
+   def __init__(self, collection_dir):
+      os.system('rm -f -r ' + path.join(collection_dir,'input','output'))
+      self.width = 320
+      self.height = 240
+      self.collection_dir = collection_dir
       self.jpg_files = [] #a list of the original .jpg files
       self.input_files = [] #list of the files renamed: 0.jpg, 1.jpg, ...
       self.input_dir = path.join(sys.argv[1], "input")
       self.remove_image_with_no_polygon = 1
-      self.xml_dir = path.join(sys.argv[1],"Annotations/users/jseng/building14")
-      self.ground_output_dir = path.join(sys.argv[1],"ground_output")
+      self.xml_dir = path.join(collection_dir,"Annotations/users/jseng/building14")
+      self.orig_jpg_dir = path.join(collection_dir,"Images/users/jseng/building14")
+      self.ground_output_dir = path.join(collection_dir,"ground_output")
    
-   def fill_polygon(img):
+   def augment_test(self):
+      p = Augmentor.Pipeline(self.input_dir)
+      # Point to a directory containing ground truth data.
+      # Images with the same file names will be added as ground truth data
+      # and augmented in parallel to the original data.
+      p.ground_truth(self.ground_output_dir)
+      # Add operations to the pipeline as normal:
+      p.rotate(probability=1, max_left_rotation=5, max_right_rotation=5)
+      p.flip_left_right(probability=0.5)
+      p.zoom_random(probability=0.5, percentage_area=0.8)
+      #p.flip_top_bottom(probability=0.5)
+      p.sample(500)
+
+   def fill_polygon(self, img):
       height, width, channels = img.shape
 
       #build a mask that is 2 pixels wider and taller
 
       mask=np.zeros((height+2, width+2), np.uint8)
-      cv2.floodFill(img, mask, (0,0), (255,255,255))
+      #cv2.floodFill(img, mask, (0,0), (255,255,255))
+      cv2.floodFill(img, mask, (0,0), 255)
 
       #run down the left side of the image and if there is a 
       #black pixel, then do a floodfill
       for y in range(height):
          x=0
-         if img[y,x][2] != 255:
+         #if img[y,x][2] != 255:
+         if img[y,x] != 255:
             cv2.floodFill(img, mask, (x,y), 255)
 
       for y in range(height):
          x=width-1
-         if img[y,x][2] != 255:
+         #if img[y,x][2] != 255:
+         if img[y,x] != 255:
             cv2.floodFill(img, mask, (x,y), 255)
 
       #invert the image
@@ -128,25 +149,25 @@ class ImageAugmentor:
             print data
             #cv2.imwrite(out + '/lidar_' + f, blank_image)
       
-   def build_320_240_images(in_dir):
+   def build_320_240_images(self):
       print "Converting input images to 320x240"
-      files = os.listdir(in_dir)
+      files = os.listdir(self.input_dir)
       files.sort()
 
       #create directory for 320x240 input files
-      input_dir_320 = sys.argv[1]+"/320_input"
+      input_dir_320 = path.join(self.collection_dir,"320_input")
       if not os.path.exists(input_dir_320):
          os.makedirs(input_dir_320)
 
       for f in files:  #resize all the input files
-         img = cv2.imread(in_dir + '/' + f)
-         img320 = cv2.resize(img,(320,240), interpolation=cv2.INTER_CUBIC)
-         new_name = '320_' + f
-         cv2.imwrite(input_dir_320 + '/' + new_name, img320)
+         img = cv2.imread(path.join(self.input_dir, f))
+         img320 = cv2.resize(img,(self.width,self.height), interpolation=cv2.INTER_CUBIC)
+         new_name = str(self.width) + '_' + f
+         cv2.imwrite(path.join(input_dir_320, new_name), img320)
 
-   def build_320_240_gt_images(gt_dir):
+   def build_320_240_gt_images(self):
       print "Converting ground truth images to 320x240"
-      gt_files = os.listdir(gt_dir)
+      gt_files = os.listdir(self.ground_output_dir)
       gt_files.sort()
 
       #create directory for 320x240 ground truth files
@@ -155,17 +176,17 @@ class ImageAugmentor:
          os.makedirs(gt_dir_320)
 
       for f in gt_files:  #resize all the ground_truth files
-         img = cv2.imread(gt_dir + '/' + f)
-         img320 = cv2.resize(img,(320,240), interpolation=cv2.INTER_CUBIC)
-         new_name = '320_' + f 
+         img = cv2.imread(path.join(self.ground_output_dir,f))
+         img320 = cv2.resize(img,(self.width,self.height), interpolation=cv2.INTER_CUBIC)
+         new_name = str(self.width) + '_' + f 
          cv2.imwrite(gt_dir_320 + '/' + new_name, img320)
 
-   def rename_images(orig_jpg_dir):
+   def rename_images(self):
       #this function renames all the original input images to
       #a sequence:  0.jpg, 1.jpg, ...
       print "Renaming input images"
 
-      self.jpg_files = os.listdir(orig_jpg_dir)
+      self.jpg_files = os.listdir(self.orig_jpg_dir)
       self.jpg_files.sort()
       
       #if the input directory does not exist, then create it
@@ -173,63 +194,61 @@ class ImageAugmentor:
          os.makedirs(self.input_dir)
 
       #if the input annotation directory does not exist, then create it
-      if not os.path.exists(sys.argv[1] + '/input_annotation'):
-         os.makedirs(sys.argv[1] + '/input_annotation')
-
-      #print jpg_files
+      if not os.path.exists(path.join(self.collection_dir,'input_annotation')):
+         os.makedirs(path.join(self.collection_dir, 'input_annotation'))
 
       #for each file, copy and rename it to the input directory
       counter=0
       for f in self.jpg_files:
          new_name = format(counter, '04d') + '.jpg'
-         img = cv2.imread(path.join(orig_jpg_dir,f))
+         img = cv2.imread(path.join(self.orig_jpg_dir,f))
          
          if counter == 139:
                print f
 
          cv2.imwrite(path.join(self.input_dir, new_name), img)
-         input_files.append(new_name)
+         self.input_files.append(new_name)
 
+         #renaming xml files
          x_filename = f.replace('.jpg', '.xml')
-         os.system("cp " + path.join(xml_dir, x_filename) + " " + path.join(sys.argv[1], "input_annotation", format(counter, '04d') + ".xml"))
+         os.system("cp " + path.join(self.xml_dir, x_filename) + " " + path.join(self.collection_dir, "input_annotation", format(counter, '04d') + ".xml"))
 
          counter += 1
 
-   def build_annotation_images(output_dir):
-      global input_files, remove_image_with_no_polygon
-
-      temp_input_files = input_files[:]
+   def build_annotation_images(self):
+      temp_input_files = self.input_files[:]
 
       #check if no annotation
       counter = 0
-      if remove_image_with_no_polygon == 1:
+      if self.remove_image_with_no_polygon == 1:
          for f in temp_input_files:
             x_filename = f.replace('.jpg', '.xml')
-            e = xml.etree.ElementTree.parse(path.join(sys.argv[1], "input_annotation", x_filename).getroot())
+            print x_filename
+            e = xml.etree.ElementTree.parse(path.join(self.collection_dir, "input_annotation", x_filename)).getroot()
             #print x_filename, e
 
             pt_list = e.iter('polygon')
             pt_list = len(list(pt_list))
             if pt_list == 0:
                #there is no polygon
-               input_files.remove(f)
+               self.input_files.remove(f)
                print f
                counter += 1
                os.system('cd ' + sys.argv[1] + '/input; rm ' + f)
                os.system('cd ' + sys.argv[1] + '/input_annotation; rm ' + x_filename)
          print "Counter: " + str(counter)
 
-      for f in input_files:
+      for f in self.input_files:
          polygon_list = []
 
          img = cv2.imread(path.join(sys.argv[1], "input", f))
          height, width, channels = img.shape
-         print width,height
+         #print width,height
 
          #get all the points in a polygon annotation file
          x_filename = f.replace('.jpg', '.xml')
-         e = xml.etree.ElementTree.parse(path.join(sys.argv[1], "input_annotation", x_filename).getroot())
-         print x_filename, e
+         e = xml.etree.ElementTree.parse(path.join(self.collection_dir, "input_annotation", x_filename)).getroot()
+         #print x_filename, e
 
          #build a polygon
          for child in e.iter('pt'):
@@ -245,7 +264,7 @@ class ImageAugmentor:
          #print polygon_list
 
          #create new annotation image
-         img_new = np.zeros((height,width,3), np.uint8)
+         img_new = np.zeros((height,width,1), np.uint8)
          pts = np.array(polygon_list, np.int32)
          pts = pts.reshape((-1,1,2))
 
@@ -261,17 +280,16 @@ class ImageAugmentor:
             assert (pts[i][0])[1] < height
 
          #cv2.polylines(img_new,[pts], True, (0,255,255))
-         cv2.polylines(img_new,[pts], True, (255,255,255))
+         #cv2.polylines(img_new,[pts], True, (255,255,255))
+         cv2.polylines(img_new,[pts], True, 255)
 
-         img_new = fill_polygon(img_new) #fill in the polygon
+         img_new = self.fill_polygon(img_new) #fill in the polygon
 
          #cv2.imshow("cropped", img_new)
          #cv2.waitKey(0)
-         cv2.imwrite(path.join(output_dir, 'gt_' + f), img_new)
+         cv2.imwrite(path.join(self.ground_output_dir, f), img_new)
 
 random.seed(101)
-xml_dir = sys.argv[1]+"/Annotations/users/jseng/building14"
-ground_output_dir = sys.argv[1]+"/ground_output"
 
 def run_full():
    global xml_dir, ground_output_dir
@@ -297,10 +315,12 @@ def run_full():
    crop_images(input_dir, input_files, output_dir)
    mirror_images(input_dir, input_files, output_dir)
 
-   build_320_240_images(sys.argv[1] + "/augmented_output")
-   build_320_240_images(sys.argv[1] + "/input")
-   build_320_240_gt_images(sys.argv[1] + "/ground_output")
    get_range_data([sys.argv[1] + '/320_ground_truth'], sys.argv[1] + '/320_data') #output range data for the 320x240 files
 
 #run_full()
-a = ImageAugmentor()
+a = ImageAugmentor(sys.argv[1])
+a.rename_images()
+a.build_annotation_images()
+a.build_320_240_images()
+a.build_320_240_gt_images()
+a.augment_test()
