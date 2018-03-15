@@ -52,35 +52,33 @@ def run_inference_test():
 
    time_counter = 0
    total_time = 0.0
-   while 1 == 1:
-      for filename in os.listdir(in_dir):
-         if '.jpg' in filename:
-            img = load_img(in_dir + '/' + filename)
-            img_input = np.expand_dims(img, axis=0)
-            img_input = img_input.astype('float32')
-            img_input /= 255
+   for filename in os.listdir(in_dir):
+      if '.jpg' in filename:
+         img = load_img(in_dir + '/' + filename)
+         img_input = np.expand_dims(img, axis=0)
+         img_input = img_input.astype('float32')
+         img_input /= 255
 
-            time1 = time.time()
-            prediction = model.predict(img_input, 1, 1)
-            time2 = time.time()
-            total_time += time2 - time1 
-            time_counter += 1
-            print 'function took %0.3f ms' % ((time2-time1)*1000.0)
-            print 'average function time %0.3f ms' % (total_time * 1000.0 / time_counter)
-            prediction = [int(x*240) for x in prediction[0]]
-            print prediction
+         time1 = time.time()
+         prediction = model.predict(img_input, 1, 1)
+         time2 = time.time()
+         total_time += time2 - time1 
+         time_counter += 1
+         print 'function took %0.3f ms' % ((time2-time1)*1000.0)
+         print 'average function time %0.3f ms' % (total_time * 1000.0 / time_counter)
+         prediction = [int(x*240) for x in prediction[0]]
+         print prediction
 
-            counter = 5
-            if 1 == 0:
-               f = open(in_dir+'/'+filename.replace('jpg','txt'),'w')
-               for x in prediction:
-                  f.write(str(counter)+','+str(x)+'\n')
-                  counter += 10
-               f.close()
+         counter = 5
+         f = open(in_dir+'/'+filename.replace('jpg','txt'),'w')
+         for x in prediction:
+            f.write(str(counter)+','+str(x)+'\n')
+            counter += 10
+         f.close()
 
-            #print prediction
+         #print prediction
 
-            #prediction.tofile('foo3.csv',sep=',',format='%10.5f')
+         #prediction.tofile('foo3.csv',sep=',',format='%10.5f')
 
 random.seed()
 model = baseline_model()
