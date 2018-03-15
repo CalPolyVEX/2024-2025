@@ -78,7 +78,7 @@ if __name__ == "__main__":
    graph = load_graph(model_file)
 
    #get jpg files
-   dir1='../ue4/ground_detection/gpu_code/test_images'
+   dir1='../gpu_code/test_images'
    file_list = os.listdir(dir1)
    print file_list
    dir2= [x for x in file_list if '.jpg' in x]
