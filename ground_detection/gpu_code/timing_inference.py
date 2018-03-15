@@ -63,12 +63,16 @@ def run_inference_test():
             time1 = time.time()
             prediction = model.predict(img_input, 1, 1)
             time2 = time.time()
-            total_time += time2 - time1 
-            time_counter += 1
-            print 'function took %0.3f ms' % ((time2-time1)*1000.0)
-            print 'average function time %0.3f ms' % (total_time * 1000.0 / time_counter)
-            prediction = [int(x*240) for x in prediction[0]]
-            print prediction
+
+            if (time2 - time1) < .1:
+               total_time += time2 - time1 
+               time_counter += 1
+
+               #print (time2-time1)
+               print 'function took %0.3f ms' % ((time2-time1)*1000.0)
+               print 'average function time %0.3f ms' % (total_time * 1000.0 / time_counter)
+               prediction = [int(x*240) for x in prediction[0]]
+               #print prediction
 
             counter = 5
             if 1 == 0:
