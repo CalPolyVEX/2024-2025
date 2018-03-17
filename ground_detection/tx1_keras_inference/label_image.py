@@ -19,7 +19,7 @@ from __future__ import division
 
 import argparse
 import sys
-import time, os
+import time, os, gc
 
 import numpy as np
 import tensorflow as tf
@@ -75,7 +75,8 @@ if __name__ == "__main__":
    if args.output_layer:
       output_layer = args.output_layer
 
-   graph = load_graph(model_file)
+   graph = load_graph('output_graph2.pb')
+   graph1 = load_graph('output_graph.pb')
 
    #get jpg files
    dir1='../gpu_code/test_images'
@@ -85,25 +86,38 @@ if __name__ == "__main__":
    print dir2
 
    flist = []
-   for x in dir1:
-      t = read_tensor_from_image_file(os.path.join(dir1,dir2[0]),
+   for x in dir2:
+      t = read_tensor_from_image_file(os.path.join(dir1,x),
                                        input_height=input_height,
                                        input_width=input_width)
       flist.append(t)
+
+   gc.collect()
 
    input_name = "import/" + input_layer
    output_name = "import/" + output_layer
    input_operation = graph.get_operation_by_name(input_name);
    output_operation = graph.get_operation_by_name(output_name);
 
+   sess1 = tf.Session(graph=graph1)
+   input_operation1 = graph1.get_operation_by_name(input_name);
+   output_operation1 = graph1.get_operation_by_name(output_name);
+
    with tf.Session(graph=graph) as sess:
       while 1 == 1: 
          for x in flist:
             time1 = time.time()
             results = sess.run(output_operation.outputs[0],
-                              {input_operation.outputs[0]: x})
+                               {input_operation.outputs[0]: x})
             time2 = time.time()
             results *= 240
             print 'function took %0.3f ms' % ((time2-time1)*1000.0)
             #print results
-            #prediction = [int(x*240) for x in prediction[0]]
+
+            time1 = time.time()
+            results1 = sess1.run(output_operation1.outputs[0],
+                                 {input_operation1.outputs[0]: flist[0]})
+            time2 = time.time()
+            results1 *= 240
+            print '2nd function took %0.3f ms' % ((time2-time1)*1000.0)
+            #print results1
