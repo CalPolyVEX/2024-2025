@@ -36,13 +36,10 @@ def init_program():
       if f.endswith(".jpg"):
          filename = os.path.join("320_images/", f)
          img = load_img(filename)
-         #t = np.mean(img, axis=2)
-         #for y in np.nditer(t, op_flags=['readwrite']):
-         #   print y
-#test convert to grayscale
-         #x = img_to_array(t)
 
          x = img_to_array(img)
+         mean = np.mean(x,axis=(0,1))
+         x = x - mean
          #print x
 
          #print t.shape
@@ -59,9 +56,9 @@ def init_program():
       datafile = data_list[i]
 
       image = image.replace(".jpg","")
-      image = image.replace("320_","")
+      #image = image.replace("320_","")
       datafile = datafile.replace(".txt","")
-      datafile = datafile.replace("320_gt_","")
+      #datafile = datafile.replace("320_gt_","")
 
       #print str(image), str(datafile)
 
@@ -105,7 +102,7 @@ def baseline_model():
    rmsprop = optimizers.RMSprop(lr=0.1)
    sgd = optimizers.SGD(lr=0.01)
    model = Sequential()
-   model.add(Conv2D(96, kernel_size=(5,5), strides=2, activation='relu', input_shape=(240, 320, 3)))
+   model.add(Conv2D(64, kernel_size=(5,5), strides=2, activation='relu', input_shape=(240, 320, 3)))
    #model.add(Conv2D(96, kernel_size=(5,5), strides=2, activation='relu', input_shape=(240, 320, 3), kernel_regularizer=l2(l2_lambda)))
    model.add(BatchNormalization())
    model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -124,9 +121,6 @@ def baseline_model():
    model.add(Conv2D(96, (3, 3), activation='relu'))
    model.add(BatchNormalization())
    model.add(MaxPooling2D(pool_size=(2, 2)))
-   model.add(Dense(96, activation='relu'))
-   model.add(BatchNormalization())
-   model.add(Dropout(0.25))
    model.add(Dense(96, activation='relu'))
    model.add(BatchNormalization())
    model.add(Dropout(0.25))
@@ -162,5 +156,5 @@ print model.summary()
 
 for x in range(epochs):
    print 'Epoch' + str(x)
-   model.fit(x_train, y_train, batch_size=batch_size, epochs=1, verbose=1, validation_split=.015, shuffle=True, callbacks=callbacks)
+   model.fit(x_train, y_train, batch_size=batch_size, epochs=1, verbose=1, validation_split=.1, shuffle=True, callbacks=callbacks)
    model.save('my_model.h5')
