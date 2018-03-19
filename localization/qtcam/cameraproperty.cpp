@@ -26,6 +26,7 @@
 QStringListModel Cameraproperty::modelCam;
 bool Cameraproperty::saveLog;
 QTextStream out(stdout);
+extern int buf_val;
 
 Cameraproperty::Cameraproperty()
 {
@@ -185,16 +186,22 @@ void Cameraproperty::openHIDDevice(QString deviceName)
    QTextStream(stdout) << "---start openHIDDevice---" << endl;
    QTextStream(stdout) << "device name: ";
    QTextStream(stdout) << deviceName << endl;
-    uvccam.exitExtensionUnit();
-    deviceName.remove(QRegExp("[\n\t\r]"));
-    bool hidInit = uvccam.initExtensionUnit(deviceName);    
-   QTextStream(stdout) << "---hidInit success: ";
-   QTextStream(stdout) << hidInit << endl;
-   QTextStream(stdout) << "---end openHIDDevice---" << endl;
-    if(hidInit)
-    {
-        emit initExtensionUnitSuccess();
-    }
+   uvccam.exitExtensionUnit();
+   deviceName.remove(QRegExp("[\n\t\r]"));
+   bool hidInit = uvccam.initExtensionUnit(deviceName);    
+   if(hidInit)
+   {
+      QTextStream(stdout) << "---hidInit success: ";
+      QTextStream(stdout) << hidInit << endl;
+      QTextStream(stdout) << "---end openHIDDevice---" << endl;
+      buf_val = 1;
+      emit initExtensionUnitSuccess();
+   } else {
+      QTextStream(stdout) << "---hidInit failed: ";
+      QTextStream(stdout) << hidInit << endl;
+      QTextStream(stdout) << "---end openHIDDevice---" << endl;
+      buf_val = 0;
+   }
 }
 
 void Cameraproperty::closeLibUsbDeviceAscella(){

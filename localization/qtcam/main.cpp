@@ -1,23 +1,3 @@
-/*
- * main.cpp -- the main loop and the interface connection
- * Copyright © 2015  e-con Systems India Pvt. Limited
- *
- * This file is part of Qtcam.
- *
- * Qtcam is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
- *
- * Qtcam is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Qtcam. If not, see <http://www.gnu.org/licenses/>.
- */
-
 #include <iostream>
 #include <QtWidgets/QApplication>
 #include <QDateTime>
@@ -57,41 +37,60 @@
 // * \ref See3CAM_10CUG
 // * \section See3CAM_10CUG
 // * Bayer Camera
+extern int buf_val;
 
 int main(int argc, char *argv[])
 {
-    //Create a object for Camera property
-    Cameraproperty camProperty;    
+   //Create a object for Camera property
+   Cameraproperty camProperty;    
+   
+   /* JS */
+   uvccamera test_cam;
+   See3CAM_CU20 s;
+   QString cu20 = "See3CAM_CU20";
 
-    /* JS */
-    if (0 == 0) {
-       QTextStream(stdout) << "test";
-       uvccamera test_cam;
-       See3CAM_CU20 s;
+   camProperty.checkforDevice(); //check for all devices
 
-       camProperty.checkforDevice(); //check for all devices
+   //search for the string See3CAM_CU20
+   if (camProperty.availableCam.contains(cu20) == true) {
+      int i = camProperty.availableCam.indexOf(cu20);
+      QString num = QString::number(i);
+      QTextStream(stdout) << "---camera index:" << num << endl; 
 
-       QString num = "2";
-       QString cu20 = "See3CAM_CU20";
-       camProperty.setCurrentDevice(num, cu20);
+      camProperty.setCurrentDevice(num, cu20);
+   } else {
+      QTextStream(stdout) << "See3Cam_CU20 not found." << endl; 
+      exit(0);
+   }
 
-       camProperty.openHIDDevice(cu20);
+   camProperty.openHIDDevice(cu20);
+   if (buf_val == 0) {
+      QTextStream(stdout) << "---initialization failed---" << endl;
+      exit(0);
+   }
 
-       QTextStream(stdout) << "---set sensor mode: " << s.setSensorMode(See3CAM_CU20::SENSOR_HDR_DLO) << endl;
-       //QTextStream(stdout) << s.setSensorMode(See3CAM_CU20::SENSOR_STANDARD) << endl;
-       if (argc > 1)
-          QTextStream(stdout) << s.setOrientation(false, true) << endl;
-       else
-          QTextStream(stdout) << s.setOrientation(false, false) << endl;
+   QTextStream(stdout) << "---set HDR sensor mode...";
+   if (s.setSensorMode(See3CAM_CU20::SENSOR_HDR_DLO) == true) {
+      QTextStream(stdout) << "successful.";
+   } else {
+      QTextStream(stdout) << "failed.";
+   }
 
-       QTextStream(stdout) << "---get sensor mode: " << s.getSensorMode() << endl;
+   QTextStream(stdout) << "---get sensor mode...";
+   if (s.getSensorMode() == true) {
+      QTextStream(stdout) << buf_val << endl;
+   }
 
-       //uvccam.exitExtensionUnit();
-       //test_cam.exitExtensionUnit();
-       close(uvccamera::hid_fd);
-       exit(0);
-    }
-    return 0;
+   //if (argc > 1)
+   //   QTextStream(stdout) << s.setOrientation(false, true) << endl;
+   //else
+   //   QTextStream(stdout) << s.setOrientation(false, false) << endl;
 
-    /* end JS */
+   //uvccam.exitExtensionUnit();
+   //test_cam.exitExtensionUnit();
+   close(uvccamera::hid_fd);
+   exit(0);
+   return 0;
+
+   /* end JS */
 }

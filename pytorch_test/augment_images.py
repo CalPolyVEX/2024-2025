@@ -35,7 +35,8 @@ class ImageAugmentor:
       #p.rotate(probability=1, max_left_rotation=5, max_right_rotation=5)
       p.flip_left_right(probability=0.5)
       p.zoom_random(probability=0.5, percentage_area=0.8)
-      p.skew_left_right(probability=0.85, magnitude=.945)
+      p.skew_left_right(probability=0.5, magnitude=.5)
+      p.crop_random(probability=.75, percentage_area=.9)
       p.resize(probability=1.0, width=self.width, height=self.height)
       p.sample(num)
       
@@ -119,6 +120,7 @@ class ImageAugmentor:
                      #cv2.circle(blank_image,(x,temp),5,(0,0,255),-1)
                      data.append((x,temp))
                      f_out.write(str(x) + ',' + str(temp) + '\n')
+                     #cv2.circle(img, (x,temp), 5, (0,0,255), -1)
                      #blank_image[temp,x] = [0,0,255]
                      found=1
                      break
@@ -126,7 +128,7 @@ class ImageAugmentor:
 
          f_out.close()
          print data
-         #cv2.imwrite(out + '/lidar_' + f, blank_image)
+         #cv2.imwrite(path.join(dirs,f), img)
       
    def build_320_240_images(self):
       print "Converting input images to 320x240"
@@ -195,6 +197,10 @@ class ImageAugmentor:
          self.image_counter += 1
 
    def build_annotation_images(self):
+      #if the input directory does not exist, then create it
+      if not os.path.exists(self.ground_output_dir):
+         os.makedirs(self.ground_output_dir)
+
       temp_input_files = self.input_files[:]
 
       #check if no annotation
@@ -319,5 +325,5 @@ if __name__ == '__main__':
    a.build_annotation_images()
    a.build_320_240_images()
    a.build_320_240_gt_images()
-   a.augment_test(300)
+   a.augment_test(25000)
    a.get_range_data(path.join(sys.argv[1],'320_ground_truth'), path.join(sys.argv[1],'320_data'))
