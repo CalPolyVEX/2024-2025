@@ -71,26 +71,29 @@ int main(int argc, char *argv[])
 
    QTextStream(stdout) << "---set HDR sensor mode...";
    if (s.setSensorMode(See3CAM_CU20::SENSOR_HDR_DLO) == true) {
-      QTextStream(stdout) << "successful.";
+      QTextStream(stdout) << "successful." << endl << endl;
    } else {
-      QTextStream(stdout) << "failed.";
+      QTextStream(stdout) << "failed." << endl;
    }
 
-   QTextStream(stdout) << "---get sensor mode...";
+   QTextStream(stdout) << "---get HDR sensor mode...";
    if (s.getSensorMode() == true) {
       QTextStream(stdout) << buf_val << endl;
    }
 
-   //if (argc > 1)
-   //   QTextStream(stdout) << s.setOrientation(false, true) << endl;
-   //else
-   //   QTextStream(stdout) << s.setOrientation(false, false) << endl;
+   QTextStream(stdout) << "---set light sensor mode...";
+   if (s.setLSCMode(See3CAM_CU20::LSC_AUTO) == true) {
+      QTextStream(stdout) << "successful." << endl << endl;
+   } else {
+      QTextStream(stdout) << "failed." << endl;
+   }
 
-   //uvccam.exitExtensionUnit();
-   //test_cam.exitExtensionUnit();
+   QTextStream(stdout) << "---get light sensor mode...";
+   if (s.getLSCMode() == true) {
+      QTextStream(stdout) << buf_val << endl;
+   }
+
    close(uvccamera::hid_fd);
    exit(0);
    return 0;
-
-   /* end JS */
 }

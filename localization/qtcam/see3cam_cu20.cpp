@@ -877,6 +877,7 @@ bool See3CAM_CU20::getLSCMode()
         } else if(g_in_packet_buf[0] == CAMERA_CONTROL_CU20 &&
             g_in_packet_buf[1] == GET_LSCMODE_CU20 &&
             g_in_packet_buf[6] == GET_SUCCESS) {
+            buf_val = g_in_packet_buf[2];
             emit lscModeChanged(g_in_packet_buf[2]);
             return true;
         }
