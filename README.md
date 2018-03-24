@@ -13,5 +13,6 @@ git pull origin master
 
 Compile roboclaw_driver.py
 
-```python -m py_compile roboclaw_driver.py
+```
+python -m py_compile roboclaw_driver.py
 ```
