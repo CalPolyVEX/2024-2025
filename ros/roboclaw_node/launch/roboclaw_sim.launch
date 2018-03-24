@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-    <arg name="dev" default="/dev/roboclaw"/>
+    <arg name="dev" default="/dev/ttyACM0"/>
     <arg name="baud" default="460800"/>
     <arg name="address" default="128"/>
     <arg name="max_abs_linear_speed" default="1.5"/>
