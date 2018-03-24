@@ -1,3 +1,0 @@
-[submodule "ros/setup_scripts/roboclaw_ros"]
-	path = ros/setup_scripts/roboclaw_ros
-	url = https://github.com/doisyg/roboclaw_ros
