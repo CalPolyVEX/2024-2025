@@ -141,7 +141,7 @@ class Node:
         rospy.init_node("roboclaw_node",log_level=rospy.DEBUG)
         rospy.on_shutdown(self.shutdown)
         rospy.loginfo("Connecting to roboclaw")
-        dev_name = rospy.get_param("~dev", "/dev/roboclaw")
+        dev_name = rospy.get_param("~dev", "/dev/ttyACM0")
         baud_rate = int(rospy.get_param("~baud", "460800"))
         self.wheels_speeds_pub = rospy.Publisher('/motors/commanded_speeds', Wheels_speeds, queue_size=1)
         self.motors_currents_pub = rospy.Publisher('/motors/read_currents', Motors_currents, queue_size=1)
