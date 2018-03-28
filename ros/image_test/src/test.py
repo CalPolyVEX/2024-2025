@@ -30,7 +30,7 @@ class image_converter:
     now = time.time()
     localtime = time.localtime(now)
     milliseconds = '%03d' % int((now - int(now)) * 1000)
-    timestamp = time.strftime('%m-%d-%H-%M-%S-%Y-', localtime) + milliseconds
+    timestamp = time.strftime('%H-%M-%S-%m-%d-%Y-', localtime) + milliseconds
     filename = str(timestamp)+'.jpg'
 
     print ('writing file: ' + filename)
