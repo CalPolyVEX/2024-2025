@@ -15,11 +15,11 @@ if len(sys.argv) <= 1:
     sys.exit()
 if sys.argv[1] == 'clean':
     print "clean"
-    os.system('cd ' + sys.argv[2] + '/320_input; rm *.jpg')
-    os.system('cd ' + sys.argv[2] + '/320_data; rm *.txt')
-    os.system('cd ' + sys.argv[2] + '/320_ground_truth; rm *.jpg')
-    os.system('cd ' + sys.argv[2] + '/320_inference_input; rm *.jpg')
-    os.system('cd ' + sys.argv[2] + '/320_final_inference_output; rm *.jpg')
+    os.system('cd ' + sys.argv[2] + '/480_input; rm *.jpg')
+    os.system('cd ' + sys.argv[2] + '/480_data; rm *.txt')
+    os.system('cd ' + sys.argv[2] + '/480_ground_truth; rm *.jpg')
+    os.system('cd ' + sys.argv[2] + '/480_inference_input; rm *.jpg')
+    os.system('cd ' + sys.argv[2] + '/480_final_inference_output; rm *.jpg')
     os.system('cd ' + sys.argv[2] + '/input; rm *.jpg')
     os.system('cd ' + sys.argv[2] + '/input_annotation; rm *.xml')
     os.system('cd ' + sys.argv[2] + '/ground_output; rm *.jpg')
@@ -183,37 +183,37 @@ def get_range_data(dirs, out):
             print data
             #cv2.imwrite(out + '/lidar_' + f, blank_image)
         
-def build_320_240_images(in_dir):
-    print "Converting input images to 320x240"
+def build_480_270_images(in_dir):
+    print "Converting input images to 480x270"
     files = os.listdir(in_dir)
     files.sort()
 
-    #create directory for 320x240 input files
-    input_dir_320 = sys.argv[1]+"/320_input"
-    if not os.path.exists(input_dir_320):
-        os.makedirs(input_dir_320)
+    #create directory for 480x270 input files
+    input_dir_480 = sys.argv[1]+"/480_input"
+    if not os.path.exists(input_dir_480):
+        os.makedirs(input_dir_480)
 
     for f in files:  #resize all the input files
         img = cv2.imread(in_dir + '/' + f)
-        img320 = cv2.resize(img,(320,240), interpolation=cv2.INTER_CUBIC)
-        new_name = '320_' + f
-        cv2.imwrite(input_dir_320 + '/' + new_name, img320)
+        img480 = cv2.resize(img,(480,270), interpolation=cv2.INTER_CUBIC)
+        new_name = '480_' + f
+        cv2.imwrite(input_dir_480 + '/' + new_name, img480)
 
-def build_320_240_gt_images(gt_dir):
-    print "Converting ground truth images to 320x240"
+def build_480_270_gt_images(gt_dir):
+    print "Converting ground truth images to 480x270"
     gt_files = os.listdir(gt_dir)
     gt_files.sort()
 
-    #create directory for 320x240 ground truth files
-    gt_dir_320 = sys.argv[1]+"/320_ground_truth"
-    if not os.path.exists(gt_dir_320):
-        os.makedirs(gt_dir_320)
+    #create directory for 480x270 ground truth files
+    gt_dir_480 = sys.argv[1]+"/480_ground_truth"
+    if not os.path.exists(gt_dir_480):
+        os.makedirs(gt_dir_480)
 
     for f in gt_files:  #resize all the ground_truth files
         img = cv2.imread(gt_dir + '/' + f)
-        img320 = cv2.resize(img,(320,240), interpolation=cv2.INTER_CUBIC)
-        new_name = '320_' + f 
-        cv2.imwrite(gt_dir_320 + '/' + new_name, img320)
+        img480 = cv2.resize(img,(480,270), interpolation=cv2.INTER_CUBIC)
+        new_name = '480_' + f 
+        cv2.imwrite(gt_dir_480 + '/' + new_name, img480)
 
 def rename_images(jpg_dir):
     #this function renames all the original input images to
@@ -327,13 +327,13 @@ def build_annotation_images(output_dir):
         cv2.imwrite(output_dir + '/gt_' + f, img_new)
 
 random.seed(101)
-xml_dir = sys.argv[1]+"/Annotations/users/jseng/building14"
+xml_dir = sys.argv[1]+"/Annotations/users/jseng/building14_hdr"
 ground_output_dir = sys.argv[1]+"/ground_output"
 
 def run_full():
     global xml_dir, ground_output_dir
 
-    jpg_dir = sys.argv[1]+"/Images/users/jseng/building14"
+    jpg_dir = sys.argv[1]+"/Images/users/jseng/building14_hdr"
     #print files
 
     xml_files = os.listdir(xml_dir)
@@ -354,9 +354,9 @@ def run_full():
     crop_images(input_dir, input_files, output_dir)
     mirror_images(input_dir, input_files, output_dir)
 
-    build_320_240_images(sys.argv[1] + "/augmented_output")
-    build_320_240_images(sys.argv[1] + "/input")
-    build_320_240_gt_images(sys.argv[1] + "/ground_output")
-    get_range_data([sys.argv[1] + '/320_ground_truth'], sys.argv[1] + '/320_data') #output range data for the 320x240 files
+    build_480_270_images(sys.argv[1] + "/augmented_output")
+    build_480_270_images(sys.argv[1] + "/input")
+    build_480_270_gt_images(sys.argv[1] + "/ground_output")
+    get_range_data([sys.argv[1] + '/480_ground_truth'], sys.argv[1] + '/480_data') #output range data for the 480x270 files
 
 run_full()

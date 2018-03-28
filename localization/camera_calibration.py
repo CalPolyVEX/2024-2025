@@ -18,9 +18,9 @@ def capture_image():
    vidcap = cv2.VideoCapture(sys.argv[1])
 
    print vidcap
-   vidcap.set(3,1920) #capture width
-   vidcap.set(4,1080) #capture height
-   vidcap.set(cv2.CAP_PROP_FPS,30) #capture FPS
+   #vidcap.set(3,1920) #capture width
+   #vidcap.set(4,1080) #capture height
+   #vidcap.set(cv2.CAP_PROP_FPS,30) #capture FPS
 
    counter = 0
    for i in range(3000):
