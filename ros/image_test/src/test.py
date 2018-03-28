@@ -6,6 +6,7 @@ roslib.load_manifest('image_test')
 import sys
 import rospy
 import cv2
+import time
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
@@ -16,13 +17,24 @@ class image_converter:
     self.image_pub = rospy.Publisher("/see3cam_cu20/test_image_topic_2",Image)
 
     self.bridge = CvBridge()
-    self.image_sub = rospy.Subscriber("/see3cam_cu20/image_raw",Image,self.callback)
+    self.image_sub = rospy.Subscriber("/see3cam_cu20/image_raw_throttle",Image,self.callback)
 
   def callback(self,data):
     try:
       cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
     except CvBridgeError as e:
       print(e)
+
+    #save the file
+ 
+    now = time.time()
+    localtime = time.localtime(now)
+    milliseconds = '%03d' % int((now - int(now)) * 1000)
+    timestamp = time.strftime('%Y-%m-%d-%H-%M-%S-', localtime) + milliseconds
+    filename = str(timestamp)+'.jpg'
+
+    print ('writing file: ' + filename)
+    cv2.imwrite(filename, cv_image)
 
     (rows,cols,channels) = cv_image.shape
     if cols > 60 and rows > 60 :
