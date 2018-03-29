@@ -1,0 +1,18 @@
+<package>
+  <description brief="image_test">
+
+     image_test
+
+  </description>
+  <author>John Seng</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/image_test</url>
+  <depend package="sensor_msgs"/>
+  <depend package="cv_bridge"/>
+  <depend package="rospy"/>
+  <depend package="std_msgs"/>
+
+</package>
+
+

@@ -13,16 +13,17 @@ import Augmentor
 class ImageAugmentor:
    def __init__(self, collection_dir):
       os.system('rm -f -r ' + path.join(collection_dir,'input','output'))
-      self.width = 320
-      self.height = 240
+      self.file_mapping = {}
+      self.width = 480
+      self.height = 270
       self.image_counter = 0
       self.collection_dir = collection_dir
       self.jpg_files = [] #a list of the original .jpg files
       self.input_files = [] #list of the files renamed: 0.jpg, 1.jpg, ...
       self.input_dir = path.join(sys.argv[1], "input")
       self.remove_image_with_no_polygon = 1
-      self.xml_dir = path.join(collection_dir,"Annotations/users/jseng/building14")
-      self.orig_jpg_dir = path.join(collection_dir,"Images/users/jseng/building14")
+      self.xml_dir = path.join(collection_dir,"Annotations/users/jseng/building14_hdr")
+      self.orig_jpg_dir = path.join(collection_dir,"Images/users/jseng/building14_hdr")
       self.ground_output_dir = path.join(collection_dir,"ground_output")
    
    def augment_test(self,num):
@@ -47,18 +48,18 @@ class ImageAugmentor:
 
       for x in original_files:
          new_name = x.replace('input_original_','')
-         new_name = '320_' + format(self.image_counter, '04d') + '.jpg'
-         os.system('cd ' + self.input_dir + '/output; mv ' + x + ' ../../320_input/' + new_name)
+         new_name = '480_' + format(self.image_counter, '04d') + '.jpg'
+         os.system('cd ' + self.input_dir + '/output; mv ' + x + ' ../../480_input/' + new_name)
          self.image_counter += 1
       self.image_counter -= len(original_files)
       for x in gt_files:
          new_name = x.replace('_groundtruth_(1)_input_','')
-         new_name = '320_' + format(self.image_counter, '04d') + '.jpg'
+         new_name = '480_' + format(self.image_counter, '04d') + '.jpg'
          x= x.replace('(','\(')
          x= x.replace(')','\)')
          print new_name
          #sys.exit(0)
-         os.system('cd ' + self.input_dir + '/output; mv ' + x + ' ../../320_ground_truth/' + new_name)
+         os.system('cd ' + self.input_dir + '/output; mv ' + x + ' ../../480_ground_truth/' + new_name)
          self.image_counter += 1
 
    def fill_polygon(self, img):
@@ -91,7 +92,7 @@ class ImageAugmentor:
 
    #create the actual data to feed to neural network
    def get_range_data(self, dirs, out):
-      print "Generating data files for images"
+      print "---Generating data files for images---"
 
       if not os.path.exists(out):
          os.makedirs(out)
@@ -99,12 +100,10 @@ class ImageAugmentor:
       files = os.listdir(dirs)
       files.sort()
       for f in files:
-         if 'lidar' in f:
-            continue
-         print f
+         #print f
          img = cv2.imread(path.join(dirs,f))
          height, width, channels = img.shape
-         step = width / 31
+         step = width / 47
          #blank_image = np.zeros((height,width,3), np.uint8)
 
          data=[]
@@ -127,40 +126,40 @@ class ImageAugmentor:
                temp = temp - 1
 
          f_out.close()
-         print data
+         #print data
          #cv2.imwrite(path.join(dirs,f), img)
       
-   def build_320_240_images(self):
-      print "Converting input images to 320x240"
+   def build_480_270_images(self):
+      print "Converting input images to 480x270"
       files = os.listdir(self.input_dir)
       files.sort()
 
-      #create directory for 320x240 input files
-      input_dir_320 = path.join(self.collection_dir,"320_input")
-      if not os.path.exists(input_dir_320):
-         os.makedirs(input_dir_320)
+      #create directory for 480x270 input files
+      input_dir_480 = path.join(self.collection_dir,"480_input")
+      if not os.path.exists(input_dir_480):
+         os.makedirs(input_dir_480)
 
       for f in files:  #resize all the input files
          img = cv2.imread(path.join(self.input_dir, f))
-         img320 = cv2.resize(img,(self.width,self.height), interpolation=cv2.INTER_CUBIC)
+         img480 = cv2.resize(img,(self.width,self.height), interpolation=cv2.INTER_CUBIC)
          new_name = str(self.width) + '_' + f
-         cv2.imwrite(path.join(input_dir_320, new_name), img320)
+         cv2.imwrite(path.join(input_dir_480, new_name), img480)
 
-   def build_320_240_gt_images(self):
-      print "Converting ground truth images to 320x240"
+   def build_480_270_gt_images(self):
+      print "Converting ground truth images to 480x270"
       gt_files = os.listdir(self.ground_output_dir)
       gt_files.sort()
 
-      #create directory for 320x240 ground truth files
-      gt_dir_320 = sys.argv[1]+"/320_ground_truth"
-      if not os.path.exists(gt_dir_320):
-         os.makedirs(gt_dir_320)
+      #create directory for 480x270 ground truth files
+      gt_dir_480 = sys.argv[1]+"/480_ground_truth"
+      if not os.path.exists(gt_dir_480):
+         os.makedirs(gt_dir_480)
 
       for f in gt_files:  #resize all the ground_truth files
          img = cv2.imread(path.join(self.ground_output_dir,f))
-         img320 = cv2.resize(img,(self.width,self.height), interpolation=cv2.INTER_CUBIC)
+         img480 = cv2.resize(img,(self.width,self.height), interpolation=cv2.INTER_CUBIC)
          new_name = str(self.width) + '_' + f 
-         cv2.imwrite(gt_dir_320 + '/' + new_name, img320)
+         cv2.imwrite(gt_dir_480 + '/' + new_name, img480)
 
    def rename_images(self):
       #this function renames all the original input images to
@@ -184,11 +183,12 @@ class ImageAugmentor:
          new_name = format(self.image_counter, '04d') + '.jpg'
          img = cv2.imread(path.join(self.orig_jpg_dir,f))
          
-         if self.image_counter == 139:
-               print f
+         #if self.image_counter == 139:
+         #      print f
 
          cv2.imwrite(path.join(self.input_dir, new_name), img)
          self.input_files.append(new_name)
+         self.file_mapping[new_name] = f
 
          #renaming xml files
          x_filename = f.replace('.jpg', '.xml')
@@ -197,6 +197,7 @@ class ImageAugmentor:
          self.image_counter += 1
 
    def build_annotation_images(self):
+      print '---build_annotation_images---'
       #if the input directory does not exist, then create it
       if not os.path.exists(self.ground_output_dir):
          os.makedirs(self.ground_output_dir)
@@ -208,7 +209,7 @@ class ImageAugmentor:
       if self.remove_image_with_no_polygon == 1:
          for f in temp_input_files:
             x_filename = f.replace('.jpg', '.xml')
-            print x_filename
+            #print x_filename
             e = xml.etree.ElementTree.parse(path.join(self.collection_dir, "input_annotation", x_filename)).getroot()
             #print x_filename, e
 
@@ -217,11 +218,11 @@ class ImageAugmentor:
             if pt_list == 0:
                #there is no polygon
                self.input_files.remove(f)
-               print f
+               print 'no polygon: ' + f
                counter += 1
                os.system('cd ' + sys.argv[1] + '/input; rm ' + f)
                os.system('cd ' + sys.argv[1] + '/input_annotation; rm ' + x_filename)
-         print "Counter: " + str(counter)
+         print "number of files with no polygon: " + str(counter)
 
       for f in self.input_files:
          polygon_list = []
@@ -240,7 +241,7 @@ class ImageAugmentor:
             x = int(child[0].text)
             y = int(child[1].text)
             if (height-y) <= 7 and (height-y) >= 3:
-               print "test: " + x_filename
+               print "error: " + x_filename + ',' + self.file_mapping[f]
                #sys.exit()
             if (height-y) <= 3: #if the ground truth does not reach bottom of image
                y = height
@@ -300,7 +301,7 @@ def run_full():
    crop_images(input_dir, input_files, output_dir)
    mirror_images(input_dir, input_files, output_dir)
 
-   get_range_data([sys.argv[1] + '/320_ground_truth'], sys.argv[1] + '/320_data') #output range data for the 320x240 files
+   get_range_data([sys.argv[1] + '/480_ground_truth'], sys.argv[1] + '/480_data') #output range data for the 480x270 files
 
 #run_full()
 if __name__ == '__main__':
@@ -309,11 +310,11 @@ if __name__ == '__main__':
       #sys.exit()
    elif sys.argv[1] == 'clean':
       print "clean"
-      os.system('cd ' + sys.argv[2] + '/320_input; rm *.jpg')
-      os.system('cd ' + sys.argv[2] + '/320_data; rm *.txt')
-      os.system('cd ' + sys.argv[2] + '/320_ground_truth; rm *.jpg')
-      os.system('cd ' + sys.argv[2] + '/320_inference_input; rm *.jpg')
-      os.system('cd ' + sys.argv[2] + '/320_final_inference_output; rm *.jpg')
+      os.system('cd ' + sys.argv[2] + '/480_input; rm *.jpg')
+      os.system('cd ' + sys.argv[2] + '/480_data; rm *.txt')
+      os.system('cd ' + sys.argv[2] + '/480_ground_truth; rm *.jpg')
+      os.system('cd ' + sys.argv[2] + '/480_inference_input; rm *.jpg')
+      os.system('cd ' + sys.argv[2] + '/480_final_inference_output; rm *.jpg')
       os.system('cd ' + sys.argv[2] + '/input; rm *.jpg')
       os.system('cd ' + sys.argv[2] + '/input_annotation; rm *.xml')
       os.system('cd ' + sys.argv[2] + '/ground_output; rm *.jpg')
@@ -323,7 +324,7 @@ if __name__ == '__main__':
    a = ImageAugmentor(sys.argv[1])
    a.rename_images()
    a.build_annotation_images()
-   a.build_320_240_images()
-   a.build_320_240_gt_images()
-   a.augment_test(25000)
-   a.get_range_data(path.join(sys.argv[1],'320_ground_truth'), path.join(sys.argv[1],'320_data'))
+   a.build_480_270_images()
+   a.build_480_270_gt_images()
+   a.augment_test(25)
+   a.get_range_data(path.join(sys.argv[1],'480_ground_truth'), path.join(sys.argv[1],'480_data'))
