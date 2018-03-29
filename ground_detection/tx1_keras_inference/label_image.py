@@ -24,17 +24,6 @@ import time, os, gc
 import numpy as np
 import tensorflow as tf
 
-def load_graph(model_file):
-  graph = tf.Graph()
-  graph_def = tf.GraphDef()
-
-  with open(model_file, "rb") as f:
-    graph_def.ParseFromString(f.read())
-  with graph.as_default():
-    tf.import_graph_def(graph_def)
-
-  return graph
-
 def read_tensor_from_image_file(file_name, input_height=299, input_width=299):
    input_name = "file_reader"
    output_name = "normalized"
@@ -45,11 +34,46 @@ def read_tensor_from_image_file(file_name, input_height=299, input_width=299):
    float_caster /= 255.0
    dims_expander = tf.expand_dims(float_caster, 0);
    resized = tf.image.resize_bilinear(dims_expander, [input_height, input_width])
-   #normalized = tf.divide(tf.subtract(resized, [input_mean]), [input_std])
+   #print type(resized)
+   mean = tf.reduce_mean(resized,axis=(1,2))
+   #print resized.shape
+   #print mean
+   normalized = tf.subtract(resized, mean)
    sess = tf.Session()
-   result = sess.run(resized)
+   result = sess.run(normalized)
 
    return result
+
+class GroundDetector:
+   def __init__(self, protobuf_model, input_layer, output_layer):
+      self.width = 480
+      self.height = 270
+      self.protobuf_model = protobuf_model
+      self.input_layer = input_layer
+      self.output_layer = output_layer
+      self.input_name = "import/" + input_layer
+      self.output_name = "import/" + output_layer
+
+      #load the graph
+      self.load_graph()
+
+      self.input_operation = self.graph.get_operation_by_name(self.input_name);
+      self.output_operation = self.graph.get_operation_by_name(self.output_name);
+   
+      self.sess = tf.Session(graph=self.graph)
+
+   def load_graph(self):
+      self.graph = tf.Graph()
+      self.graph_def = tf.GraphDef()
+
+      with open(self.protobuf_model, "rb") as f:
+         self.graph_def.ParseFromString(f.read())
+      with self.graph.as_default():
+         tf.import_graph_def(self.graph_def)
+
+   def run(self, input_image):
+      results = self.sess.run(self.output_operation.outputs[0], {self.input_operation.outputs[0]: input_image})
+      return results
 
 if __name__ == "__main__":
    parser = argparse.ArgumentParser()
@@ -75,8 +99,8 @@ if __name__ == "__main__":
    if args.output_layer:
       output_layer = args.output_layer
 
-   graph = load_graph('output_graph2.pb')
-   graph1 = load_graph('output_graph.pb')
+   testgd = GroundDetector('output_graph.pb', input_layer, output_layer)
+   testgd1 = GroundDetector('output_graph.pb', input_layer, output_layer)
 
    #get jpg files
    dir1='../gpu_code/test_images'
@@ -92,32 +116,19 @@ if __name__ == "__main__":
                                        input_width=input_width)
       flist.append(t)
 
-   gc.collect()
+   while 1 == 1: 
+      for x in range(len(flist)):
+         time1 = time.time()
+         results = testgd.run(flist[x])
+         time2 = time.time()
+         results *= 240
+         print 'function took %0.3f ms' % ((time2-time1)*1000.0)
+         #print results
 
-   input_name = "import/" + input_layer
-   output_name = "import/" + output_layer
-   input_operation = graph.get_operation_by_name(input_name);
-   output_operation = graph.get_operation_by_name(output_name);
-
-   sess1 = tf.Session(graph=graph1)
-   input_operation1 = graph1.get_operation_by_name(input_name);
-   output_operation1 = graph1.get_operation_by_name(output_name);
-
-   with tf.Session(graph=graph) as sess:
-      while 1 == 1: 
-         for x in flist:
-            time1 = time.time()
-            results = sess.run(output_operation.outputs[0],
-                               {input_operation.outputs[0]: x})
-            time2 = time.time()
-            results *= 240
-            print 'function took %0.3f ms' % ((time2-time1)*1000.0)
-            #print results
-
-            time1 = time.time()
-            results1 = sess1.run(output_operation1.outputs[0],
-                                 {input_operation1.outputs[0]: flist[0]})
-            time2 = time.time()
-            results1 *= 240
-            print '2nd function took %0.3f ms' % ((time2-time1)*1000.0)
-            #print results1
+         time1 = time.time()
+         results1 = testgd1.run(flist[0])
+         time2 = time.time()
+         results1 *= 240
+         print '2nd function took %0.3f ms' % ((time2-time1)*1000.0)
+         #print dir2[0]
+         print results1
