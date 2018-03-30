@@ -34,10 +34,10 @@ class ImageAugmentor:
       p.ground_truth(self.ground_output_dir)
       # Add operations to the pipeline as normal:
       #p.rotate(probability=1, max_left_rotation=5, max_right_rotation=5)
-      p.flip_left_right(probability=0.5)
-      p.zoom_random(probability=0.5, percentage_area=0.8)
+      #p.flip_left_right(probability=0.5)
+      p.zoom_random(probability=0.5, percentage_area=0.98)
       p.skew_left_right(probability=0.5, magnitude=.5)
-      p.crop_random(probability=.75, percentage_area=.9)
+      p.crop_random(probability=.75, percentage_area=.95)
       p.resize(probability=1.0, width=self.width, height=self.height)
       p.sample(num)
       
@@ -48,13 +48,13 @@ class ImageAugmentor:
 
       for x in original_files:
          new_name = x.replace('input_original_','')
-         new_name = '480_' + format(self.image_counter, '04d') + '.jpg'
+         new_name = '480_' + format(self.image_counter, '05d') + '.jpg'
          os.system('cd ' + self.input_dir + '/output; mv ' + x + ' ../../480_input/' + new_name)
          self.image_counter += 1
       self.image_counter -= len(original_files)
       for x in gt_files:
          new_name = x.replace('_groundtruth_(1)_input_','')
-         new_name = '480_' + format(self.image_counter, '04d') + '.jpg'
+         new_name = '480_' + format(self.image_counter, '05d') + '.jpg'
          x= x.replace('(','\(')
          x= x.replace(')','\)')
          print new_name
@@ -111,7 +111,7 @@ class ImageAugmentor:
 
          #run from 0 to the right edge of the image
          for x in range(5,width,step):
-            temp = height-1  #start at the bottom of the image
+            temp = height-2  #start at the bottom of the image
             while temp >= 0:
                pixel = img[temp,x]
                if pixel[0] == 0 or temp == 0: #if the pixel is black or reach the top of image
@@ -180,7 +180,7 @@ class ImageAugmentor:
       #for each file, copy and rename it to the input directory
       self.image_counter=0
       for f in self.jpg_files:
-         new_name = format(self.image_counter, '04d') + '.jpg'
+         new_name = format(self.image_counter, '05d') + '.jpg'
          img = cv2.imread(path.join(self.orig_jpg_dir,f))
          
          #if self.image_counter == 139:
@@ -192,7 +192,7 @@ class ImageAugmentor:
 
          #renaming xml files
          x_filename = f.replace('.jpg', '.xml')
-         os.system("cp " + path.join(self.xml_dir, x_filename) + " " + path.join(self.collection_dir, "input_annotation", format(self.image_counter, '04d') + ".xml"))
+         os.system("cp " + path.join(self.xml_dir, x_filename) + " " + path.join(self.collection_dir, "input_annotation", format(self.image_counter, '05d') + ".xml"))
 
          self.image_counter += 1
 
@@ -240,7 +240,7 @@ class ImageAugmentor:
          for child in e.iter('pt'):
             x = int(child[0].text)
             y = int(child[1].text)
-            if (height-y) <= 7 and (height-y) >= 3:
+            if ((height-y) <= 7 and (height-y) >= 3) and (x < 5 or x > (width-5)):
                print "error: " + x_filename + ',' + self.file_mapping[f]
                #sys.exit()
             if (height-y) <= 3: #if the ground truth does not reach bottom of image
@@ -326,5 +326,5 @@ if __name__ == '__main__':
    a.build_annotation_images()
    a.build_480_270_images()
    a.build_480_270_gt_images()
-   a.augment_test(25)
+   a.augment_test(2000)
    a.get_range_data(path.join(sys.argv[1],'480_ground_truth'), path.join(sys.argv[1],'480_data'))

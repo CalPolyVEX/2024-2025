@@ -8,8 +8,6 @@ import os, sys, random
 import cv2, numpy as np
 import xml.etree.ElementTree
 
-bad_list = [ 62, 64, 83, 102, 109, 110, 121, 122, 142, 805, 846, 1271, 1334, 1386]
-
 if len(sys.argv) <= 1:
     print "need command line arguments"
     sys.exit()
@@ -219,7 +217,7 @@ def rename_images(jpg_dir):
     #this function renames all the original input images to
     #a sequence:  0.jpg, 1.jpg, ...
     print "Renaming input images"
-    global jpg_files, input_files, xml_dir, bad_list
+    global jpg_files, input_files, xml_dir 
     counter=0
 
     jpg_files = os.listdir(jpg_dir)
