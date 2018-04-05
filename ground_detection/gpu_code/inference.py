@@ -58,6 +58,8 @@ def run_inference_test():
          img_input = np.expand_dims(img, axis=0)
          img_input = img_input.astype('float32')
          img_input /= 255
+         mean = np.mean(img_input,axis=(0,1))
+         img_input = img_input - mean
 
          time1 = time.time()
          prediction = model.predict(img_input, 1, 1)

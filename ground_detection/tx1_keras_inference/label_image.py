@@ -117,9 +117,9 @@ if __name__ == "__main__":
       flist.append(t)
 
    while 1 == 1: 
-      for x in range(len(flist)):
+      for x in flist:
          time1 = time.time()
-         results = testgd.run(flist[x])
+         results = testgd.run(x)
          time2 = time.time()
          results *= 240
          print 'function took %0.3f ms' % ((time2-time1)*1000.0)

@@ -37,6 +37,7 @@ limitations under the License.
 #include <fstream>
 #include <utility>
 #include <vector>
+#include <iostream>
 
 #include "tensorflow/cc/ops/const_op.h"
 #include "tensorflow/cc/ops/image_ops.h"
@@ -150,6 +151,7 @@ Status ReadTensorFromImageFile(const string& file_name, const int input_height,
 // can use to run it.
 Status LoadGraph(const string& graph_file_name,
                  std::unique_ptr<tensorflow::Session>* session) {
+  std::cout << graph_file_name;
   tensorflow::GraphDef graph_def;
   Status load_graph_status =
       ReadBinaryProto(tensorflow::Env::Default(), graph_file_name, &graph_def);
@@ -172,7 +174,7 @@ int main(int argc, char* argv[]) {
   // other than inception_v3, then you'll need to update these.
   string image = "tensorflow/examples/label_image/data/grace_hopper.jpg";
   string graph =
-      "tensorflow/examples/label_image/data/inception_v3_2016_08_28_frozen.pb";
+      "./output_graph.pb";
   string labels =
       "tensorflow/examples/label_image/data/imagenet_slim_labels.txt";
   int32 input_width = 299;
@@ -182,7 +184,7 @@ int main(int argc, char* argv[]) {
   string input_layer = "input";
   string output_layer = "InceptionV3/Predictions/Reshape_1";
   bool self_test = false;
-  string root_dir = "";
+  string root_dir = ".";
   std::vector<Flag> flag_list = {
       Flag("image", &image, "image to be processed"),
       Flag("graph", &graph, "graph to be executed"),
@@ -205,6 +207,7 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
+
   // We need to call this to set up global state for TensorFlow.
   tensorflow::port::InitMain(argv[0], &argc, &argv);
   if (argc > 1) {
@@ -212,14 +215,18 @@ int main(int argc, char* argv[]) {
     return -1;
   }
 
+
   // First we load and initialize the model.
   std::unique_ptr<tensorflow::Session> session;
   string graph_path = tensorflow::io::JoinPath(root_dir, graph);
+  std::cout << graph_path;
   Status load_graph_status = LoadGraph(graph_path, &session);
+  return 0;
   if (!load_graph_status.ok()) {
     LOG(ERROR) << load_graph_status;
     return -1;
   }
+
 
   // Get the image from disk as a float array of numbers, resized and normalized
   // to the specifications the main graph expects.
@@ -233,6 +240,8 @@ int main(int argc, char* argv[]) {
     return -1;
   }
   const Tensor& resized_tensor = resized_tensors[0];
+
+  std::cout << "here";
 
   // Actually run the image through the model.
   std::vector<Tensor> outputs;

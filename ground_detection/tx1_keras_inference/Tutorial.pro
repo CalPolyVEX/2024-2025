@@ -10,6 +10,6 @@ INCLUDEPATH += ../../../tensorflow/bazel-tensorflow/external/protobuf/src
 INCLUDEPATH += ../../../tensorflow/bazel-genfiles
 INCLUDEPATH += ../../../tensorflow/bazel-tensorflow/external/nsync/public
 
-LIBS += -L../../../tensorflow/bazel-bin/tensorflow -ltensorflow_cc
+LIBS += -L../../../tensorflow/bazel-bin/tensorflow -ltensorflow_cc -ltensorflow_framework
 
 SOURCES += main.cpp
