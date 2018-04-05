@@ -275,6 +275,26 @@ class ImageAugmentor:
          #cv2.waitKey(0)
          cv2.imwrite(path.join(self.ground_output_dir, f), img_new)
 
+   def upload(self):
+      img_cmd = 'rm -f img.zip; zip -j -q img.zip ' + self.collection_dir + '/480_input/*.jpg'
+      data_cmd = 'rm -f data.zip; zip -j -q data.zip ' + self.collection_dir + '/480_data/*.txt'
+      img_cp = 'scp img.zip unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/480_images'
+      data_cp = 'scp data.zip unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/480_data'
+      
+      os.system(img_cmd)
+      os.system(data_cmd)
+      os.system(img_cp)
+      os.system(data_cp)
+      os.system('rm -f img.zip')
+      os.system('rm -f data.zip')
+
+      print '---extracting remote files---'
+      img_unzip = 'ssh unix3.csc.calpoly.edu \'cd ue4/ground_detection/gpu_code/480_images; rm -f *.jpg; unzip -j -o -q img.zip; rm img.zip\''
+      data_unzip = 'ssh unix3.csc.calpoly.edu \'cd ue4/ground_detection/gpu_code/480_data; rm -f *.txt; unzip -j -o -q data.zip; rm data.zip\''
+      os.system(img_unzip)
+      os.system(data_unzip)
+
+
 random.seed(101)
 
 def run_full():
@@ -310,15 +330,15 @@ if __name__ == '__main__':
       #sys.exit()
    elif sys.argv[1] == 'clean':
       print "clean"
-      os.system('cd ' + sys.argv[2] + '/480_input; rm *.jpg')
-      os.system('cd ' + sys.argv[2] + '/480_data; rm *.txt')
-      os.system('cd ' + sys.argv[2] + '/480_ground_truth; rm *.jpg')
-      os.system('cd ' + sys.argv[2] + '/480_inference_input; rm *.jpg')
-      os.system('cd ' + sys.argv[2] + '/480_final_inference_output; rm *.jpg')
-      os.system('cd ' + sys.argv[2] + '/input; rm *.jpg')
-      os.system('cd ' + sys.argv[2] + '/input_annotation; rm *.xml')
-      os.system('cd ' + sys.argv[2] + '/ground_output; rm *.jpg')
-      os.system('cd ' + sys.argv[2] + '/augmented_output; rm *.jpg')
+      os.system('cd ' + sys.argv[2] + '/480_input; rm -f *.jpg; rm -f *.zip')
+      os.system('cd ' + sys.argv[2] + '/480_data; rm -f *.txt; rm -f *.zip')
+      os.system('cd ' + sys.argv[2] + '/480_ground_truth; rm -f *.jpg')
+      os.system('cd ' + sys.argv[2] + '/480_inference_input; rm -f *.jpg')
+      os.system('cd ' + sys.argv[2] + '/480_final_inference_output; rm -f *.jpg')
+      os.system('cd ' + sys.argv[2] + '/input; rm -f *.jpg')
+      os.system('cd ' + sys.argv[2] + '/input_annotation; rm -f *.xml')
+      os.system('cd ' + sys.argv[2] + '/ground_output; rm -f *.jpg')
+      os.system('cd ' + sys.argv[2] + '/augmented_output; rm -f *.jpg')
       sys.exit()
 
    a = ImageAugmentor(sys.argv[1])
@@ -326,5 +346,6 @@ if __name__ == '__main__':
    a.build_annotation_images()
    a.build_480_270_images()
    a.build_480_270_gt_images()
-   a.augment_test(2000)
+   a.augment_test(5000)
    a.get_range_data(path.join(sys.argv[1],'480_ground_truth'), path.join(sys.argv[1],'480_data'))
+   a.upload()
