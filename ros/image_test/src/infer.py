@@ -3,22 +3,25 @@ from __future__ import print_function
 
 import roslib
 roslib.load_manifest('image_test')
-import sys
-import rospy
-import cv2
-import time
+import sys, rospy, cv2, time, imp
+import numpy as np
+import tensorflow as tf
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
 class image_converter:
+   def __init__(self, infer_file):
+      self.foo = imp.load_source('module.name', infer_file)
+      self.input_layer='conv2d_1_input'
+      self.output_layer='k2tfout_0'
+      self.gd = self.foo.GroundDetector('output_graph.pb', self.input_layer, self.output_layer)
 
-   def __init__(self):
       self.counter = 0
       self.image_pub = rospy.Publisher("/see3cam_cu20/test_image_topic_3",Image)
 
       self.bridge = CvBridge()
-self.image_sub = rospy.Subscriber("/see3cam_cu20/image_raw",Image,self.callback)
+      self.image_sub = rospy.Subscriber("/see3cam_cu20/image_raw",Image,self.callback)
 
    def callback(self,data):
       try:
@@ -26,19 +29,25 @@ self.image_sub = rospy.Subscriber("/see3cam_cu20/image_raw",Image,self.callback)
       except CvBridgeError as e:
          print(e)
 
-
       #save the file
       (rows,cols,channels) = cv_image.shape
-      if cols > 60 and rows > 60 :
-         cv2.circle(cv_image, (50,50), 20, 255)
 
+      #resize and conver the image to numpy array
       resized_image = cv2.resize(cv_image, (480, 270)) 
       np_image_data = np.asarray(resized_image)
-      #maybe insert float convertion here - see edit remark!
-      np_final = np.expand_dims(np_image_data,axis=0)
-      print np_final.get_shape()
-      #cv2.imshow("Image window", cv_image)
-      #cv2.waitKey(3)
+      #float_caster = tf.cast(np_image_data, tf.float32)
+      float_caster = np_image_data / 255.0
+      np_final = np.expand_dims(float_caster,axis=0)
+      #print (np_final.shape)
+      results = self.gd.run(np_final)
+      results *= 270.0
+      #print (results)
+
+      column = 5
+      for x in results:
+         #print (column,x)
+         column += 10
+         cv2.circle(cv_image, (int(column*4),int(x*4)), 5, (0,0,255), 7)
 
       try:
          self.image_pub.publish(self.bridge.cv2_to_imgmsg(cv_image, "bgr8"))
@@ -46,7 +55,7 @@ self.image_sub = rospy.Subscriber("/see3cam_cu20/image_raw",Image,self.callback)
          print(e)
 
 def main(args):
-   ic = image_converter()
+   ic = image_converter(args[1])
    rospy.init_node('image_converter', anonymous=True)
    try:
       rospy.spin()
