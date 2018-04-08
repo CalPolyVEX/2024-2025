@@ -39,8 +39,9 @@ def read_tensor_from_image_file(file_name, input_height=299, input_width=299):
    #print resized.shape
    #print mean
    normalized = tf.subtract(resized, mean)
+   print normalized.get_shape()
    sess = tf.Session()
-   result = sess.run(normalized)
+   result = sess.run(resized)
 
    return result
 
