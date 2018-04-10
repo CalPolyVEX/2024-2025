@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+   <include file="$(find jet_launcher)/launch/uncompress_video.launch"/>
+   <node pkg="rosbag" type="play" name="player" args="-q -l /mnt/temp/output.bag"/>
+   <include file="$(find image_test)/launch/infer.launch"/>
+</launch>
