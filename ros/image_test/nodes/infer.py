@@ -18,7 +18,8 @@ class image_converter:
       self.gd = self.foo.GroundDetector('/home/nvidia/catkin_ws/src/ros/image_test/nodes/output_graph.pb', self.input_layer, self.output_layer)
 
       self.counter = 0
-      self.image_pub = rospy.Publisher("/see3cam_cu20/test_image_topic_3",Image)
+      self.image_pub = rospy.Publisher("/see3cam_cu20/test_image_topic_3",Image, queue_size=1)
+      self.image_resized_pub = rospy.Publisher("/see3cam_cu20/image_raw_480_270",Image, queue_size=1)
 
       self.bridge = CvBridge()
       self.image_sub = rospy.Subscriber("/see3cam_cu20/image_raw",Image,self.callback)
@@ -33,24 +34,25 @@ class image_converter:
       (rows,cols,channels) = cv_image.shape
 
       #resize and conver the image to numpy array
-      resized_image = cv2.resize(cv_image, (480, 270)) 
-      np_image_data = np.asarray(resized_image)
+      resized_image_nn = cv2.resize(cv_image, (480, 270)) 
+      resized_image = resized_image_nn.copy() 
+      np_image_data = np.asarray(resized_image_nn)
       #float_caster = tf.cast(np_image_data, tf.float32)
       float_caster = np_image_data / 255.0
       np_final = np.expand_dims(float_caster,axis=0)
       #print (np_final.shape)
+
       results = self.gd.run(np_final)
       results *= 270.0
-      #print (results)
 
       column = 5
       for x in results:
-         #print (column,x)
-         cv2.circle(resized_image, (int(column),int(x)), 2, (0,0,255), 3)
+         cv2.circle(resized_image_nn, (int(column),int(x)), 2, (0,0,255), 3)
          column += 10
 
       try:
-         self.image_pub.publish(self.bridge.cv2_to_imgmsg(resized_image, "bgr8"))
+         self.image_pub.publish(self.bridge.cv2_to_imgmsg(resized_image_nn, "bgr8"))
+         self.image_resized_pub.publish(self.bridge.cv2_to_imgmsg(resized_image, "bgr8"))
       except CvBridgeError as e:
          print(e)
 

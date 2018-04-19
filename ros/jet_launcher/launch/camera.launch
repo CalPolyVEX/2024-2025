@@ -5,9 +5,6 @@
       <arg name="camera_name" value="see3cam_cu20" />
       <!-- means video device 0, /dev/video0 -->
       <arg name="video_stream_provider" value="0" />
-      <!-- set camera fps to (if the device allows) -->
-      <!--
-      <arg name="set_camera_fps" value="30"/> -->
       <!-- set buffer queue size of frame capturing to -->
       <!-- throttling the querying of frames to -->
       <arg name="fps" value="15" />
@@ -25,5 +22,10 @@
       <arg name="width" value="1920" />
       <arg name="height" value="1080" />
    </include>
-   <include file="$(find jet_launcher)/launch/image_saver.launch"/>
+
+   <!-- Throttle the rate that images are published from the camera to 1.0Hz-->
+   <node pkg="topic_tools" name="throttle" type="throttle" args="messages /see3cam_cu20/image_raw 1.0" />
+
+   <!-- Resize the image to 480x270 -->
+   <node pkg="image_test" type="resize_to_480_270.py" name="resize480_node" />
 </launch>
