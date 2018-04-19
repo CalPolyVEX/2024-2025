@@ -5,7 +5,6 @@ import roslib
 roslib.load_manifest('image_test')
 import sys, rospy, cv2, time, imp
 import numpy as np
-import tensorflow as tf
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
@@ -13,7 +12,7 @@ from cv_bridge import CvBridge, CvBridgeError
 class image_converter:
    def __init__(self):
       self.counter = 0
-      self.image_resized_pub = rospy.Publisher("/see3cam_cu20/image_raw_480_270_2",Image, queue_size=1)
+      self.image_resized_pub = rospy.Publisher("/see3cam_cu20/image_raw_480_270",Image, queue_size=1)
 
       self.bridge = CvBridge()
       self.image_sub = rospy.Subscriber("/see3cam_cu20/image_raw",Image,self.callback)
