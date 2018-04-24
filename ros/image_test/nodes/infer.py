@@ -42,10 +42,15 @@ class image_converter:
       np_final = np.expand_dims(float_caster,axis=0)
       #print (np_final.shape)
 
+      time1 = time.time()
       results = self.gd.run(np_final)
+      time2 = time.time()
       results *= 270.0
 
       column = 5
+
+      font = cv2.FONT_HERSHEY_SIMPLEX
+      cv2.putText(resized_image_nn, "%.2fms" % ((time2-time1)*1000.0), (390, 20), font, 0.6, (0, 255, 0), 1, cv2.LINE_AA)
       for x in results:
          cv2.circle(resized_image_nn, (int(column),int(x)), 2, (0,0,255), 3)
          column += 10
