@@ -184,8 +184,10 @@ class ImageAugmentor:
          new_name = format(self.image_counter, '05d') + '.jpg'
          img = cv2.imread(path.join(self.orig_jpg_dir,f))
          
-         #if self.image_counter == 139:
-         #      print f
+#         error_list = [110,456,466,467,505,507,508,511,512]
+#         if self.image_counter in error_list:
+#               print "ground_truth_error: " + str(f) + " -- " + str(self.image_counter)
+#               #sys.exit()
 
          cv2.imwrite(path.join(self.input_dir, new_name), img)
          self.input_files.append(new_name)
@@ -237,18 +239,25 @@ class ImageAugmentor:
          e = xml.etree.ElementTree.parse(path.join(self.collection_dir, "input_annotation", x_filename)).getroot()
          #print x_filename, e
 
-         #build a polygon
-         for child in e.iter('pt'):
-            x = int(child[0].text)
-            y = int(child[1].text)
-            if ((height-y) <= 7 and (height-y) >= 3) and (x < 5 or x > (width-5)):
-               print "error: " + x_filename + ',' + self.file_mapping[f]
-               #sys.exit()
-            if (height-y) <= 3: #if the ground truth does not reach bottom of image
-               y = height
-            polygon_list.append([x,y])
-
+         for child in e: #for each child in the root
+            if child.tag == "object":
+               deleted = int(child.find("deleted").text) #find if the polygon was deleted
+               if deleted != 1:
+                  #build a polygon
+                  for pt_child in child.iter('pt'):
+                     x = int(pt_child[0].text)
+                     y = int(pt_child[1].text)
+                     if ((height-y) <= 7 and (height-y) >= 3) and (x < 5 or x > (width-5)):
+                        print "error: " + x_filename + ',' + self.file_mapping[f]
+                        #sys.exit()
+                     if (height-y) <= 3: #if the ground truth does not reach bottom of image
+                        y = height
+                     polygon_list.append([x,y])
+               else:
+                  print "found deleted polygon in file: " + x_filename
+                           
          #print polygon_list
+         #sys.exit()
 
          #create new annotation image
          img_new = np.zeros((height,width,1), np.uint8)
