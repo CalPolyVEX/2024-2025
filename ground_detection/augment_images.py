@@ -243,6 +243,7 @@ class ImageAugmentor:
             if child.tag == "object":
                deleted = int(child.find("deleted").text) #find if the polygon was deleted
                if deleted != 1:
+                  point_list=[]
                   #build a polygon
                   for pt_child in child.iter('pt'):
                      x = int(pt_child[0].text)
@@ -252,32 +253,36 @@ class ImageAugmentor:
                         #sys.exit()
                      if (height-y) <= 3: #if the ground truth does not reach bottom of image
                         y = height
-                     polygon_list.append([x,y])
+                     point_list.append([x,y])
+                  polygon_list.append(point_list)
                else:
                   print "found deleted polygon in file: " + x_filename
                            
          #print polygon_list
+#         if len(polygon_list) > 1:
+#            print f
+#            sys.exit()
          #sys.exit()
 
          #create new annotation image
          img_new = np.zeros((height,width,1), np.uint8)
-         pts = np.array(polygon_list, np.int32)
-         pts = pts.reshape((-1,1,2))
 
-         #move in any points that are outside the image
-         for i in range(len(pts)):
-            #print pts[i][0]
-            if (pts[i][0])[0] >= width:
-               (pts[i][0])[0] = width-1
-            assert (pts[i][0])[0] < width
-            
-            if (pts[i][0])[1] >= height:
-               (pts[i][0])[1] = height-1
-            assert (pts[i][0])[1] < height
+         for polygon in polygon_list:
+            pts = np.array(polygon, np.int32)
+            pts = pts.reshape((-1,1,2))
 
-         #cv2.polylines(img_new,[pts], True, (0,255,255))
-         #cv2.polylines(img_new,[pts], True, (255,255,255))
-         cv2.polylines(img_new,[pts], True, 255)
+            #move in any points that are outside the image
+            for i in range(len(pts)):
+               #print pts[i][0]
+               if (pts[i][0])[0] >= width:
+                  (pts[i][0])[0] = width-1
+               assert (pts[i][0])[0] < width
+               
+               if (pts[i][0])[1] >= height:
+                  (pts[i][0])[1] = height-1
+               assert (pts[i][0])[1] < height
+
+            cv2.polylines(img_new,[pts], True, 255)
 
          img_new = self.fill_polygon(img_new) #fill in the polygon
 
@@ -356,6 +361,6 @@ if __name__ == '__main__':
    a.build_annotation_images()
    a.build_480_270_images()
    a.build_480_270_gt_images()
-   a.augment_test(52000)
+   a.augment_test(1000)
    a.get_range_data(path.join(sys.argv[1],'480_ground_truth'), path.join(sys.argv[1],'480_data'))
-   a.upload()
+   #a.upload()
