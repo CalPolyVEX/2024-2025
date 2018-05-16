@@ -53,6 +53,7 @@ class ImageAugmentor:
          os.system('cd ' + self.input_dir + '/output; mv ' + x + ' ../../480_input/' + new_name)
          self.image_counter += 1
       self.image_counter -= len(original_files)
+
       for x in gt_files:
          new_name = x.replace('_groundtruth_(1)_input_','')
          new_name = '480_' + format(self.image_counter, '05d') + '.jpg'
@@ -63,6 +64,8 @@ class ImageAugmentor:
          os.system('cd ' + self.input_dir + '/output; mv ' + x + ' ../../480_ground_truth/' + new_name)
          self.image_counter += 1
 
+   #############################################################
+   #fill_polygon function
    def fill_polygon(self, img):
       height, width, channels = img.shape
 
@@ -91,6 +94,7 @@ class ImageAugmentor:
 
       return img
 
+   #############################################################
    #create the actual data to feed to neural network
    def get_range_data(self, dirs, out):
       print "---Generating data files for images---"
@@ -130,6 +134,7 @@ class ImageAugmentor:
          #print data
          #cv2.imwrite(path.join(dirs,f), img)
       
+   #############################################################
    def build_480_270_images(self):
       print "Converting input images to 480x270"
       files = os.listdir(self.input_dir)
@@ -146,6 +151,7 @@ class ImageAugmentor:
          new_name = str(self.width) + '_' + f
          cv2.imwrite(path.join(input_dir_480, new_name), img480)
 
+   #############################################################
    def build_480_270_gt_images(self):
       print "Converting ground truth images to 480x270"
       gt_files = os.listdir(self.ground_output_dir)
@@ -162,6 +168,7 @@ class ImageAugmentor:
          new_name = str(self.width) + '_' + f 
          cv2.imwrite(gt_dir_480 + '/' + new_name, img480)
 
+   #############################################################
    def rename_images(self):
       #this function renames all the original input images to
       #a sequence:  0.jpg, 1.jpg, ...
@@ -199,6 +206,7 @@ class ImageAugmentor:
 
          self.image_counter += 1
 
+   #############################################################
    def build_annotation_images(self):
       print '---build_annotation_images---'
       #if the input directory does not exist, then create it
@@ -258,12 +266,6 @@ class ImageAugmentor:
                else:
                   print "found deleted polygon in file: " + x_filename
                            
-         #print polygon_list
-#         if len(polygon_list) > 1:
-#            print f
-#            sys.exit()
-         #sys.exit()
-
          #create new annotation image
          img_new = np.zeros((height,width,1), np.uint8)
 
@@ -309,36 +311,8 @@ class ImageAugmentor:
       os.system(img_unzip)
       os.system(data_unzip)
 
-
 random.seed(101)
 
-def run_full():
-   global xml_dir, ground_output_dir
-
-   jpg_dir = sys.argv[1]+"/Images/users/jseng/building14"
-   #print files
-
-   xml_files = os.listdir(xml_dir)
-   xml_files.sort()
-   #print xml_files
-   output_dir = sys.argv[1]+"/augmented_output"
-   if not os.path.exists(output_dir):
-      os.makedirs(output_dir)
-
-   if not os.path.exists(ground_output_dir):
-      os.makedirs(ground_output_dir)
-      
-   rename_images(jpg_dir)
-   build_annotation_images(ground_output_dir)
-
-   #sys.exit()
-
-   crop_images(input_dir, input_files, output_dir)
-   mirror_images(input_dir, input_files, output_dir)
-
-   get_range_data([sys.argv[1] + '/480_ground_truth'], sys.argv[1] + '/480_data') #output range data for the 480x270 files
-
-#run_full()
 if __name__ == '__main__':
    if len(sys.argv) <= 1:
       print "need command line arguments"
