@@ -294,20 +294,24 @@ class ImageAugmentor:
 
    def upload(self):
       img_cmd = 'rm -f img.zip; zip -j -q img.zip ' + self.collection_dir + '/480_input/*.jpg'
+      img_cmd = 'rm -f img.tar.gz; tar zcvf img.tar.gz -C ' + self.collection_dir + '/480_input/ .'
+
       data_cmd = 'rm -f data.zip; zip -j -q data.zip ' + self.collection_dir + '/480_data/*.txt'
-      img_cp = 'scp img.zip unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/480_images'
-      data_cp = 'scp data.zip unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/480_data'
+      data_cmd = 'rm -f data.tar.gz; tar zcvf data.tar.gz -C ' + self.collection_dir + '/480_data/ .'
+
+      img_cp = 'scp img.tar.gz unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/480_images'
+      data_cp = 'scp data.tar.gz unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/480_data'
       
       os.system(img_cmd)
       os.system(data_cmd)
       os.system(img_cp)
       os.system(data_cp)
-      os.system('rm -f img.zip')
-      os.system('rm -f data.zip')
+      os.system('rm -f img.tar.gz')
+      os.system('rm -f data.tar.gz')
 
       print '---extracting remote files---'
-      img_unzip = 'ssh unix3.csc.calpoly.edu \'cd ue4/ground_detection/gpu_code/480_images; rm -f *.jpg; unzip -j -o -q img.zip; rm img.zip\''
-      data_unzip = 'ssh unix3.csc.calpoly.edu \'cd ue4/ground_detection/gpu_code/480_data; rm -f *.txt; unzip -j -o -q data.zip; rm data.zip\''
+      img_unzip = 'ssh unix3.csc.calpoly.edu \'cd ue4/ground_detection/gpu_code/480_images; rm -f *.jpg; tar -xzf img.tar.gz; rm img.tar.gz\''
+      data_unzip = 'ssh unix3.csc.calpoly.edu \'cd ue4/ground_detection/gpu_code/480_data; rm -f *.txt; tar -xzf data.tar.gz; rm data.tar.gz\''
       os.system(img_unzip)
       os.system(data_unzip)
 
@@ -331,10 +335,12 @@ if __name__ == '__main__':
       sys.exit()
 
    a = ImageAugmentor(sys.argv[1])
+   a.upload()
+   sys.exit()
    a.rename_images()
    a.build_annotation_images()
    a.build_480_270_images()
    a.build_480_270_gt_images()
-   a.augment_test(1000)
+   a.augment_test(50000)
    a.get_range_data(path.join(sys.argv[1],'480_ground_truth'), path.join(sys.argv[1],'480_data'))
    #a.upload()
