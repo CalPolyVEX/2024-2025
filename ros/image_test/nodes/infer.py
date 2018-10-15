@@ -16,7 +16,7 @@ class image_converter:
       self.input_layer='conv2d_1_input'
       self.input_layer='input_1'
       self.output_layer='k2tfout_0'
-      self.gd = self.foo.GroundDetector('/home/nvidia/catkin_ws/src/ros/image_test/nodes/output_graph.pb', self.input_layer, self.output_layer)
+      self.gd = self.foo.GroundDetector('./output_graph.pb', self.input_layer, self.output_layer)
 
       self.counter = 0
       self.image_pub = rospy.Publisher("/see3cam_cu20/test_image_topic_3",Image, queue_size=1)
@@ -34,7 +34,7 @@ class image_converter:
       #save the file
       (rows,cols,channels) = cv_image.shape
 
-      #resize and conver the image to numpy array
+      #resize and convert the image to numpy array
       resized_image_nn = cv2.resize(cv_image, (480, 270)) 
       resized_image = resized_image_nn.copy() 
       np_image_data = np.asarray(resized_image_nn)
