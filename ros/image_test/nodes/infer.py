@@ -10,13 +10,45 @@ from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
+class GroundDetector:
+   def __init__(self, protobuf_model, input_layer, output_layer):
+      self.width = 480
+      self.height = 270
+      self.protobuf_model = protobuf_model
+      self.input_layer = input_layer
+      self.output_layer = output_layer
+      self.input_name = "import/" + input_layer
+      self.output_name = "import/" + output_layer
+
+      #load the graph
+      self.load_graph()
+
+      self.input_operation = self.graph.get_operation_by_name(self.input_name);
+      self.output_operation = self.graph.get_operation_by_name(self.output_name);
+   
+      self.sess = tf.Session(graph=self.graph)
+
+   def load_graph(self):
+      self.graph = tf.Graph()
+      self.graph_def = tf.GraphDef()
+
+      with open(self.protobuf_model, "rb") as f:
+         self.graph_def.ParseFromString(f.read())
+      with self.graph.as_default():
+         tf.import_graph_def(self.graph_def)
+
+   def run(self, input_image):
+      results = self.sess.run(self.output_operation.outputs[0], {self.input_operation.outputs[0]: input_image})
+      return results
+
 class image_converter:
    def __init__(self, infer_file):
       self.foo = imp.load_source('module.name', infer_file)
       self.input_layer='conv2d_1_input'
       self.input_layer='input_1'
       self.output_layer='k2tfout_0'
-      self.gd = self.foo.GroundDetector('./output_graph.pb', self.input_layer, self.output_layer)
+      #self.gd = self.foo.GroundDetector('./output_graph.pb', self.input_layer, self.output_layer)
+      self.gd = GroundDetector('./output_graph.pb', self.input_layer, self.output_layer)
 
       self.counter = 0
       self.image_pub = rospy.Publisher("/see3cam_cu20/test_image_topic_3",Image, queue_size=1)
