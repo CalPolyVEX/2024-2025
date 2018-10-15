@@ -14,6 +14,7 @@ class image_converter:
    def __init__(self, infer_file):
       self.foo = imp.load_source('module.name', infer_file)
       self.input_layer='conv2d_1_input'
+      self.input_layer='input_1'
       self.output_layer='k2tfout_0'
       self.gd = self.foo.GroundDetector('/home/nvidia/catkin_ws/src/ros/image_test/nodes/output_graph.pb', self.input_layer, self.output_layer)
 
