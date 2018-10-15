@@ -34,9 +34,11 @@ import tensorflow as tf
 
 from keras.models import load_model
 from keras import backend as K
+from keras.utils.generic_utils import CustomObjectScope
+import keras
 
-
-
+def relu6(x):
+  return K.relu(x, max_value=6)
 
 def convertGraph( modelPath, outdir, numoutputs, prefix, name):
     '''
@@ -58,7 +60,10 @@ def convertGraph( modelPath, outdir, numoutputs, prefix, name):
 
     K.set_learning_phase(0)
 
-    net_model = load_model(modelPath)
+    #with CustomObjectScope({'relu6': mobilenet.relu6,'DepthwiseConv2D': mobilenet.DepthwiseConv2D}):
+    with CustomObjectScope({'relu6': keras.layers.ReLU(6.),'DepthwiseConv2D': keras.layers.DepthwiseConv2D}):
+      #model = load_model('weights.hdf5')
+      net_model = load_model(modelPath)
 
     # Alias the outputs in the model - this sometimes makes them easier to access in TF
     pred = [None]*numoutputs

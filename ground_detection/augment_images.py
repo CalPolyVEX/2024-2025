@@ -35,9 +35,10 @@ class ImageAugmentor:
       # Add operations to the pipeline as normal:
       #p.rotate(probability=1, max_left_rotation=5, max_right_rotation=5)
       #p.flip_left_right(probability=0.5)
-      p.zoom_random(probability=0.5, percentage_area=0.98)
+      p.zoom_random(probability=0.5, percentage_area=0.95)
+      p.zoom_random(probability=0.5, percentage_area=0.8)
       p.skew_left_right(probability=0.5, magnitude=.5)
-      p.crop_random(probability=.75, percentage_area=.95)
+      p.crop_random(probability=.75, percentage_area=.9)
       p.resize(probability=1.0, width=self.width, height=self.height)
       p.sample(num)
       
@@ -52,6 +53,7 @@ class ImageAugmentor:
          os.system('cd ' + self.input_dir + '/output; mv ' + x + ' ../../480_input/' + new_name)
          self.image_counter += 1
       self.image_counter -= len(original_files)
+
       for x in gt_files:
          new_name = x.replace('_groundtruth_(1)_input_','')
          new_name = '480_' + format(self.image_counter, '05d') + '.jpg'
@@ -62,6 +64,8 @@ class ImageAugmentor:
          os.system('cd ' + self.input_dir + '/output; mv ' + x + ' ../../480_ground_truth/' + new_name)
          self.image_counter += 1
 
+   #############################################################
+   #fill_polygon function
    def fill_polygon(self, img):
       height, width, channels = img.shape
 
@@ -90,6 +94,7 @@ class ImageAugmentor:
 
       return img
 
+   #############################################################
    #create the actual data to feed to neural network
    def get_range_data(self, dirs, out):
       print "---Generating data files for images---"
@@ -129,6 +134,7 @@ class ImageAugmentor:
          #print data
          #cv2.imwrite(path.join(dirs,f), img)
       
+   #############################################################
    def build_480_270_images(self):
       print "Converting input images to 480x270"
       files = os.listdir(self.input_dir)
@@ -145,6 +151,7 @@ class ImageAugmentor:
          new_name = str(self.width) + '_' + f
          cv2.imwrite(path.join(input_dir_480, new_name), img480)
 
+   #############################################################
    def build_480_270_gt_images(self):
       print "Converting ground truth images to 480x270"
       gt_files = os.listdir(self.ground_output_dir)
@@ -161,6 +168,7 @@ class ImageAugmentor:
          new_name = str(self.width) + '_' + f 
          cv2.imwrite(gt_dir_480 + '/' + new_name, img480)
 
+   #############################################################
    def rename_images(self):
       #this function renames all the original input images to
       #a sequence:  0.jpg, 1.jpg, ...
@@ -183,8 +191,10 @@ class ImageAugmentor:
          new_name = format(self.image_counter, '05d') + '.jpg'
          img = cv2.imread(path.join(self.orig_jpg_dir,f))
          
-         #if self.image_counter == 139:
-         #      print f
+#         error_list = [110,456,466,467,505,507,508,511,512]
+#         if self.image_counter in error_list:
+#               print "ground_truth_error: " + str(f) + " -- " + str(self.image_counter)
+#               #sys.exit()
 
          cv2.imwrite(path.join(self.input_dir, new_name), img)
          self.input_files.append(new_name)
@@ -196,6 +206,7 @@ class ImageAugmentor:
 
          self.image_counter += 1
 
+   #############################################################
    def build_annotation_images(self):
       print '---build_annotation_images---'
       #if the input directory does not exist, then create it
@@ -236,38 +247,44 @@ class ImageAugmentor:
          e = xml.etree.ElementTree.parse(path.join(self.collection_dir, "input_annotation", x_filename)).getroot()
          #print x_filename, e
 
-         #build a polygon
-         for child in e.iter('pt'):
-            x = int(child[0].text)
-            y = int(child[1].text)
-            if ((height-y) <= 7 and (height-y) >= 3) and (x < 5 or x > (width-5)):
-               print "error: " + x_filename + ',' + self.file_mapping[f]
-               #sys.exit()
-            if (height-y) <= 3: #if the ground truth does not reach bottom of image
-               y = height
-            polygon_list.append([x,y])
-
-         #print polygon_list
-
+         for child in e: #for each child in the root
+            if child.tag == "object":
+               deleted = int(child.find("deleted").text) #find if the polygon was deleted
+               if deleted != 1:
+                  point_list=[]
+                  #build a polygon
+                  for pt_child in child.iter('pt'):
+                     x = int(pt_child[0].text)
+                     y = int(pt_child[1].text)
+                     if ((height-y) <= 7 and (height-y) >= 3) and (x < 5 or x > (width-5)):
+                        print "error: " + x_filename + ',' + self.file_mapping[f]
+                        #sys.exit()
+                     if (height-y) <= 3: #if the ground truth does not reach bottom of image
+                        y = height
+                     point_list.append([x,y])
+                  polygon_list.append(point_list)
+               else:
+                  print "found deleted polygon in file: " + x_filename
+                           
          #create new annotation image
          img_new = np.zeros((height,width,1), np.uint8)
-         pts = np.array(polygon_list, np.int32)
-         pts = pts.reshape((-1,1,2))
 
-         #move in any points that are outside the image
-         for i in range(len(pts)):
-            #print pts[i][0]
-            if (pts[i][0])[0] >= width:
-               (pts[i][0])[0] = width-1
-            assert (pts[i][0])[0] < width
-            
-            if (pts[i][0])[1] >= height:
-               (pts[i][0])[1] = height-1
-            assert (pts[i][0])[1] < height
+         for polygon in polygon_list:
+            pts = np.array(polygon, np.int32)
+            pts = pts.reshape((-1,1,2))
 
-         #cv2.polylines(img_new,[pts], True, (0,255,255))
-         #cv2.polylines(img_new,[pts], True, (255,255,255))
-         cv2.polylines(img_new,[pts], True, 255)
+            #move in any points that are outside the image
+            for i in range(len(pts)):
+               #print pts[i][0]
+               if (pts[i][0])[0] >= width:
+                  (pts[i][0])[0] = width-1
+               assert (pts[i][0])[0] < width
+               
+               if (pts[i][0])[1] >= height:
+                  (pts[i][0])[1] = height-1
+               assert (pts[i][0])[1] < height
+
+            cv2.polylines(img_new,[pts], True, 255)
 
          img_new = self.fill_polygon(img_new) #fill in the polygon
 
@@ -277,53 +294,29 @@ class ImageAugmentor:
 
    def upload(self):
       img_cmd = 'rm -f img.zip; zip -j -q img.zip ' + self.collection_dir + '/480_input/*.jpg'
+      img_cmd = 'rm -f img.tar.gz; tar zcvf img.tar.gz -C ' + self.collection_dir + '/480_input/ .'
+
       data_cmd = 'rm -f data.zip; zip -j -q data.zip ' + self.collection_dir + '/480_data/*.txt'
-      img_cp = 'scp img.zip unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/480_images'
-      data_cp = 'scp data.zip unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/480_data'
+      data_cmd = 'rm -f data.tar.gz; tar zcvf data.tar.gz -C ' + self.collection_dir + '/480_data/ .'
+
+      img_cp = 'scp img.tar.gz unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/480_images'
+      data_cp = 'scp data.tar.gz unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/480_data'
       
       os.system(img_cmd)
       os.system(data_cmd)
       os.system(img_cp)
       os.system(data_cp)
-      os.system('rm -f img.zip')
-      os.system('rm -f data.zip')
+      os.system('rm -f img.tar.gz')
+      os.system('rm -f data.tar.gz')
 
       print '---extracting remote files---'
-      img_unzip = 'ssh unix3.csc.calpoly.edu \'cd ue4/ground_detection/gpu_code/480_images; rm -f *.jpg; unzip -j -o -q img.zip; rm img.zip\''
-      data_unzip = 'ssh unix3.csc.calpoly.edu \'cd ue4/ground_detection/gpu_code/480_data; rm -f *.txt; unzip -j -o -q data.zip; rm data.zip\''
+      img_unzip = 'ssh unix3.csc.calpoly.edu \'cd ue4/ground_detection/gpu_code/480_images; rm -f *.jpg; tar -xzf img.tar.gz; rm img.tar.gz\''
+      data_unzip = 'ssh unix3.csc.calpoly.edu \'cd ue4/ground_detection/gpu_code/480_data; rm -f *.txt; tar -xzf data.tar.gz; rm data.tar.gz\''
       os.system(img_unzip)
       os.system(data_unzip)
 
-
 random.seed(101)
 
-def run_full():
-   global xml_dir, ground_output_dir
-
-   jpg_dir = sys.argv[1]+"/Images/users/jseng/building14"
-   #print files
-
-   xml_files = os.listdir(xml_dir)
-   xml_files.sort()
-   #print xml_files
-   output_dir = sys.argv[1]+"/augmented_output"
-   if not os.path.exists(output_dir):
-      os.makedirs(output_dir)
-
-   if not os.path.exists(ground_output_dir):
-      os.makedirs(ground_output_dir)
-      
-   rename_images(jpg_dir)
-   build_annotation_images(ground_output_dir)
-
-   #sys.exit()
-
-   crop_images(input_dir, input_files, output_dir)
-   mirror_images(input_dir, input_files, output_dir)
-
-   get_range_data([sys.argv[1] + '/480_ground_truth'], sys.argv[1] + '/480_data') #output range data for the 480x270 files
-
-#run_full()
 if __name__ == '__main__':
    if len(sys.argv) <= 1:
       print "need command line arguments"
@@ -335,17 +328,19 @@ if __name__ == '__main__':
       os.system('cd ' + sys.argv[2] + '/480_ground_truth; rm -f *.jpg')
       os.system('cd ' + sys.argv[2] + '/480_inference_input; rm -f *.jpg')
       os.system('cd ' + sys.argv[2] + '/480_final_inference_output; rm -f *.jpg')
-      os.system('cd ' + sys.argv[2] + '/input; rm -f *.jpg')
+      os.system('cd ' + sys.argv[2] + '/input; rm -f *.jpg; rm -f -r output')
       os.system('cd ' + sys.argv[2] + '/input_annotation; rm -f *.xml')
       os.system('cd ' + sys.argv[2] + '/ground_output; rm -f *.jpg')
       os.system('cd ' + sys.argv[2] + '/augmented_output; rm -f *.jpg')
       sys.exit()
 
    a = ImageAugmentor(sys.argv[1])
+   a.upload()
+   sys.exit()
    a.rename_images()
    a.build_annotation_images()
    a.build_480_270_images()
    a.build_480_270_gt_images()
-   a.augment_test(15000)
+   a.augment_test(50000)
    a.get_range_data(path.join(sys.argv[1],'480_ground_truth'), path.join(sys.argv[1],'480_data'))
    #a.upload()
