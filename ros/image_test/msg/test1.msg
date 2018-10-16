@@ -1,1 +1,1 @@
-int8[] points
+int32[] points

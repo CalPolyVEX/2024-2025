@@ -27,7 +27,10 @@ class GroundDetector:
       self.input_operation = self.graph.get_operation_by_name(self.input_name);
       self.output_operation = self.graph.get_operation_by_name(self.output_name);
    
-      self.sess = tf.Session(graph=self.graph)
+      config = tf.ConfigProto()
+      config.gpu_options.allow_growth = True
+
+      self.sess = tf.Session(config=config,graph=self.graph)
 
    def load_graph(self):
       self.graph = tf.Graph()
@@ -44,8 +47,8 @@ class GroundDetector:
 
 class image_converter:
    def __init__(self, infer_file):
-      self.foo = imp.load_source('module.name', infer_file)
-      self.input_layer='conv2d_1_input'
+      #self.foo = imp.load_source('module.name', infer_file)
+      #self.input_layer='conv2d_1_input'
       self.input_layer='input_1'
       self.output_layer='k2tfout_0'
       #self.gd = self.foo.GroundDetector('./output_graph.pb', self.input_layer, self.output_layer)
