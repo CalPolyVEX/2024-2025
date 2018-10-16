@@ -21,7 +21,7 @@ class image_converter:
       self.image_pub = rospy.Publisher("/see3cam_cu20/test_image_topic_2",Image)
 
       self.bridge = CvBridge()
-self.image_sub = rospy.Subscriber("/see3cam_cu20/image_raw_throttle",Image,self.callback)
+      self.image_sub = rospy.Subscriber("/see3cam_cu20/image_raw_throttle",Image,self.callback)
 
    def callback(self,data):
       try:

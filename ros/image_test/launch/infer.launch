@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-    <node pkg="image_test" type="infer.py" name="infer_node" args="/mnt/temp/ue4/ground_detection/tx1_keras_inference/label_image.py" cwd="node">
+    <node pkg="image_test" type="infer.py" name="infer_node" args="./output_graph.pb" cwd="node">
     </node>
 </launch>

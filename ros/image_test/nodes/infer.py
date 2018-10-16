@@ -52,7 +52,7 @@ class image_converter:
       self.input_layer='input_1'
       self.output_layer='k2tfout_0'
       #self.gd = self.foo.GroundDetector('./output_graph.pb', self.input_layer, self.output_layer)
-      self.gd = GroundDetector('./output_graph.pb', self.input_layer, self.output_layer)
+      self.gd = GroundDetector(infer_file, self.input_layer, self.output_layer)
 
       self.counter = 0
       self.image_pub = rospy.Publisher("/see3cam_cu20/test_image_topic_3",Image, queue_size=1)
@@ -81,6 +81,7 @@ class image_converter:
       np_final = np.expand_dims(float_caster,axis=0)
       #print (np_final.shape)
 
+      #get the neural network computation time
       time1 = time.time()
       results = self.gd.run(np_final)
       time2 = time.time()
