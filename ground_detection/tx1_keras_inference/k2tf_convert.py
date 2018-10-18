@@ -84,8 +84,8 @@ def convertGraph( modelPath, outdir, numoutputs, prefix, name):
     
     # Write the graph in human readable
     f = 'graph_def_for_reference.pb.ascii'
-    tf.train.write_graph(sess.graph.as_graph_def(), outdir, f, as_text=True)
-    print('Saved the graph definition in ascii format at: ', osp.join(outdir, f))
+    #tf.train.write_graph(sess.graph.as_graph_def(), outdir, f, as_text=True)
+    #print('Saved the graph definition in ascii format at: ', osp.join(outdir, f))
 
     # Write the graph in binary .pb file
     from tensorflow.python.framework import graph_util
