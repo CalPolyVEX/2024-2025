@@ -96,7 +96,7 @@ class ImageAugmentor:
 
    #############################################################
    #create the actual data to feed to neural network
-   def get_range_data(self, dirs, out):
+   def get_range_data(self, dirs, out, validate):
       print "---Generating data files for images---"
 
       if not os.path.exists(out):
@@ -127,6 +127,14 @@ class ImageAugmentor:
                      #cv2.circle(img, (x,temp), 5, (0,0,255), -1)
                      #blank_image[temp,x] = [0,0,255]
                      found=1
+                     if validate==1: #to validate range data, draw circles on original image
+                        print 'validate range data'
+                        img_path = path.join(sys.argv[1],'480_input')
+                        img_path = path.join(img_path, f)
+                        print img_path
+                        img2 = cv2.imread(img_path)
+                        cv2.circle(img2,(x,temp),4,(0,0,255),-1)
+                        cv2.imwrite(img_path,img2)
                      break
                temp = temp - 1
 
@@ -335,12 +343,12 @@ if __name__ == '__main__':
       sys.exit()
 
    a = ImageAugmentor(sys.argv[1])
-   a.upload()
-   sys.exit()
+   #a.upload()
+   #sys.exit()
    a.rename_images()
    a.build_annotation_images()
    a.build_480_270_images()
    a.build_480_270_gt_images()
-   a.augment_test(50000)
-   a.get_range_data(path.join(sys.argv[1],'480_ground_truth'), path.join(sys.argv[1],'480_data'))
+   a.augment_test(5000)
+   a.get_range_data(path.join(sys.argv[1],'480_ground_truth'), path.join(sys.argv[1],'480_data'), 1)
    #a.upload()
