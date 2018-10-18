@@ -122,14 +122,14 @@ if __name__ == "__main__":
          time1 = time.time()
          results = testgd.run(x)
          time2 = time.time()
-         results *= 240
+         results *= 270
          print 'function took %0.3f ms' % ((time2-time1)*1000.0)
          #print results
 
          time1 = time.time()
          results1 = testgd1.run(flist[0])
          time2 = time.time()
-         results1 *= 240
+         results1 *= 270
          print '2nd function took %0.3f ms' % ((time2-time1)*1000.0)
          #print dir2[0]
-         print results1
+         #print results1
