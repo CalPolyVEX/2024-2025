@@ -53,6 +53,13 @@ def convertGraph( modelPath, outdir, numoutputs, prefix, name):
     Returns:
         None
     '''
+    #JS
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+
+    session = tf.Session(config=config)
+    K.set_session(session)
+    #end JS
     
     #NOTE: If using Python > 3.2, this could be replaced with os.makedirs( name, exist_ok=True )
     if not os.path.isdir(outdir):
