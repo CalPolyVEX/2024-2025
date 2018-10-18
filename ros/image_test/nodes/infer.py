@@ -9,7 +9,7 @@ import tensorflow as tf
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
-from image_test.msg import test1
+from image_test.msg import ground_boundary
 
 class GroundDetector:
    def __init__(self, protobuf_model, input_layer, output_layer):
@@ -61,7 +61,7 @@ class image_converter:
       self.bridge = CvBridge()
       self.image_sub = rospy.Subscriber("/see3cam_cu20/image_raw",Image,self.callback)
 
-      self.msgpub = rospy.Publisher('point_array', test1, queue_size=1)
+      self.msgpub = rospy.Publisher('point_array', ground_boundary, queue_size=1)
 
    def callback(self,data):
       try:
@@ -87,7 +87,7 @@ class image_converter:
       time2 = time.time()
       results *= 270.0
 
-      t = test1()
+      t = ground_boundary()
       temp = []
       for x in results:
          temp.append(int(x))
