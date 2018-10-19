@@ -18,7 +18,7 @@ class image_converter:
 
    def __init__(self):
       self.counter = 0
-      self.image_pub = rospy.Publisher("/see3cam_cu20/test_image_topic_2",Image)
+      self.image_pub = rospy.Publisher("/see3cam_cu20/test_image_topic_2",Image,queue_size=1)
 
       self.bridge = CvBridge()
       self.image_sub = rospy.Subscriber("/see3cam_cu20/image_raw_throttle",Image,self.callback)
@@ -37,7 +37,7 @@ class image_converter:
       timestamp = time.strftime('%H-%M-%S-%m-%d-%Y-', localtime) + milliseconds
       filename = str(timestamp)+'.jpg'
 
-      print ('writing file (' + self.counter + ': ' + filename)
+      print ('writing file ' + str(self.counter) + ': ' + filename)
       self.counter += 1
       cv2.imwrite(filename, cv_image)
 

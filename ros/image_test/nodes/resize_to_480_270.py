@@ -35,8 +35,8 @@ class image_converter:
          print(e)
 
 def main(args):
-   ic = image_converter()
    rospy.init_node('infer_node', anonymous=True)
+   ic = image_converter()
    try:
       rospy.spin()
    except KeyboardInterrupt:
