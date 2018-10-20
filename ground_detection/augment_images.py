@@ -8,7 +8,8 @@ import os, sys, random
 from os import path
 import cv2, numpy as np
 import xml.etree.ElementTree
-import Augmentor
+import Augmentor, random, time
+from datetime import datetime
 
 class ImageAugmentor:
    def __init__(self, collection_dir):
@@ -215,6 +216,20 @@ class ImageAugmentor:
          self.image_counter += 1
 
    #############################################################
+   def adjust_color(self):
+      random.seed(datetime.now())
+      input_dir_480 = path.join(self.collection_dir,"480_input")
+      files = os.listdir(input_dir_480)
+      for x in files:
+         prob = random.randint(0,9)
+         fullname = path.join(input_dir_480,x)
+         print fullname
+         if prob <= 2:
+            os.system('convert -brightness-contrast 15x15 ' + fullname + ' ' + fullname)
+         elif prob <= 4:
+            os.system('convert -brightness-contrast -15x-15 ' + fullname + ' ' + fullname)
+
+   #############################################################
    def build_annotation_images(self):
       print '---build_annotation_images---'
       #if the input directory does not exist, then create it
@@ -343,12 +358,14 @@ if __name__ == '__main__':
       sys.exit()
 
    a = ImageAugmentor(sys.argv[1])
-   #a.upload()
-   #sys.exit()
+   a.upload()
+   #a.adjust_color()
+   sys.exit()
    a.rename_images()
    a.build_annotation_images()
    a.build_480_270_images()
    a.build_480_270_gt_images()
-   a.augment_test(5000)
-   a.get_range_data(path.join(sys.argv[1],'480_ground_truth'), path.join(sys.argv[1],'480_data'), 1)
+   a.augment_test(50000)
+   a.get_range_data(path.join(sys.argv[1],'480_ground_truth'), path.join(sys.argv[1],'480_data'), 0)
+   a.adjust_color()
    #a.upload()
