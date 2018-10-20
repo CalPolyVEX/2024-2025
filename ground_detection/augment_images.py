@@ -36,8 +36,8 @@ class ImageAugmentor:
       # Add operations to the pipeline as normal:
       #p.rotate(probability=1, max_left_rotation=5, max_right_rotation=5)
       #p.flip_left_right(probability=0.5)
-      p.zoom_random(probability=0.5, percentage_area=0.95)
-      p.zoom_random(probability=0.5, percentage_area=0.8)
+      p.zoom_random(probability=0.5, percentage_area=0.9)
+      #p.zoom_random(probability=0.5, percentage_area=0.8)
       p.skew_left_right(probability=0.5, magnitude=.5)
       p.crop_random(probability=.75, percentage_area=.9)
       p.resize(probability=1.0, width=self.width, height=self.height)
@@ -120,7 +120,7 @@ class ImageAugmentor:
             temp = height-2  #start at the bottom of the image
             while temp >= 0:
                pixel = img[temp,x]
-               if pixel[0] == 0 or temp == 0: #if the pixel is black or reach the top of image
+               if pixel[0] < 150 or temp == 0: #if the pixel is black or reach the top of image
                      #sys.stdout.write('%d, ' % temp)
                      #cv2.circle(blank_image,(x,temp),5,(0,0,255),-1)
                      data.append((x,temp))
@@ -129,10 +129,10 @@ class ImageAugmentor:
                      #blank_image[temp,x] = [0,0,255]
                      found=1
                      if validate==1: #to validate range data, draw circles on original image
-                        print 'validate range data'
+                        #print 'validate range data'
                         img_path = path.join(sys.argv[1],'480_input')
                         img_path = path.join(img_path, f)
-                        print img_path
+                        #print img_path
                         img2 = cv2.imread(img_path)
                         cv2.circle(img2,(x,temp),4,(0,0,255),-1)
                         cv2.imwrite(img_path,img2)
@@ -358,14 +358,14 @@ if __name__ == '__main__':
       sys.exit()
 
    a = ImageAugmentor(sys.argv[1])
-   a.upload()
+   #a.upload()
    #a.adjust_color()
-   sys.exit()
+   #sys.exit()
    a.rename_images()
    a.build_annotation_images()
    a.build_480_270_images()
    a.build_480_270_gt_images()
-   a.augment_test(50000)
-   a.get_range_data(path.join(sys.argv[1],'480_ground_truth'), path.join(sys.argv[1],'480_data'), 0)
+   a.augment_test(50)
+   a.get_range_data(path.join(sys.argv[1],'480_ground_truth'), path.join(sys.argv[1],'480_data'), 1)
    a.adjust_color()
    #a.upload()
