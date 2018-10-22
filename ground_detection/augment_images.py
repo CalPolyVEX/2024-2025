@@ -243,12 +243,16 @@ class ImageAugmentor:
       if self.remove_image_with_no_polygon == 1:
          for f in temp_input_files:
             x_filename = f.replace('.jpg', '.xml')
-            #print x_filename
-            e = xml.etree.ElementTree.parse(path.join(self.collection_dir, "input_annotation", x_filename)).getroot()
-            #print x_filename, e
+            try:
+               e = xml.etree.ElementTree.parse(path.join(self.collection_dir, "input_annotation", x_filename)).getroot()
+               #print x_filename, e
+            except:
+               print "XML tree exception: " + x_filename 
+               pt_list = 0
+            else:
+               pt_list = e.iter('polygon')
+               pt_list = len(list(pt_list))
 
-            pt_list = e.iter('polygon')
-            pt_list = len(list(pt_list))
             if pt_list == 0:
                #there is no polygon
                self.input_files.remove(f)
@@ -359,13 +363,12 @@ if __name__ == '__main__':
 
    a = ImageAugmentor(sys.argv[1])
    #a.upload()
-   #a.adjust_color()
    #sys.exit()
    a.rename_images()
    a.build_annotation_images()
    a.build_480_270_images()
    a.build_480_270_gt_images()
-   a.augment_test(50)
-   a.get_range_data(path.join(sys.argv[1],'480_ground_truth'), path.join(sys.argv[1],'480_data'), 1)
+   a.augment_test(50000)
+   a.get_range_data(path.join(sys.argv[1],'480_ground_truth'), path.join(sys.argv[1],'480_data'), 0)
    a.adjust_color()
-   #a.upload()
+   a.upload()
