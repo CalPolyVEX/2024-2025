@@ -27,3 +27,14 @@ print rmat
 r_t_max = np.concatenate((rmat,tvec), axis=1)
 print "r|t matrix:"
 print r_t_max
+
+A = np.matmul(cameraMatrix, r_t_max)
+print A
+A = np.delete(A,2,1)
+print A
+
+#compute inverse of r_t
+r_t_inv = np.linalg.inv(A)
+print "inverse r|t:"
+print r_t_inv
+
