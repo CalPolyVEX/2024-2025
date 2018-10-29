@@ -21,7 +21,8 @@ cameraMatrix = np.array([[1258.513767, 0.000000, 949.143263],
 #distortion coefficients
 distCoeffs = np.array([[-0.350545], [0.098685], [-0.004605], [-0.001945], [0.000000]])
 
-retval, rvec, tvec = cv2.solvePnP(objectPoints, imagePoints, cameraMatrix, distCoeffs, flags=cv2.SOLVEPNP_ITERATIVE)
+#retval, rvec, tvec = cv2.solvePnP(objectPoints, imagePoints, cameraMatrix, distCoeffs, flags=cv2.SOLVEPNP_ITERATIVE)
+retval, rvec, tvec = cv2.solvePnP(objectPoints, imagePoints, cameraMatrix, distCoeffs)
 print "rotation vector:"
 print rvec
 print "translation vector:"
@@ -36,6 +37,7 @@ r_t_max = np.concatenate((rmat,tvec), axis=1)
 print "r|t matrix:"
 print r_t_max
 
+print 'A matrix:'
 A = np.matmul(cameraMatrix, r_t_max)
 print A
 A = np.delete(A,1,1)
@@ -46,3 +48,6 @@ r_t_inv = np.linalg.inv(A)
 print "inverse r|t:"
 print r_t_inv
 
+print "---testing---"
+imagepoint = np.array([2.6*527,2.6*339,1],dtype=np.float32)
+print np.matmul(r_t_inv, imagepoint)
