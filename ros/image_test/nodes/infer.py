@@ -6,6 +6,7 @@ roslib.load_manifest('image_test')
 import sys, rospy, cv2, time, imp
 import numpy as np
 import tensorflow as tf
+from solvepnp import camera_transform
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError

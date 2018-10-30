@@ -9,7 +9,9 @@
 
 import cv2, numpy as np, sys
 
-objectPoints = np.array([[18,0,45], 
+class camera_transform:
+   def __init__(self):
+      self.objectPoints = np.array([[18,0,45], 
                         [27,0,27], 
                         [9,0,63], 
                         [54,0,54], 
@@ -20,9 +22,9 @@ objectPoints = np.array([[18,0,45],
                         [0,0,90],
                         [-18,0,90],
                         [54,0,81]], dtype=np.float32)
-objectPoints = .0254*objectPoints #convert to meters
+      self.objectPoints = .0254*self.objectPoints #convert to meters
 
-imagePoints = np.array([[527,339], 
+      self.imagePoints = np.array([[527,339], 
                         [673,409], 
                         [424,285], 
                         [708,283], 
@@ -33,54 +35,44 @@ imagePoints = np.array([[527,339],
                         [360,232],
                         [264,235],
                         [631,236]], dtype=np.float32)
-imagePoints = 2.6 * imagePoints #scale to 1920x1080
+      self.imagePoints = 2.6 * self.imagePoints #scale to 1920x1080
 
-#intrinsic matrix
-cameraMatrix = np.array([[1258.513767, 0.000000, 949.143263],
-                         [0.000000, 1260.515476, 587.553871],
-                         [0.000000, 0.000000, 1.000000]])
+      #intrinsic matrix
+      self.cameraMatrix = np.array([[1258.513767, 0.000000, 949.143263],
+                              [0.000000, 1260.515476, 587.553871],
+                              [0.000000, 0.000000, 1.000000]])
 
-#distortion coefficients
-distCoeffs = np.array([[-0.350545], [0.098685], [-0.004605], [-0.001945], [0.000000]])
+      #distortion coefficients
+      self.distCoeffs = np.array([[-0.350545], [0.098685], [-0.004605], [-0.001945], [0.000000]])
 
-retval, rvec, tvec = cv2.solvePnP(objectPoints, imagePoints, cameraMatrix, distCoeffs, flags=cv2.SOLVEPNP_ITERATIVE)
-retval, rvec, tvec = cv2.solvePnP(objectPoints, imagePoints, cameraMatrix, distCoeffs)
+      self.retval, self.rvec, self.tvec = cv2.solvePnP(self.objectPoints, self.imagePoints, self.cameraMatrix, self.distCoeffs)
 
-#print "rotation vector:"
-#print rvec
-#print "translation vector:"
-#print tvec
+      self.rmat, self.rmat_jacobian = cv2.Rodrigues(self.rvec)
 
-rmat, rmat_jacobian = cv2.Rodrigues(rvec)
-#print "rotation matrix:"
-#print rmat
+      #concatenate r and t matrix
+      self.r_t_max = np.concatenate((self.rmat,self.tvec), axis=1)
 
-#tmat, tmat_jacobian = cv2.Rodrigues(tvec)
-#print "translation matrix:"
-#print tmat
+      #multiply intrinsic matrix with R|t matrix
+      self.A = np.matmul(self.cameraMatrix, self.r_t_max)
 
-#concatenate
-r_t_max = np.concatenate((rmat,tvec), axis=1)
-#print "r|t matrix:"
-#print r_t_max
+      #remove the second column because it is a plane
+      self.A = np.delete(self.A,1,1)
 
-#print 'A matrix:'
-A = np.matmul(cameraMatrix, r_t_max)
-#print A
-A = np.delete(A,1,1)
-#print A
+      #compute the inverse of the A matrix
+      self.r_t_inv = np.linalg.inv(self.A)
+   def compute(self,x,y):
+      imagepoint = np.array([2.6*x,2.6*y,1],dtype=np.float32)
+      ans = np.matmul(self.r_t_inv, imagepoint)
+      w = ans.item(2)
+      ans = ans / w
+      ans = ans / .0254 #convert back to inches
+      return ans.tolist()[0:2]
 
-#compute inverse of r_t
-r_t_inv = np.linalg.inv(A)
-#print "inverse r|t:"
-#print r_t_inv
-
-print "---testing---"
-imagepoint = np.array([2.6*264,2.6*235,1],dtype=np.float32)
-ans = np.matmul(r_t_inv, imagepoint)
-w = ans.item(2)
-ans = ans / w
-#print ans.item(2)
-ans = ans / .0254 #convert back to inches
-print ans
-#print objectPoints
+if __name__ == '__main__':
+   c = camera_transform()
+   print "---testing---"
+   ans = c.compute(264,235)
+   #print ans.item(2)
+   #ans = ans / .0254 #convert back to inches
+   print ans
+   #print objectPoints
