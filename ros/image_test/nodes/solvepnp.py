@@ -35,12 +35,15 @@ class camera_transform:
                         [360,232],
                         [264,235],
                         [631,236]], dtype=np.float32)
-      self.imagePoints = 2.6 * self.imagePoints #scale to 1920x1080
+      self.imagePoints = self.imagePoints / 1.54 #scale to 480x270
 
       #intrinsic matrix
       self.cameraMatrix = np.array([[1258.513767, 0.000000, 949.143263],
                               [0.000000, 1260.515476, 587.553871],
                               [0.000000, 0.000000, 1.000000]])
+      self.cameraMatrix = self.cameraMatrix / 4.000
+      self.cameraMatrix[2,2] = 1
+      print self.cameraMatrix
 
       #distortion coefficients
       self.distCoeffs = np.array([[-0.350545], [0.098685], [-0.004605], [-0.001945], [0.000000]])
@@ -62,18 +65,19 @@ class camera_transform:
       self.r_t_inv = np.linalg.inv(self.A)
 
    def compute(self,x,y):
-      imagepoint = np.array([2.6*x,2.6*y,1],dtype=np.float32)
+      imagepoint = np.array([x,y,1],dtype=np.float32)
       ans = np.matmul(self.r_t_inv, imagepoint)
       w = ans.item(2)
       ans = ans / w
-      ans = ans / .0254 #convert back to inches
+      #ans = ans / .0254 #convert back to inches
       return ans.tolist()[0:2]
 
 if __name__ == '__main__':
    c = camera_transform()
    print "---testing---"
-   ans = c.compute(264,235)
-   #print ans.item(2)
-   #ans = ans / .0254 #convert back to inches
-   print ans
-   #print objectPoints
+   print "-18,90"
+   ans = c.compute(264/1.54,235/1.54)
+   print [x/.0254 for x in ans]
+   print "18,45"
+   ans = c.compute(527/1.54,339/1.54)
+   print [x/.0254 for x in ans]

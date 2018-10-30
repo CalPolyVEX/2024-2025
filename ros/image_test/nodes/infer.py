@@ -63,7 +63,7 @@ class image_converter:
       self.image_sub = rospy.Subscriber("/see3cam_cu20/image_raw",Image,self.callback)
 
       self.msgpub = rospy.Publisher('point_array', ground_boundary, queue_size=1)
-      self.camera_t = camera_transform
+      self.camera_t = camera_transform()
 
    def callback(self,data):
       try:
@@ -89,11 +89,19 @@ class image_converter:
       time2 = time.time()
       results *= 270.0
 
+      #send the point array message
       t = ground_boundary()
-      temp = []
+      temp_x = []
+      temp_y = []
+      column=5
       for x in results:
-         temp.append(int(x))
-      t.points = temp
+         temp_point_list = self.camera_t.compute(column,x)
+         #temp.append(int(x))
+         temp_x.append(temp_point_list[0])
+         temp_y.append(temp_point_list[1])
+         column += 10
+      t.point_x = temp_x
+      t.point_y = temp_y
 
       column = 5
 
