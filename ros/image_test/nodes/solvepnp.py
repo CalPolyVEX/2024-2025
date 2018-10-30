@@ -11,7 +11,7 @@ import cv2, numpy as np, sys
 
 class camera_transform:
    def __init__(self):
-      self.objectPoints = np.array([[18,0,45], 
+      self.objectPoints = np.array([[18,0,45], #in inches 
                         [27,0,27], 
                         [9,0,63], 
                         [54,0,54], 
@@ -24,7 +24,7 @@ class camera_transform:
                         [54,0,81]], dtype=np.float32)
       self.objectPoints = .0254*self.objectPoints #convert to meters
 
-      self.imagePoints = np.array([[527,339], 
+      self.imagePoints = np.array([[527,339], #740x415 calibrate script 
                         [673,409], 
                         [424,285], 
                         [708,283], 
@@ -41,7 +41,11 @@ class camera_transform:
       self.cameraMatrix = np.array([[1258.513767, 0.000000, 949.143263],
                               [0.000000, 1260.515476, 587.553871],
                               [0.000000, 0.000000, 1.000000]])
+
+      #scale to 480x270, so divide by 4
       self.cameraMatrix = self.cameraMatrix / 4.000
+
+      #set the 2,2 element back to 1 in the camera matrix
       self.cameraMatrix[2,2] = 1
       print self.cameraMatrix
 
@@ -70,7 +74,7 @@ class camera_transform:
       w = ans.item(2)
       ans = ans / w
       #ans = ans / .0254 #convert back to inches
-      return ans.tolist()[0:2]
+      return ans.tolist()[0:2] #answer is in meters
 
 if __name__ == '__main__':
    c = camera_transform()

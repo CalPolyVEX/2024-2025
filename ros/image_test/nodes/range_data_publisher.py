@@ -28,7 +28,7 @@ class range_data_node:
       #rospy.loginfo("%s", ground_points_x)
       #rospy.loginfo("%s", ground_points_y)
       points = []
-      lim = 8
+
       if self.counter == 0:
          r = 255
          g = 0
@@ -42,8 +42,8 @@ class range_data_node:
       for i in range(len(ground_points_x)):
          #x = 1.0 - float(ground_points[i]) / 270
          #y -= 1.0/48
-         x = ground_points_x[i]
-         y = ground_points_y[i]
+         y = ground_points_x[i]
+         x = ground_points_y[i]
          z = 0
          pt = [x, y, z, 0]
 
