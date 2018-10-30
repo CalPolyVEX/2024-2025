@@ -60,6 +60,7 @@ class camera_transform:
 
       #compute the inverse of the A matrix
       self.r_t_inv = np.linalg.inv(self.A)
+
    def compute(self,x,y):
       imagepoint = np.array([2.6*x,2.6*y,1],dtype=np.float32)
       ans = np.matmul(self.r_t_inv, imagepoint)

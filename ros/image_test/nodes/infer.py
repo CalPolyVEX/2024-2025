@@ -63,6 +63,7 @@ class image_converter:
       self.image_sub = rospy.Subscriber("/see3cam_cu20/image_raw",Image,self.callback)
 
       self.msgpub = rospy.Publisher('point_array', ground_boundary, queue_size=1)
+      self.camera_t = camera_transform
 
    def callback(self,data):
       try:
