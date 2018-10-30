@@ -45,7 +45,7 @@ class range_data_node:
          y = ground_points_x[i]
          x = ground_points_y[i]
          z = 0
-         pt = [x, y, z, 0]
+         pt = [x, -y, z, 0]
 
          #set the color of the points
          b = 0
