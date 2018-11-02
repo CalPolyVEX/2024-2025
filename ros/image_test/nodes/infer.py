@@ -64,12 +64,14 @@ class image_converter:
 
       self.msgpub = rospy.Publisher('point_array', ground_boundary, queue_size=1)
       self.camera_t = camera_transform()
+      self.orb = cv2.ORB_create()
 
    def callback(self,data):
       try:
          cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
       except CvBridgeError as e:
          print(e)
+
 
       #save the file
       (rows,cols,channels) = cv_image.shape
@@ -82,6 +84,19 @@ class image_converter:
       float_caster = np_image_data / 255.0
       np_final = np.expand_dims(float_caster,axis=0)
       #print (np_final.shape)
+
+      #test ORB features
+      if 1 == 1:
+         start_orb_time1 = time.time()
+         #find the keypoints
+         kp = self.orb.detect(resized_image,None)
+
+         # compute the descriptors with ORB
+         kp, des = self.orb.compute(resized_image, kp)
+
+         # draw only keypoints location,not size and orientation
+         resized_image = cv2.drawKeypoints(resized_image,kp,np.array([]), color=(0,255,0), flags=0)
+         start_orb_time2 = time.time()
 
       #get the neural network computation time
       time1 = time.time()
@@ -107,6 +122,7 @@ class image_converter:
 
       font = cv2.FONT_HERSHEY_SIMPLEX
       cv2.putText(resized_image_nn, "%.2fms" % ((time2-time1)*1000.0), (390, 20), font, 0.6, (0, 255, 0), 1, cv2.LINE_AA)
+      cv2.putText(resized_image_nn, "orb time: %.2fms" % ((start_orb_time2-start_orb_time1)*1000.0), (300, 60), font, 0.6, (0, 255, 0), 1, cv2.LINE_AA)
 
       #stats
       if ((time2-time1) > .070):
