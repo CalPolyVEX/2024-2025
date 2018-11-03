@@ -11,11 +11,13 @@ import xml.etree.ElementTree
 import Augmentor, random, time
 from datetime import datetime
 
+width = 480
+
 class ImageAugmentor:
-   def __init__(self, collection_dir):
+   def __init__(self, collection_dir, width):
       os.system('rm -f -r ' + path.join(collection_dir,'input','output'))
       self.file_mapping = {}
-      self.width = 480
+      self.width = width
       self.height = 270
       self.image_counter = 0
       self.collection_dir = collection_dir
@@ -50,19 +52,19 @@ class ImageAugmentor:
 
       for x in original_files:
          new_name = x.replace('input_original_','')
-         new_name = '480_' + format(self.image_counter, '05d') + '.jpg'
-         os.system('cd ' + self.input_dir + '/output; mv ' + x + ' ../../480_input/' + new_name)
+         new_name = str(self.width) + '_' + format(self.image_counter, '05d') + '.jpg'
+         os.system('cd ' + self.input_dir + '/output; mv ' + x + ' ../../' + str(self.width) + '_input/' + new_name)
          self.image_counter += 1
       self.image_counter -= len(original_files)
 
       for x in gt_files:
          new_name = x.replace('_groundtruth_(1)_input_','')
-         new_name = '480_' + format(self.image_counter, '05d') + '.jpg'
+         new_name = str(self.width) + '_' + format(self.image_counter, '05d') + '.jpg'
          x= x.replace('(','\(')
          x= x.replace(')','\)')
          print new_name
          #sys.exit(0)
-         os.system('cd ' + self.input_dir + '/output; mv ' + x + ' ../../480_ground_truth/' + new_name)
+         os.system('cd ' + self.input_dir + '/output; mv ' + x + ' ../../' + str(self.width) + '_ground_truth/' + new_name)
          self.image_counter += 1
 
    #############################################################
@@ -130,7 +132,7 @@ class ImageAugmentor:
                      found=1
                      if validate==1: #to validate range data, draw circles on original image
                         #print 'validate range data'
-                        img_path = path.join(sys.argv[1],'480_input')
+                        img_path = path.join(sys.argv[1], str(self.width) + '_input')
                         img_path = path.join(img_path, f)
                         #print img_path
                         img2 = cv2.imread(img_path)
@@ -150,7 +152,7 @@ class ImageAugmentor:
       files.sort()
 
       #create directory for 480x270 input files
-      input_dir_480 = path.join(self.collection_dir,"480_input")
+      input_dir_480 = path.join(self.collection_dir, str(self.width) + "_input")
       if not os.path.exists(input_dir_480):
          os.makedirs(input_dir_480)
 
@@ -167,7 +169,7 @@ class ImageAugmentor:
       gt_files.sort()
 
       #create directory for 480x270 ground truth files
-      gt_dir_480 = sys.argv[1]+"/480_ground_truth"
+      gt_dir_480 = sys.argv[1]+"/" + str(self.width) + "_ground_truth"
       if not os.path.exists(gt_dir_480):
          os.makedirs(gt_dir_480)
 
@@ -218,7 +220,7 @@ class ImageAugmentor:
    #############################################################
    def adjust_color(self):
       random.seed(datetime.now())
-      input_dir_480 = path.join(self.collection_dir,"480_input")
+      input_dir_480 = path.join(self.collection_dir, str(self.width) + "_input")
       files = os.listdir(input_dir_480)
       for x in files:
          prob = random.randint(0,9)
@@ -320,14 +322,12 @@ class ImageAugmentor:
          cv2.imwrite(path.join(self.ground_output_dir, f), img_new)
 
    def upload(self):
-      img_cmd = 'rm -f img.zip; zip -j -q img.zip ' + self.collection_dir + '/480_input/*.jpg'
-      img_cmd = 'rm -f img.tar.gz; tar zcvf img.tar.gz -C ' + self.collection_dir + '/480_input/ .'
+      img_cmd = 'rm -f img.tar.gz; tar zcvf img.tar.gz -C ' + self.collection_dir + '/' + str(self.width) + '_input/ .'
 
-      data_cmd = 'rm -f data.zip; zip -j -q data.zip ' + self.collection_dir + '/480_data/*.txt'
-      data_cmd = 'rm -f data.tar.gz; tar zcvf data.tar.gz -C ' + self.collection_dir + '/480_data/ .'
+      data_cmd = 'rm -f data.tar.gz; tar zcvf data.tar.gz -C ' + self.collection_dir + '/' + str(self.width) + '_data/ .'
 
-      img_cp = 'scp img.tar.gz unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/480_images'
-      data_cp = 'scp data.tar.gz unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/480_data'
+      img_cp = 'scp img.tar.gz unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/' + str(self.width) + '_images'
+      data_cp = 'scp data.tar.gz unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/' + str(self.width) + '_data'
       
       os.system(img_cmd)
       os.system(data_cmd)
@@ -337,8 +337,8 @@ class ImageAugmentor:
       os.system('rm -f data.tar.gz')
 
       print '---extracting remote files---'
-      img_unzip = 'ssh unix3.csc.calpoly.edu \'cd ue4/ground_detection/gpu_code/480_images; rm -f *.jpg; tar -xzf img.tar.gz; rm img.tar.gz\''
-      data_unzip = 'ssh unix3.csc.calpoly.edu \'cd ue4/ground_detection/gpu_code/480_data; rm -f *.txt; tar -xzf data.tar.gz; rm data.tar.gz\''
+      img_unzip = 'ssh unix3.csc.calpoly.edu \'cd ue4/ground_detection/gpu_code/' + str(self.width) + '_images; rm -f *.jpg; tar -xzf img.tar.gz; rm img.tar.gz\''
+      data_unzip = 'ssh unix3.csc.calpoly.edu \'cd ue4/ground_detection/gpu_code/' + str(self.width) + '_data; rm -f *.txt; tar -xzf data.tar.gz; rm data.tar.gz\''
       os.system(img_unzip)
       os.system(data_unzip)
 
@@ -350,25 +350,26 @@ if __name__ == '__main__':
       #sys.exit()
    elif sys.argv[1] == 'clean':
       print "clean"
-      os.system('cd ' + sys.argv[2] + '/480_input; rm -f *.jpg; rm -f *.zip')
-      os.system('cd ' + sys.argv[2] + '/480_data; rm -f *.txt; rm -f *.zip')
-      os.system('cd ' + sys.argv[2] + '/480_ground_truth; rm -f *.jpg')
-      os.system('cd ' + sys.argv[2] + '/480_inference_input; rm -f *.jpg')
-      os.system('cd ' + sys.argv[2] + '/480_final_inference_output; rm -f *.jpg')
+      os.system('cd ' + sys.argv[2] + '/' + str(width) + '_input; rm -f *.jpg; rm -f *.zip')
+      os.system('cd ' + sys.argv[2] + '/' + str(width) + '_data; rm -f *.txt; rm -f *.zip')
+      os.system('cd ' + sys.argv[2] + '/' + str(width) + '_ground_truth; rm -f *.jpg')
+      os.system('cd ' + sys.argv[2] + '/' + str(width) + '_inference_input; rm -f *.jpg')
+      os.system('cd ' + sys.argv[2] + '/' + str(width) + '_final_inference_output; rm -f *.jpg')
       os.system('cd ' + sys.argv[2] + '/input; rm -f *.jpg; rm -f -r output')
       os.system('cd ' + sys.argv[2] + '/input_annotation; rm -f *.xml')
       os.system('cd ' + sys.argv[2] + '/ground_output; rm -f *.jpg')
       os.system('cd ' + sys.argv[2] + '/augmented_output; rm -f *.jpg')
       sys.exit()
+   elif sys.argv[1] == 'upload':
+      a = ImageAugmentor(sys.argv[1], width)
+      #a.upload()
+      sys.exit()
 
-   a = ImageAugmentor(sys.argv[1])
-   a.upload()
-   sys.exit()
+   a = ImageAugmentor(sys.argv[1], width)
    a.rename_images()
    a.build_annotation_images()
    a.build_480_270_images()
    a.build_480_270_gt_images()
-   a.augment_test(60000)
-   a.get_range_data(path.join(sys.argv[1],'480_ground_truth'), path.join(sys.argv[1],'480_data'), 0)
+   a.augment_test(300)
+   a.get_range_data(path.join(sys.argv[1], str(width) + '_ground_truth'), path.join(sys.argv[1], str(width) + '_data'), 0)
    a.adjust_color()
-   #a.upload()
