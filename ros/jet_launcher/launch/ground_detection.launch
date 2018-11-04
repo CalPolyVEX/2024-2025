@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
    <!--<param name="use_sim_time" value="true" />-->
-   <arg name="video_file" default="/mnt/temp/output.bag"/>
+   <arg name="video_file" default="/mnt/temp/output0.bag"/>
    <include file="$(find jet_launcher)/launch/uncompress_video.launch"/>
    <node pkg="rosbag" type="play" name="player" args="-q -l $(arg video_file)"/>
    <include file="$(find image_test)/launch/infer.launch"/>

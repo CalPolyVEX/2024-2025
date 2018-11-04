@@ -21,7 +21,16 @@ class camera_transform:
                         [-18,0,63],
                         [0,0,90],
                         [-18,0,90],
-                        [54,0,81]], dtype=np.float32)
+                        [54,0,81], 
+                        #data after this line gathered on 11/3/18
+                        [0,0,120],
+                        [-36,0,120],
+                        [48,0,120],
+                        [0,0,180],
+                        [48,0,180],
+                        [48,0,41],
+                        [0,0,240]],
+                        dtype=np.float32)
       self.objectPoints = .0254*self.objectPoints #convert to meters
 
       self.imagePoints = np.array([[527,339], #740x415 calibrate script 
@@ -34,7 +43,16 @@ class camera_transform:
                         [228,284],
                         [360,232],
                         [264,235],
-                        [631,236]], dtype=np.float32)
+                        [631,236],
+                        #data after this line gathered on 11/3/18
+                        [356,207],
+                        [213,209],
+                        [538,203],
+                        [360,175],
+                        [487,173],
+                        [733,315],
+                        [358,161]],
+                        dtype=np.float32)
       self.imagePoints = self.imagePoints / 1.54 #scale to 480x270
 
       #intrinsic matrix
