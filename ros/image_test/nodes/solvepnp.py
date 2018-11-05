@@ -70,7 +70,7 @@ class camera_transform:
       #distortion coefficients
       self.distCoeffs = np.array([[-0.350545], [0.098685], [-0.004605], [-0.001945], [0.000000]])
 
-      self.retval, self.rvec, self.tvec = cv2.solvePnP(self.objectPoints, self.imagePoints, self.cameraMatrix, self.distCoeffs)
+      self.retval, self.rvec, self.tvec = cv2.solvePnP(self.objectPoints, self.imagePoints, self.cameraMatrix, self.distCoeffs, flags=cv2.SOLVEPNP_ITERATIVE)
 
       self.rmat, self.rmat_jacobian = cv2.Rodrigues(self.rvec)
 
@@ -100,6 +100,11 @@ if __name__ == '__main__':
    print "-18,90"
    ans = c.compute(264/1.54,235/1.54)
    print [x/.0254 for x in ans]
+
    print "18,45"
    ans = c.compute(527/1.54,339/1.54)
+   print [x/.0254 for x in ans]
+
+   print "-36,120"
+   ans = c.compute(213/1.54,209/1.54)
    print [x/.0254 for x in ans]
