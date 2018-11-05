@@ -21,6 +21,7 @@ class GroundDetector:
       self.output_layer = output_layer
       self.input_name = "import/" + input_layer
       self.output_name = "import/" + output_layer
+      self.counter=0
 
       #load the graph
       self.load_graph()
@@ -28,10 +29,18 @@ class GroundDetector:
       self.input_operation = self.graph.get_operation_by_name(self.input_name);
       self.output_operation = self.graph.get_operation_by_name(self.output_name);
    
+      #load the second graph
+      #self.load_graph1()
+
+      #self.input_operation1 = self.graph1.get_operation_by_name(self.input_name);
+      #self.output_operation1 = self.graph1.get_operation_by_name(self.output_name);
+
+      #needed to prevent memory errors on the Jetson TX2
       config = tf.ConfigProto()
       config.gpu_options.allow_growth = True
 
       self.sess = tf.Session(config=config,graph=self.graph)
+      #self.sess1 = tf.Session(config=config,graph=self.graph1)
 
    def load_graph(self):
       self.graph = tf.Graph()
@@ -42,8 +51,23 @@ class GroundDetector:
       with self.graph.as_default():
          tf.import_graph_def(self.graph_def)
 
+   def load_graph1(self):
+      self.graph1 = tf.Graph()
+      self.graph_def1 = tf.GraphDef()
+
+      with open(self.protobuf_model, "rb") as f:
+         self.graph_def1.ParseFromString(f.read())
+      with self.graph1.as_default():
+         tf.import_graph_def(self.graph_def1)
+
    def run(self, input_image):
-      results = self.sess.run(self.output_operation.outputs[0], {self.input_operation.outputs[0]: input_image})
+      if self.counter==0:
+         results = self.sess.run(self.output_operation.outputs[0], {self.input_operation.outputs[0]: input_image})
+         #self.counter=1
+      else:
+         results = self.sess1.run(self.output_operation1.outputs[0], {self.input_operation1.outputs[0]: input_image})
+         self.counter=0
+
       return results
 
 class image_converter:
@@ -95,7 +119,7 @@ class image_converter:
          kp, des = self.orb.compute(resized_image, kp)
 
          # draw only keypoints location,not size and orientation
-         resized_image = cv2.drawKeypoints(resized_image,kp,np.array([]), color=(0,255,0), flags=0)
+         #resized_image = cv2.drawKeypoints(resized_image,kp,np.array([]), color=(0,255,0), flags=0)
          start_orb_time2 = time.time()
 
       #get the neural network computation time
