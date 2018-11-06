@@ -22,29 +22,33 @@ x_train = []
 y_train = []
 image_list = []
 full_path_image_list = []
-img_rows = 270
-img_cols = 480
+height = 270
+width = 480
 #batch_size = 32
 batch_size = 8
+b_size = 0
+split_size = 5
+split_size = 3
 epochs = 500
 
 def init_program():
    global images, num_lidar_points, x_train, y_train, all_filenames, image_list
-   global full_path_image_list
+   global full_path_image_list, b_size, width, height
 
    #get image data
-   image_list = os.listdir("480_images")
+   image_list = os.listdir(str(width) + "_images")
    image_list.sort()
-   image_list = image_list[0:50000]
+   b_size = int(len(image_list) / split_size)
+   image_list = image_list[0:(b_size*split_size)]
    for f in image_list:
       if f.endswith(".jpg"):
-         filename = os.path.join("480_images/", f)
+         filename = os.path.join(str(width) + "_images/", f)
          full_path_image_list.append(filename)
 
    if 1 == 0:
       for f in image_list:
          if f.endswith(".jpg"):
-            filename = os.path.join("480_images/", f)
+            filename = os.path.join(str(width) + "_images/", f)
             full_path_image_list.append(filename)
             img = load_img(filename)
 
@@ -58,9 +62,9 @@ def init_program():
             x_train.append(x)
 
    #get lidar data
-   data_list = os.listdir("480_data")
+   data_list = os.listdir(str(width) + "_data")
    data_list.sort()
-   data_list = data_list[0:50000]
+   data_list = data_list[0:(b_size*split_size)]
 
    #check that all the training images and data files match
    for i in range(len(image_list)):
@@ -78,7 +82,7 @@ def init_program():
 
    for f in data_list:
       if f.endswith(".txt"):
-         filename = os.path.join("480_data/", f)
+         filename = os.path.join(str(width) + "_data/", f)
             
          #read the data file into a list
          with open(filename) as f:
@@ -97,9 +101,13 @@ def init_program():
    x_train = x_train.astype('float32')
    x_train /= 255
 
+   c = list(zip(full_path_image_list, y_train))
+   random.shuffle(c)
+   full_path_image_list, y_train = zip(*c)
+
    y_train = np.array(y_train)
    y_train = y_train.astype('float32')
-   y_train /= img_rows
+   y_train /= int(height)
 
    print ('shape', x_train.shape)
    print ('shape', y_train.shape)
@@ -109,10 +117,12 @@ print ("Initialization complete")
 #quit()
 
 def baseline_model():
+   global width, height
+
    rmsprop = optimizers.RMSprop(lr=0.1)
    sgd = optimizers.SGD(lr=0.01)
 
-   model = mobilenet_v2.MobileNetv2((270, 480, 3), 48)
+   model = mobilenet_v2.MobileNetv2((int(height), int(width), 3), 48)
    model.compile(loss=keras.losses.mean_absolute_error,
                  #optimizer=sgd, 
                  #optimizer=keras.optimizers.Adadelta(), 
@@ -152,10 +162,11 @@ def shuffle_in_unison(a, b):
         shuffled_b[new_index] = b[old_index]
     return shuffled_a, shuffled_b
 
+#def IMDB_WIKI(X_samples, y_samples, batch_size=1000):
 def IMDB_WIKI(X_samples, y_samples, batch_size=10000):
   #print X_samples
   X_samples = np.asarray(X_samples)
-  X_samples, y_samples = shuffle_in_unison(X_samples,y_samples)
+  #X_samples, y_samples = shuffle_in_unison(X_samples,y_samples)
   batch_size = len(X_samples) / batch_size
   X_batches = np.split(X_samples, batch_size)
   y_batches = np.split(y_samples, batch_size)
@@ -166,17 +177,14 @@ def IMDB_WIKI(X_samples, y_samples, batch_size=10000):
     yield x, y
 
 def t():
-   global callbacks, checkpoint
+   global callbacks, checkpoint, b_size
 
    n_epoch = 500
    for e in range(n_epoch):
       print "Epoch", e
-      for X_train, y_tr in IMDB_WIKI(full_path_image_list, y_train): # chunks of 100 images
-         model.fit(X_train, y_tr, batch_size=16, epochs=1, verbose=1, validation_split=.1, shuffle=True, callbacks=callbacks)
+      for X_train, y_tr in IMDB_WIKI(full_path_image_list, y_train, b_size): # chunks of 100 images
+         model.fit(X_train, y_tr, batch_size=16, epochs=1, verbose=1, validation_split=.5, shuffle=False, callbacks=callbacks)
          #model.train_on_batch(X_train,y_tr)
-         if 1==0:
-            for X_batch, y_batch in datagen.flow(X_train, y_tr, batch_size=32): # chunks of 32 samples
-               loss = model.train_on_batch(X_batch, y_batch)
    sys.exit()
 
 
@@ -184,8 +192,3 @@ model = baseline_model()
 model.summary()
 
 t()
-
-for x in range(epochs):
-   print ('Epoch' + str(x))
-   model.fit(x_train, y_train, batch_size=batch_size, epochs=1, verbose=1, validation_split=.04, shuffle=True, callbacks=callbacks)
-   #model.save('my_model.h5')
