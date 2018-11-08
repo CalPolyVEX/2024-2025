@@ -15,12 +15,6 @@ os.system(str1)
 str1 = 'cd ORB_SLAM2; git cherry-pick 5cb4dfc5fac8a890181cae7a4bc718cb919fdf53'
 os.system(str1)
 
-#fix compiling error <unistd.h>
-#str1 = 'git remote add chenguang055 git://github.com/chenguang055/ORB_SLAM2.git'
-#os.system(str1)
-#str1 = 'git fetch chenguang055'
-#os.system(str1)
-
 #fix DistributOctTree
 str1 = 'cd ORB_SLAM2; git remote add OtacilioNeto git://github.com/OtacilioNeto/ORB_SLAM2.git'
 os.system(str1)
@@ -52,3 +46,10 @@ os.system(str1)
 #os.system(str1)
 #str1 = 'cd ORB_SLAM2; git cherry-pick d5c661cd3724b341d9188a46c7c53883be35a046'
 #os.system(str1)
+
+str1 = 'cd ORB_SLAM2; git remote add vesor git://github.com/vesor/ORB_SLAM2.git'
+os.system(str1)
+str1 = 'cd ORB_SLAM2; git fetch vesor'
+os.system(str1)
+str1 = 'cd ORB_SLAM2; git cherry-pick 3b8b0f0fa0a512a554f61dfed91ccd73aabb94ea '
+os.system(str1)
