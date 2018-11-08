@@ -19,36 +19,27 @@ class range_data_node:
       rospy.init_node("create_cloud_xyzrgb")
       self.pub = rospy.Publisher("test_point_cloud", PointCloud2, queue_size=2)
       self.sub = rospy.Subscriber("point_array", ground_boundary, self.callback)
-      self.counter = 0
 
    def callback(self,data):
       ground_points_x = data.point_x
       ground_points_y = data.point_y
-      g = str(ground_points_x[0])
+      #g = str(ground_points_x[0])
       #rospy.loginfo("%s", ground_points_x)
       #rospy.loginfo("%s", ground_points_y)
       points = []
 
-      if self.counter == 0:
-         r = 255
-         g = 0
-         self.counter = 1
-      else:
-         r=0
-         g=255
-         self.counter=1
+      r=0
+      g=255
+      b = 0
 
       y=+.5
       for i in range(len(ground_points_x)):
-         #x = 1.0 - float(ground_points[i]) / 270
-         #y -= 1.0/48
          y = ground_points_x[i]
          x = ground_points_y[i]
          z = 0
          pt = [x, -y, z, 0]
 
          #set the color of the points
-         b = 0
          a = 255
          rgb = struct.unpack('I', struct.pack('BBBB', b, g, r, a))[0]
          pt[3] = rgb
@@ -68,7 +59,6 @@ class range_data_node:
       #while not rospy.is_shutdown():
       pc2.header.stamp = rospy.Time.now()
       self.pub.publish(pc2)
-      #rospy.sleep(1.0)
 
 if __name__=='__main__':
    r = range_data_node()

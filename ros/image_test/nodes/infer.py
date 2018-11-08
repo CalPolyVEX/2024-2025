@@ -21,17 +21,23 @@ class GroundDetector:
       self.output_layer = output_layer
       self.input_name = "import/" + input_layer
       self.output_name = "import/" + output_layer
+      self.counter=0
 
-      #load the graph
-      self.load_graph()
-
-      self.input_operation = self.graph.get_operation_by_name(self.input_name);
-      self.output_operation = self.graph.get_operation_by_name(self.output_name);
-   
+      #needed to prevent memory errors on the Jetson TX2
       config = tf.ConfigProto()
       config.gpu_options.allow_growth = True
 
+      #load the graph
+      self.load_graph()
+      self.input_operation = self.graph.get_operation_by_name(self.input_name);
+      self.output_operation = self.graph.get_operation_by_name(self.output_name);
       self.sess = tf.Session(config=config,graph=self.graph)
+
+      #load the second graph
+      self.load_graph1()
+      self.input_operation1 = self.graph1.get_operation_by_name(self.input_name);
+      self.output_operation1 = self.graph1.get_operation_by_name(self.output_name);
+      self.sess1 = tf.Session(config=config,graph=self.graph1)
 
    def load_graph(self):
       self.graph = tf.Graph()
@@ -42,17 +48,30 @@ class GroundDetector:
       with self.graph.as_default():
          tf.import_graph_def(self.graph_def)
 
+   def load_graph1(self):
+      self.graph1 = tf.Graph()
+      self.graph_def1 = tf.GraphDef()
+
+      #with open(self.protobuf_model, "rb") as f:
+      with open('/home/nvidia/catkin_ws/src/ros/image_test/nodes/output_graph_save.pb', "rb") as f:
+         self.graph_def1.ParseFromString(f.read())
+      with self.graph1.as_default():
+         tf.import_graph_def(self.graph_def1)
+
    def run(self, input_image):
       results = self.sess.run(self.output_operation.outputs[0], {self.input_operation.outputs[0]: input_image})
       return results
 
+   def run1(self, input_image):
+      results1 = self.sess1.run(self.output_operation1.outputs[0], {self.input_operation1.outputs[0]: input_image})
+
+      return results1
+
 class image_converter:
    def __init__(self, infer_file):
-      #self.foo = imp.load_source('module.name', infer_file)
-      #self.input_layer='conv2d_1_input'
       self.input_layer='input_1'
       self.output_layer='k2tfout_0'
-      #self.gd = self.foo.GroundDetector('./output_graph.pb', self.input_layer, self.output_layer)
+
       self.gd = GroundDetector(infer_file, self.input_layer, self.output_layer)
 
       self.counter = 0
@@ -71,7 +90,6 @@ class image_converter:
          cv_image = self.bridge.imgmsg_to_cv2(data, "bgr8")
       except CvBridgeError as e:
          print(e)
-
 
       #save the file
       (rows,cols,channels) = cv_image.shape
@@ -95,14 +113,16 @@ class image_converter:
          kp, des = self.orb.compute(resized_image, kp)
 
          # draw only keypoints location,not size and orientation
-         resized_image = cv2.drawKeypoints(resized_image,kp,np.array([]), color=(0,255,0), flags=0)
+         #resized_image = cv2.drawKeypoints(resized_image,kp,np.array([]), color=(0,255,0), flags=0)
          start_orb_time2 = time.time()
 
       #get the neural network computation time
       time1 = time.time()
       results = self.gd.run(np_final)
+      results1 = self.gd.run1(np_final)
       time2 = time.time()
       results *= 270.0
+      results1 *= 270.0
 
       #send the point array message
       t = ground_boundary()
@@ -121,16 +141,22 @@ class image_converter:
       column = 5
 
       font = cv2.FONT_HERSHEY_SIMPLEX
-      cv2.putText(resized_image_nn, "%.2fms" % ((time2-time1)*1000.0), (390, 20), font, 0.6, (0, 255, 0), 1, cv2.LINE_AA)
-      cv2.putText(resized_image_nn, "orb time: %.2fms" % ((start_orb_time2-start_orb_time1)*1000.0), (300, 60), font, 0.6, (0, 255, 0), 1, cv2.LINE_AA)
+      fps = 1 / ((time2-time1))
+      cv2.putText(resized_image_nn, "%.2ffps" % fps, (390, 20), font, 0.6, (0, 255, 0), 1, cv2.LINE_AA)
+      cv2.putText(resized_image_nn, "orb time: %.2fms" % ((start_orb_time2-start_orb_time1)*1000.0), (300, 40), font, 0.6, (0, 255, 0), 1, cv2.LINE_AA)
 
       #stats
-      if ((time2-time1) > .070):
-         self.counter += 1
-      cv2.putText(resized_image_nn, "%d" % self.counter, (390, 40), font, 0.6, (0, 255, 0), 1, cv2.LINE_AA)
+      #if ((time2-time1) > .070):
+      #   self.counter += 1
+      #cv2.putText(resized_image_nn, "%d" % self.counter, (390, 40), font, 0.6, (0, 255, 0), 1, cv2.LINE_AA)
 
       for x in results:
-         cv2.circle(resized_image_nn, (int(column),int(x)), 2, (0,0,255), 3)
+         #cv2.circle(resized_image_nn, (int(column),int(x)), 2, (0,0,255), 3)
+         column += 10
+
+      column = 5
+      for x in results1:
+         cv2.circle(resized_image_nn, (int(column),int(x)), 2, (0,255,0), 3)
          column += 10
 
       try:
