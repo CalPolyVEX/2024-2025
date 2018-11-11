@@ -10,11 +10,23 @@
 from keras.models import Model
 from keras.layers import Input, Conv2D, GlobalAveragePooling2D, Dropout
 from keras.layers import Activation, BatchNormalization, add, Reshape
-from keras.applications.mobilenet import relu6, DepthwiseConv2D
+#from keras.applications.mobilenet import relu6, DepthwiseConv2D
+
+from keras.layers import DepthwiseConv2D
+#from keras_applications.mobilenet import relu6
+
+from keras.utils.generic_utils import CustomObjectScope
+
+#with CustomObjectScope({'relu6': keras.layers.ReLU(6.),'DepthwiseConv2D': 
+#   keras.layers.DepthwiseConv2D}):
+
 from keras.utils.vis_utils import plot_model
 
 from keras import backend as K
+import keras
 
+def relu6(x):
+  return K.relu(x, max_value=6)
 
 def _conv_block(inputs, filters, kernel, strides):
     """Convolution Block
@@ -38,6 +50,7 @@ def _conv_block(inputs, filters, kernel, strides):
 
     x = Conv2D(filters, kernel, padding='same', strides=strides)(inputs)
     x = BatchNormalization(axis=channel_axis)(x)
+    #return Activation(keras.activations.relu)(x)
     return Activation(relu6)(x)
 
 
@@ -68,6 +81,10 @@ def _bottleneck(inputs, filters, kernel, t, s, r=False):
 
     x = DepthwiseConv2D(kernel, strides=(s, s), depth_multiplier=1, padding='same')(x)
     x = BatchNormalization(axis=channel_axis)(x)
+    #x = Activation(keras.activations.relu)(x)
+    #test dropout JS
+    #x = Dropout(0.2)(x)
+
     x = Activation(relu6)(x)
 
     x = Conv2D(filters, (1, 1), strides=(1, 1), padding='same')(x)
@@ -129,14 +146,14 @@ def MobileNetv2(input_shape, k):
     #x = _inverted_residual_block(x, 320, (3, 3), t=6, strides=1, n=1)
 
     x = _inverted_residual_block(x, 16, (3, 3), t=1, strides=1, n=1)
-    x = _inverted_residual_block(x, 24, (3, 3), t=2, strides=2, n=2)
-    x = _inverted_residual_block(x, 32, (3, 3), t=2, strides=2, n=3)
-    x = _inverted_residual_block(x, 64, (3, 3), t=2, strides=2, n=4)
-    x = _inverted_residual_block(x, 96, (3, 3), t=2, strides=1, n=3)
-    x = _inverted_residual_block(x, 160, (3, 3), t=2, strides=2, n=3)
+    x = _inverted_residual_block(x, 24, (3, 3), t=3, strides=2, n=2)
+    x = _inverted_residual_block(x, 32, (3, 3), t=3, strides=2, n=3)
+    x = _inverted_residual_block(x, 64, (3, 3), t=3, strides=2, n=4)
+    x = _inverted_residual_block(x, 96, (3, 3), t=3, strides=1, n=3)
+    x = _inverted_residual_block(x, 160, (3, 3), t=3, strides=2, n=3)
 
     #x = _inverted_residual_block(x, 320, (3, 3), t=4, strides=1, n=1)
-    x = _inverted_residual_block(x, 240, (3, 3), t=2, strides=1, n=1)
+    x = _inverted_residual_block(x, 320, (3, 3), t=3, strides=1, n=1)
 
     #x = _conv_block(x, 1280, (1, 1), strides=(1, 1))
     x = _conv_block(x, 480, (1, 1), strides=(1, 1))
