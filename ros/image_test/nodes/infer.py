@@ -22,6 +22,24 @@ class GroundDetector:
       self.input_name = "import/" + input_layer
       self.output_name = "import/" + output_layer
       self.counter=0
+      
+      self.point_filter_list = []
+      for i in range(48):
+         self.k = cv2.KalmanFilter(1, 1, 0, cv2.CV_32F)
+
+         #create control matrix B
+         #self.k.controlMatrix = self.b
+         self.k.measurementMatrix = np.ones((1,1))
+         self.k.transitionMatrix = np.ones((1,1))
+
+         # 1/270 = .0037
+         self.k.measurementNoiseCov = .008 * np.ones((1,1))
+         self.k.processNoiseCov= .003 * np.ones((1,1))
+
+         self.k.statePost = .10 * np.ones((1,1))
+         self.k.errorCovPost = .10 * np.ones((1,1))
+
+         self.point_filter_list.append(self.k)
 
       #needed to prevent memory errors on the Jetson TX2
       config = tf.ConfigProto()
@@ -34,10 +52,11 @@ class GroundDetector:
       self.sess = tf.Session(config=config,graph=self.graph)
 
       #load the second graph
-      self.load_graph1()
-      self.input_operation1 = self.graph1.get_operation_by_name(self.input_name);
-      self.output_operation1 = self.graph1.get_operation_by_name(self.output_name);
-      self.sess1 = tf.Session(config=config,graph=self.graph1)
+      if 1==0:
+         self.load_graph1()
+         self.input_operation1 = self.graph1.get_operation_by_name(self.input_name);
+         self.output_operation1 = self.graph1.get_operation_by_name(self.output_name);
+         self.sess1 = tf.Session(config=config,graph=self.graph1)
 
    def load_graph(self):
       self.graph = tf.Graph()
@@ -60,7 +79,32 @@ class GroundDetector:
 
    def run(self, input_image):
       results = self.sess.run(self.output_operation.outputs[0], {self.input_operation.outputs[0]: input_image})
+
+      if 1==1:
+         #kalman filter the output points
+         output = np.zeros(shape=(48,1))
+         for i in range(48):
+            temp_k = self.point_filter_list[i]
+
+            output[i,0] = temp_k.predict().item(0)
+            #rospy.loginfo("%s", temp_k.predict())
+            #rospy.loginfo(results[i].item(0))
+            #temp_k.processNoiseCov= (.001 + output[i,0]*.008) * np.ones((1,1))
+            #if i < 24:
+               #temp_k.measurementNoiseCov = (.001 + output[i,0]*.008) * np.ones((1,1))
+               #temp_k.measurementNoiseCov = (.001 + ((24-i)/24.0)*.008) * np.ones((1,1))
+            #temp_k.processNoiseCov= .008 * np.ones((1,1))
+            #if i==0:
+            #   rospy.loginfo(output[i,0])
+            temp_k.correct(np.array([results[i].item(0)]))
+
+         #rospy.loginfo(output)
+         #rospy.loginfo(results)
+         return output
       return results
+      
+      #rospy.loginfo("%s", output)
+
 
    def run1(self, input_image):
       results1 = self.sess1.run(self.output_operation1.outputs[0], {self.input_operation1.outputs[0]: input_image})
@@ -81,7 +125,7 @@ class image_converter:
       self.bridge = CvBridge()
       self.image_sub = rospy.Subscriber("/see3cam_cu20/image_raw",Image,self.callback)
 
-      self.msgpub = rospy.Publisher('point_array', ground_boundary, queue_size=1)
+      self.msgpub = rospy.Publisher('/point_array', ground_boundary, queue_size=1)
       self.camera_t = camera_transform()
       self.orb = cv2.ORB_create()
 
@@ -96,7 +140,7 @@ class image_converter:
 
       #resize and convert the image to numpy array
       resized_image_nn = cv2.resize(cv_image, (480, 270)) 
-      resized_image = resized_image_nn.copy() 
+      #resized_image = resized_image_nn.copy() 
       np_image_data = np.asarray(resized_image_nn)
       #float_caster = tf.cast(np_image_data, tf.float32)
       float_caster = np_image_data / 255.0
@@ -104,7 +148,7 @@ class image_converter:
       #print (np_final.shape)
 
       #test ORB features
-      if 1 == 1:
+      if 1 == 0:
          start_orb_time1 = time.time()
          #find the keypoints
          kp = self.orb.detect(resized_image,None)
@@ -119,10 +163,11 @@ class image_converter:
       #get the neural network computation time
       time1 = time.time()
       results = self.gd.run(np_final)
-      results1 = self.gd.run1(np_final)
-      time2 = time.time()
       results *= 270.0
-      results1 *= 270.0
+
+      #results1 = self.gd.run1(np_final)
+      #results1 *= 270.0
+      time2 = time.time()
 
       #send the point array message
       t = ground_boundary()
@@ -143,7 +188,7 @@ class image_converter:
       font = cv2.FONT_HERSHEY_SIMPLEX
       fps = 1 / ((time2-time1))
       cv2.putText(resized_image_nn, "%.2ffps" % fps, (390, 20), font, 0.6, (0, 255, 0), 1, cv2.LINE_AA)
-      cv2.putText(resized_image_nn, "orb time: %.2fms" % ((start_orb_time2-start_orb_time1)*1000.0), (300, 40), font, 0.6, (0, 255, 0), 1, cv2.LINE_AA)
+      #cv2.putText(resized_image_nn, "orb time: %.2fms" % ((start_orb_time2-start_orb_time1)*1000.0), (300, 40), font, 0.6, (0, 255, 0), 1, cv2.LINE_AA)
 
       #stats
       #if ((time2-time1) > .070):
@@ -151,17 +196,19 @@ class image_converter:
       #cv2.putText(resized_image_nn, "%d" % self.counter, (390, 40), font, 0.6, (0, 255, 0), 1, cv2.LINE_AA)
 
       for x in results:
-         #cv2.circle(resized_image_nn, (int(column),int(x)), 2, (0,0,255), 3)
+         cv2.circle(resized_image_nn, (int(column),int(x)), 2, (0,0,255), 3)
          column += 10
 
       column = 5
-      for x in results1:
-         cv2.circle(resized_image_nn, (int(column),int(x)), 2, (0,255,0), 3)
-         column += 10
+
+      if 1==0:
+         for x in results1:
+            cv2.circle(resized_image_nn, (int(column),int(x)), 2, (0,255,0), 3)
+            column += 10
 
       try:
          self.image_pub.publish(self.bridge.cv2_to_imgmsg(resized_image_nn, "bgr8"))
-         self.image_resized_pub.publish(self.bridge.cv2_to_imgmsg(resized_image, "bgr8"))
+         #self.image_resized_pub.publish(self.bridge.cv2_to_imgmsg(resized_image, "bgr8"))
          self.msgpub.publish(t)
       except CvBridgeError as e:
          print(e)
