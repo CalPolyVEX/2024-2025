@@ -115,19 +115,20 @@ class ImageAugmentor:
          #blank_image = np.zeros((height,width,3), np.uint8)
 
          #testing JS
-         img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-         #cv2.imshow("Output", img_gray)
-         #cv2.waitKey(0)
-         (_, cnts, _) = cv2.findContours(img_gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_L1)
-         #print cnts
-         #sys.exit()
-         for c in cnts:
-            epsilon = .005*cv2.arcLength(c,True)
-            approx = cv2.approxPolyDP(c,epsilon, True)
-            #print approx.shape
-            cv2.drawContours(img, [approx], -1, (0,255,0), 4)
-         #cv2.imshow("Output", img)
-         #cv2.waitKey(0)
+         if 1 == 0:
+            img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+            #cv2.imshow("Output", img_gray)
+            #cv2.waitKey(0)
+            (_, cnts, _) = cv2.findContours(img_gray, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_L1)
+            #print cnts
+            #sys.exit()
+            for c in cnts:
+               epsilon = .005*cv2.arcLength(c,True)
+               approx = cv2.approxPolyDP(c,epsilon, True)
+               #print approx.shape
+               cv2.drawContours(img, [approx], -1, (0,255,0), 4)
+            #cv2.imshow("Output", img)
+            #cv2.waitKey(0)
 
          data=[]
          f_out = open(out + '/' + f.replace('.jpg', '.txt'), 'w')
@@ -383,6 +384,6 @@ if __name__ == '__main__':
    a.build_annotation_images()
    a.build_480_270_images()
    a.build_480_270_gt_images()
-   a.augment_test(50)
+   a.augment_test(27000)
    a.get_range_data(path.join(sys.argv[1], str(width) + '_ground_truth'), path.join(sys.argv[1], str(width) + '_data'), 0)
    a.adjust_color()
