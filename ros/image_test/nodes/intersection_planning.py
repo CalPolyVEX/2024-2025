@@ -21,7 +21,7 @@ class visual_odometry:
       #subscribers
       self.scaled_image_sub = rospy.Subscriber("/see3cam_cu20/image_raw", Image, self.callback)
       self.raw_image_filter = message_filters.Subscriber("/see3cam_cu20/image_raw", Image)
-      self.raw_image_cache = message_filters.Cache(self.raw_image_filter,5)
+      self.raw_image_cache = message_filters.Cache(self.raw_image_filter,2)
 
       self.point_array_sub = rospy.Subscriber("point_array", ground_boundary)
 
@@ -29,7 +29,36 @@ class visual_odometry:
       self.vis_odo_image_pub = rospy.Publisher("/see3cam_cu20/test_vis_odo_img",Image, queue_size=1)
 
       self.orb = cv2.ORB_create()
+      self.orb.setMaxFeatures(1500)
       self.bridge = CvBridge()
+      self.akaze = cv2.AKAZE_create()
+
+   def test_akaze(self, orig_img):
+      # Take first frame and find corners in it
+      oldest_time = self.raw_image_cache.getOldestTime()
+      oldest_img_msg = self.raw_image_cache.getElemBeforeTime(oldest_time)
+      oldest_cv_image = self.bridge.imgmsg_to_cv2(oldest_img_msg, "bgr8")
+      old_gray = cv2.cvtColor(oldest_cv_image, cv2.COLOR_BGR2GRAY)
+
+      new_time = self.raw_image_cache.getLatestTime()
+      new_img_msg = self.raw_image_cache.getElemAfterTime(new_time)
+      new_cv_image = self.bridge.imgmsg_to_cv2(new_img_msg, "bgr8")
+      new_gray = cv2.cvtColor(new_cv_image, cv2.COLOR_BGR2GRAY)
+
+      # Create some random colors
+      (kps1, descs1) = self.orb.detectAndCompute(old_gray, None)
+      (kps2, descs2) = self.orb.detectAndCompute(new_gray, None)
+
+      bf = cv2.BFMatcher(cv2.NORM_HAMMING)
+      matches = bf.knnMatch(descs1, descs2, k=2)
+      
+      good = []
+      for m,n in matches:
+         if m.distance < .9*n.distance:
+            good.append([m])
+
+      img = cv2.drawMatchesKnn(old_gray, kps1, new_gray, kps2, good[1:20], None, flags=2)
+      return img
 
    def callback(self,data):
       try:
@@ -53,16 +82,15 @@ class visual_odometry:
       #KLT tracking
 
       # params for ShiTomasi corner detection
-      feature_params = dict( maxCorners = 200,
+      feature_params = dict( maxCorners = 500,
                            qualityLevel = 0.3,
-                           #minDistance = 7,
-                           minDistance = 5,
+                           minDistance = 3,
+                           #minDistance = 5,
                            blockSize = 7 )
       # Parameters for lucas kanade optical flow
       lk_params = dict( winSize  = (15,15),
                         maxLevel = 2,
                         criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
-
 
       # Take first frame and find corners in it
       oldest_time = self.raw_image_cache.getOldestTime()
@@ -82,7 +110,7 @@ class visual_odometry:
       new_gray = cv2.cvtColor(new_cv_image, cv2.COLOR_BGR2GRAY)
 
       # Create some random colors
-      color = np.random.randint(0,255,(200,3))
+      color = np.random.randint(0,255,(500,3))
 
       # calculate optical flow
       p1, st, err = cv2.calcOpticalFlowPyrLK(old_gray, new_gray, p0, None, **lk_params)
@@ -95,7 +123,10 @@ class visual_odometry:
          c,d = old.ravel()
          mask = cv2.line(mask, (a,b),(c,d), color[i].tolist(), 2)
          new_gray= cv2.circle(new_gray,(a,b),5,color[i].tolist(),-1)
+
       img = cv2.add(new_cv_image,mask)
+      img = cv2.drawKeypoints(new_cv_image,kp,np.array([]), color=(0,255,0), flags=0)
+      #img = self.test_akaze(new_cv_image)
       self.vis_odo_image_pub.publish(self.bridge.cv2_to_imgmsg(img, "bgr8"))
 
 if __name__=='__main__':

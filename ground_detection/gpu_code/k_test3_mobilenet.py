@@ -20,51 +20,37 @@ images = {}
 all_filenames = []
 x_train = []
 y_train = []
+x_val = []
+y_val = []
 image_list = []
 full_path_image_list = []
 height = 270
 width = 480
 #batch_size = 32
 batch_size = 8
-b_size = 0
-split_size = 5
-split_size = 3
+b_size = 5000
+split_size = 25
 epochs = 500
 
 def init_program():
    global images, num_lidar_points, x_train, y_train, all_filenames, image_list
-   global full_path_image_list, b_size, width, height
+   global full_path_image_list, b_size, width, height, x_val, y_val
 
    #get image data
    image_list = os.listdir(str(width) + "_images")
    image_list.sort()
-   b_size = int(len(image_list) / split_size)
-   image_list = image_list[0:(b_size*split_size)]
+   #b_size = int(len(image_list) / split_size)
+   #image_list = image_list[0:(b_size*split_size)]
+
    for f in image_list:
       if f.endswith(".jpg"):
          filename = os.path.join(str(width) + "_images/", f)
          full_path_image_list.append(filename)
 
-   if 1 == 0:
-      for f in image_list:
-         if f.endswith(".jpg"):
-            filename = os.path.join(str(width) + "_images/", f)
-            full_path_image_list.append(filename)
-            img = load_img(filename)
-
-            x = img_to_array(img)
-            x = x.astype('float32')
-            #print x.shape
-            mean = np.mean(x,axis=(0,1))
-            #x = x - mean
-            #print mean
-
-            x_train.append(x)
-
    #get lidar data
    data_list = os.listdir(str(width) + "_data")
    data_list.sort()
-   data_list = data_list[0:(b_size*split_size)]
+   #data_list = data_list[0:(b_size*split_size)]
 
    #check that all the training images and data files match
    for i in range(len(image_list)):
@@ -109,8 +95,17 @@ def init_program():
    y_train = y_train.astype('float32')
    y_train /= int(height)
 
-   print ('shape', x_train.shape)
-   print ('shape', y_train.shape)
+   training_set_size = 25000
+   val_size = len(y_train) - training_set_size
+   x_val = full_path_image_list[-val_size:]
+   y_val = y_train[-val_size:]
+
+   full_path_image_list = full_path_image_list[0:training_set_size]
+   y_train = y_train[0:training_set_size]
+
+   print ('full_path_image_list shape:' , len(full_path_image_list))
+   print ('y_val shape', y_val.shape)
+   print ('y_train shape ', y_train.shape)
 
 init_program()
 print ("Initialization complete")
@@ -162,7 +157,6 @@ def shuffle_in_unison(a, b):
         shuffled_b[new_index] = b[old_index]
     return shuffled_a, shuffled_b
 
-#def IMDB_WIKI(X_samples, y_samples, batch_size=1000):
 def IMDB_WIKI(X_samples, y_samples, batch_size=10000):
   #print X_samples
   X_samples = np.asarray(X_samples)
@@ -172,23 +166,41 @@ def IMDB_WIKI(X_samples, y_samples, batch_size=10000):
   y_batches = np.split(y_samples, batch_size)
   
   for b in range(len(X_batches)):
-    x = np.array(map(load_image, X_batches[b]))
+    x = np.array(list(map(load_image, X_batches[b])))
     y = np.array(y_batches[b])
     yield x, y
 
-def t():
-   global callbacks, checkpoint, b_size
+def build_validation_set(X_samples, y_samples):
+   X_samples = np.asarray(X_samples)
+   #print ("X_samples:" , X_samples)
+   
+   x_v = np.array(list(map(load_image, X_samples)))
+   y_v = np.array(y_samples)
+   #print ("x_v" , x_v.shape)
+   #print ("x_v" , x_v)
+   return x_v, y_v
+
+def fit():
+   global callbacks, checkpoint, b_size, x_val, y_val, y_train, full_path_image_list
+
+   #read in validation set
+   x_val, y_val = build_validation_set(x_val, y_val)
 
    n_epoch = 500
    for e in range(n_epoch):
-      print "Epoch", e
+      print ("Epoch", e)
       for X_train, y_tr in IMDB_WIKI(full_path_image_list, y_train, b_size): # chunks of 100 images
-         model.fit(X_train, y_tr, batch_size=16, epochs=1, verbose=1, validation_split=.5, shuffle=False, callbacks=callbacks)
-         #model.train_on_batch(X_train,y_tr)
+         #model.fit(X_train, y_tr, batch_size=16, epochs=1, verbose=1, validation_split=.6, shuffle=False, callbacks=callbacks)
+         #print ("X_train shape:", type(X_train))
+         #print("X_train shape:", X_train.shape)
+         #print("y_train shape:", y_tr.shape)
+         #print("x_val shape:", x_val.shape)
+         #print("y_val shape:", y_val.shape)
+         #print("type x_train: ", full_path_image_list)
+         model.fit(X_train, y_tr, batch_size=16, epochs=1, verbose=1, shuffle=True, callbacks=callbacks, validation_data=(x_val, y_val))
    sys.exit()
-
 
 model = baseline_model()
 model.summary()
 
-t()
+fit()
