@@ -339,9 +339,9 @@ class ImageAugmentor:
          cv2.imwrite(path.join(self.ground_output_dir, f), img_new)
 
    def upload(self):
-      img_cmd = 'rm -f img.tar.gz; tar zcvf img.tar.gz -C ' + self.collection_dir + '/' + str(self.width) + '_input/ .'
+      img_cmd = 'rm -f img.tar.gz; tar zcf img.tar.gz -C ' + self.collection_dir + '/' + str(self.width) + '_input/ .'
 
-      data_cmd = 'rm -f data.tar.gz; tar zcvf data.tar.gz -C ' + self.collection_dir + '/' + str(self.width) + '_data/ .'
+      data_cmd = 'rm -f data.tar.gz; tar zcf data.tar.gz -C ' + self.collection_dir + '/' + str(self.width) + '_data/ .'
 
       img_cp = 'scp img.tar.gz unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/' + str(self.width) + '_images'
       data_cp = 'scp data.tar.gz unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/' + str(self.width) + '_data'
