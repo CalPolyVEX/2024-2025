@@ -146,7 +146,6 @@ def MobileNetv2(input_shape, k):
     #x = _inverted_residual_block(x, 320, (3, 3), t=6, strides=1, n=1)
 
     x = _inverted_residual_block(x, 16, (3, 3), t=1, strides=1, n=1)
-<<<<<<< HEAD
     x = _inverted_residual_block(x, 24, (3, 3), t=2, strides=2, n=2)
     x = _inverted_residual_block(x, 32, (3, 3), t=2, strides=2, n=3)
     x = _inverted_residual_block(x, 64, (3, 3), t=2, strides=2, n=4)
@@ -154,17 +153,7 @@ def MobileNetv2(input_shape, k):
     x = _inverted_residual_block(x, 160, (3, 3), t=2, strides=2, n=3) 
 
     #x = _inverted_residual_block(x, 320, (3, 3), t=4, strides=1, n=1)
-    x = _inverted_residual_block(x, 240, (3, 3), t=3, strides=1, n=1)
-=======
-    x = _inverted_residual_block(x, 24, (3, 3), t=3, strides=2, n=2)
-    x = _inverted_residual_block(x, 32, (3, 3), t=3, strides=2, n=3)
-    x = _inverted_residual_block(x, 64, (3, 3), t=3, strides=2, n=4)
-    x = _inverted_residual_block(x, 96, (3, 3), t=3, strides=1, n=3)
-    x = _inverted_residual_block(x, 160, (3, 3), t=3, strides=2, n=3)
-
-    #x = _inverted_residual_block(x, 320, (3, 3), t=4, strides=1, n=1)
     x = _inverted_residual_block(x, 320, (3, 3), t=3, strides=1, n=1)
->>>>>>> 8d03a684881b04b84ce15f6d1a8f461dfc5d8979
 
     #x = _conv_block(x, 1280, (1, 1), strides=(1, 1))
     x = _conv_block(x, 600, (1, 1), strides=(1, 1))
