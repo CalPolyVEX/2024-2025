@@ -43,7 +43,7 @@ class ImageAugmentor:
       p.skew_left_right(probability=0.5, magnitude=.5)
       p.crop_random(probability=.75, percentage_area=.9)
       p.resize(probability=1.0, width=self.width, height=self.height)
-      p.sample(num)
+      p.sample(num, multi_threaded=False)
       
       files = os.listdir(path.join(self.input_dir,'output'))
       files.sort()
@@ -243,9 +243,9 @@ class ImageAugmentor:
          fullname = path.join(input_dir_480,x)
          print fullname
          if prob <= 2:
-            os.system('convert -brightness-contrast 15x15 ' + fullname + ' ' + fullname)
+            os.system('convert -brightness-contrast 10x10 ' + fullname + ' ' + fullname)
          elif prob <= 4:
-            os.system('convert -brightness-contrast -15x-15 ' + fullname + ' ' + fullname)
+            os.system('convert -brightness-contrast -10x-10 ' + fullname + ' ' + fullname)
 
    #############################################################
    def build_annotation_images(self):
@@ -329,7 +329,7 @@ class ImageAugmentor:
                   (pts[i][0])[1] = height-1
                assert (pts[i][0])[1] < height
 
-            print "polygon number of points: " + str(len(pts))
+            #print "polygon number of points: " + str(len(pts))
             cv2.polylines(img_new,[pts], True, 255)
 
          img_new = self.fill_polygon(img_new) #fill in the polygon
