@@ -10,6 +10,7 @@ import cv2, numpy as np
 import xml.etree.ElementTree
 import Augmentor, random, time
 from datetime import datetime
+from scipy import misc
 
 width = 480
 
@@ -28,6 +29,58 @@ class ImageAugmentor:
       self.xml_dir = path.join(collection_dir,"Annotations/users/jseng/building14_hdr")
       self.orig_jpg_dir = path.join(collection_dir,"Images/users/jseng/building14_hdr")
       self.ground_output_dir = path.join(collection_dir,"ground_output")
+
+   def noise_generator (self, noise_type,image):
+      """
+      Generate noise to a given Image based on required noise type
+
+      Input parameters:
+         image: ndarray (input image data. It will be converted to float)
+
+         noise_type: string
+               'gauss'        Gaussian-distrituion based noise
+               'poission'     Poission-distribution based noise
+               's&p'          Salt and Pepper noise, 0 or 1
+               'speckle'      Multiplicative noise using out = image + n*image
+                              where n is uniform noise with specified mean & variance
+      """
+      row,col,ch= image.shape
+      if noise_type == "gauss":
+         mean = 0.0
+         var = .1
+         sigma = var**0.5
+         gauss = np.array(image.shape)
+         gauss = np.random.normal(mean,sigma,(row,col,ch))
+         gauss = gauss.reshape(row,col,ch)
+         noisy = image + gauss
+         return noisy.astype('uint8')
+      elif noise_type == "s&p":
+         s_vs_p = 0.5
+         amount = 0.004
+         out = image
+         # Generate Salt '1' noise
+         num_salt = np.ceil(amount * image.size * s_vs_p)
+         coords = [np.random.randint(0, i - 1, int(num_salt))
+               for i in image.shape]
+         out[coords] = 255
+         # Generate Pepper '0' noise
+         num_pepper = np.ceil(amount* image.size * (1. - s_vs_p))
+         coords = [np.random.randint(0, i - 1, int(num_pepper))
+               for i in image.shape]
+         out[coords] = 0
+         return out
+      elif noise_type == "poisson":
+         vals = len(np.unique(image))
+         vals = 2 ** np.ceil(np.log2(vals))
+         noisy = np.random.poisson(image * vals) / float(vals)
+         return noisy
+      elif noise_type =="speckle":
+         gauss = np.random.randn(row,col,ch)
+         gauss = gauss.reshape(row,col,ch)
+         noisy = image + image * gauss
+         return noisy
+      else:
+         return image
    
    def augment_test(self,num):
       p = Augmentor.Pipeline(self.input_dir)
@@ -241,11 +294,22 @@ class ImageAugmentor:
       for x in files:
          prob = random.randint(0,9)
          fullname = path.join(input_dir_480,x)
-         print fullname
+         #print fullname
          if prob <= 2:
             os.system('convert -brightness-contrast 10x10 ' + fullname + ' ' + fullname)
          elif prob <= 4:
             os.system('convert -brightness-contrast -10x-10 ' + fullname + ' ' + fullname)
+
+         if 1 == 0: #add noise to images
+            prob = random.randint(0,9)
+            if prob <= 3:
+               img = misc.imread(fullname)
+               img = self.noise_generator('s&p',img)
+               misc.imsave(fullname,img)
+            elif prob <= 6:
+               img = misc.imread(fullname)
+               img = self.noise_generator('gauss',img)
+               misc.imsave(fullname,img)
 
    #############################################################
    def build_annotation_images(self):
@@ -384,6 +448,6 @@ if __name__ == '__main__':
    a.build_annotation_images()
    a.build_480_270_images()
    a.build_480_270_gt_images()
-   a.augment_test(27000)
+   a.augment_test(37000)
    a.get_range_data(path.join(sys.argv[1], str(width) + '_ground_truth'), path.join(sys.argv[1], str(width) + '_data'), 0)
    a.adjust_color()
