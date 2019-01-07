@@ -1,5 +1,6 @@
 import vrep
 import sys
+import numpy as np
 
 class _Getch:
     """Gets a single character from standard input.  Does not echo to the
@@ -56,7 +57,7 @@ initConnection()
 err_code,l_motor_handle = vrep.simxGetObjectHandle(clientID,"Pioneer_p3dx_leftMotor", vrep.simx_opmode_blocking)
 err_code,r_motor_handle = vrep.simxGetObjectHandle(clientID,"Pioneer_p3dx_rightMotor", vrep.simx_opmode_blocking)
 err_code,laser_scanner_handle = vrep.simxGetObjectHandle(clientID,"Pioneer_LaserScanner_2d", vrep.simx_opmode_blocking)
-err_code,signal = vrep.simxReadStringStream(clientID,"toClient", vrep.simx_opmode_streaming)
+err_code,signal = vrep.simxGetStringSignal(clientID,"test", vrep.simx_opmode_streaming)
 
 
 getch = _Getch()
@@ -72,8 +73,14 @@ while True:
       err_code = vrep.simxSetJointTargetVelocity(clientID,l_motor_handle,1.0,vrep.simx_opmode_blocking)
       err_code = vrep.simxSetJointTargetVelocity(clientID,r_motor_handle,.20,vrep.simx_opmode_blocking)
 
-   err_code,signal = vrep.simxReadStringStream(clientID,"toClient", vrep.simx_opmode_buffer)
-   print bytearray(signal)
+   err_code,signal = vrep.simxGetStringSignal(clientID,"test", vrep.simx_opmode_buffer)
+   
+   x = np.fromstring(signal, dtype='>f2')
+   #print '--------------'
+   #for i in range(9):
+   #   print x[i]
+   print x.size
+      
 
    #key = getch()
    #print key
