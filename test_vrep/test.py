@@ -52,21 +52,30 @@ def initConnection():
 clientID = 0
 initConnection()
 
+#get handles to the left and right motor
 err_code,l_motor_handle = vrep.simxGetObjectHandle(clientID,"Pioneer_p3dx_leftMotor", vrep.simx_opmode_blocking)
 err_code,r_motor_handle = vrep.simxGetObjectHandle(clientID,"Pioneer_p3dx_rightMotor", vrep.simx_opmode_blocking)
+err_code,laser_scanner_handle = vrep.simxGetObjectHandle(clientID,"Pioneer_LaserScanner_2d", vrep.simx_opmode_blocking)
+err_code,signal = vrep.simxReadStringStream(clientID,"toClient", vrep.simx_opmode_streaming)
+
 
 getch = _Getch()
+a = 'a'
 
 while True:
-   a = raw_input('')
-   print a
+   #a = raw_input('')
+   #print a
    if a == 's':
       err_code = vrep.simxSetJointTargetVelocity(clientID,l_motor_handle,0,vrep.simx_opmode_blocking)
+      err_code = vrep.simxSetJointTargetVelocity(clientID,r_motor_handle,0,vrep.simx_opmode_blocking)
    else:
       err_code = vrep.simxSetJointTargetVelocity(clientID,l_motor_handle,1.0,vrep.simx_opmode_blocking)
+      err_code = vrep.simxSetJointTargetVelocity(clientID,r_motor_handle,.20,vrep.simx_opmode_blocking)
 
+   err_code,signal = vrep.simxReadStringStream(clientID,"toClient", vrep.simx_opmode_buffer)
+   print bytearray(signal)
 
-#key = getch()
+   #key = getch()
    #print key
 
 vrep.simxFinish(-1) #close all opened connections
