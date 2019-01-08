@@ -41,12 +41,13 @@ class _GetchWindows:
 def initConnection():
    global clientID
 
-   vrep.simxFinish(-1) #close all opened connections
+   #vrep.simxFinish(-1) #close all opened connections
    clientID = vrep.simxStart('127.0.0.1', 19999, True, True, 5000, 5)
 
    if clientID != -1:
       print ("Connected to remote API server")
    else:
+      vrep.simxFinish(-1) #close all opened connections
       print ("Not connected to remote API server")
       sys.exit("Could not connect")
 
