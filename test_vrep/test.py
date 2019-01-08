@@ -82,7 +82,7 @@ while True:
    for i in range (len(signal)/16):
       pt = unpack_from('ffff', signal, i*16)
       x = (pt[2]**2 + pt[3]**2) ** .5
-      print pt
+      print pt, x
    print counter
    counter += 1
 
