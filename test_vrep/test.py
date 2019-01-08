@@ -1,6 +1,6 @@
 import vrep
 import sys
-import numpy as np
+from struct import *
 
 class _Getch:
     """Gets a single character from standard input.  Does not echo to the
@@ -62,6 +62,7 @@ err_code,signal = vrep.simxGetStringSignal(clientID,"test", vrep.simx_opmode_str
 
 getch = _Getch()
 a = 'a'
+counter = 0
 
 while True:
    #a = raw_input('')
@@ -75,11 +76,15 @@ while True:
 
    err_code,signal = vrep.simxGetStringSignal(clientID,"test", vrep.simx_opmode_buffer)
    
-   x = np.fromstring(signal, dtype='>f2')
-   #print '--------------'
-   #for i in range(9):
-   #   print x[i]
-   print x.size
+   print '--------------'
+   print len(signal)
+   for i in range (len(signal)/16):
+      pt = unpack_from('ffff', signal, i*16)
+      x = (pt[2]**2 + pt[3]**2) ** .5
+      print pt
+   print counter
+   counter += 1
+
       
 
    #key = getch()
