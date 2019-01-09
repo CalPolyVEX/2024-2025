@@ -21,6 +21,7 @@ class ImageAugmentor:
       self.width = width
       self.height = 270
       self.image_counter = 0
+      self.num_valid_images = 0 #number of valid images
       self.collection_dir = collection_dir
       self.jpg_files = [] #a list of the original .jpg files
       self.input_files = [] #list of the files renamed: 0.jpg, 1.jpg, ...
@@ -29,6 +30,8 @@ class ImageAugmentor:
       self.xml_dir = path.join(collection_dir,"Annotations/users/jseng/building14_hdr")
       self.orig_jpg_dir = path.join(collection_dir,"Images/users/jseng/building14_hdr")
       self.ground_output_dir = path.join(collection_dir,"ground_output")
+      self.test_image_dir = path.join(collection_dir,str(self.width) + "_test_input")
+      self.test_data_dir = path.join(collection_dir,str(self.width) + "_test_data")
 
    def noise_generator (self, noise_type,image):
       """
@@ -75,7 +78,7 @@ class ImageAugmentor:
          noisy = np.random.poisson(image * vals) / float(vals)
          return noisy
       elif noise_type =="speckle":
-         gauss = np.random.randn(row,col,ch)
+         gauss = .1 * np.random.randn(row,col,ch)
          gauss = gauss.reshape(row,col,ch)
          noisy = image + image * gauss
          return noisy
@@ -219,6 +222,7 @@ class ImageAugmentor:
       print "Converting input images to 480x270"
       files = os.listdir(self.input_dir)
       files.sort()
+      self.num_valid_images = len(files)
 
       #create directory for 480x270 input files
       input_dir_480 = path.join(self.collection_dir, str(self.width) + "_input")
@@ -300,7 +304,7 @@ class ImageAugmentor:
          elif prob <= 4:
             os.system('convert -brightness-contrast -10x-10 ' + fullname + ' ' + fullname)
 
-         if 1 == 0: #add noise to images
+         if 1 == 1: #add noise to images
             prob = random.randint(0,9)
             if prob <= 3:
                img = misc.imread(fullname)
@@ -308,7 +312,7 @@ class ImageAugmentor:
                misc.imsave(fullname,img)
             elif prob <= 6:
                img = misc.imread(fullname)
-               img = self.noise_generator('gauss',img)
+               img = self.noise_generator('speckle',img)
                misc.imsave(fullname,img)
 
    #############################################################
@@ -402,24 +406,61 @@ class ImageAugmentor:
          #cv2.waitKey(0)
          cv2.imwrite(path.join(self.ground_output_dir, f), img_new)
 
+   #############################################################
+   def build_test_set(self):
+      print '---build_test_set---'
+      #if the input directory does not exist, then create it
+      if not os.path.exists(self.test_image_dir):
+         os.makedirs(self.test_image_dir)
+         os.makedirs(self.test_data_dir)
+
+      input_dir_480 = path.join(self.collection_dir, str(self.width) + "_input")
+      data_dir_480 = path.join(self.collection_dir, str(self.width) + "_data")
+      files = os.listdir(input_dir_480)
+      data = os.listdir(data_dir_480)
+      files.sort()
+      data.sort()
+      files = files[0:self.num_valid_images]
+      data = data[0:self.num_valid_images]
+
+      for f in files:
+         os.system('cd ' + sys.argv[1] + '/480_input; cp ' + f + ' ../480_test_input')
+      for d in data:
+         os.system('cd ' + sys.argv[1] + '/480_data; cp ' + d + ' ../480_test_data')
+
+
+
    def upload(self):
       img_cmd = 'rm -f img.tar.gz; tar zcf img.tar.gz -C ' + self.collection_dir + '/' + str(self.width) + '_input/ .'
+      test_img_cmd = 'rm -f test_img.tar.gz; tar zcf test_img.tar.gz -C ' + self.collection_dir + '/' + str(self.width) + '_test_input/ .'
 
       data_cmd = 'rm -f data.tar.gz; tar zcf data.tar.gz -C ' + self.collection_dir + '/' + str(self.width) + '_data/ .'
+      test_data_cmd = 'rm -f test_data.tar.gz; tar zcf test_data.tar.gz -C ' + self.collection_dir + '/' + str(self.width) + '_test_data/ .'
 
       img_cp = 'scp img.tar.gz unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/' + str(self.width) + '_images'
+      test_img_cp = 'scp test_img.tar.gz unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/' + str(self.width) + '_test_images'
       data_cp = 'scp data.tar.gz unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/' + str(self.width) + '_data'
+      test_data_cp = 'scp test_data.tar.gz unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/' + str(self.width) + '_test_data'
       
       os.system(img_cmd)
       os.system(data_cmd)
+      os.system(test_img_cmd)
+      os.system(test_data_cmd)
+
       os.system(img_cp)
       os.system(data_cp)
+      os.system(test_img_cp)
+      os.system(test_data_cp)
       os.system('rm -f img.tar.gz')
       os.system('rm -f data.tar.gz')
+      os.system('rm -f test_img.tar.gz')
+      os.system('rm -f test_data.tar.gz')
 
       print '---extracting remote files---'
       img_unzip = 'ssh unix3.csc.calpoly.edu \'cd ue4/ground_detection/gpu_code/' + str(self.width) + '_images; rm -f *.jpg; tar -xzf img.tar.gz; rm img.tar.gz\''
+      test_img_unzip = 'ssh unix3.csc.calpoly.edu \'cd ue4/ground_detection/gpu_code/' + str(self.width) + '_test_images; rm -f *.jpg; tar -xzf test_img.tar.gz; rm test_img.tar.gz\''
       data_unzip = 'ssh unix3.csc.calpoly.edu \'cd ue4/ground_detection/gpu_code/' + str(self.width) + '_data; rm -f *.txt; tar -xzf data.tar.gz; rm data.tar.gz\''
+      test_data_unzip = 'ssh unix3.csc.calpoly.edu \'cd ue4/ground_detection/gpu_code/' + str(self.width) + '_test_data; rm -f *.txt; tar -xzf test_data.tar.gz; rm test_data.tar.gz\''
       os.system(img_unzip)
       os.system(data_unzip)
 
@@ -431,6 +472,8 @@ if __name__ == '__main__':
       #sys.exit()
    elif sys.argv[1] == 'clean':
       print "clean"
+      os.system('cd ' + sys.argv[2] + '/' + str(width) + '_test_input; rm -f *.jpg; rm -f *.zip')
+      os.system('cd ' + sys.argv[2] + '/' + str(width) + '_test_data; rm -f *.jpg; rm -f *.zip')
       os.system('cd ' + sys.argv[2] + '/' + str(width) + '_input; rm -f *.jpg; rm -f *.zip')
       os.system('cd ' + sys.argv[2] + '/' + str(width) + '_data; rm -f *.txt; rm -f *.zip')
       os.system('cd ' + sys.argv[2] + '/' + str(width) + '_ground_truth; rm -f *.jpg')
@@ -448,6 +491,8 @@ if __name__ == '__main__':
    a.build_annotation_images()
    a.build_480_270_images()
    a.build_480_270_gt_images()
-   a.augment_test(37000)
+   a.augment_test(52)
+   #a.augment_test(300)
    a.get_range_data(path.join(sys.argv[1], str(width) + '_ground_truth'), path.join(sys.argv[1], str(width) + '_data'), 0)
+   a.build_test_set()
    a.adjust_color()
