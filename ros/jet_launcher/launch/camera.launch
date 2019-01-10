@@ -34,7 +34,6 @@
    <group ns="see3cam_cu20/image_raw" >
       <rosparam param="disable_pub_plugins">
          - 'image_transport/compressedDepth'
-         - 'image_transport/compressed'
          - 'image_transport/theora'
       </rosparam>
    </group>
