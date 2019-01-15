@@ -37,17 +37,26 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <arg name="depth_camera_info_topic" 	default="depth/camera_info" />
     <arg name="camera_frame"              default="zed_camera_center" />
 
+
     <!-- RTAB-map Node-->
     <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
       <arg name="rtabmap_args"		value="--delete_db_on_start" />
       <arg name="rgb_topic"               	value="/$(arg zed_namespace)/data_throttled_image" />
+      <!--<arg name="rgb_topic"               	value="/camera/data_throttled_image" /> -->
       <arg name="depth_topic"             	value="/$(arg zed_namespace)/data_throttled_image_depth" />
+      <!--<arg name="depth_topic"             	value="/camera/data_throttled_image_depth" />-->
       <arg name="camera_info_topic"       	value="/$(arg zed_namespace)/data_throttled_camera_info" />
       <arg name="depth_camera_info_topic" 	value="/$(arg zed_namespace)/depth/camera_info" />
       <arg name="frame_id"                  value="$(arg camera_frame)" />
       <arg name="approx_sync"               value="false" />
       <arg name="visual_odometry"           value="false" />
-      <arg name="compressed"                value="true" />
+      <arg name="compressed"                value="false" />
+      <arg name="rgb_image_transport"       value="compressed" />
+      <arg name="depth_image_transport"     value="compressedDepth" />
       <arg name="odom_topic"                value="/$(arg zed_namespace)/odom" />
     </include>
+
+<!--
+    <node name="republish_rgb" type="republish" pkg="image_transport" output="screen" args="compressed in:=/zed/data_throttled_image raw out:=/camera/data_throttled_image" />
+    <node name="republish_depth" type="republish" pkg="image_transport" output="screen" args="compressedDepth in:=/zed/data_throttled_image_depth raw out:=/camera/data_throttled_image_depth" />  -->
 </launch>
