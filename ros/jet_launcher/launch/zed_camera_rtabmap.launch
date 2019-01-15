@@ -17,43 +17,89 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 <launch>
-    <arg name="zed_namespace"		    	default="zed" />
+   <arg name="zed_namespace"		    	default="zed" />
 
-    <arg name="svo_file"              	default="" /> <!-- <arg name="svo_file" default="path/to/svo/file.svo"> -->
+   <arg name="svo_file"              	default="" /> <!-- <arg name="svo_file" default="path/to/svo/file.svo"> -->
 
-    <arg name="camera_model"         	default="0" /> <!-- 0=ZED, 1=ZEDM-->
-    <arg name="serial_number"        	default="0" />
-    <arg name="verbose"              	default="true" />
-    <arg name="resolution"           	default="2" /> <!--0=RESOLUTION_HD2K, 1=RESOLUTION_HD1080, 2=RESOLUTION_HD720, 3=RESOLUTION_VGA -->
-    <arg name="frame_rate"           	default="30" />
-    <!-- RESOLUTION_HD2K   -> 2208*1242, available framerates: 15 fps.
-       RESOLUTION_HD1080 -> 1920*1080, available framerates: 15, 30 fps.
-       RESOLUTION_HD720  -> 1280*720,  available framerates: 15, 30, 60 fps.
-       RESOLUTION_VGA    -> 672*376,   available framerates: 15, 30, 60, 100 fps. -->
+   <arg name="camera_model"         	default="0" /> <!-- 0=ZED, 1=ZEDM-->
+   <arg name="serial_number"        	default="0" />
+   <arg name="verbose"              	default="true" />
+   <arg name="resolution"           	default="2" /> <!--0=RESOLUTION_HD2K, 1=RESOLUTION_HD1080, 2=RESOLUTION_HD720, 3=RESOLUTION_VGA -->
+   <arg name="frame_rate"           	default="30" />
+   <!-- RESOLUTION_HD2K   -> 2208*1242, available framerates: 15 fps.
+      RESOLUTION_HD1080 -> 1920*1080, available framerates: 15, 30 fps.
+      RESOLUTION_HD720  -> 1280*720,  available framerates: 15, 30, 60 fps.
+      RESOLUTION_VGA    -> 672*376,   available framerates: 15, 30, 60, 100 fps. -->
 
-    <arg name="rgb_topic"               	default="rgb/image_rect_color" />
-    <arg name="depth_topic"             	default="depth/depth_registered" />
-    <arg name="camera_info_topic"       	default="rgb/camera_info" />
-    <arg name="depth_camera_info_topic" 	default="depth/camera_info" />
-    <arg name="camera_frame"              default="zed_camera_center" />
+   <arg name="rgb_topic"               	default="rgb/image_rect_color" />
+   <arg name="depth_topic"             	default="depth/depth_registered" />
+   <arg name="camera_info_topic"       	default="rgb/camera_info" />
+   <arg name="depth_camera_info_topic" 	default="depth/camera_info" />
+   <arg name="camera_frame"              default="zed_camera_center" />
 
-    <group ns="$(arg zed_namespace)">
-        <!-- ZED Wrapper Node-->
-        <include file="$(find zed_wrapper)/launch/zed_camera.launch">
-          <arg name="svo_file"            	value="$(arg svo_file)" />
-          <arg name="camera_model"        	value="$(arg camera_model)" />
-          <arg name="serial_number"       	value="$(arg serial_number)" />
-          <arg name="resolution"          	value="$(arg resolution)" />
-          <arg name="frame_rate"          	value="$(arg frame_rate)" />
-          <arg name="verbose"             	value="$(arg verbose)" />
+   <group ns="$(arg zed_namespace)">
+      <!-- ZED Wrapper Node-->
+      <include file="$(find zed_wrapper)/launch/zed_camera.launch">
+         <arg name="svo_file"            	value="$(arg svo_file)" />
+         <arg name="camera_model"        	value="$(arg camera_model)" />
+         <arg name="serial_number"       	value="$(arg serial_number)" />
+         <arg name="resolution"          	value="$(arg resolution)" />
+         <arg name="frame_rate"          	value="$(arg frame_rate)" />
+         <arg name="verbose"             	value="$(arg verbose)" />
 
-          <arg name="rgb_topic"                 value="$(arg rgb_topic)" />
-          <arg name="depth_topic"               value="$(arg depth_topic)" />
-          <arg name="rgb_info_topic"       	value="$(arg camera_info_topic)" />
-          <arg name="depth_cam_info_topic" 	value="$(arg depth_camera_info_topic)" />
-          <arg name="base_frame"                value="$(arg camera_frame)" />
+         <arg name="rgb_topic"                 value="$(arg rgb_topic)" />
+         <arg name="depth_topic"               value="$(arg depth_topic)" />
+         <arg name="rgb_info_topic"       	value="$(arg camera_info_topic)" />
+         <arg name="depth_cam_info_topic" 	value="$(arg depth_camera_info_topic)" />
+         <arg name="base_frame"                value="$(arg camera_frame)" />
 
-          <arg name="publish_map_tf"            value="false" />
-        </include>
-    </group>
+         <arg name="publish_map_tf"            value="false" />
+      </include>
+
+   
+      <!-- Nodelet Manager -->
+      <arg name="nodelet_manager_name" default="zed_nodelet_manager" />
+      <node pkg="nodelet" type="nodelet" name="$(arg nodelet_manager_name)"  args="manager" output="screen" />
+
+      <arg name="rate"  default="5.0"/>
+      <arg name="decimation"  default="1"/> <!-- Reduce the image size, e.g., 2 means "width/2 x height/2". -->
+      <arg name="approx_sync" default="true" />
+
+      <!--<node pkg="nodelet" type="nodelet" name="data_throttle" args="load rtabmap_ros/data_throttle zed_nodelet_manager" output="screen"> -->
+      <node pkg="nodelet" type="nodelet" name="data_throttle" args="load rtabmap_ros/data_throttle zed_nodelet_manager" output="screen">
+         <param name="rate" type="double" value="$(arg rate)"/>
+         <param name="decimation" type="int" value="$(arg decimation)"/>
+         <param name="approx_sync" type="bool" value="$(arg approx_sync)"/>
+
+         <remap from="rgb/image_in"       to="rgb/image_rect_color"/>
+         <remap from="depth/image_in"     to="depth_registered/image_raw"/>
+         <remap from="rgb/camera_info_in" to="rgb/camera_info"/>
+
+         <remap from="rgb/image_out"       to="data_throttled_image"/>
+         <remap from="depth/image_out"     to="data_throttled_image_depth"/>
+         <remap from="rgb/camera_info_out" to="data_throttled_camera_info"/>
+      </node>
+   </group>
+
+   <!-- Data Throttle items -->
+   <arg name="rate"  default="5.0"/>
+   <arg name="decimation"  default="1"/> <!-- Reduce the image size, e.g., 2 means "width/2 x height/2". -->
+   <arg name="approx_sync" default="true" />
+
+<!-- Use same nodelet used by Freenect/OpenNI -->
+<!--  <group ns="$(arg zed_namespace)">
+    <node pkg="nodelet" type="nodelet" name="data_throttle" args="load rtabmap_ros/data_throttle camera_nodelet_manager" output="screen">
+      <param name="rate" type="double" value="$(arg rate)"/>
+      <param name="decimation" type="int" value="$(arg decimation)"/>
+      <param name="approx_sync" type="bool" value="$(arg approx_sync)"/>
+
+      <remap from="rgb/image_in"       to="rgb/image_rect_color"/>
+      <remap from="depth/image_in"     to="depth_registered/image_raw"/>
+      <remap from="rgb/camera_info_in" to="rgb/camera_info"/>
+
+      <remap from="rgb/image_out"       to="data_throttled_image"/>
+      <remap from="depth/image_out"     to="data_throttled_image_depth"/>
+      <remap from="rgb/camera_info_out" to="data_throttled_camera_info"/>
+    </node>
+  </group>    -->
 </launch>
