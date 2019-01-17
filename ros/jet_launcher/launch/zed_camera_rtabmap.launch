@@ -54,6 +54,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
          <arg name="base_frame"                value="$(arg camera_frame)" />
 
          <arg name="publish_map_tf"            value="false" />
+         <arg name="openni_depth_mode"         value="1" />
       </include>
 
       <!-- Nodelet Manager -->
