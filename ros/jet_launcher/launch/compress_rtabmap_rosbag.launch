@@ -17,6 +17,6 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 <launch>
-    <node name="republish_rgb" type="republish" pkg="image_transport" output="screen" args="raw in:=/zed/data_throttled_image compressed out:=/zed/data_throttled_image/compressed" />
-    <node name="republish_depth" type="republish" pkg="image_transport" output="screen" args="raw in:=/zed/data_throttled_image_depth compressedDepth out:=/zed/data_throttled_image_depth/compressedDepth" />  
+    <node name="republish_rgb" type="republish" pkg="image_transport" output="screen" args="raw in:=/zed/data_throttled_image compressed out:=/zed/data_throttled_image_relay" />
+    <node name="republish_depth" type="republish" pkg="image_transport" output="screen" args="raw in:=/zed/data_throttled_image_depth compressedDepth out:=/zed/data_throttled_image_depth_relay" />  
 </launch>
