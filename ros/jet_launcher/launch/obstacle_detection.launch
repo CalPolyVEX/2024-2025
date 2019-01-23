@@ -25,6 +25,7 @@
       <param name="map_frame_id"         type="string" value="zed_camera_center"/>
       <param name="wait_for_transform"   type="bool" value="false"/>
       <!--<param name="Grid/MinClusterSize"     type="int" value="20"/> -->
-      <!--<param name="Grid/MaxObstaclesHeight" type="double" value="0.4"/> -->
+      <param name="Grid/MinClusterSize"     type="int" value="20"/> 
+      <param name="Grid/MaxObstaclesHeight" type="double" value="0.4"/> 
   </node>  
 </launch>
