@@ -17,7 +17,7 @@ local_costmap:
   point_cloud_sensor: {
     sensor_frame: base_footprint,
     data_type: PointCloud2, 
-    topic: openni_points, 
+    topic: obstacles_cloud, 
     expected_update_rate: 0.5, 
     marking: true, 
     clearing: true,
