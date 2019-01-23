@@ -85,6 +85,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    </group>
 
    <!-- Throttle the rate that images are published from the camera to 1.0Hz-->
-   <node pkg="topic_tools" name="throttle" type="throttle" args="messages /zed/point_cloud/cloud_registered 2.0" />
+   <node pkg="topic_tools" name="throttle" type="throttle" args="messages /zed/point_cloud/cloud_registered 2.0 /zed/throttled_point_cloud" />
 
 </launch>
