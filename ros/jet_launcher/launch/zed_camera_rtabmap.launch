@@ -26,7 +26,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    <arg name="camera_model"         	default="0" /> <!-- 0=ZED, 1=ZEDM-->
    <arg name="serial_number"        	default="0" />
    <arg name="verbose"              	default="true" />
-   <arg name="resolution"           	default="2" /> <!--0=RESOLUTION_HD2K, 1=RESOLUTION_HD1080, 2=RESOLUTION_HD720, 3=RESOLUTION_VGA -->
+   <arg name="resolution"           	default="3" /> <!--0=RESOLUTION_HD2K, 1=RESOLUTION_HD1080, 2=RESOLUTION_HD720, 3=RESOLUTION_VGA -->
    <arg name="frame_rate"           	default="30" />
    <!-- RESOLUTION_HD2K   -> 2208*1242, available framerates: 15 fps.
       RESOLUTION_HD1080 -> 1920*1080, available framerates: 15, 30 fps.
@@ -38,6 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
    <arg name="camera_info_topic"       	default="rgb/camera_info" />
    <arg name="depth_camera_info_topic" 	default="depth/camera_info" />
    <arg name="camera_frame"              default="zed_camera_center" />
+   <arg name="quality"  value="4" />
 
    <group ns="$(arg zed_namespace)">
       <!-- ZED Wrapper Node-->
@@ -56,6 +57,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
          <arg name="base_frame"                value="$(arg camera_frame)" />
 
          <arg name="publish_map_tf"            value="false" />
+         <!--<arg name="quality"  value="1" /> 1 is PERFORMANCE-->
          <!-- <arg name="openni_depth_mode"         value="1" />   -->
       </include>
 
@@ -63,7 +65,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <arg name="nodelet_manager_name" default="zed_nodelet_manager" />
       <node pkg="nodelet" type="nodelet" name="$(arg nodelet_manager_name)"  args="manager" output="screen" />
 
-      <arg name="rate"  default="5.0"/>
+      <arg name="rate"  default="2.0"/>
       <arg name="decimation"  default="1"/> <!-- Reduce the image size, e.g., 2 means "width/2 x height/2". -->
       <arg name="approx_sync" default="true" />
 
