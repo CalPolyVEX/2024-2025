@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-   <arg name="camera_num" default="0" />
+   <arg name="camera_num" default="1" />
    <include file="$(find video_stream_opencv)/launch/camera.launch" >
       <!-- node name and ros graph name -->
       <arg name="camera_name" value="see3cam_cu20" />
@@ -26,10 +26,10 @@
    </include>
 
    <!-- Throttle the rate that images are published from the camera to 1.0Hz-->
-   <node pkg="topic_tools" name="throttle" type="throttle" args="messages /see3cam_cu20/image_raw 1.0" />
+   <!--<node pkg="topic_tools" name="throttle" type="throttle" args="messages /see3cam_cu20/image_raw 1.0" /> -->
 
    <!-- Resize the image to 480x270 -->
-   <node pkg="image_test" type="resize_to_480_270.py" name="resize480_node" />
+   <!--<node pkg="image_test" type="resize_to_480_270.py" name="resize480_node" />-->
 
    <group ns="see3cam_cu20/image_raw" >
       <rosparam param="disable_pub_plugins">
@@ -38,5 +38,5 @@
       </rosparam>
    </group>
 
-   <include file="$(find jet_launcher)/launch/compressed_video_480.launch" />
+   <!--<include file="$(find jet_launcher)/launch/compressed_video_480.launch" /> -->
 </launch>
