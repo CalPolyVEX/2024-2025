@@ -69,6 +69,7 @@ class camera_transform:
 
       #distortion coefficients
       self.distCoeffs = np.array([[-0.350545], [0.098685], [-0.004605], [-0.001945], [0.000000]])
+      #self.distCoeffs = np.array([[0], [0], [0], [0], [0.000000]])
 
       self.retval, self.rvec, self.tvec = cv2.solvePnP(self.objectPoints, self.imagePoints, self.cameraMatrix, self.distCoeffs, flags=cv2.SOLVEPNP_ITERATIVE)
 

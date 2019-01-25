@@ -80,7 +80,7 @@ class GroundDetector:
    def run(self, input_image):
       results = self.sess.run(self.output_operation.outputs[0], {self.input_operation.outputs[0]: input_image})
 
-      if 1==1:
+      if 1==0:
          #kalman filter the output points
          output = np.zeros(shape=(48,1))
          for i in range(48):

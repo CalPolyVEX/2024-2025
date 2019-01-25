@@ -17,8 +17,8 @@ from std_msgs.msg import Header
 class range_data_node:
    def __init__(self):
       rospy.init_node("create_cloud_xyzrgb")
-      self.pub = rospy.Publisher("test_point_cloud", PointCloud2, queue_size=2)
-      self.sub = rospy.Subscriber("point_array", ground_boundary, self.callback)
+      self.pub = rospy.Publisher("/test_point_cloud", PointCloud2, queue_size=2)
+      self.sub = rospy.Subscriber("/point_array", ground_boundary, self.callback)
 
    def callback(self,data):
       ground_points_x = data.point_x

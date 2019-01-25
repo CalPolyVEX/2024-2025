@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
 <launch>
+   <!--<include file="$(find jet_launcher)/launch/camera.launch"/> -->
    <include file="$(find jet_launcher)/launch/zed_camera_rtabmap.launch"/>
    <include file="$(find jet_launcher)/launch/zed_rtabmap.launch"/>
    <include file="$(find jet_launcher)/launch/obstacle_detection.launch"/>
