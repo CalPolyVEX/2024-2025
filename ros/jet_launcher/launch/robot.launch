@@ -1,8 +1,17 @@
 <?xml version="1.0"?>
 <launch>
+   <arg name="planning" default="false" />
+   <arg name="mapping" default="false" />
+
    <!--<include file="$(find jet_launcher)/launch/camera.launch"/> -->
    <include file="$(find jet_launcher)/launch/zed_camera_rtabmap.launch"/>
-   <include file="$(find jet_launcher)/launch/zed_rtabmap.launch"/>
-   <include file="$(find jet_launcher)/launch/obstacle_detection.launch"/>
-   <include file="$(find jet_launcher)/launch/planner/planner.launch"/>
+
+   <group if="$(arg mapping)">
+      <include file="$(find jet_launcher)/launch/zed_rtabmap.launch"/>
+   </group>
+
+   <group if="$(arg planning)">
+      <include file="$(find jet_launcher)/launch/obstacle_detection.launch"/>
+      <include file="$(find jet_launcher)/launch/planner/planner.launch"/>
+   </group>
 </launch>
