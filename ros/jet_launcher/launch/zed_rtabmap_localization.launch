@@ -13,11 +13,10 @@ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
 LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
 DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 <launch>
-    <include file="$(find image_test)/launch/tf_publisher.launch" />  
+    <include file="$(find image_test)/launch/tf_publisher.launch" />
 
     <arg name="zed_namespace"		    	default="zed" />
 
@@ -40,29 +39,29 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <arg name="depth_camera_info_topic" 	default="depth/camera_info" />
     <arg name="camera_frame"              default="zed_camera_center" />
 
+    <arg name="sim"               	default="false" />
+    <group if="$(arg sim)">
+        <param name="/rtabmap/rtabmap/Reg/Force3DoF"    value="true" />
+        <param name="/use_sim_time" value="true" />
+    </group>
 
     <!-- RTAB-map Node-->
     <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
       <!--<arg name="rtabmap_args"		value="delete_db_on_start" /> --> 
       <arg name="rgb_topic"               	value="/$(arg zed_namespace)/data_throttled_image" />
-      <!--<arg name="rgb_topic"               	value="/camera/data_throttled_image" /> -->
       <arg name="depth_topic"             	value="/$(arg zed_namespace)/data_throttled_image_depth" />
-      <!--<arg name="depth_topic"             	value="/camera/data_throttled_image_depth" />-->
       <arg name="camera_info_topic"       	value="/$(arg zed_namespace)/data_throttled_camera_info" />
       <arg name="depth_camera_info_topic" 	value="/$(arg zed_namespace)/depth/camera_info" />
       <arg name="frame_id"                  value="$(arg camera_frame)" />
-      <arg name="approx_sync"               value="false" />
+      <arg name="approx_sync"               value="true" />
       <arg name="visual_odometry"           value="false" />
       <arg name="compressed"                value="false" />
       <arg name="rgb_image_transport"       value="compressed" />
       <arg name="depth_image_transport"     value="compressedDepth" />
       <arg name="odom_topic"                value="/$(arg zed_namespace)/odom" />
+      <!--<arg name="wait_for_transform"                value=".8" />-->
       <!--<arg name="localization"                value="false" /> -->
       <arg name="localization"                value="true" />
-      <param name="Reg/Force3DoF"    value="true" />
-      <param name="Optimizer/Slam2D" value="true" />
       <!--<param name="publish_tf" type="bool" value="false" /> -->
-
     </include>
-
 </launch>
