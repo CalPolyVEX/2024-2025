@@ -17,6 +17,8 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 <launch>
+    <node pkg="image_test" type="zed_odom_test.py" name="zed_odom_test" cwd="node"/> 
+
     <arg name="zed_namespace"		    	default="zed" />
 
     <arg name="svo_file"              	default="" /> <!-- <arg name="svo_file" default="path/to/svo/file.svo"> -->
@@ -38,7 +40,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <arg name="depth_camera_info_topic" 	default="depth/camera_info" />
     <arg name="camera_frame"              default="zed_camera_center" />
 
-
     <!-- RTAB-map Node-->
     <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
       <arg name="rtabmap_args"		value="--delete_db_on_start" />  
@@ -51,12 +52,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <arg name="frame_id"                  value="$(arg camera_frame)" />
       <!--<arg name="frame_id"                  value="base_link" /> -->
       <arg name="odom_frame_id"                  value="odom" />
-      <arg name="approx_sync"               value="false" />
+      <arg name="approx_sync"               value="true" />
       <arg name="visual_odometry"           value="false" />
       <arg name="compressed"                value="false" />
       <arg name="rgb_image_transport"       value="compressed" />
       <arg name="depth_image_transport"     value="compressedDepth" />
-      <arg name="odom_topic"                value="/$(arg zed_namespace)/odom" />
+      <arg name="odom_topic"                value="/$(arg zed_namespace)/new_odom" />
       <!--<arg name="localization"                value="false" /> -->
       <arg name="localization"                value="false" />
       <!--<param name="Reg/Force3DoF"    value="true" />

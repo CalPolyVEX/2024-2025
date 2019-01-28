@@ -67,6 +67,14 @@ Visualization Manager:
           Value: true
         zed_camera_center:
           Value: true
+        zed_left_camera_frame:
+          Value: false
+        zed_left_camera_optical_frame:
+          Value: false
+        zed_right_camera_frame:
+          Value: false
+        zed_right_camera_optical_frame:
+          Value: false
       Marker Scale: 1
       Name: TF
       Show Arrows: true
@@ -74,11 +82,19 @@ Visualization Manager:
       Show Names: true
       Tree:
         map:
-          odom:
-            zed_camera_center:
-              base_link:
-                cam1:
-                  {}
+          {}
+        odom:
+          {}
+        zed_camera_center:
+          base_link:
+            cam1:
+              {}
+          zed_left_camera_frame:
+            zed_left_camera_optical_frame:
+              {}
+          zed_right_camera_frame:
+            zed_right_camera_optical_frame:
+              {}
       Update Interval: 0
       Value: true
     - Alpha: 0.699999988079071
@@ -152,5 +168,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1304
-  X: 354
-  Y: 31
+  X: 261
+  Y: 67

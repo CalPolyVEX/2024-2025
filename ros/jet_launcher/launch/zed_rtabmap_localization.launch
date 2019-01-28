@@ -18,6 +18,8 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 <launch>
     <include file="$(find image_test)/launch/tf_publisher.launch" />
 
+    <node pkg="image_test" type="zed_odom_test.py" name="zed_odom_test" cwd="node"/> 
+
     <arg name="zed_namespace"		    	default="zed" />
 
     <arg name="svo_file"              	default="" /> <!-- <arg name="svo_file" default="path/to/svo/file.svo"> -->
@@ -58,7 +60,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
       <arg name="compressed"                value="false" />
       <arg name="rgb_image_transport"       value="compressed" />
       <arg name="depth_image_transport"     value="compressedDepth" />
-      <arg name="odom_topic"                value="/$(arg zed_namespace)/odom" />
+      <arg name="odom_topic"                value="/$(arg zed_namespace)/new_odom" />
       <!--<arg name="wait_for_transform"                value=".8" />-->
       <!--<arg name="localization"                value="false" /> -->
       <arg name="localization"                value="true" />
