@@ -58,7 +58,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <arg name="compressed"                value="false" />
       <arg name="rgb_image_transport"       value="compressed" />
       <arg name="depth_image_transport"     value="compressedDepth" />
-      <arg name="odom_topic"                value="/$(arg zed_namespace)/new_odom" />
+      <arg name="odom_topic"                value="/$(arg zed_namespace)/odom" />
       <!--<arg name="localization"                value="false" /> -->
       <arg name="localization"                value="false" />
       <param name="Optimizer/Slam2D" value="true" /> -->
