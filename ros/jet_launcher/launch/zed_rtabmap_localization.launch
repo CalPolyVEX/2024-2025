@@ -16,8 +16,6 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 <launch>
-    <include file="$(find image_test)/launch/tf_publisher.launch" />
-
     <node pkg="image_test" type="zed_odom_test.py" name="zed_odom_test" cwd="node"/> 
 
     <arg name="zed_namespace"		    	default="zed" />
@@ -45,6 +43,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
     <group if="$(arg sim)">
         <!--<param name="/rtabmap/rtabmap/Reg/Force3DoF"    value="true" />  -->
         <param name="/use_sim_time" value="true" />
+        <include file="$(find image_test)/launch/tf_publisher.launch" /> 
     </group>
 
     <!-- RTAB-map Node-->

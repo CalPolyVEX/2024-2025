@@ -2,12 +2,17 @@
 <launch>
    <arg name="planning" default="false" />
    <arg name="mapping" default="false" />
+   <arg name="localization" default="false" />
 
    <!--<include file="$(find jet_launcher)/launch/camera.launch"/> -->
    <include file="$(find jet_launcher)/launch/zed_camera_rtabmap.launch"/>
 
    <group if="$(arg mapping)">
       <include file="$(find jet_launcher)/launch/zed_rtabmap.launch"/>
+   </group>
+
+   <group if="$(arg localization)">
+      <include file="$(find jet_launcher)/launch/zed_rtabmap_localization.launch"/>
    </group>
 
    <group if="$(arg planning)">
