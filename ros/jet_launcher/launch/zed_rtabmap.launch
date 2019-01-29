@@ -17,6 +17,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 <launch>
+    <!--<param name="/rtabmap/rtabmap/Reg/Force3DoF"    value="true" /> -->
     <node pkg="image_test" type="zed_odom_test.py" name="zed_odom_test" cwd="node"/> 
 
     <arg name="zed_namespace"		    	default="zed" />
@@ -60,7 +61,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <arg name="odom_topic"                value="/$(arg zed_namespace)/new_odom" />
       <!--<arg name="localization"                value="false" /> -->
       <arg name="localization"                value="false" />
-      <!--<param name="Reg/Force3DoF"    value="true" />
       <param name="Optimizer/Slam2D" value="true" /> -->
 
     </include>

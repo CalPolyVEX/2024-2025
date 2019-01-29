@@ -43,7 +43,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 
     <arg name="sim"               	default="false" />
     <group if="$(arg sim)">
-        <param name="/rtabmap/rtabmap/Reg/Force3DoF"    value="true" />
+        <!--<param name="/rtabmap/rtabmap/Reg/Force3DoF"    value="true" />  -->
         <param name="/use_sim_time" value="true" />
     </group>
 
