@@ -32,15 +32,18 @@ my_env = os.environ.copy()
 my_env["PATH"] = "/opt/ros/melodic/bin:/home/jseng/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
 
 for i in range(len(l)):
-   process = subprocess.Popen(["roslaunch", "jet_launcher", "zed_rtabmap.launch"], env=my_env)
-   time.sleep(10)
+   process = subprocess.Popen(["roslaunch", "jet_launcher", "zed_rtabmap.launch"], env=my_env, close_fds=True)
+   print process
+   time.sleep(20)
    print process.pid
-   command = 'cd /home/jseng/.ros; rosbag play --clock ' + l[i]
+   command = 'cd /home/jseng/.ros; rosbag play --clock ' + l[i] + ';' 
    os.system(command)
    print command + ',' + db_files[i]
-   copy_command = 'cd /home/jseng/.ros; cp rtabmap.db ' + l[i]
-   os.system(command)
+   time.sleep(5)
+   process.terminate()
+   time.sleep(10)
+   copy_command = 'cd /home/jseng/.ros; cp rtabmap.db ' + db_files[i]
+   os.system(copy_command)
    print copy_command
 
-   process.terminate()
    time.sleep(10)
