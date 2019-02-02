@@ -181,7 +181,8 @@ class Node:
 
         self.MAX_ABS_LINEAR_SPEED = float(rospy.get_param("~max_abs_linear_speed", "1.0"))
         self.MAX_ABS_ANGULAR_SPEED = float(rospy.get_param("~max_abs_angular_speed", "1.0"))
-        self.TICKS_PER_METER = float(rospy.get_param("~ticks_per_meter", "4342.2"))
+        self.TICKS_PER_METER = float(rospy.get_param("~ticks_per_meter", "1000"))
+        #self.TICKS_PER_METER = float(rospy.get_param("~ticks_per_meter", "4342.2"))
         self.BASE_WIDTH = float(rospy.get_param("~base_width", "0.315"))
         self.ACC_LIM = float(rospy.get_param("~acc_lim", "0.1"))
 
@@ -206,7 +207,7 @@ class Node:
         while not rospy.is_shutdown():
             with self.lock:
                 if (rospy.get_rostime() - self.last_set_speed_time).to_sec() > 1:
-                    rospy.loginfo("Did not get comand for 1 second, stopping")
+                    rospy.loginfo("Did not get command for 1 second, stopping")
                     try:
                         roboclaw.ForwardM1(self.address, 0)
                         roboclaw.ForwardM2(self.address, 0)
@@ -220,12 +221,12 @@ class Node:
                 statusC, amp1, amp2 = None, None, None
 
                 try:
-                    status1, enc1, crc1 = roboclaw.ReadEncM1(self.address)
+                    crc1, enc1, status1 = roboclaw.ReadEncM1(self.address)
                 except ValueError:
                     pass
 
                 try:
-                    status2, enc2, crc2 = roboclaw.ReadEncM2(self.address)
+                    crc2, enc2, status2 = roboclaw.ReadEncM2(self.address)
                 except ValueError:
                     pass
                 try:
@@ -233,7 +234,7 @@ class Node:
                 except ValueError:
                     pass
 
-                if (enc1 != None) & (enc2 != None):
+                if (enc1 != None) and (enc2 != None):
                     rospy.logdebug(" Encoders %d %d" % (enc1, enc2))
                     self.encodm.update_publish(enc1, enc2)
                     self.updater.update()
@@ -243,8 +244,8 @@ class Node:
                 if (amp1 != None) & (amp2 != None):
                     rospy.logdebug(" Currents %d %d" % (amp1, amp2))
                     amps=Motors_currents()
-                    amps.motor1=float(amp1)/100
-                    amps.motor2=float(amp2)/100
+                    amps.motor1=float(amp1)/100.0
+                    amps.motor2=float(amp2)/100.0
                     self.motors_currents_pub.publish(amps)
                 else:
                     rospy.logdebug("Error Reading Currents")
@@ -273,17 +274,23 @@ class Node:
             v_wheels.wheel2=vr
             self.wheels_speeds_pub.publish(v_wheels)
 
-
             rospy.logdebug("vr_ticks:%d vl_ticks: %d", vr_ticks, vl_ticks)
 
             try:
                 #Replaced to implement watchdog
+                #JS
                 #roboclaw.SpeedM1M2(self.address, vr_ticks, vl_ticks)
+                #roboclaw.SpeedM1(self.address, vl_ticks)
+                roboclaw.DutyM1(self.address, vl_ticks)
+                roboclaw.DutyM2(self.address, vr_ticks)
+
                 #Replaced to implement acc
                 #roboclaw.SpeedDistanceM1M2(self.address, vr_ticks, int(abs(vr_ticks*0.04)), vl_ticks, int(abs(vl_ticks*0.04)), 1)
                 #rospy.logdebug(" Acc ticks %d" % (int(self.ACC_LIM * self.TICKS_PER_METER)))
-                roboclaw.SpeedAccelDistanceM1(self.address, int(self.ACC_LIM * self.TICKS_PER_METER),vr_ticks, int(abs(vr_ticks*0.04)),1)
-                roboclaw.SpeedAccelDistanceM2(self.address, int(self.ACC_LIM * self.TICKS_PER_METER),vl_ticks, int(abs(vl_ticks*0.04)),1)
+
+                #roboclaw.SpeedAccelDistanceM1(self.address, int(self.ACC_LIM * self.TICKS_PER_METER),vr_ticks, int(abs(vr_ticks*0.04)),1)
+                #roboclaw.SpeedAccelDistanceM2(self.address, int(self.ACC_LIM * self.TICKS_PER_METER),vl_ticks, int(abs(vl_ticks*0.04)),1)
+
                 #Mixed command doesn't work
                 #roboclaw.SpeedAccelDistanceM1M2(self.address, int(self.ACC_LIM * self.TICKS_PER_METER),vr_ticks, int(abs(vr_ticks*0.04)), vl_ticks, int(abs(vl_ticks*0.04)), 1)
 
@@ -302,10 +309,10 @@ class Node:
         state, message = self.ERRORS[status]
         stat.summary(state, message)
         try:
-            stat.add("Main Batt V:", float(roboclaw.ReadMainBatteryVoltage(self.address)[1] / 10))
-            stat.add("Logic Batt V:", float(roboclaw.ReadLogicBatteryVoltage(self.address)[1] / 10))
-            stat.add("Temp1 C:", float(roboclaw.ReadTemp(self.address)[1] / 10))
-            stat.add("Temp2 C:", float(roboclaw.ReadTemp2(self.address)[1] / 10))
+            stat.add("Main Batt V:", float(roboclaw.ReadMainBatteryVoltage(self.address)[1] / 10.0))
+            stat.add("Logic Batt V:", float(roboclaw.ReadLogicBatteryVoltage(self.address)[1] / 10.0))
+            stat.add("Temp1 C:", float(roboclaw.ReadTemp(self.address)[1] / 10.0))
+            stat.add("Temp2 C:", float(roboclaw.ReadTemp2(self.address)[1] / 10.0))
         except OSError as e:
             rospy.logwarn("Diagnostics OSError: %d", e.errno)
             rospy.logdebug(e)

@@ -270,18 +270,20 @@ def _read4_1(address, cmd):
         port.flushInput()
         _sendcommand(address, cmd)
         val1 = _readslong()
+        #JS
+        #val1 = _readlong()
         if val1[0]:
             val2 = _readbyte()
             if val2[0]:
                 crc = _readchecksumword()
                 if crc[0]:
                     if _crc & 0xFFFF != crc[1] & 0xFFFF:
-                        return 0, 0
+                        return 0, 0, 0
                     return 1, val1[1], val2[1]
         trys -= 1
         if trys == 0:
             break
-    return 0, 0
+    return 0, 0, 0
 
 
 def _read_n(address, cmd, args):
@@ -845,11 +847,13 @@ def ReadISpeedM2(address):
 
 
 def DutyM1(address, val):
-    return _simplFunctionS2(address, Cmd.M1DUTY, val)
+    #return _simplFunctionS2(address, Cmd.M1DUTY, val)
+    return _writeS2(address, Cmd.M1DUTY, val*10)
 
 
 def DutyM2(address, val):
-    return _simplFunctionS2(address, Cmd.M2DUTY, val)
+    #return _simplFunctionS2(address, Cmd.M2DUTY, val)
+    return _writeS2(address, Cmd.M2DUTY, val*10)
 
 
 def DutyM1M2(address, m1, m2):
