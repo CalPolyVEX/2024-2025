@@ -182,7 +182,6 @@ class Node:
         self.MAX_ABS_LINEAR_SPEED = float(rospy.get_param("~max_abs_linear_speed", "1.0"))
         self.MAX_ABS_ANGULAR_SPEED = float(rospy.get_param("~max_abs_angular_speed", "1.0"))
         self.TICKS_PER_METER = float(rospy.get_param("~ticks_per_meter", "1000"))
-        #self.TICKS_PER_METER = float(rospy.get_param("~ticks_per_meter", "4342.2"))
         self.BASE_WIDTH = float(rospy.get_param("~base_width", "0.315"))
         self.ACC_LIM = float(rospy.get_param("~acc_lim", "0.1"))
 
