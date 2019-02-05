@@ -1,0 +1,3 @@
+To flash to an Arduino UNO:
+
+catkin_make arduino_firmware_jet_binary-upload
