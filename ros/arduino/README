@@ -1,7 +1,15 @@
-To flash to an Arduino UNO:
+To build just the firmware:
 
-catkin_make arduino_firmware_jet_binary-upload
+   catkin_make arduino_firmware_jet_binary
+
+To flash to an Arduino UNO (on /dev/ttyACM0):
+
+   catkin_make arduino_firmware_jet_binary-upload
 
 To run the node:
 
-rosrun rosserial_python serial_node.py /dev/ttyACM0
+   rosrun rosserial_python serial_node.py /dev/ttyACM0
+
+   or with roslaunch:
+
+      roslaunch arduino arduino.launch
