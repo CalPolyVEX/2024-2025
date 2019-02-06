@@ -1,6 +1,7 @@
 // the LS7366R communicates using SPI, so include the library:
 #include <SPI.h>
 #include <ros.h>
+#include <std_msgs/Empty.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Int32MultiArray.h>
 
@@ -78,24 +79,24 @@ long int e[2] = {0,0};
 #define LOAD_OTR 		  0xE4
 
 //the lines are used by 74HC138 chip to select the cable select lines
-int nSS_ENC_A2_pin = 10;//C  A2
-int nSS_ENC_A1_pin = 9; //B  A1 
-int nSS_ENC_A0_pin = 8; //A  A0
+uint8_t nSS_ENC_A2_pin = 10;//C  A2
+uint8_t nSS_ENC_A1_pin = 9; //B  A1 
+uint8_t nSS_ENC_A0_pin = 8; //A  A0
 
 //CLK Select DFLAG DF-F
-int CLK_SEL_DFAG_pin = 4;
+uint8_t CLK_SEL_DFAG_pin = 4;
 
 //Enable ENC_SS
-int EN_ENC_SS_pin = 5;
+uint8_t EN_ENC_SS_pin = 5;
 
 //Blue LED
-int LED_ACT_pin = 6;
+uint8_t LED_ACT_pin = 6;
 
 //DFLAG
-int DFLAG_pin = 3; 
+uint8_t DFLAG_pin = 3; 
 
 //LFLAG
-int LFLAG_pin = 2;
+uint8_t LFLAG_pin = 2;
 
 #define Slave_Select_Low PORTB &= ~(1 << PB4)
 #define Slave_Select_High PORTB |= (1 << PB4)
@@ -137,12 +138,17 @@ void ISR_LFlag()
     IsrLFlag = 1;
 }
 
+void messageCb( const std_msgs::Empty& toggle_msg){
+   digitalWrite(13, HIGH-digitalRead(13));   // blink the led
+}
+ros::Subscriber<std_msgs::Empty> encoder_control("encoder_control", &messageCb );
+
 //*************************************************
 //*****************************************************
 void setup()
 //*****************************************************
 {
-    int a=0;
+    uint8_t a=0;
 
     //Serial.begin(9600);
 
@@ -190,6 +196,7 @@ void setup()
     nh.initNode();
     nh.advertise(chatter);
     nh.advertise(encoder);
+    nh.subscribe(encoder_control);
 
     mad[0].label = (char*) &dim0_label;
     mad[0].size = 2;
@@ -201,6 +208,10 @@ void setup()
     wheel_enc_msg.data_length = 2;
     wheel_enc_msg.layout = mal;
     wheel_enc_msg.data = (long int*) &e;
+
+    //set on-board LED to output
+    pinMode(13, OUTPUT);
+
     //end JS
 
 } //end func
@@ -259,7 +270,7 @@ void loop()
     ///////////////
     if(IsrLFlag)
     {
-        for(int a=1;a<=6;a++){
+        for(uint8_t a=1;a<=6;a++){
             tmpStr = getChanEncoderReg(READ_STR,a); 
             tmpStr &= 0b00100000;//test CMP
             if(tmpStr){
@@ -275,7 +286,7 @@ void loop()
     //JS
     str_msg.data = hello;
     wheel_enc_msg.data[0]++;
-    wheel_enc_msg.data[1]++;
+    wheel_enc_msg.data[1]+=4;
 
     chatter.publish(&str_msg);
     encoder.publish(&wheel_enc_msg);
