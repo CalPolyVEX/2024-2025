@@ -1,5 +1,20 @@
 // the LS7366R communicates using SPI, so include the library:
 #include <SPI.h>
+#include <ros.h>
+#include <std_msgs/String.h>
+#include <std_msgs/Int32MultiArray.h>
+
+#include <Arduino.h>
+
+//JS
+ros::NodeHandle nh;
+
+std_msgs::String str_msg;
+std_msgs::Int32MultiArray wheel_enc_msg;
+ros::Publisher chatter("chatter", &str_msg);
+ros::Publisher encoder("encoder", &wheel_enc_msg);
+char hello[13] = "hello world!";
+//end JS
 
 #define ENABLE    1
 #define DISABLE   0
@@ -125,7 +140,7 @@ void setup()
 {
     int a=0;
 
-    Serial.begin(9600);
+    //Serial.begin(9600);
 
     pinMode(LED_ACT_pin, OUTPUT);
 
@@ -166,6 +181,11 @@ void setup()
     //JS
     attachInterrupt(1, ISR_DFlag, FALLING );
     attachInterrupt(0, ISR_LFlag, FALLING );
+
+    //ROS setup
+    nh.initNode();
+    nh.advertise(chatter);
+    nh.advertise(encoder);
     //end JS
 
 } //end func
@@ -176,40 +196,40 @@ void setup()
 void loop()
 //*****************************************************
 { 
-    int a = 0;
+    uint8_t a = 0;
     int tmpStr = 0;
 
     for ( a = 1; a <= 6; a++)
     {    
-        Serial.print(" Ch");
-        Serial.print(a);
-        Serial.print("=");
-        Serial.print(getChanEncoderValue(a),DEC);
-        Serial.print(";");
+        //Serial.print(" Ch");
+        //Serial.print(a);
+        //Serial.print("=");
+        //Serial.print(getChanEncoderValue(a),DEC);
+        //Serial.print(";");
 
-        Serial.print(" STR=");
-        Serial.print(getChanEncoderReg(READ_STR,a),BIN);
-        Serial.print(";");
+        //Serial.print(" STR=");
+        //Serial.print(getChanEncoderReg(READ_STR,a),BIN);
+        //Serial.print(";");
     } 
-    Serial.print("\t");
+    //Serial.print("\t");
 
-    Serial.print(" DFLGCh=");
-    Serial.print(DFlagCh);
-    Serial.print(";");
+    //Serial.print(" DFLGCh=");
+    //Serial.print(DFlagCh);
+    //Serial.print(";");
 
-    Serial.print(" LFLG=");
-    Serial.print(digitalRead(LFLAG_pin));
-    Serial.print(";");
-    Serial.print(" Cnt=");
+    //Serial.print(" LFLG=");
+    //Serial.print(digitalRead(LFLAG_pin));
+    //Serial.print(";");
+    //Serial.print(" Cnt=");
 
     for ( a = 0; a < 6; a++)
     {   
-        Serial.print(LFlagCnt[a]);
-        Serial.print("/");
+        //Serial.print(LFlagCnt[a]);
+        //Serial.print("/");
     }
 
-    Serial.print(";");
-    Serial.print("\r\n");
+    //Serial.print(";");
+    //Serial.print("\r\n");
 
     ///////////////
     if(IsrDFlag)
@@ -237,6 +257,19 @@ void loop()
     ///////////////
     blinkActLed();
 
+    //JS
+    str_msg.data = hello;
+    wheel_enc_msg.layout.dim[0].label = "encoder count";
+    wheel_enc_msg.layout.dim[0].stride = 1;
+    wheel_enc_msg.layout.dim[0].size = 2;
+    wheel_enc_msg.layout.data_offset = 0;
+    wheel_enc_msg.data[0] = 5;
+    wheel_enc_msg.data[1] = 6;
+    chatter.publish(&str_msg);
+    encoder.publish(&wheel_enc_msg);
+    nh.spinOnce();
+    delay(33);
+    //end JS
 } //end loop
 
 //*************************************************
@@ -409,8 +442,8 @@ void Init_LS7366Rs(void)
     setSSEnc(DISABLE, 0);
     delay(100);
 
-    Serial.print("\r\n");
-    Serial.print("\r\n");
+    //Serial.print("\r\n");
+    //Serial.print("\r\n");
     
     //initialize the 6 
     for (a = 1; a <= 6; a++) 
@@ -422,12 +455,12 @@ void Init_LS7366Rs(void)
                          // disable index || free-running count mode || x4 quadrature count mode
       setSSEnc(DISABLE, 0);
       
-      Serial.print(" TX MDR0=");
+      /*Serial.print(" TX MDR0=");
       Serial.print(FILTER_2|DISABLE_INDX|FREE_RUN|QUADRX1,HEX);
       Serial.print(";");
       Serial.print(" RX MDR0=");
       Serial.print(getChanEncoderReg(READ_MDR0,a),HEX);
-      Serial.print(";");
+      Serial.print(";"); */
       //********
       //********
       setSSEnc(ENABLE, a);
@@ -435,12 +468,12 @@ void Init_LS7366Rs(void)
       SPI.transfer(CMP_FLAG|BYTE_4|EN_CNTR);//4-byte counter mode || Enable counting || FLAG on CMP (B5 of STR)
       setSSEnc(DISABLE, 0);
 
-      Serial.print(" TX MDR1=");
+      /*Serial.print(" TX MDR1=");
       Serial.print(CMP_FLAG|BYTE_4|EN_CNTR,HEX);
       Serial.print(";");
       Serial.print(" RX MDR1=");
       Serial.print(getChanEncoderReg(READ_MDR1,a),HEX);
-      Serial.print(";");
+      Serial.print(";");*/
       //********
       //********
       setSSEnc(ENABLE, a);
@@ -456,11 +489,11 @@ void Init_LS7366Rs(void)
       SPI.transfer(LOAD_CNTR);
       setSSEnc(DISABLE, 0);  
 
-      Serial.print(" Ch");
+      /*Serial.print(" Ch");
       Serial.print(a);
       Serial.print("=");
       Serial.print(getChanEncoderValue(a),HEX);
-      Serial.print(";");
+      Serial.print(";");*/
       //********
       //********      
       setSSEnc(ENABLE, a);
@@ -472,13 +505,13 @@ void Init_LS7366Rs(void)
       rstEncCnt(a);
        //********
       //********
-      Serial.print(" STR=");
+      /*Serial.print(" STR=");
       Serial.print(getChanEncoderReg(READ_STR,a),BIN);
       Serial.print(";");
-      Serial.print("\t");
+      Serial.print("\t");*/
       //********
       //********
-       Serial.print("\r\n"); 
+      /*Serial.print("\r\n");*/  
     }	
 } //end func
 
