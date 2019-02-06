@@ -11,39 +11,16 @@
 //JS
 ros::NodeHandle nh;
 
-std_msgs::String str_msg;
+//std_msgs::String str_msg;
 std_msgs::Int32MultiArray wheel_enc_msg;
-ros::Publisher chatter("chatter", &str_msg);
+//ros::Publisher chatter("chatter", &str_msg);
 ros::Publisher encoder("encoder", &wheel_enc_msg);
-char hello[13] = "hello world!";
+//char hello[13] = "hello world!";
 char dim0_label[10] = "encoder";
 std_msgs::MultiArrayLayout mal;
-std_msgs::MultiArrayDimension mad[2];
+std_msgs::MultiArrayDimension mad[1];
 long int e[2] = {0,0};
 //end JS
-
-//the lines are used by 74HC138 chip to select the cable select lines
-uint8_t nSS_ENC_A2_pin = 10;//C  A2
-uint8_t nSS_ENC_A1_pin = 9; //B  A1 
-uint8_t nSS_ENC_A0_pin = 8; //A  A0
-
-//CLK Select DFLAG DF-F
-uint8_t CLK_SEL_DFAG_pin = 4;
-
-//Enable ENC_SS
-uint8_t EN_ENC_SS_pin = 5;
-
-//Blue LED
-uint8_t LED_ACT_pin = 6;
-
-//DFLAG
-uint8_t DFLAG_pin = 3; 
-
-//LFLAG
-uint8_t LFLAG_pin = 2;
-
-#define Slave_Select_Low PORTB &= ~(1 << PB4)
-#define Slave_Select_High PORTB |= (1 << PB4)
 
 //function prototypes
 void blinkActLed(void);
@@ -138,7 +115,7 @@ void setup()
 
     //ROS setup
     nh.initNode();
-    nh.advertise(chatter);
+    //nh.advertise(chatter);
     nh.advertise(encoder);
     nh.subscribe(encoder_control);
 
@@ -228,11 +205,11 @@ void loop()
     blinkActLed();
 
     //JS
-    str_msg.data = hello;
+    //str_msg.data = hello;
     wheel_enc_msg.data[0]++;
     wheel_enc_msg.data[1]+=4;
 
-    chatter.publish(&str_msg);
+    //chatter.publish(&str_msg);
     encoder.publish(&wheel_enc_msg);
     nh.spinOnce();
     delay(33);
@@ -311,10 +288,12 @@ void setSSEnc(bool enable, int encoder)
 	   digitalWrite(EN_ENC_SS_pin, LOW);
 	
 } //end func
+
 //*************************************************
 //*************************************************
 void setSSEncCtrlBits(int value)
-//*************************************************//*************************************************
+//*************************************************
+//*************************************************
 {   
    switch (value) 
    {
