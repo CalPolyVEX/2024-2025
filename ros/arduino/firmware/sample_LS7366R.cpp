@@ -14,13 +14,17 @@ std_msgs::Int32MultiArray wheel_enc_msg;
 ros::Publisher chatter("chatter", &str_msg);
 ros::Publisher encoder("encoder", &wheel_enc_msg);
 char hello[13] = "hello world!";
+char dim0_label[10] = "encoder";
+std_msgs::MultiArrayLayout mal;
+std_msgs::MultiArrayDimension mad[2];
+long int e[2] = {0,0};
 //end JS
 
 #define ENABLE    1
 #define DISABLE   0
 
 /***MDR0 configuration data - the configuration byte is formed with***
-***single segments taken from each group and ORing all together.***/
+***single segMents taken from each group and ORing all together.***/
 //Count modes
 #define NQUAD 		0x00 //non-quadrature mode
 #define QUADRX1 	0x01 //X1 quadrature mode
@@ -186,6 +190,17 @@ void setup()
     nh.initNode();
     nh.advertise(chatter);
     nh.advertise(encoder);
+
+    mad[0].label = (char*) &dim0_label;
+    mad[0].size = 2;
+    mad[0].stride = 1*2;
+
+    mal.dim = mad;
+    mal.data_offset = 0;
+    mal.dim_length = 1;
+    wheel_enc_msg.data_length = 2;
+    wheel_enc_msg.layout = mal;
+    wheel_enc_msg.data = (long int*) &e;
     //end JS
 
 } //end func
@@ -259,12 +274,9 @@ void loop()
 
     //JS
     str_msg.data = hello;
-    wheel_enc_msg.layout.dim[0].label = "encoder count";
-    wheel_enc_msg.layout.dim[0].stride = 1;
-    wheel_enc_msg.layout.dim[0].size = 2;
-    wheel_enc_msg.layout.data_offset = 0;
-    wheel_enc_msg.data[0] = 5;
-    wheel_enc_msg.data[1] = 6;
+    wheel_enc_msg.data[0]++;
+    wheel_enc_msg.data[1]++;
+
     chatter.publish(&str_msg);
     encoder.publish(&wheel_enc_msg);
     nh.spinOnce();
