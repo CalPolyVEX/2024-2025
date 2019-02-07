@@ -10,11 +10,13 @@
 
 //JS
 ros::NodeHandle nh;
+void messageCb( const std_msgs::Empty& toggle_msg);
 
 //std_msgs::String str_msg;
 std_msgs::Int32MultiArray wheel_enc_msg;
 //ros::Publisher chatter("chatter", &str_msg);
 ros::Publisher encoder("encoder", &wheel_enc_msg);
+ros::Subscriber<std_msgs::Empty> reset_encoder("reset_encoder", &messageCb );
 //char hello[13] = "hello world!";
 char dim0_label[10] = "encoder";
 std_msgs::MultiArrayLayout mal;
@@ -39,9 +41,9 @@ void writeSingleByte(unsigned char op_code, unsigned char data);
 unsigned char readSingleByte(unsigned char op_code);
 
 //Global Variables
-int IsrDFlag;
-int DFlagCh;
-int IsrLFlag;
+uint8_t IsrDFlag;
+uint8_t DFlagCh;
+uint8_t IsrLFlag;
 int LFlagCnt[6];
 
 //*************************************************
@@ -61,8 +63,9 @@ void ISR_LFlag()
 
 void messageCb( const std_msgs::Empty& toggle_msg){
    digitalWrite(13, HIGH-digitalRead(13));   // blink the led
+   e[0] = 0;
+   e[1] = 0;
 }
-ros::Subscriber<std_msgs::Empty> encoder_control("encoder_control", &messageCb );
 
 //*************************************************
 //*****************************************************
@@ -117,7 +120,7 @@ void setup()
     nh.initNode();
     //nh.advertise(chatter);
     nh.advertise(encoder);
-    nh.subscribe(encoder_control);
+    nh.subscribe(reset_encoder);
 
     mad[0].label = (char*) &dim0_label;
     mad[0].size = 2;
@@ -207,7 +210,7 @@ void loop()
     //JS
     //str_msg.data = hello;
     wheel_enc_msg.data[0]++;
-    wheel_enc_msg.data[1]+=4;
+    wheel_enc_msg.data[1]+=4123;
 
     //chatter.publish(&str_msg);
     encoder.publish(&wheel_enc_msg);
@@ -279,14 +282,13 @@ void rstEncCnt(int encoder)
 void setSSEnc(bool enable, int encoder)
 //*************************************************
 {
-	if(encoder>0)
-		setSSEncCtrlBits(encoder-1);
+   if(encoder>0)
+      setSSEncCtrlBits(encoder-1);
 		
    if(enable)
-	   digitalWrite(EN_ENC_SS_pin, HIGH);
+      digitalWrite(EN_ENC_SS_pin, HIGH);
    else
-	   digitalWrite(EN_ENC_SS_pin, LOW);
-	
+      digitalWrite(EN_ENC_SS_pin, LOW);
 } //end func
 
 //*************************************************
@@ -451,7 +453,7 @@ void Init_LS7366Rs(void)
       setSSEnc(DISABLE, 0);
       //********
       //********
-  	  clearStrReg(a);   //reseting the counter value inside the encoder chips to 0
+      clearStrReg(a);   //reseting the counter value inside the encoder chips to 0
       rstEncCnt(a);
        //********
       //********
@@ -470,16 +472,18 @@ void Init_LS7366Rs(void)
 void loadRstReg(unsigned char op_code) //dataless write command
 //*************************************************
 {
-unsigned char spi_data;
-	Slave_Select_High; 			    // Keep SS/ High for LS7366 deselect
-	Slave_Select_Low; 			    // Switch SS/ low for new command
-	SPDR = op_code; 			      // Send command to LS7366
-	while (!(SPSR & (1<<SPIF))) // Wait for end of the transmission
-	{
-	};
-	spi_data = SPDR; 		        // Reset SPIF
-	Slave_Select_High; 		      // Switch SS/ high for end of command
+   unsigned char spi_data;
+
+   Slave_Select_High; 			    // Keep SS/ High for LS7366 deselect
+   Slave_Select_Low; 			    // Switch SS/ low for new command
+   SPDR = op_code; 			      // Send command to LS7366
+   while (!(SPSR & (1<<SPIF))) // Wait for end of the transmission
+   {
+   };
+   spi_data = SPDR; 		        // Reset SPIF
+   Slave_Select_High; 		      // Switch SS/ high for end of command
 }
+
 //*************************************************
 //*************************************************
 void writeSingleByte(unsigned char op_code, unsigned char data) //single byte write command
