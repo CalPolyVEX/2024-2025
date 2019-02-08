@@ -29,7 +29,6 @@ class TransformPointCloud
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
 
-  boost::recursive_mutex dr_mutex_;
   transform_point_cloud::LookupTransformConfig config_;
 
   void pointCloudCallback(const sensor_msgs::PointCloud2::ConstPtr& msg)
@@ -53,9 +52,8 @@ class TransformPointCloud
           ros::Time(0));
       sensor_msgs::PointCloud2 cloud_out;
       tf2::doTransform(*msg, cloud_out, transform);
-      //scalePointCloud(cloud_out, config_.scale_x, config_.scale_y, config_.scale_z);
+
       ROS_DEBUG_STREAM("output:");
-      // TODO(lwalter) should the scaling be done on the output?
       pub_.publish(cloud_out);
     }
     catch (tf2::TransformException& ex)
