@@ -19,6 +19,6 @@
       <include file="$(find jet_launcher)/launch/obstacle_detection.launch"/>
       <include file="$(find jet_launcher)/launch/planner/planner.launch"/>
       <include file="$(find jet_launcher)/launch/robot_localization.launch"/>
-      <include file="$(find transform_point_cloud)/launch/js_test.launch"/>
+      <include file="$(find transform_point_cloud)/launch/js_test1.launch"/>
    </group>
 </launch>
