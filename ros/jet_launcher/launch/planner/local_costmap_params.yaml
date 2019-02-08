@@ -15,7 +15,8 @@ local_costmap:
 
   # assuming receiving a cloud from rtabmap_ros/obstacles_detection node
   point_cloud_sensor: {
-    sensor_frame: zed_camera_center,
+    #sensor_frame: zed_camera_center,
+    sensor_frame: zed_camera_fixed,
     data_type: PointCloud2, 
     topic: /obstacles_cloud, 
     expected_update_rate: 0.5, 

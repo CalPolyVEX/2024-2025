@@ -68,7 +68,7 @@ public:
     // nh_("~"),
     tf_listener_(tf_buffer_)
   {
-    pub_ = nh_.advertise<sensor_msgs::PointCloud2>("/zed_output_transformed", 3);
+    pub_ = nh_.advertise<sensor_msgs::PointCloud2>("/zed/point_cloud_transformed", 3);
     sub_ = nh_.subscribe("/voxel_grid/output", 1, &TransformPointCloud::pointCloudCallback, this);
   }
 };
