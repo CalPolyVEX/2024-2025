@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+
+  <node name="transform_point_cloud" pkg="transform_point_cloud"
+      type="transform_point_cloud"
+      output="screen" >
+  </node>
+
+</launch>
