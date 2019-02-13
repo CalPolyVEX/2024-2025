@@ -10,18 +10,18 @@
 
 //JS
 ros::NodeHandle nh;
-void messageCb( const std_msgs::Empty& toggle_msg);
+void reset_encoder_callback(const std_msgs::Empty& reset_msg);
 
 //std_msgs::String str_msg;
 std_msgs::Int32MultiArray wheel_enc_msg;
 //ros::Publisher chatter("chatter", &str_msg);
 ros::Publisher encoder("encoder", &wheel_enc_msg);
-ros::Subscriber<std_msgs::Empty> reset_encoder("reset_encoder", &messageCb );
+ros::Subscriber<std_msgs::Empty> reset_encoder("reset_encoder", &reset_encoder_callback);
 //char hello[13] = "hello world!";
-char dim0_label[10] = "encoder";
+char dim0_label[8] = "encoder";
 std_msgs::MultiArrayLayout mal;
 std_msgs::MultiArrayDimension mad[1];
-long int e[2] = {0,0};
+long int encoder_values[2] = {0,0};
 //end JS
 
 //function prototypes
@@ -61,10 +61,15 @@ void ISR_LFlag()
     IsrLFlag = 1;
 }
 
-void messageCb( const std_msgs::Empty& toggle_msg){
-   digitalWrite(13, HIGH-digitalRead(13));   // blink the led
-   e[0] = 0;
-   e[1] = 0;
+void reset_encoder_callback( const std_msgs::Empty& reset_msg){
+   //send an Empty message to the /reset_encoder topic to reset
+   //'rostopic pub /reset_encoder std_msgs/Empty --once' to test
+   
+   //digitalWrite(13, HIGH-digitalRead(13));   // blink the led
+   encoder_values[0] = 0;
+   encoder_values[1] = 0;
+   //rstEncCnt(1);
+   //rstEncCnt(2);
 }
 
 //*************************************************
@@ -113,8 +118,8 @@ void setup()
     //attachInterrupt(digitalPinToInterrupt(DFLAG_pin), ISR_DFlag, FALLING );
     //attachInterrupt(digitalPinToInterrupt(LFLAG_pin), ISR_LFlag, FALLING );
     //JS
-    attachInterrupt(1, ISR_DFlag, FALLING );
-    attachInterrupt(0, ISR_LFlag, FALLING );
+    //attachInterrupt(1, ISR_DFlag, FALLING );
+    //attachInterrupt(0, ISR_LFlag, FALLING );
 
     //ROS setup
     nh.initNode();
@@ -131,10 +136,10 @@ void setup()
     mal.dim_length = 1;
     wheel_enc_msg.data_length = 2;
     wheel_enc_msg.layout = mal;
-    wheel_enc_msg.data = (long int*) &e;
+    wheel_enc_msg.data = (long int*) &encoder_values;
 
     //set on-board LED to output
-    pinMode(13, OUTPUT);
+    //pinMode(13, OUTPUT);
 
     //end JS
 
@@ -212,6 +217,10 @@ void loop()
     wheel_enc_msg.data[0]++;
     wheel_enc_msg.data[1]+=4123;
 
+    //get the encoder values
+    //wheel_enc_msg.data[0]=getChanEncoderValue(1);
+    //wheel_enc_msg.data[1]=getChanEncoderValue(2);
+
     //chatter.publish(&str_msg);
     encoder.publish(&wheel_enc_msg);
     nh.spinOnce();
@@ -271,7 +280,11 @@ unsigned int getChanEncoderReg(int opcode, int encoder)
 void rstEncCnt(int encoder)
 //*****************************************************
 {
-    setSSEnc(DISABLE, encoder);
+    //setSSEnc(DISABLE, encoder);
+    //JS
+    setSSEnc(ENABLE, encoder);
+    //end JS
+    
     SPI.transfer(CLR_CNTR);
     setSSEnc(DISABLE, 0);
 } //end func
