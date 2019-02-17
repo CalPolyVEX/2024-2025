@@ -1,4 +1,3 @@
-// the LS7366R communicates using SPI, so include the library:
 #include <SPI.h>
 #include <ros.h>
 #include <std_msgs/Empty.h>
@@ -22,14 +21,14 @@ char dim0_label[8] = "encoder";
 std_msgs::MultiArrayLayout mal;
 std_msgs::MultiArrayDimension mad[1];
 long int encoder_values[2] = {0,0};
-int counter = 0;
+uint8_t counter = 0;
 //end JS
 
 //function prototypes
 void blinkActLed(void);
 long getChanEncoderValue(int encoder);
-unsigned int getChanEncoderReg(int opcode, int encoder);
-void rstEncCnt(int encoder);
+uint8_t getChanEncoderReg(uint8_t opcode, uint8_t encoder);
+void rstEncCnt(uint8_t encoder);
 void setSSEnc(bool enable, int encoder);
 void clearStrReg(int encoder);
 void setSSEncCtrlBits(int value);
@@ -45,7 +44,7 @@ unsigned char readSingleByte(unsigned char op_code);
 uint8_t IsrDFlag;
 uint8_t DFlagCh;
 uint8_t IsrLFlag;
-int LFlagCnt[6];
+//int LFlagCnt[6];
 
 //*************************************************
 //*****************************************************  
@@ -62,15 +61,15 @@ void ISR_LFlag()
     IsrLFlag = 1;
 }
 
-void reset_encoder_callback( const std_msgs::Empty& reset_msg){
+void reset_encoder_callback(const std_msgs::Empty& reset_msg){
    //send an Empty message to the /reset_encoder topic to reset
    //'rostopic pub /reset_encoder std_msgs/Empty --once' to test
    
    //digitalWrite(13, HIGH-digitalRead(13));   // blink the led
    encoder_values[0] = 0;
    encoder_values[1] = 0;
-   //rstEncCnt(1);
-   //rstEncCnt(2);
+   rstEncCnt(1);
+   rstEncCnt(2);
 }
 
 //*************************************************
@@ -79,8 +78,6 @@ void setup()
 //*****************************************************
 {
     uint8_t a=0;
-
-    //Serial.begin(9600);
 
     pinMode(LED_ACT_pin, OUTPUT);
 
@@ -113,7 +110,7 @@ void setup()
 
     IsrLFlag = 0;
     for (a = 0; a< 6; a++){   
-        LFlagCnt[a] = 0;
+        //LFlagCnt[a] = 0;
     }
 
     //attachInterrupt(digitalPinToInterrupt(DFLAG_pin), ISR_DFlag, FALLING );
@@ -123,6 +120,7 @@ void setup()
     //attachInterrupt(0, ISR_LFlag, FALLING );
 
     //ROS setup
+    //nh.getHardware()->setBaud(115200);
     nh.initNode();
     //nh.advertise(chatter);
     nh.advertise(encoder);
@@ -139,9 +137,6 @@ void setup()
     wheel_enc_msg.layout = mal;
     wheel_enc_msg.data = (long int*) &encoder_values;
 
-    //set on-board LED to output
-    //pinMode(13, OUTPUT);
-
     //end JS
 
 } //end func
@@ -153,39 +148,13 @@ void loop()
 //*****************************************************
 { 
     uint8_t a = 0;
-    int tmpStr = 0;
+    uint8_t tmpStr = 0;
 
     for ( a = 1; a <= 6; a++)
     {    
-        //Serial.print(" Ch");
-        //Serial.print(a);
-        //Serial.print("=");
         //Serial.print(getChanEncoderValue(a),DEC);
-        //Serial.print(";");
-
-        //Serial.print(" STR=");
         //Serial.print(getChanEncoderReg(READ_STR,a),BIN);
-        //Serial.print(";");
     } 
-    //Serial.print("\t");
-
-    //Serial.print(" DFLGCh=");
-    //Serial.print(DFlagCh);
-    //Serial.print(";");
-
-    //Serial.print(" LFLG=");
-    //Serial.print(digitalRead(LFLAG_pin));
-    //Serial.print(";");
-    //Serial.print(" Cnt=");
-
-    for ( a = 0; a < 6; a++)
-    {   
-        //Serial.print(LFlagCnt[a]);
-        //Serial.print("/");
-    }
-
-    //Serial.print(";");
-    //Serial.print("\r\n");
 
     ///////////////
     if(IsrDFlag)
@@ -204,13 +173,14 @@ void loop()
             tmpStr = getChanEncoderReg(READ_STR,a); 
             tmpStr &= 0b00100000;//test CMP
             if(tmpStr){
-                LFlagCnt[a-1]++;
+                //LFlagCnt[a-1]++;
                 clearStrReg(a); 
             }
         }
         IsrLFlag = 0;	
     }
-    ///////////////
+    
+    //blink the LED on the encoder shield
     counter++;
     if (counter > 30) {
       blinkActLed();
@@ -239,9 +209,9 @@ void loop()
 void blinkActLed(void)
 //*****************************************************
 {
-static boolean LedBlink;     
-  LedBlink = !LedBlink;
-  digitalWrite(LED_ACT_pin, LedBlink);
+   static boolean LedBlink;     
+   LedBlink = !LedBlink;
+   digitalWrite(LED_ACT_pin, LedBlink);
 }
 
 //*************************************************
@@ -249,50 +219,50 @@ static boolean LedBlink;
 long getChanEncoderValue(int encoder)
 //*****************************************************
 {
-    unsigned int cnt1Value, cnt2Value, cnt3Value, cnt4Value;
-    long result;
-	
-    setSSEnc(ENABLE, encoder);
+   unsigned int cnt1Value, cnt2Value, cnt3Value, cnt4Value;
+   long result;
 
-    SPI.transfer(READ_CNTR); // Request count
-    cnt1Value = SPI.transfer(0x00); // Read highest order byte
-    cnt2Value = SPI.transfer(0x00);
-    cnt3Value = SPI.transfer(0x00);
-    cnt4Value = SPI.transfer(0x00); // Read lowest order byte
+   setSSEnc(ENABLE, encoder);
 
-    setSSEnc(DISABLE, 0);
-	
-    result = ((long) cnt1Value << 24) + ((long) cnt2Value << 16) + ((long) cnt3Value << 8) + (long) cnt4Value;
+   SPI.transfer(READ_CNTR); // Request count
+   cnt1Value = SPI.transfer(0x00); // Read highest order byte
+   cnt2Value = SPI.transfer(0x00);
+   cnt3Value = SPI.transfer(0x00);
+   cnt4Value = SPI.transfer(0x00); // Read lowest order byte
 
-    return result;
+   setSSEnc(DISABLE, 0);
+
+   result = ((long) cnt1Value << 24) + ((long) cnt2Value << 16) + ((long) cnt3Value << 8) + (long) cnt4Value;
+
+   return result;
 } //end func
 
 //*************************************************
 //*****************************************************
-unsigned int getChanEncoderReg(int opcode, int encoder)
+uint8_t getChanEncoderReg(uint8_t opcode, uint8_t encoder)
 //*****************************************************
 {
-    unsigned int Value;
-    
-    setSSEnc(ENABLE, encoder);
-    SPI.transfer(opcode);
-    Value = SPI.transfer(0x00); // Read byte
-    setSSEnc(DISABLE, 0);
-    return Value;
+   uint8_t Value;
+
+   setSSEnc(ENABLE, encoder);
+   SPI.transfer(opcode);
+   Value = SPI.transfer(0x00); // Read byte
+   setSSEnc(DISABLE, 0);
+   return Value;
 } //end func
 
 //*************************************************
 //*****************************************************
-void rstEncCnt(int encoder)
+void rstEncCnt(uint8_t encoder)
 //*****************************************************
 {
-    //setSSEnc(DISABLE, encoder);
-    //JS
-    setSSEnc(ENABLE, encoder);
-    //end JS
-    
-    SPI.transfer(CLR_CNTR);
-    setSSEnc(DISABLE, 0);
+   //setSSEnc(DISABLE, encoder);
+   //JS
+   setSSEnc(ENABLE, encoder);
+   //end JS
+
+   SPI.transfer(CLR_CNTR);
+   setSSEnc(DISABLE, 0);
 } //end func
 
 //*************************************************
@@ -316,7 +286,27 @@ void setSSEncCtrlBits(int value)
 //*************************************************
 //*************************************************
 {   
-   switch (value) 
+   //JS
+   if (value & 0x4) {
+      digitalWrite(nSS_ENC_A2_pin, HIGH); 
+   } else {
+      digitalWrite(nSS_ENC_A2_pin, LOW);
+   }
+
+   if (value & 0x2) {
+      digitalWrite(nSS_ENC_A1_pin, HIGH); 
+   } else {
+      digitalWrite(nSS_ENC_A1_pin, LOW);
+   }
+
+   if (value & 0x1) {
+      digitalWrite(nSS_ENC_A0_pin, HIGH); 
+   } else {
+      digitalWrite(nSS_ENC_A0_pin, LOW);
+   }
+   //end JS
+   
+   /*switch (value) 
    {
     case 0:
       digitalWrite(nSS_ENC_A2_pin, LOW);
@@ -370,9 +360,8 @@ void setSSEncCtrlBits(int value)
       digitalWrite(nSS_ENC_A2_pin, HIGH); 
       digitalWrite(nSS_ENC_A1_pin, HIGH); 
       digitalWrite(nSS_ENC_A0_pin, HIGH); 	
-	  break;
-  } //end switch
-
+      break;
+  } */
 } //end func
 
 //*************************************************
@@ -380,9 +369,9 @@ void setSSEncCtrlBits(int value)
 void clearStrReg(int encoder)
 //*************************************************
 {
-      setSSEnc(ENABLE, encoder);
-      SPI.transfer(CLR_STR);// Select STR || CLEAR register
-      setSSEnc(DISABLE, 0);
+   setSSEnc(ENABLE, encoder);
+   SPI.transfer(CLR_STR);// Select STR || CLEAR register
+   setSSEnc(DISABLE, 0);
 } //end func
 
 //*************************************************
@@ -390,12 +379,11 @@ void clearStrReg(int encoder)
 void setDFlagChMux(int encoder)
 //*************************************************
 {
-	setSSEncCtrlBits(encoder);
- //Clock D-FF
-    digitalWrite(CLK_SEL_DFAG_pin, LOW);
-    digitalWrite(CLK_SEL_DFAG_pin, HIGH);
-    digitalWrite(CLK_SEL_DFAG_pin, LOW);	
-
+   setSSEncCtrlBits(encoder);
+   //Clock D-FF
+   digitalWrite(CLK_SEL_DFAG_pin, LOW);
+   digitalWrite(CLK_SEL_DFAG_pin, HIGH);
+   digitalWrite(CLK_SEL_DFAG_pin, LOW);	
 } //end func
 
 //*************************************************
@@ -405,48 +393,31 @@ void setDFlagChMux(int encoder)
 void Init_LS7366Rs(void)
 //*************************************************
 {
-    int a = 1;
-    
-    // SPI initialization
-    SPI.begin();
-    SPI.setClockDivider(SPI_CLOCK_DIV128);      // SPI at 125Khz (on 16Mhz clock)
-    setSSEnc(DISABLE, 0);
-    delay(100);
+   int a = 1;
 
-    //Serial.print("\r\n");
-    //Serial.print("\r\n");
-    
-    //initialize the 6 
-    for (a = 1; a <= 6; a++) 
-    {
-      //********
+   // SPI initialization
+   SPI.begin();
+   SPI.setClockDivider(SPI_CLOCK_DIV128); // SPI at 125Khz (on 16Mhz clock)
+   setSSEnc(DISABLE, 0);
+   delay(100);
+
+   //initialize the 6 
+   for (a = 1; a <= 6; a++) 
+   {
+      //Set MDR0
       setSSEnc(ENABLE, a);
       SPI.transfer(WRITE_MDR0);// Select MDR0 | WR register
       SPI.transfer(FILTER_2|DISABLE_INDX|FREE_RUN|QUADRX1);// Filter clock division factor = 1 || Asynchronous Index || 
-                         // disable index || free-running count mode || x4 quadrature count mode
+      // disable index || free-running count mode || x4 quadrature count mode
       setSSEnc(DISABLE, 0);
-      
-      /*Serial.print(" TX MDR0=");
-      Serial.print(FILTER_2|DISABLE_INDX|FREE_RUN|QUADRX1,HEX);
-      Serial.print(";");
-      Serial.print(" RX MDR0=");
-      Serial.print(getChanEncoderReg(READ_MDR0,a),HEX);
-      Serial.print(";"); */
-      //********
-      //********
+
+      //Set MDR1
       setSSEnc(ENABLE, a);
       SPI.transfer(WRITE_MDR1);// Select MDR1 | WR register   
       SPI.transfer(CMP_FLAG|BYTE_4|EN_CNTR);//4-byte counter mode || Enable counting || FLAG on CMP (B5 of STR)
       setSSEnc(DISABLE, 0);
 
-      /*Serial.print(" TX MDR1=");
-      Serial.print(CMP_FLAG|BYTE_4|EN_CNTR,HEX);
-      Serial.print(";");
-      Serial.print(" RX MDR1=");
-      Serial.print(getChanEncoderReg(READ_MDR1,a),HEX);
-      Serial.print(";");*/
-      //********
-      //********
+      //Set DTR
       setSSEnc(ENABLE, a);
       SPI.transfer(WRITE_DTR);// Select DTR | WR register
       SPI.transfer(0x00);// DTR MSB
@@ -454,17 +425,16 @@ void Init_LS7366Rs(void)
       SPI.transfer(0x00);// DTR 
       SPI.transfer(0x0A);// DTR LSB
       setSSEnc(DISABLE, 0);
-      //********
-      //********
+
       setSSEnc(ENABLE, a);
       SPI.transfer(LOAD_CNTR);
       setSSEnc(DISABLE, 0);  
 
       /*Serial.print(" Ch");
-      Serial.print(a);
-      Serial.print("=");
-      Serial.print(getChanEncoderValue(a),HEX);
-      Serial.print(";");*/
+        Serial.print(a);
+        Serial.print("=");
+        Serial.print(getChanEncoderValue(a),HEX);
+        Serial.print(";");*/
       //********
       //********      
       setSSEnc(ENABLE, a);
@@ -474,16 +444,7 @@ void Init_LS7366Rs(void)
       //********
       clearStrReg(a);   //reseting the counter value inside the encoder chips to 0
       rstEncCnt(a);
-       //********
-      //********
-      /*Serial.print(" STR=");
-      Serial.print(getChanEncoderReg(READ_STR,a),BIN);
-      Serial.print(";");
-      Serial.print("\t");*/
-      //********
-      //********
-      /*Serial.print("\r\n");*/  
-    }	
+   }	
 } //end func
 
 //*************************************************
