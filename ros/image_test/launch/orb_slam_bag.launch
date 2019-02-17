@@ -2,7 +2,7 @@
 <launch>
    <arg name="path" default="/home/jseng/" />
    <arg name="bagfile" default="output0" />
-   <node pkg="rosbag" type="play" name="rosbag_node" cwd="node" args="$(arg path)$(arg bagfile).bag">
+   <node pkg="rosbag" type="play" name="rosbag_node" args="-l -r 0.5 $(arg path)$(arg bagfile).bag">
    </node>
 
    <include file="$(find jet_launcher)/launch/uncompress_video.launch"/>

@@ -22,6 +22,7 @@ char dim0_label[8] = "encoder";
 std_msgs::MultiArrayLayout mal;
 std_msgs::MultiArrayDimension mad[1];
 long int encoder_values[2] = {0,0};
+int counter = 0;
 //end JS
 
 //function prototypes
@@ -210,7 +211,11 @@ void loop()
         IsrLFlag = 0;	
     }
     ///////////////
-    blinkActLed();
+    counter++;
+    if (counter > 30) {
+      blinkActLed();
+      counter = 0;
+    }
 
     //JS
     //str_msg.data = hello;
@@ -218,9 +223,10 @@ void loop()
     wheel_enc_msg.data[1]+=4123;
 
     //get the encoder values
-    //wheel_enc_msg.data[0]=getChanEncoderValue(1);
+    wheel_enc_msg.data[0]=getChanEncoderValue(1);
     //wheel_enc_msg.data[1]=getChanEncoderValue(2);
-
+    //wheel_enc_msg.data[1]=getChanEncoderReg(READ_STR,1);
+    wheel_enc_msg.data[1]=getChanEncoderReg(READ_MDR0,1);
     //chatter.publish(&str_msg);
     encoder.publish(&wheel_enc_msg);
     nh.spinOnce();
