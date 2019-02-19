@@ -1,0 +1,4 @@
+#Arduino UNO
+#SUBSYSTEMS=="usb", ATTRS{idProduct}=="0043", ATTRS{idVendor}=="2341", SYMLINK+="arduino arduino_uno_$attr{serial}" 
+SUBSYSTEM=="tty", ATTRS{idProduct}=="0043", ATTRS{idVendor}=="2341", SYMLINK+="arduino" 
+SUBSYSTEM=="tty", ATTRS{idProduct}=="2404", ATTRS{idVendor}=="03eb", SYMLINK+="roboclaw" 
