@@ -10,5 +10,5 @@ generate_arduino_firmware(jet_binary
   #SRCS test.cpp ${ROS_LIB_DIR}/time.cpp
   SRCS sample_LS7366R.cpp ${ROS_LIB_DIR}/time.cpp
   BOARD uno
-  PORT /dev/ttyACM0
+  PORT /dev/arduino
 )

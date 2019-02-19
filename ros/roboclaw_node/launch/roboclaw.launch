@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <launch>
 
-    <arg name="dev" default="/dev/ttyACM0"/>
+    <arg name="dev" default="/dev/roboclaw"/>
     <arg name="baud" default="115200"/>
     <arg name="address" default="128"/>
-    <arg name="max_abs_linear_speed" default="1.5"/>
-    <arg name="max_abs_angular_speed" default="1.5"/>
+    <arg name="max_abs_linear_speed" default="1.0"/>
+    <arg name="max_abs_angular_speed" default="1.0"/>
 <!-- Wheels max acceleration m/s^2 (TODO: split in angular and linear acceleration) -->
     <arg name="acc_lim" default="1"/>
 <!-- 1957 ticks/rev ; 0.2 cm diam ; 0.6283186 m/rev -->
