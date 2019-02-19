@@ -69,7 +69,7 @@ void reset_encoder_callback(const std_msgs::Empty& reset_msg){
    encoder_values[0] = 0;
    encoder_values[1] = 0;
    rstEncCnt(1);
-   rstEncCnt(2);
+   rstEncCnt(4);
 }
 
 //*************************************************
@@ -193,10 +193,10 @@ void loop()
     wheel_enc_msg.data[1]+=4123;
 
     //get the encoder values
-    wheel_enc_msg.data[0]=getChanEncoderValue(1);
-    //wheel_enc_msg.data[1]=getChanEncoderValue(2);
+    wheel_enc_msg.data[0]=getChanEncoderValue(3);
+    wheel_enc_msg.data[1]=getChanEncoderValue(4);
     //wheel_enc_msg.data[1]=getChanEncoderReg(READ_STR,1);
-    wheel_enc_msg.data[1]=getChanEncoderReg(READ_MDR0,1);
+    //wheel_enc_msg.data[1]=getChanEncoderReg(READ_MDR0,4);
     //chatter.publish(&str_msg);
     encoder.publish(&wheel_enc_msg);
     nh.spinOnce();
@@ -287,6 +287,7 @@ void setSSEncCtrlBits(int value)
 //*************************************************
 {   
    //JS
+   
    if (value & 0x4) {
       digitalWrite(nSS_ENC_A2_pin, HIGH); 
    } else {
@@ -304,9 +305,10 @@ void setSSEncCtrlBits(int value)
    } else {
       digitalWrite(nSS_ENC_A0_pin, LOW);
    }
-   //end JS
    
-   /*switch (value) 
+   //end JS
+/*   
+   switch (value) 
    {
     case 0:
       digitalWrite(nSS_ENC_A2_pin, LOW);
@@ -361,7 +363,7 @@ void setSSEncCtrlBits(int value)
       digitalWrite(nSS_ENC_A1_pin, HIGH); 
       digitalWrite(nSS_ENC_A0_pin, HIGH); 	
       break;
-  } */
+  } */ 
 } //end func
 
 //*************************************************
@@ -407,7 +409,7 @@ void Init_LS7366Rs(void)
       //Set MDR0
       setSSEnc(ENABLE, a);
       SPI.transfer(WRITE_MDR0);// Select MDR0 | WR register
-      SPI.transfer(FILTER_2|DISABLE_INDX|FREE_RUN|QUADRX1);// Filter clock division factor = 1 || Asynchronous Index || 
+      SPI.transfer(FILTER_2|DISABLE_INDX|FREE_RUN|QUADRX4);// Filter clock division factor = 1 || Asynchronous Index || 
       // disable index || free-running count mode || x4 quadrature count mode
       setSSEnc(DISABLE, 0);
 

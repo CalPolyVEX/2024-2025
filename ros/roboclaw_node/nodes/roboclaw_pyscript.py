@@ -308,7 +308,7 @@ class Node:
         state, message = self.ERRORS[status]
         stat.summary(state, message)
         try:
-            stat.add("Main Batt V:", float(roboclaw.ReadMainBatteryVoltage(self.address)[1] / 10.0))
+            stat.add("Main Batt V:", float(roboclaw.ReadMainBatteryVoltage(self.address)[1] / 10.0 + 0.1)) #JS offset battery by 0.1V
             stat.add("Logic Batt V:", float(roboclaw.ReadLogicBatteryVoltage(self.address)[1] / 10.0))
             stat.add("Temp1 C:", float(roboclaw.ReadTemp(self.address)[1] / 10.0))
             stat.add("Temp2 C:", float(roboclaw.ReadTemp2(self.address)[1] / 10.0))

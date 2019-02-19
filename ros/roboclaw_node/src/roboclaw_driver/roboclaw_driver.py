@@ -848,12 +848,12 @@ def ReadISpeedM2(address):
 
 def DutyM1(address, val):
     #return _simplFunctionS2(address, Cmd.M1DUTY, val)
-    return _writeS2(address, Cmd.M1DUTY, val*20)
+    return _writeS2(address, Cmd.M1DUTY, val*42)
 
 
 def DutyM2(address, val):
     #return _simplFunctionS2(address, Cmd.M2DUTY, val)
-    return _writeS2(address, Cmd.M2DUTY, val*20)
+    return _writeS2(address, Cmd.M2DUTY, val*42)
 
 
 def DutyM1M2(address, m1, m2):
