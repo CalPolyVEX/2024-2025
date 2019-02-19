@@ -20,6 +20,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <!--<param name="/rtabmap/rtabmap/Reg/Force3DoF"    value="true" /> -->
     <!--<node pkg="image_test" type="zed_odom_test.py" name="zed_odom_test" cwd="node"/>  -->
 
+    <arg name="sim"               	default="false" />
+    <group if="$(arg sim)">
+      <include file="$(find jet_launcher)/launch/robot_localization.launch" /> 
+    </group>
+
     <arg name="zed_namespace"		    	default="zed" />
 
     <arg name="svo_file"              	default="" /> <!-- <arg name="svo_file" default="path/to/svo/file.svo"> -->
