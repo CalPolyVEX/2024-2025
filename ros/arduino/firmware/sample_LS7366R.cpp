@@ -13,12 +13,17 @@
 ros::NodeHandle nh;
 using std_srvs::Empty;
 void reset_encoder_callback(const std_msgs::Empty& reset_msg);
+void read_encoder_callback(const std_msgs::Empty &reset_msg);
 
 //std_msgs::String str_msg;
 std_msgs::Int32MultiArray wheel_enc_msg;
 //ros::Publisher chatter("chatter", &str_msg);
 ros::Publisher encoder("encoder", &wheel_enc_msg);
 ros::Subscriber<std_msgs::Empty> reset_encoder("reset_encoder", &reset_encoder_callback);
+
+//topics to handle the read encoder request
+ros::Subscriber<std_msgs::Empty> read_encoder_cmd("read_encoder_cmd", &read_encoder_callback);
+ros::Publisher encoder_service("encoder_service", &wheel_enc_msg);
 //char hello[13] = "hello world!";
 char dim0_label[8] = "encoder";
 std_msgs::MultiArrayLayout mal;
@@ -27,8 +32,8 @@ long int encoder_values[2] = {0,0};
 uint8_t counter = 0;
 
 //testing service code
-void service_cb(const Empty::Request &req, Empty::Response &res);
-ros::ServiceServer<Empty::Request, Empty::Response> test_server("test_service", &service_cb);
+//void service_cb(const Empty::Request &req, Empty::Response &res);
+//ros::ServiceServer<Empty::Request, Empty::Response> test_server("test_service", &service_cb);
 //end JS
 
 //function prototypes
@@ -53,8 +58,10 @@ uint8_t DFlagCh;
 uint8_t IsrLFlag;
 //int LFlagCnt[6];
 
-void service_cb(const Empty::Request &req, Empty::Response &res) {
-   delay(random(5,70));
+//when a message is received on /read_encoder_cmd, then publish a message
+//with the encoder readings
+void read_encoder_callback(const std_msgs::Empty &reset_msg){
+   encoder_service.publish(&wheel_enc_msg);
 }
 
 //*************************************************
@@ -136,7 +143,11 @@ void setup()
     //nh.advertise(chatter);
     nh.advertise(encoder);
     nh.subscribe(reset_encoder);
-    nh.advertiseService(test_server);
+    //nh.advertiseService(test_server);
+
+    //read encoder command
+    nh.advertise(encoder_service);
+    nh.subscribe(read_encoder_cmd);
 
     mad[0].label = (char*) &dim0_label;
     mad[0].size = 2;
@@ -210,7 +221,7 @@ void loop()
     //wheel_enc_msg.data[1]=getChanEncoderReg(READ_STR,1);
     //wheel_enc_msg.data[1]=getChanEncoderReg(READ_MDR0,4);
     //chatter.publish(&str_msg);
-    encoder.publish(&wheel_enc_msg);
+    //encoder.publish(&wheel_enc_msg);
     nh.spinOnce();
     delay(33);
     //end JS

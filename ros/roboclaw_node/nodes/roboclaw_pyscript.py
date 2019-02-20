@@ -9,6 +9,7 @@ import tf
 from roboclaw_node.msg import Motors_currents, Wheels_speeds
 from geometry_msgs.msg import Quaternion, Twist
 from nav_msgs.msg import Odometry
+from std_msgs.msg import Empty, Int32MultiArray
 import threading
 
 __author__ = "Original: bwbazemore@uga.edu (Brad Bazemore); Forked and modified 21/10/2016: guillaumedoisy@gmail.com"
@@ -20,13 +21,14 @@ class EncoderOdom:
     def __init__(self, ticks_per_meter, base_width):
         self.TICKS_PER_METER = ticks_per_meter
         self.BASE_WIDTH = base_width
-        self.odom_pub = rospy.Publisher('/odom', Odometry, queue_size=1)
+        self.odom_pub = rospy.Publisher('/roboclaw_odom', Odometry, queue_size=1)
         self.cur_x = 0
         self.cur_y = 0
         self.cur_theta = 0.0
         self.last_enc_left = 0
         self.last_enc_right = 0
         self.last_enc_time = rospy.Time.now()
+        rospy.Subscriber("encoder_service", Int32MultiArray, self.update_publish_cb, queue_size=1)
 
     @staticmethod
     def normalize_angle(angle):
@@ -71,7 +73,10 @@ class EncoderOdom:
 
         return vel_x, vel_theta
 
-    def update_publish(self, enc_left, enc_right):
+    def update_publish_cb(self, enc_msg):
+        enc_left = enc_msg.data[0];
+        enc_right = enc_msg.data[1];
+
         # 2106 per 0.1 seconds is max speed, error in the 16th bit is 32768
         # TODO lets find a better way to deal with this error
         if abs(enc_left - self.last_enc_left) > 20000:
@@ -177,7 +182,7 @@ class Node:
             rospy.logdebug(repr(version[1]))
 
         roboclaw.SpeedM1M2(self.address, 0, 0)
-        roboclaw.ResetEncoders(self.address)
+        #roboclaw.ResetEncoders(self.address)
 
         self.MAX_ABS_LINEAR_SPEED = float(rospy.get_param("~max_abs_linear_speed", "1.0"))
         self.MAX_ABS_ANGULAR_SPEED = float(rospy.get_param("~max_abs_angular_speed", "1.0"))
@@ -189,6 +194,7 @@ class Node:
         self.last_set_speed_time = rospy.get_rostime()
 
         rospy.Subscriber("cmd_vel", Twist, self.cmd_vel_callback, queue_size=1)
+        self.odom_req = rospy.Publisher('/read_encoder_cmd', Empty, queue_size=1)
 
         rospy.sleep(1)
 
@@ -215,30 +221,21 @@ class Node:
                         rospy.logdebug(e)
 
                 # TODO need find solution to the OSError11 looks like sync problem with serial
-                status1, enc1, crc1 = None, None, None
-                status2, enc2, crc2 = None, None, None
                 statusC, amp1, amp2 = None, None, None
 
-                try:
-                    crc1, enc1, status1 = roboclaw.ReadEncM1(self.address)
-                except ValueError:
-                    pass
+                self.odom_req.publish(Empty())
 
-                try:
-                    crc2, enc2, status2 = roboclaw.ReadEncM2(self.address)
-                except ValueError:
-                    pass
                 try:
                     status1c, amp1, amp2 = roboclaw.ReadCurrents(self.address)
                 except ValueError:
                     pass
 
-                if (enc1 != None) and (enc2 != None):
-                    rospy.logdebug(" Encoders %d %d" % (enc1, enc2))
-                    self.encodm.update_publish(enc1, enc2)
-                    self.updater.update()
-                else:
-                    rospy.logdebug("Error Reading enc")
+                #if (enc1 != None) and (enc2 != None):
+                #    rospy.logdebug(" Encoders %d %d" % (enc1, enc2))
+                #    self.encodm.update_publish(enc1, enc2)
+                #    self.updater.update()
+                #else:
+                #    rospy.logdebug("Error Reading enc")
 
                 if (amp1 != None) & (amp2 != None):
                     rospy.logdebug(" Currents %d %d" % (amp1, amp2))
@@ -331,7 +328,6 @@ class Node:
             except OSError as e:
                 rospy.logerr("Could not shutdown motors!!!!")
                 rospy.logdebug(e)
-
 
 if __name__ == "__main__":
     try:
