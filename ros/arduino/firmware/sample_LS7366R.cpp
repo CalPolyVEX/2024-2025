@@ -3,12 +3,15 @@
 #include <std_msgs/Empty.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Int32MultiArray.h>
+#include <rosserial_arduino/Test.h>
+#include <std_srvs/Empty.h>
 
 #include <Arduino.h>
 #include "LS7366R.h"
 
 //JS
 ros::NodeHandle nh;
+using std_srvs::Empty;
 void reset_encoder_callback(const std_msgs::Empty& reset_msg);
 
 //std_msgs::String str_msg;
@@ -22,6 +25,10 @@ std_msgs::MultiArrayLayout mal;
 std_msgs::MultiArrayDimension mad[1];
 long int encoder_values[2] = {0,0};
 uint8_t counter = 0;
+
+//testing service code
+void service_cb(const Empty::Request &req, Empty::Response &res);
+ros::ServiceServer<Empty::Request, Empty::Response> test_server("test_service", &service_cb);
 //end JS
 
 //function prototypes
@@ -46,6 +53,10 @@ uint8_t DFlagCh;
 uint8_t IsrLFlag;
 //int LFlagCnt[6];
 
+void service_cb(const Empty::Request &req, Empty::Response &res) {
+   delay(random(5,70));
+}
+
 //*************************************************
 //*****************************************************  
 void ISR_DFlag()
@@ -61,7 +72,7 @@ void ISR_LFlag()
     IsrLFlag = 1;
 }
 
-void reset_encoder_callback(const std_msgs::Empty& reset_msg){
+void reset_encoder_callback(const std_msgs::Empty &reset_msg){
    //send an Empty message to the /reset_encoder topic to reset
    //'rostopic pub /reset_encoder std_msgs/Empty --once' to test
    
@@ -125,6 +136,7 @@ void setup()
     //nh.advertise(chatter);
     nh.advertise(encoder);
     nh.subscribe(reset_encoder);
+    nh.advertiseService(test_server);
 
     mad[0].label = (char*) &dim0_label;
     mad[0].size = 2;
