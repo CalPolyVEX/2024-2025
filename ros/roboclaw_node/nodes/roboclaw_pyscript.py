@@ -227,6 +227,7 @@ class Node:
 
                 try:
                     status1c, amp1, amp2 = roboclaw.ReadCurrents(self.address)
+                    self.updater.update()
                 except ValueError:
                     pass
 
