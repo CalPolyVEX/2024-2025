@@ -11,8 +11,10 @@ git remote add -f origin https://github.com/jsseng/ue4.git
 git pull origin master
 ```
 
-Compile roboclaw_driver.py
+Extra packages to install
 
 ```
-python -m py_compile roboclaw_driver.py
+apt install python-pygame
+apt install ros-kinetic-rosserial-arduino
+apt install ros-kinetic-tf2-sensor-msgs
 ```
