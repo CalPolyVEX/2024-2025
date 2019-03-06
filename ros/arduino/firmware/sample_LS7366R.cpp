@@ -86,8 +86,8 @@ void reset_encoder_callback(const std_msgs::Empty &reset_msg){
    //digitalWrite(13, HIGH-digitalRead(13));   // blink the led
    encoder_values[0] = 0;
    encoder_values[1] = 0;
-   rstEncCnt(4);
-   rstEncCnt(5);
+   rstEncCnt(2);
+   rstEncCnt(3);
 }
 
 //*************************************************
@@ -205,7 +205,7 @@ void loop()
     
     //blink the LED on the encoder shield
     counter++;
-    if (counter > 30) {
+    if (counter > 60) {
       blinkActLed();
       counter = 0;
     }
@@ -214,14 +214,14 @@ void loop()
     //str_msg.data = hello;
 
     //get the encoder values
-    wheel_enc_msg.data[0]=getChanEncoderValue(4);
-    wheel_enc_msg.data[1]=getChanEncoderValue(5);
+    wheel_enc_msg.data[0]=getChanEncoderValue(2);
+    wheel_enc_msg.data[1]=getChanEncoderValue(3);
     //wheel_enc_msg.data[1]=getChanEncoderReg(READ_STR,1);
     //wheel_enc_msg.data[1]=getChanEncoderReg(READ_MDR0,4);
     //chatter.publish(&str_msg);
     //encoder.publish(&wheel_enc_msg);
     nh.spinOnce();
-    delay(33);
+    delay(15);
     //end JS
 } //end loop
 
