@@ -43,6 +43,6 @@ git pull origin master
 
 #install dependencies
 apt install python-pygame
-apt install ros-kinetic-rosserial-arduino
-apt install ros-kinetic-tf2-sensor-msgs
+apt install ros-melodic-rosserial-arduino
+apt install ros-melodic-tf2-sensor-msgs
 
