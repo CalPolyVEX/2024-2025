@@ -33,14 +33,17 @@ git remote add -f origin https://github.com/jsseng/ue4.git
 git pull origin master
 git clone https://github.com/ros-perception/image_transport_plugins.git
 git clone https://github.com/ros-perception/vision_opencv.git
+git clone https://github.com/IntelRealSense/realsense-ros.git
+git clone https://github.com/introlab/rtabmap_ros.git
+git clone https://github.com/stereolabs/zed-ros-wrapper.git
 
 #install dependencies
 sudo apt install python-pygame gfortran libogg-dev libtheora-dev
-sudo apt install ros-melodic-rosserial-arduino
-sudo apt install ros-melodic-tf2-sensor-msgs ros-melodic-tf2-geometry-msgs
+sudo apt install ros-melodic-rosserial-arduino ros-melodic-tf-conversions ros-melodic-eigen-conversions
+sudo apt install ros-melodic-tf2-sensor-msgs ros-melodic-tf2-geometry-msgs ros-melodic-laser-geometry
 sudo apt install ros-melodic-roslint ros-melodic-image-transport ros-melodic-diagnostic-updater
-sudo apt install python-pip
-sudo apt install python3-pip
+sudo apt install python-pip ros-melodic-pcl-conversions ros-melodic-pcl-ros
+sudo apt install python3-pip ros-melodic-move-base-msgs ros-melodic-costmap-2d ros-melodic-octomap-msgs ros-melodic-find-object-2d
 
 #install Tensorflow for python3 (Jetpack 4.2)
 pip3 install --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v42 tensorflow-gpu==1.13.1+nv19.4 --user
