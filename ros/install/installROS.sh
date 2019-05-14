@@ -58,8 +58,4 @@ git config --global user.name "John Seng"
 sudo apt-get install cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
 sudo apt-get install python-dev python-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev
 
-#wget -O opencv.zip https://github.com/opencv/opencv/archive/3.4.4.zip
-#wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/3.4.4.zip
-
-#cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D INSTALL_PYTHON_EXAMPLES=ON -D INSTALL_C_EXAMPLES=OFF -D OPENCV_ENABLE_NONFREE=ON -D OPENCV_EXTRA_MODULES_PATH=/mnt/temp/opencv_contrib/modules -D PYTHON2_EXECUTABLE=/usr/bin/python -D PYTHON3_EXECUTABLE=/usr/bin/python3 -D BUILD_EXAMPLES=OFF ..
 
