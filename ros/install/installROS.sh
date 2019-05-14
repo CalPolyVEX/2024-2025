@@ -31,9 +31,11 @@ git config core.sparseCheckout true
 echo 'ros/' > .git/info/sparse-checkout
 git remote add -f origin https://github.com/jsseng/ue4.git
 git pull origin master
+git clone https://github.com/ros-perception/image_transport_plugins.git
+git clone https://github.com/ros-perception/vision_opencv.git
 
 #install dependencies
-sudo apt install python-pygame gfortran
+sudo apt install python-pygame gfortran libogg-dev libtheora-dev
 sudo apt install ros-melodic-rosserial-arduino
 sudo apt install ros-melodic-tf2-sensor-msgs ros-melodic-tf2-geometry-msgs
 sudo apt install ros-melodic-roslint ros-melodic-image-transport ros-melodic-diagnostic-updater
