@@ -9,15 +9,7 @@ sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C
 # Installation
 sudo apt-get update
 sudo apt-get install ros-melodic-ros-base -y
-# Add Individual Packages here
-# You can install a specific ROS package (replace underscores with dashes of the package name):
-# sudo apt-get install ros-kinetic-PACKAGE
-# e.g.
-# sudo apt-get install ros-kinetic-navigation
-#
-# To find available packages:
-# apt-cache search ros-kinetic
-# 
+
 # Initialize rosdep
 sudo apt-get install python-rosdep -y
 # ssl certificates can get messed up on TX1 for some reason
@@ -42,7 +34,22 @@ git remote add -f origin https://github.com/jsseng/ue4.git
 git pull origin master
 
 #install dependencies
-apt install python-pygame
-apt install ros-melodic-rosserial-arduino
-apt install ros-melodic-tf2-sensor-msgs
+sudo apt install python-pygame
+sudo apt install ros-melodic-rosserial-arduino
+sudo apt install ros-melodic-tf2-sensor-msgs
+sudo apt install ros-melodic-roslint
+sudo apt install python-pip
+sudo apt install python3-pip
+
+#install Tensorflow for python3 (Jetpack 4.2)
+pip3 install --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v42 tensorflow-gpu==1.13.1+nv19.4 --user
+
+#install vim pathogen
+sudo apt install curl
+mkdir -p ~/.vim/autoload ~/.vim/bundle
+curl -LSso ~/.vim/autoload/pathogen.vim https://tpo.pe/pathogen.vim
+
+#config git
+git config --global user.email "jseng@calpoly.edu"
+git config --global user.name "John Seng"
 
