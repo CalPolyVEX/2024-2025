@@ -12,8 +12,7 @@ sudo apt-get install ros-melodic-ros-base -y
 
 # Initialize rosdep
 sudo apt-get install python-rosdep -y
-# ssl certificates can get messed up on TX1 for some reason
-#sudo c_rehash /etc/ssl/certs
+
 # Initialize rosdep
 sudo rosdep init
 # To find available packages, use:
@@ -43,6 +42,8 @@ sudo apt install python3-pip
 
 #install Tensorflow for python3 (Jetpack 4.2)
 pip3 install --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v42 tensorflow-gpu==1.13.1+nv19.4 --user
+pip install numpy
+pip3 install numpy
 
 #install vim pathogen
 sudo apt install curl
@@ -52,4 +53,13 @@ curl -LSso ~/.vim/autoload/pathogen.vim https://tpo.pe/pathogen.vim
 #config git
 git config --global user.email "jseng@calpoly.edu"
 git config --global user.name "John Seng"
+
+#stuff for building OpenCV
+sudo apt-get install cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
+sudo apt-get install python-dev python-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev
+
+#wget -O opencv.zip https://github.com/opencv/opencv/archive/3.4.4.zip
+#wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/3.4.4.zip
+
+#cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D INSTALL_PYTHON_EXAMPLES=ON -D INSTALL_C_EXAMPLES=OFF -D OPENCV_ENABLE_NONFREE=ON -D OPENCV_EXTRA_MODULES_PATH=/mnt/temp/opencv_contrib/modules -D PYTHON2_EXECUTABLE=/usr/bin/python -D PYTHON3_EXECUTABLE=/usr/bin/python3 -D BUILD_EXAMPLES=OFF ..
 
