@@ -33,10 +33,10 @@ git remote add -f origin https://github.com/jsseng/ue4.git
 git pull origin master
 
 #install dependencies
-sudo apt install python-pygame
+sudo apt install python-pygame gfortran
 sudo apt install ros-melodic-rosserial-arduino
-sudo apt install ros-melodic-tf2-sensor-msgs
-sudo apt install ros-melodic-roslint
+sudo apt install ros-melodic-tf2-sensor-msgs ros-melodic-tf2-geometry-msgs
+sudo apt install ros-melodic-roslint ros-melodic-image-transport ros-melodic-diagnostic-updater
 sudo apt install python-pip
 sudo apt install python3-pip
 
