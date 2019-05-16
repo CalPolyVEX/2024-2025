@@ -19,7 +19,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
     <!--<param name="/rtabmap/rtabmap/Reg/Force3DoF"    value="true" />  -->
     <!--<param name="/rtabmap/rtabmap/RGBD/SavedLocalizationIgnored" value="true" />-->
 
-    <arg name="zed_namespace"		    	default="zed" />
+    <arg name="zed_namespace"		    	default="zed/zed_node" />
 
     <arg name="svo_file"              	default="" /> <!-- <arg name="svo_file" default="path/to/svo/file.svo"> -->
     <arg name="loc"              	default="false" /> 
