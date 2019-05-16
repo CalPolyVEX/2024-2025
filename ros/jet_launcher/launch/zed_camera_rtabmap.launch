@@ -3,6 +3,7 @@
 <!-- This file starts the ZED camera on the robot -->
 
 <launch>
+    <include file="$(find realsense2_camera)/launch/rs_t265.launch" />
     <include file="$(find image_test)/launch/tf_publisher.launch" />
 
     <arg name="zed_namespace"		    	default="zed" />
