@@ -25,7 +25,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <include file="$(find jet_launcher)/launch/robot_localization.launch" /> 
     </group>
 
-    <arg name="zed_namespace"		    	default="zed/zed_node" />
+    <arg name="zed_namespace"		    	default="zed" />
 
     <arg name="svo_file"              	default="" /> <!-- <arg name="svo_file" default="path/to/svo/file.svo"> -->
     <arg name="loc"              	default="false" /> 
@@ -64,10 +64,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <arg name="rgb_image_transport"       value="compressed" />
       <arg name="depth_image_transport"     value="compressedDepth" />
       <!--<arg name="odom_topic"                value="/$(arg zed_namespace)/odom" />-->
-      <arg name="odom_topic"                value="/example/test_odom" />
+      <arg name="odom_topic"                value="/camera/odom/sample" />
       <arg name="localization"                value="false" />
       <param name="Optimizer/Slam2D" value="true" /> -->
-
     </include>
-
 </launch>

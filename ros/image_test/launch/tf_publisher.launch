@@ -1,11 +1,11 @@
 <launch>
    <!--<node pkg="tf2_ros" type="static_transform_publisher" name="base_link" args="0 0 0 0 0 0 1 map base_link" /> -->
 
-   <node pkg="tf2_ros" type="static_transform_publisher" name="link1_broadcaster" args=".2 0 .584 0 0 0 1 base_link cam1" />
+   <node pkg="tf2_ros" type="static_transform_publisher" name="see3cam_broadcaster" args=".2 0 .584 0 0 0 1 base_link see3_camera_fixed" />
 
-   <node pkg="tf2_ros" type="static_transform_publisher" name="link2_broadcaster" args=".2 0 .5 0 0 0 1 base_link zed_camera_fixed" />
+   <node pkg="tf2_ros" type="static_transform_publisher" name="zed_broadcaster" args=".2 0 .5 0 0 0 1 base_link zed_camera_fixed" />
 
-   <node pkg="tf2_ros" type="static_transform_publisher" name="link3_broadcaster" args="-.2 0 .6 0 0 0 1 base_link t265_camera_fixed" />
+   <node pkg="tf2_ros" type="static_transform_publisher" name="t265_broadcaster" args="-.2 0 .6 0 0 0 1 base_link t265_camera_fixed" />
 
    <node pkg="tf2_ros" type="static_transform_publisher" name="t265_rotate_broadcaster" args="-.1 0 .1 .5 .5 .5 .5 t265_camera_fixed t265_test_rotation" />
 
