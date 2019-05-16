@@ -34,6 +34,7 @@
       <arg name="visual_odometry"               value="false" />
       <arg name="odom_topic"                    value="/$(arg zed_namespace)/$(arg zed_node_name)/odom" />
       <arg name="rviz"                          value="false" />
+      <arg name="database_path"                 value="/mnt/temp/.ros/rtabmap.db" />
     </include>
 
     <!-- Nodelet Manager -->
@@ -53,9 +54,9 @@
         <remap from="depth/image_in"     to="depth/depth_registered"/>
         <remap from="rgb/camera_info_in" to="rgb/camera_info"/>
 
-        <remap from="rgb/image_out"       to="data_throttled_image"/>
-        <remap from="depth/image_out"     to="data_throttled_image_depth"/>
-        <remap from="rgb/camera_info_out" to="data_throttled_camera_info"/>
+        <remap from="rgb/image_out"       to="$(arg zed_namespace)/data_throttled_image"/>
+        <remap from="depth/image_out"     to="$(arg zed_namespace)/data_throttled_image_depth"/>
+        <remap from="rgb/camera_info_out" to="$(arg zed_namespace)/data_throttled_camera_info"/>
     </node>
 
     <!-- Throttle the rate that the depth point clouds are published from the camera -->
