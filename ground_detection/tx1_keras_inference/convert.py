@@ -12,5 +12,5 @@ else:
 os.system('scp jseng@unix3.csc.calpoly.edu:/home/jseng/ue4/ground_detection/gpu_code/saved_models/' + model_name + ' .')
 
 os.system('python k2tf_convert.py --model ./' + model_name + ' --numout 48')
-os.system('cp output_graph.pb /home/nvidia/catkin_ws/src/ros/image_test/nodes')
+os.system('cp output_graph.pb /home/jseng/catkin_ws/src/ros/image_test/nodes')
 #python -m tensorflow.python.tools.optimize_for_inference --input output_graph.pb --output graph_optimized.pb --input_names=input_1 --output_names=k2tfout_0
