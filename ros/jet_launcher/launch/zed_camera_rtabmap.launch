@@ -3,7 +3,7 @@
 <!-- This file starts the ZED camera on the robot -->
 
 <launch>
-    <include file="$(find realsense2_camera)/launch/rs_t265.launch" />
+    <include file="$(find realsense2_camera)/launch/rs_t265.launch" /> 
     <include file="$(find image_test)/launch/tf_publisher.launch" />
 
     <arg name="zed_namespace"		    	default="zed" />
@@ -23,33 +23,14 @@
         <arg name="publish_urdf"        value="$(arg publish_urdf)" />
     </include>
 
-    <!-- RTAB-map Node-->
-    <!--<include file="$(find rtabmap_ros)/launch/rtabmap.launch">
-      <arg name="rtabmap_args"                  value="-delete_db_on_start" />
-      <arg name="rgb_topic"               	value="/$(arg zed_namespace)/$(arg zed_node_name)/rgb/image_rect_color" />
-      <arg name="depth_topic"             	value="/$(arg zed_namespace)/$(arg zed_node_name)/depth/depth_registered" />
-      <arg name="camera_info_topic"       	value="/$(arg zed_namespace)/$(arg zed_node_name)/rgb/camera_info" />
-      <arg name="depth_camera_info_topic" 	value="/$(arg zed_namespace)/$(arg zed_node_name)/depth/camera_info" />
-      <arg name="frame_id"                      value="base_link" />
-      <arg name="approx_sync"                   value="false" />
-      <arg name="visual_odometry"               value="false" />
-      <arg name="odom_topic"                    value="/$(arg zed_namespace)/$(arg zed_node_name)/odom" />
-      <arg name="rviz"                          value="false" />
-      <arg name="database_path"                 value="/mnt/temp/.ros/rtabmap.db" />
-    </include> -->
-
     <!-- Nodelet Manager -->
     <arg name="nodelet_manager_name" default="zed_nodelet_manager" />
     <node pkg="nodelet" type="nodelet" name="$(arg nodelet_manager_name)"  args="manager" output="screen" />
 
-    <arg name="rate"  default="2.0"/>
-    <arg name="decimation"  default="1"/> <!-- Reduce the image size, e.g., 2 means "width/2 x height/2". -->
-    <arg name="approx_sync" default="true" />
-
     <node pkg="nodelet" type="nodelet" name="data_throttle" args="load rtabmap_ros/data_throttle zed_nodelet_manager" output="screen">
-        <param name="rate" type="double" value="$(arg rate)"/>
-        <param name="decimation" type="int" value="$(arg decimation)"/>
-        <param name="approx_sync" type="bool" value="$(arg approx_sync)"/>
+        <param name="rate" type="double" value="2.0"/>
+        <param name="decimation" type="int" value="1"/>
+        <param name="approx_sync" type="bool" value="true"/>
 
         <remap from="rgb/image_in"       to="$(arg zed_namespace)/$(arg zed_node_name)/rgb/image_rect_color"/>
         <remap from="depth/image_in"     to="$(arg zed_namespace)/$(arg zed_node_name)/depth/depth_registered"/>
