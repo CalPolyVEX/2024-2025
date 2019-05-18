@@ -18,7 +18,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 <launch>
     <!--<param name="/rtabmap/rtabmap/Reg/Force3DoF"    value="true" /> -->
-    <!--<node pkg="image_test" type="zed_odom_test.py" name="zed_odom_test" cwd="node"/>  -->
 
     <arg name="sim"               	default="false" />
     <group if="$(arg sim)">
@@ -50,9 +49,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
       <arg name="rtabmap_args"		value="--delete_db_on_start" />  
       <arg name="rgb_topic"               	value="/$(arg zed_namespace)/data_throttled_image" />
-      <!--<arg name="rgb_topic"               	value="/camera/data_throttled_image" /> -->
       <arg name="depth_topic"             	value="/$(arg zed_namespace)/data_throttled_image_depth" />
-      <!--<arg name="depth_topic"             	value="/camera/data_throttled_image_depth" />-->
       <arg name="camera_info_topic"       	value="/$(arg zed_namespace)/data_throttled_camera_info" />
       <arg name="depth_camera_info_topic" 	value="/$(arg zed_namespace)/depth/camera_info" />
       <!--<arg name="frame_id"                  value="$(arg camera_frame)" /> -->
@@ -63,9 +60,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <arg name="compressed"                value="false" />
       <arg name="rgb_image_transport"       value="compressed" />
       <arg name="depth_image_transport"     value="compressedDepth" />
-      <!--<arg name="odom_topic"                value="/$(arg zed_namespace)/odom" />-->
       <arg name="odom_topic"                value="/camera/odom/sample" />
       <arg name="localization"                value="false" />
+      <arg name="database_path"                 value="/mnt/temp/.ros/rtabmap.db" />
       <param name="Optimizer/Slam2D" value="true" /> -->
     </include>
 </launch>
