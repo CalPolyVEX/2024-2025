@@ -42,7 +42,7 @@
     </node>
 
     <!-- Throttle the rate that the depth point clouds are published from the camera -->
-    <node pkg="topic_tools" name="throttle" type="throttle" args="messages /zed/point_cloud/cloud_registered 4.0 /zed/throttled_point_cloud" /> 
+    <node pkg="topic_tools" name="throttle" type="throttle" args="messages /zed/zed_node/point_cloud/cloud_registered 4.0 /zed/throttled_point_cloud" /> 
 
     <!-- old launch file items -->   
     <!--<arg name="rgb_topic"               	default="rgb/image_rect_color" />
