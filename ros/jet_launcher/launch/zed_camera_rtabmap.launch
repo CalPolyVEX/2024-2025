@@ -39,10 +39,13 @@
         <remap from="rgb/image_out"       to="$(arg zed_namespace)/data_throttled_image"/>
         <remap from="depth/image_out"     to="$(arg zed_namespace)/data_throttled_image_depth"/>
         <remap from="rgb/camera_info_out" to="$(arg zed_namespace)/data_throttled_camera_info"/>
-    </node>
+    </node> 
 
     <!-- Throttle the rate that the depth point clouds are published from the camera -->
-    <node pkg="topic_tools" name="throttle" type="throttle" args="messages /zed/zed_node/point_cloud/cloud_registered 4.0 /zed/throttled_point_cloud" /> 
+    <!-- <node pkg="topic_tools" name="throttle" type="throttle" args="messages /zed/zed_node/point_cloud/cloud_registered 4.0 /zed/throttled_point_cloud" />  -->
+    <!-- <node pkg="topic_tools" name="throttle1" type="throttle" args="messages /zed/zed_node/rgb/image_rect_color 2.0 /zed/data_throttled_image" />  
+    <node pkg="topic_tools" name="throttle2" type="throttle" args="messages /zed/zed_node/depth/depth_registered 2.0 /zed/data_throttled_image_depth" /> 
+    <node pkg="topic_tools" name="throttle3" type="throttle" args="messages /zed/zed_node/rgb/camera_info 2.0 /zed/data_throttled_camera_info" /> -->
 
     <!-- old launch file items -->   
     <!--<arg name="rgb_topic"               	default="rgb/image_rect_color" />

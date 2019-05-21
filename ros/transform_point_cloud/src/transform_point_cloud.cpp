@@ -45,7 +45,7 @@ class TransformPointCloud
       // by the same amount it used to be relative to msg->header.frame_id,
       // but the frame will still be msg->header.frame_id when done.
       const std::string target_frame = "zed_camera_center"; 
-      const std::string source_frame = "zed_camera_fixed";
+      const std::string source_frame = "zed_camera_center";
       transform = tf_buffer_.lookupTransform(
           target_frame,
           source_frame,
