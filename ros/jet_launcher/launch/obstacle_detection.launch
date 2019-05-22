@@ -8,16 +8,15 @@
     <!-- <remap from="~input" to="/zed/throttled_point_cloud" />  -->
     <rosparam>
       filter_field_name: z
-      filter_limit_min: -10
-      filter_limit_max: 10
+      filter_limit_min: -.09
+      filter_limit_max: .8
       filter_limit_negative: False
       leaf_size: 0.05
     </rosparam>
   </node>
 
-  <node pkg="nodelet" type="nodelet" name="obstacles_detection" args="load rtabmap_ros/obstacles_detection pcl_manager" output="screen">
+  <!-- <node pkg="nodelet" type="nodelet" name="obstacles_detection" args="load rtabmap_ros/obstacles_detection pcl_manager" output="screen">
       <remap from="cloud"     to="/zed/point_cloud_transformed"/>
-      <!-- <remap from="cloud"     to="/zed/point_cloud_transformed"/> -->
       <remap from="obstacles" to="/obstacles_cloud"/>
       <remap from="ground"    to="/ground_cloud"/>
       
@@ -26,5 +25,5 @@
       <param name="wait_for_transform"   type="bool" value="false"/>
       <param name="Grid/MinClusterSize"     type="int" value="20"/> 
       <param name="Grid/MaxObstaclesHeight" type="double" value="0.4"/> 
-  </node>  
+  </node>   -->
 </launch>
