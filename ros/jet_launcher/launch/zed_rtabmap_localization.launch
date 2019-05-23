@@ -65,7 +65,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
       <arg name="odom_topic"                value="/camera/odom/sample" />
       <!--<arg name="wait_for_transform"                value=".8" />-->
       <!--<arg name="localization"                value="false" /> -->
-      <arg name="database_path"                 value="/mnt/temp/.ros/rtabmap.db" />
+      <arg name="database_path"                 value="~/.ros/rtabmap.db" />
       <arg name="localization"                value="true" />
       <!--<param name="publish_tf" type="bool" value="false" /> -->
     </include>
