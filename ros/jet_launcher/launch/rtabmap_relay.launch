@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+
+<launch>
+  <node pkg="topic_tools" type="relay" name="image_relay" args="/zed/data_throttled_image/compressed /zed/data_throttled_image_relay" />
+  <node pkg="topic_tools" type="relay" name="depth_relay" args="/zed/data_throttled_image_depth/compressedDepth /zed/data_throttled_image_depth_relay" />
+</launch>
+
