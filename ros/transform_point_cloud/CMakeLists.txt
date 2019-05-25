@@ -28,5 +28,9 @@ include_directories(
 
 add_executable(transform_point_cloud
   src/transform_point_cloud)
+add_executable(pub_odometry
+  src/pub_odometry.cpp)
 add_dependencies(transform_point_cloud ${PROJECT_NAME}_gencfg)
 target_link_libraries(transform_point_cloud ${catkin_LIBRARIES})
+add_dependencies(pub_odometry ${PROJECT_NAME}_gencfg)
+target_link_libraries(pub_odometry ${catkin_LIBRARIES})
