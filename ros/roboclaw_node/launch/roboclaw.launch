@@ -9,7 +9,7 @@
 <!-- Wheels max acceleration m/s^2 (TODO: split in angular and linear acceleration) -->
     <arg name="acc_lim" default="1"/>
 <!-- 1957 ticks/rev ; 0.2 cm diam ; 0.6283186 m/rev -->
-    <arg name="ticks_per_meter" default="1000"/>
+    <arg name="ticks_per_meter" default="6683.68"/>
     <arg name="base_width" default="0.3"/>
     <arg name="run_diag" default="true"/>
 
@@ -23,6 +23,5 @@
         <param name="~ticks_per_meter" value="$(arg ticks_per_meter)"/>
         <param name="~base_width" value="$(arg base_width)"/>
     </node>
-
 
 </launch>
