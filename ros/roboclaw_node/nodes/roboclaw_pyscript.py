@@ -12,23 +12,27 @@ from nav_msgs.msg import Odometry
 from std_msgs.msg import Empty, Int32MultiArray
 import threading
 
-__author__ = "Original: bwbazemore@uga.edu (Brad Bazemore); Forked and modified 21/10/2016: guillaumedoisy@gmail.com"
+__author__ = "Original: bwbazemore@uga.edu (Brad Bazemore); \
+             Forked and modified 21/10/2016: guillaumedoisy@gmail.com"
 
 
-# TODO need to find some better was of handling OSerror 11 or preventing it, any ideas?
+# TODO need to find some better was of handling OSerror 11 or preventing it,
+#  any ideas?
 
 class EncoderOdom:
     def __init__(self, ticks_per_meter, base_width):
         self.TICKS_PER_METER = ticks_per_meter
         self.BASE_WIDTH = base_width
-        self.odom_pub = rospy.Publisher('/roboclaw_odom', Odometry, queue_size=1)
+        self.odom_pub = rospy.Publisher('/roboclaw_odom', Odometry,
+                                        queue_size=1)
         self.cur_x = 0
         self.cur_y = 0
         self.cur_theta = 0.0
         self.last_enc_left = 0
         self.last_enc_right = 0
         self.last_enc_time = rospy.Time.now()
-        rospy.Subscriber("encoder_service", Int32MultiArray, self.update_publish_cb, queue_size=1)
+        rospy.Subscriber("encoder_service", Int32MultiArray,
+                         self.update_publish_cb, queue_size=1)
 
     @staticmethod
     def normalize_angle(angle):
@@ -38,7 +42,26 @@ class EncoderOdom:
             angle += 2.0 * pi
         return angle
 
+    def update_publish_cb(self, enc_msg):
+        #this callback is called when a new encoder message is
+        #received from the arduino
+
+        enc_left = enc_msg.data[0];
+        enc_right = enc_msg.data[1];
+
+        # 2106 per 0.1 seconds is max speed, error in the 16th bit is 32768
+        # todo lets find a better way to deal with this error
+        if abs(enc_left - self.last_enc_left) > 20000:
+            rospy.logerr("Ignoring left encoder jump: cur %d, last %d" % (enc_left, self.last_enc_left))
+        elif abs(enc_right - self.last_enc_right) > 20000:
+            rospy.logerr("Ignoring right encoder jump: cur %d, last %d" % (enc_right, self.last_enc_right))
+        else:
+            #call the update function
+            vel_x, vel_theta = self.update(enc_left, enc_right)
+            self.publish_odom(self.cur_x, self.cur_y, self.cur_theta, vel_x, vel_theta)
+
     def update(self, enc_left, enc_right):
+        #take the encoder counts and update the number of ticks traveled
         left_ticks = enc_left - self.last_enc_left
         right_ticks = enc_right - self.last_enc_right
         self.last_enc_left = enc_left
@@ -52,7 +75,8 @@ class EncoderOdom:
         d_time = (current_time - self.last_enc_time).to_sec()
         self.last_enc_time = current_time
 
-        # TODO find better what to determine going straight, this means slight deviation is accounted
+        # TODO find better what to determine going straight,
+        # this means slight deviation is accounted
         if left_ticks == right_ticks:
             d_theta = 0.0
             self.cur_x += dist * cos(self.cur_theta)
@@ -60,8 +84,10 @@ class EncoderOdom:
         else:
             d_theta = (dist_right - dist_left) / self.BASE_WIDTH
             r = dist / d_theta
-            self.cur_x += r * (sin(d_theta + self.cur_theta) - sin(self.cur_theta))
-            self.cur_y -= r * (cos(d_theta + self.cur_theta) - cos(self.cur_theta))
+            self.cur_x += r * (sin(d_theta + self.cur_theta) -
+                               sin(self.cur_theta))
+            self.cur_y -= r * (cos(d_theta + self.cur_theta) -
+                               cos(self.cur_theta))
             self.cur_theta = self.normalize_angle(self.cur_theta + d_theta)
 
         if abs(d_time) < 0.000001:
@@ -73,21 +99,10 @@ class EncoderOdom:
 
         return vel_x, vel_theta
 
-    def update_publish_cb(self, enc_msg):
-        enc_left = enc_msg.data[0];
-        enc_right = enc_msg.data[1];
-
-        # 2106 per 0.1 seconds is max speed, error in the 16th bit is 32768
-        # TODO lets find a better way to deal with this error
-        if abs(enc_left - self.last_enc_left) > 20000:
-            rospy.logerr("Ignoring left encoder jump: cur %d, last %d" % (enc_left, self.last_enc_left))
-        elif abs(enc_right - self.last_enc_right) > 20000:
-            rospy.logerr("Ignoring right encoder jump: cur %d, last %d" % (enc_right, self.last_enc_right))
-        else:
-            vel_x, vel_theta = self.update(enc_left, enc_right)
-            self.publish_odom(self.cur_x, self.cur_y, self.cur_theta, vel_x, vel_theta)
 
     def publish_odom(self, cur_x, cur_y, cur_theta, vx, vth):
+        #publish a new odometry message
+
         quat = tf.transformations.quaternion_from_euler(0, 0, cur_theta)
         current_time = rospy.Time.now()
 
@@ -96,11 +111,11 @@ class EncoderOdom:
                          tf.transformations.quaternion_from_euler(0, 0, cur_theta),
                          current_time,
                          "base_link",
-                         "odom")
+                         "roboclaw_odom")
 
         odom = Odometry()
         odom.header.stamp = current_time
-        odom.header.frame_id = 'odom'
+        odom.header.frame_id = 'roboclaw_odom'
 
         odom.pose.pose.position.x = cur_x
         odom.pose.pose.position.y = cur_y
@@ -184,9 +199,11 @@ class Node:
         roboclaw.SpeedM1M2(self.address, 0, 0)
         #roboclaw.ResetEncoders(self.address)
 
-        self.MAX_ABS_LINEAR_SPEED = float(rospy.get_param("~max_abs_linear_speed", "1.0"))
-        self.MAX_ABS_ANGULAR_SPEED = float(rospy.get_param("~max_abs_angular_speed", "1.0"))
-        self.TICKS_PER_METER = float(rospy.get_param("~ticks_per_meter", "1000"))
+        self.MAX_ABS_LINEAR_SPEED = float(rospy.get_param("~max_abs_linear_speed", \
+                                                           "1.0"))
+        self.MAX_ABS_ANGULAR_SPEED = float(rospy.get_param("~max_abs_angular_speed", \
+                                                            "1.0"))
+        self.TICKS_PER_METER = float(rospy.get_param("~ticks_per_meter", "6683"))
         self.BASE_WIDTH = float(rospy.get_param("~base_width", "0.315"))
         self.ACC_LIM = float(rospy.get_param("~acc_lim", "0.1"))
 
