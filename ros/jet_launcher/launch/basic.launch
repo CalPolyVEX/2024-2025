@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
 <launch>
    <include file="$(find roboclaw_node)/launch/roboclaw.launch"/>
+   <include file="$(find arduino)/launch/arduino.launch"/>
 </launch>
