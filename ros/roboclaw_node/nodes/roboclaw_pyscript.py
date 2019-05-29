@@ -48,7 +48,7 @@ class EncoderOdom:
         #this callback is called when a new encoder message is
         #received from the arduino
 
-        enc_left = enc_msg.data[0];
+        enc_left = -enc_msg.data[0];
         enc_right = enc_msg.data[1];
 
         # 2106 per 0.1 seconds is max speed, error in the 16th bit is 32768
@@ -77,7 +77,7 @@ class EncoderOdom:
         d_time = (current_time - self.last_enc_time).to_sec()
         self.last_enc_time = current_time
 
-        self.left_tick_vel = left_ticks / d_time #should be in ticks/second
+        self.left_tick_vel =  left_ticks / d_time #should be in ticks/second
         self.right_tick_vel = right_ticks / d_time
 
         # TODO find better what to determine going straight,
@@ -212,6 +212,10 @@ class Node:
         self.ACC_LIM = float(rospy.get_param("~acc_lim", "0.1"))
 
         self.encodm = EncoderOdom(self.TICKS_PER_METER, self.BASE_WIDTH)
+        self.left_integral = [x for x in range(10)]
+        self.right_integral = [x for x in range(10)]
+        self.left_counter = 0
+        self.right_counter = 0
         self.last_set_speed_time = rospy.get_rostime()
 
         rospy.Subscriber("cmd_vel", Twist, self.cmd_vel_callback, queue_size=1)
@@ -270,11 +274,28 @@ class Node:
 
             r_time.sleep()
 
-    def compute_pid(self, desired, actual):
-        kp = 1.0
-        error = desired - actual
-        set_value = desired + kp * error
-        return set_value
+    def compute_pid(self, left_desired, left_actual, right_desired, right_actual):
+        kp = 1.7
+        ki = .3
+        left_error = left_desired - left_actual
+        right_error = right_desired - right_actual
+
+        #compute integral term
+        left_sum = 0
+        right_sum = 0
+        for i in range(len(self.left_integral)):
+            left_sum += self.left_integral[i]
+            right_sum += self.right_integral[i]
+
+        self.left_counter = (self.left_counter + 1) % len(self.left_integral)
+        self.right_counter = (self.right_counter + 1) % len(self.right_integral)
+        self.left_integral[self.left_counter] = left_error
+        self.right_integral[self.right_counter] = right_error
+
+        left_set_value = left_desired + (kp * left_error) + (ki * left_sum)
+        right_set_value = right_desired + (kp * right_error) + (ki * right_sum)
+
+        return left_set_value, right_set_value
 
     def cmd_vel_callback(self, twist):
         with self.lock:
@@ -293,20 +314,36 @@ class Node:
             vr_ticks = int(vr * self.TICKS_PER_METER)  # ticks/s
             vl_ticks = int(vl * self.TICKS_PER_METER)
 
+            #publish the wheel speeds to /motors/commanded_speeds
             v_wheels= Wheels_speeds()
-            v_wheels.wheel1=vl
-            v_wheels.wheel2=vr
+            #v_wheels.wheel1=vl
+            #v_wheels.wheel2=vr
+            pid_speed_l, pid_speed_r = self.compute_pid(vl_ticks, self.encodm.left_tick_vel, \
+                                                        vr_ticks, self.encodm.right_tick_vel)
+            v_wheels.wheel1=pid_speed_l
+            v_wheels.wheel2=pid_speed_r
             self.wheels_speeds_pub.publish(v_wheels)
 
-            rospy.logdebug("vr_ticks:%d vl_ticks: %d", vr_ticks, vl_ticks)
-            rospy.logdebug("left error:%d right error: %d", \
-                            vl_ticks - self.left_tick_vel, vr_ticks - self.right_tick_vel)
+            rospy.logdebug("desired vl_ticks: %d desired vr_ticks: %d", vl_ticks, vr_ticks)
+            rospy.logdebug("current left vel: %d current right vel: %d", \
+                            self.encodm.left_tick_vel, self.encodm.right_tick_vel)
+            rospy.logdebug("left error: %d right error: %d", \
+                            vl_ticks - self.encodm.left_tick_vel, \
+                            vr_ticks - self.encodm.right_tick_vel)
+
+            left_pid_output = int(pid_speed_l)
+            right_pid_output = int(pid_speed_r)
+            rospy.logdebug("left pid output: %d right pid output: %d", \
+                            left_pid_output, \
+                            right_pid_output)
 
             try:
                 #Send command to the Roboclaw
-                roboclaw.DutyM1(self.address, vl_ticks)
-                roboclaw.DutyM2(self.address, vr_ticks)
+                roboclaw.DutyM1(self.address, left_pid_output)
+                roboclaw.DutyM2(self.address, right_pid_output)
 
+                #roboclaw.DutyM1(self.address, vl_ticks)
+                #roboclaw.DutyM2(self.address, vr_ticks)
             except OSError as e:
                 rospy.logwarn("SpeedM1M2 OSError: %d", e.errno)
                 rospy.logdebug(e)
