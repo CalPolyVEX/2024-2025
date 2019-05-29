@@ -31,6 +31,8 @@ class EncoderOdom:
         self.last_enc_left = 0
         self.last_enc_right = 0
         self.last_enc_time = rospy.Time.now()
+        self.left_tick_vel = 0
+        self.right_tick_vel = 0
         rospy.Subscriber("encoder_service", Int32MultiArray,
                          self.update_publish_cb, queue_size=1)
 
@@ -75,6 +77,9 @@ class EncoderOdom:
         d_time = (current_time - self.last_enc_time).to_sec()
         self.last_enc_time = current_time
 
+        self.left_tick_vel = left_ticks / d_time #should be in ticks/second
+        self.right_tick_vel = right_ticks / d_time
+
         # TODO find better what to determine going straight,
         # this means slight deviation is accounted
         if left_ticks == right_ticks:
@@ -98,7 +103,6 @@ class EncoderOdom:
             vel_theta = d_theta / d_time
 
         return vel_x, vel_theta
-
 
     def publish_odom(self, cur_x, cur_y, cur_theta, vx, vth):
         #publish a new odometry message
@@ -171,7 +175,7 @@ class Node:
             rospy.logfatal("Address out of range")
             rospy.signal_shutdown("Address out of range")
 
-        # TODO need someway to check if address is correct
+        #try to open the Roboclaw device
         try:
             roboclaw.Open(dev_name, baud_rate)
         except Exception as e:
@@ -266,6 +270,12 @@ class Node:
 
             r_time.sleep()
 
+    def compute_pid(self, desired, actual):
+        kp = 1.0
+        error = desired - actual
+        set_value = desired + kp * error
+        return set_value
+
     def cmd_vel_callback(self, twist):
         with self.lock:
             self.last_set_speed_time = rospy.get_rostime()
@@ -289,24 +299,13 @@ class Node:
             self.wheels_speeds_pub.publish(v_wheels)
 
             rospy.logdebug("vr_ticks:%d vl_ticks: %d", vr_ticks, vl_ticks)
+            rospy.logdebug("left error:%d right error: %d", \
+                            vl_ticks - self.left_tick_vel, vr_ticks - self.right_tick_vel)
 
             try:
-                #Replaced to implement watchdog
-                #JS
-                #roboclaw.SpeedM1M2(self.address, vr_ticks, vl_ticks)
-                #roboclaw.SpeedM1(self.address, vl_ticks)
+                #Send command to the Roboclaw
                 roboclaw.DutyM1(self.address, vl_ticks)
                 roboclaw.DutyM2(self.address, vr_ticks)
-
-                #Replaced to implement acc
-                #roboclaw.SpeedDistanceM1M2(self.address, vr_ticks, int(abs(vr_ticks*0.04)), vl_ticks, int(abs(vl_ticks*0.04)), 1)
-                #rospy.logdebug(" Acc ticks %d" % (int(self.ACC_LIM * self.TICKS_PER_METER)))
-
-                #roboclaw.SpeedAccelDistanceM1(self.address, int(self.ACC_LIM * self.TICKS_PER_METER),vr_ticks, int(abs(vr_ticks*0.04)),1)
-                #roboclaw.SpeedAccelDistanceM2(self.address, int(self.ACC_LIM * self.TICKS_PER_METER),vl_ticks, int(abs(vl_ticks*0.04)),1)
-
-                #Mixed command doesn't work
-                #roboclaw.SpeedAccelDistanceM1M2(self.address, int(self.ACC_LIM * self.TICKS_PER_METER),vr_ticks, int(abs(vr_ticks*0.04)), vl_ticks, int(abs(vl_ticks*0.04)), 1)
 
             except OSError as e:
                 rospy.logwarn("SpeedM1M2 OSError: %d", e.errno)
