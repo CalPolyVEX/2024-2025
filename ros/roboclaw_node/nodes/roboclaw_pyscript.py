@@ -95,13 +95,14 @@ class EncoderOdom:
             self.cur_x += dist * cos(self.cur_theta)
             self.cur_y += dist * sin(self.cur_theta)
         else:
+            #reverse the d_theta term
             d_theta = -(dist_right - dist_left) / self.BASE_WIDTH
             r = dist / d_theta
             self.cur_x += r * (sin(d_theta + self.cur_theta) -
                                sin(self.cur_theta))
             self.cur_y -= r * (cos(d_theta + self.cur_theta) -
                                cos(self.cur_theta))
-            self.cur_theta = self.normalize_angle(self.cur_theta + d_theta)
+            self.cur_theta = self.normalize_angle(self.cur_theta - d_theta)
 
         if abs(d_time) < 0.000001:
             vel_x = 0.0
@@ -316,21 +317,15 @@ class Node:
 
         left_set_value = (kp * left_error) + (ki * left_sum)
         right_set_value = (kp * right_error) + (ki * right_sum)
-        left_p_update = kp * left_error
-        right_p_update = kp * right_error
-
-        #self.left_pwm = self.left_pwm + left_p_update
-        #self.right_pwm = self.right_pwm + right_p_update
 
         return left_set_value, right_set_value
-        #return self.left_pwm, self.right_pwm
 
     def cmd_vel_callback(self, twist):
         with self.lock:
             self.last_set_speed_time = rospy.get_rostime()
 
             linear_x = twist.linear.x
-            angular_z = twist.angular.z
+            angular_z = -twist.angular.z
             if abs(linear_x) > self.MAX_ABS_LINEAR_SPEED:
                 linear_x = copysign(self.MAX_ABS_LINEAR_SPEED, linear_x)
             if abs(angular_z) > self.MAX_ABS_ANGULAR_SPEED:
@@ -366,12 +361,9 @@ class Node:
                             right_pid_output)
 
             try:
-                #Send command to the Roboclaw
+                #Send motor commands to the Roboclaw
                 roboclaw.DutyM1(self.address, -left_pid_output)
                 roboclaw.DutyM2(self.address, -right_pid_output)
-
-                #roboclaw.DutyM1(self.address, vl_ticks)
-                #roboclaw.DutyM2(self.address, vr_ticks)
             except OSError as e:
                 rospy.logwarn("SpeedM1M2 OSError: %d", e.errno)
                 rospy.logdebug(e)
