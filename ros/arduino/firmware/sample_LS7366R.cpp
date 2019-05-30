@@ -221,7 +221,7 @@ void loop()
     //chatter.publish(&str_msg);
     //encoder.publish(&wheel_enc_msg);
     nh.spinOnce();
-    delay(15);
+    delay(2);
     //end JS
 } //end loop
 
