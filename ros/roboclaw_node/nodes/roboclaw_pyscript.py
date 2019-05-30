@@ -53,8 +53,8 @@ class EncoderOdom:
         #this callback is called when a new encoder message is
         #received from the Arduino
 
-        enc_left = -enc_msg.data[0];
-        enc_right = enc_msg.data[1];
+        enc_left = enc_msg.data[0];
+        enc_right = -1.0 * enc_msg.data[1];
 
         # 2106 per 0.1 seconds is max speed, error in the 16th bit is 32768
         # todo lets find a better way to deal with this error
@@ -82,8 +82,11 @@ class EncoderOdom:
         d_time = (current_time - self.last_enc_time).to_sec()
         self.last_enc_time = current_time
 
-        self.left_tick_vel =  left_ticks / d_time #should be in ticks/second
-        self.right_tick_vel = right_ticks / d_time
+        last_left_vel = left_ticks / d_time #ticks/second
+        last_right_vel = right_ticks / d_time
+        if last_left_vel != 0 and last_right_vel != 0:
+            self.left_tick_vel =  left_ticks / d_time #should be in ticks/second
+            self.right_tick_vel = right_ticks / d_time
 
         # TODO find better what to determine going straight,
         # this means slight deviation is accounted
@@ -171,7 +174,7 @@ class Node:
         rospy.on_shutdown(self.shutdown)
         rospy.loginfo("Connecting to roboclaw")
         dev_name = rospy.get_param("~dev", "/dev/ttyACM0")
-        baud_rate = int(rospy.get_param("~baud", "460800"))
+        baud_rate = int(rospy.get_param("~baud", "38400"))
         self.wheels_speeds_pub = rospy.Publisher('/motors/commanded_speeds', Wheels_speeds, queue_size=1)
         self.motors_currents_pub = rospy.Publisher('/motors/read_currents', Motors_currents, queue_size=1)
 
@@ -217,8 +220,8 @@ class Node:
         self.ACC_LIM = float(rospy.get_param("~acc_lim", "0.1"))
 
         self.encodm = EncoderOdom(self.TICKS_PER_METER, self.BASE_WIDTH)
-        self.left_integral = [x for x in range(10)]
-        self.right_integral = [x for x in range(10)]
+        self.left_integral = [x for x in range(5)]
+        self.right_integral = [x for x in range(5)]
         self.left_counter = 0
         self.right_counter = 0
         self.left_pwm = 0 #current PWM values sent to Roboclaw
@@ -252,6 +255,7 @@ class Node:
                     try:
                         roboclaw.ForwardM1(self.address, 0)
                         roboclaw.ForwardM2(self.address, 0)
+                        print ""
                     except OSError as e:
                         rospy.logerr("Could not stop")
                         rospy.logdebug(e)
@@ -287,8 +291,8 @@ class Node:
             r_time.sleep()
 
     def compute_pid(self, left_desired, left_actual, right_desired, right_actual):
-        kp = 1.7
-        ki = .3
+        kp = 4.8
+        ki = .02
         left_error = left_desired - left_actual
         right_error = right_desired - right_actual
 
@@ -304,16 +308,16 @@ class Node:
         self.left_integral[self.left_counter] = left_error
         self.right_integral[self.right_counter] = right_error
 
-        # left_set_value = left_desired + (kp * left_error) + (ki * left_sum)
-        # right_set_value = right_desired + (kp * right_error) + (ki * right_sum)
+        left_set_value = (kp * left_error) + (ki * left_sum)
+        right_set_value = (kp * right_error) + (ki * right_sum)
         left_p_update = kp * left_error
         right_p_update = kp * right_error
 
-        self.left_pwm = self.left_pwm + left_p_update
-        self.right_pwm = self.right_pwm + right_p_update
+        #self.left_pwm = self.left_pwm + left_p_update
+        #self.right_pwm = self.right_pwm + right_p_update
 
-        #return left_set_value, right_set_value
-        return self.left_pwm, self.right_pwm
+        return left_set_value, right_set_value
+        #return self.left_pwm, self.right_pwm
 
     def cmd_vel_callback(self, twist):
         with self.lock:
@@ -357,8 +361,8 @@ class Node:
 
             try:
                 #Send command to the Roboclaw
-                roboclaw.DutyM1(self.address, left_pid_output)
-                roboclaw.DutyM2(self.address, right_pid_output)
+                roboclaw.DutyM1(self.address, -left_pid_output)
+                roboclaw.DutyM2(self.address, -right_pid_output)
 
                 #roboclaw.DutyM1(self.address, vl_ticks)
                 #roboclaw.DutyM2(self.address, vr_ticks)

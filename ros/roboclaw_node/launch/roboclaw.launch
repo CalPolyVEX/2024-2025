@@ -2,7 +2,7 @@
 <launch>
 
     <arg name="dev" default="/dev/roboclaw"/>
-    <arg name="baud" default="115200"/>
+    <arg name="baud" default="38400"/>
     <arg name="address" default="128"/>
     <arg name="max_abs_linear_speed" default="1.0"/>
     <arg name="max_abs_angular_speed" default="1.0"/>
