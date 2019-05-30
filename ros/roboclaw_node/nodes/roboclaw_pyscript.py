@@ -23,6 +23,8 @@ class EncoderOdom:
     def __init__(self, ticks_per_meter, base_width):
         self.TICKS_PER_METER = ticks_per_meter
         self.BASE_WIDTH = base_width
+
+        #publish Odometry messages to this topic
         self.odom_pub = rospy.Publisher('/roboclaw_odom', Odometry,
                                         queue_size=1)
         self.cur_x = 0
@@ -33,6 +35,9 @@ class EncoderOdom:
         self.last_enc_time = rospy.Time.now()
         self.left_tick_vel = 0
         self.right_tick_vel = 0
+
+        #encoder Int32MultiArray messages are received from the Arduino on
+        #this topic
         rospy.Subscriber("encoder_service", Int32MultiArray,
                          self.update_publish_cb, queue_size=1)
 
@@ -46,7 +51,7 @@ class EncoderOdom:
 
     def update_publish_cb(self, enc_msg):
         #this callback is called when a new encoder message is
-        #received from the arduino
+        #received from the Arduino
 
         enc_left = -enc_msg.data[0];
         enc_right = enc_msg.data[1];
@@ -216,9 +221,15 @@ class Node:
         self.right_integral = [x for x in range(10)]
         self.left_counter = 0
         self.right_counter = 0
+        self.left_pwm = 0 #current PWM values sent to Roboclaw
+        self.right_pwm = 0
         self.last_set_speed_time = rospy.get_rostime()
 
+        #listen for Twist messages on /cmd_vel
         rospy.Subscriber("cmd_vel", Twist, self.cmd_vel_callback, queue_size=1)
+
+        #/read_encoder_cmd is used to send messages to the Arduino to request
+        #an encoder update
         self.odom_req = rospy.Publisher('/read_encoder_cmd', Empty, queue_size=1)
 
         rospy.sleep(1)
@@ -248,6 +259,7 @@ class Node:
                 # TODO need find solution to the OSError11 looks like sync problem with serial
                 statusC, amp1, amp2 = None, None, None
 
+                #send a message to the Arduino to request an encoder update
                 self.odom_req.publish(Empty())
 
                 try:
@@ -292,10 +304,16 @@ class Node:
         self.left_integral[self.left_counter] = left_error
         self.right_integral[self.right_counter] = right_error
 
-        left_set_value = left_desired + (kp * left_error) + (ki * left_sum)
-        right_set_value = right_desired + (kp * right_error) + (ki * right_sum)
+        # left_set_value = left_desired + (kp * left_error) + (ki * left_sum)
+        # right_set_value = right_desired + (kp * right_error) + (ki * right_sum)
+        left_p_update = kp * left_error
+        right_p_update = kp * right_error
 
-        return left_set_value, right_set_value
+        self.left_pwm = self.left_pwm + left_p_update
+        self.right_pwm = self.right_pwm + right_p_update
+
+        #return left_set_value, right_set_value
+        return self.left_pwm, self.right_pwm
 
     def cmd_vel_callback(self, twist):
         with self.lock:
