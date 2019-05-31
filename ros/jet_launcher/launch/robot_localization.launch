@@ -5,8 +5,8 @@
     <rosparam command="load" file="$(find jet_launcher)/params/ekf_template.yaml" />
 
     <!--  Placeholder for output topic remapping -->
-    <remap from="odometry/filtered" to="/example/test_odom"/>
-    <remap from="accel/filtered" to="/example/test_accel"/>
+    <remap from="odometry/filtered" to="/ekf_node/odom"/>
+    <remap from="accel/filtered" to="/ekf_node/accel"/>
 
   </node>
 </launch>

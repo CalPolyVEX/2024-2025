@@ -124,11 +124,11 @@ class EncoderOdom:
                          tf.transformations.quaternion_from_euler(0, 0, cur_theta),
                          current_time,
                          "base_link",
-                         "roboclaw_odom")
+                         "odom")
 
         odom = Odometry()
         odom.header.stamp = current_time
-        odom.header.frame_id = 'roboclaw_odom'
+        odom.header.frame_id = 'odom'
 
         odom.pose.pose.position.x = cur_x
         odom.pose.pose.position.y = cur_y
