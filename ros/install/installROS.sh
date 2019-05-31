@@ -43,7 +43,7 @@ sudo apt install python-pygame gfortran libogg-dev libtheora-dev
 sudo apt install ros-melodic-rosserial-arduino ros-melodic-tf-conversions ros-melodic-eigen-conversions
 sudo apt install ros-melodic-tf2-sensor-msgs ros-melodic-tf2-geometry-msgs ros-melodic-laser-geometry
 sudo apt install ros-melodic-roslint ros-melodic-image-transport ros-melodic-diagnostic-updater
-sudo apt install python-pip ros-melodic-pcl-conversions ros-melodic-pcl-ros ros-melodic-dynamic-robot-state-publisher
+sudo apt install python-pip ros-melodic-pcl-conversions ros-melodic-pcl-ros ros-melodic-dynamic-robot-state-publisher ros-melodic-robot-localization
 sudo apt install python3-pip ros-melodic-move-base-msgs ros-melodic-costmap-2d ros-melodic-octomap-msgs ros-melodic-find-object-2d ros-melodic-camera-info-manager
 
 #install Tensorflow for python3 (Jetpack 4.2)
