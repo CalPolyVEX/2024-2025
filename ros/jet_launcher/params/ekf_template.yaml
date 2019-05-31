@@ -176,16 +176,32 @@ odom1_queue_size: 2
 #twist0_rejection_threshold: 2
 #twist0_nodelay: false
 
-#imu0: example/imu
-#imu0_config: [false, false, false,
-#              true,  true,  true,
-#              false, false, false,
-#              true,  true,  true,
-#              true,  true,  true]
-#imu0_nodelay: false
-#imu0_differential: false
-#imu0_relative: true
-#imu0_queue_size: 5
+#T265 Gyro
+imu0: /camera/gyro/sample
+imu0_config: [false, false, false,
+              false, false, false,
+              true,  true,  true,
+              false, false, false,
+              false, false, false]
+imu0_nodelay: false
+imu0_differential: false
+imu0_relative: true
+imu0_queue_size: 5
+#imu0_pose_rejection_threshold: 0.8                 # Note the difference in parameter names
+#imu0_twist_rejection_threshold: 0.8                #
+#imu0_linear_acceleration_rejection_threshold: 0.8  #
+
+#T265 Accelerometer
+imu1: /camera/accel/sample
+imu1_config: [false, false, false,
+              false, false, false,
+              false, false, false,
+              false, false, false,
+              true,  true,  true]
+imu1_nodelay: false
+imu1_differential: false
+imu1_relative: false
+imu1_queue_size: 5
 #imu0_pose_rejection_threshold: 0.8                 # Note the difference in parameter names
 #imu0_twist_rejection_threshold: 0.8                #
 #imu0_linear_acceleration_rejection_threshold: 0.8  #
@@ -194,6 +210,7 @@ odom1_queue_size: 2
 # If yours doesn't, please set this to true, and *make sure* your data conforms to REP-103, 
 # specifically, that the data is in ENU frame.
 imu0_remove_gravitational_acceleration: true
+imu1_remove_gravitational_acceleration: true
 
 # [ADVANCED]  The EKF and UKF models follow a standard predict/correct cycle. During prediction, 
 # if there is no acceleration reference, the velocity at time t+1 is simply predicted 
