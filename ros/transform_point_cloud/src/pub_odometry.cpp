@@ -1,3 +1,6 @@
+//6/1/19 This is a currently unused file to publish odometry when 
+//each encoder message arrives
+//
 #include <geometry_msgs/TransformStamped.h>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_sensor_msgs/tf2_sensor_msgs.h>
