@@ -1,9 +1,7 @@
 <?xml version="1.0"?>
 <launch>
-
-  <node name="transform_point_cloud" pkg="transform_point_cloud"
-      type="transform_point_cloud"
+  <node name="transform_gyro" pkg="transform_gyro"
+      type="transform_gyro"
       output="screen" >
   </node>
-
 </launch>

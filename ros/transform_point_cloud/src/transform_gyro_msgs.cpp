@@ -17,15 +17,15 @@ class GyroPublisher
 
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
+  sensor_msgs::Imu imu;
 
   void gyroCallBack(const sensor_msgs::Imu::ConstPtr& msg) {
-      ros::Time current_time = ros::Time::now();
+      /* ros::Time current_time = ros::Time::now(); */
       int i;
 
       //Imu message
-      sensor_msgs::Imu imu;
       imu.header.seq = msg->header.seq;
-      imu.header.stamp = current_time;
+      imu.header.stamp = msg->header.stamp;
       imu.header.frame_id = "t265_link";
 
       //set the orientation
@@ -54,6 +54,7 @@ class GyroPublisher
       }
 
       //publish the message
+
       pub_.publish(imu);
   }
 
