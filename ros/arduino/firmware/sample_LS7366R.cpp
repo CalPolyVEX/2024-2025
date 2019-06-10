@@ -9,6 +9,9 @@
 #include <Arduino.h>
 #include "LS7366R.h"
 
+#define LEFT_ENCODER_INPUT 6
+#define RIGHT_ENCODER_INPUT 4
+
 //JS
 ros::NodeHandle nh;
 using std_srvs::Empty;
@@ -86,8 +89,8 @@ void reset_encoder_callback(const std_msgs::Empty &reset_msg){
    //digitalWrite(13, HIGH-digitalRead(13));   // blink the led
    encoder_values[0] = 0;
    encoder_values[1] = 0;
-   rstEncCnt(2);
-   rstEncCnt(3);
+   rstEncCnt(LEFT_ENCODER_INPUT); //reset the left encoder
+   rstEncCnt(RIGHT_ENCODER_INPUT); //reset the right encoder
 }
 
 //*************************************************
@@ -172,6 +175,7 @@ void loop()
 { 
     uint8_t a = 0;
     uint8_t tmpStr = 0;
+    static uint8_t led_toggle = 0;
 
     for ( a = 1; a <= 6; a++)
     {    
@@ -205,17 +209,21 @@ void loop()
     
     //blink the LED on the encoder shield
     counter++;
-    if (counter > 60) {
+    if (counter > 254) {
       blinkActLed();
       counter = 0;
+      led_toggle = 0;
+    } else if (counter > 220 && led_toggle == 0) {
+      blinkActLed();
+      led_toggle = 1;
     }
 
     //JS
     //str_msg.data = hello;
 
     //get the encoder values
-    wheel_enc_msg.data[0]=getChanEncoderValue(2);
-    wheel_enc_msg.data[1]=getChanEncoderValue(3);
+    wheel_enc_msg.data[0]=getChanEncoderValue(LEFT_ENCODER_INPUT);
+    wheel_enc_msg.data[1]=getChanEncoderValue(RIGHT_ENCODER_INPUT);
     //wheel_enc_msg.data[1]=getChanEncoderReg(READ_STR,1);
     //wheel_enc_msg.data[1]=getChanEncoderReg(READ_MDR0,4);
     //chatter.publish(&str_msg);
