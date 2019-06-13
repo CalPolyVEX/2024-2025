@@ -8,7 +8,7 @@
     <!-- <remap from="~input" to="/zed/throttled_point_cloud" />  -->
     <rosparam>
       filter_field_name: z
-      filter_limit_min: -.09
+      filter_limit_min: -2.19
       filter_limit_max: 3
       filter_limit_negative: False
       leaf_size: 0.05
