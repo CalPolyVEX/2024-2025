@@ -35,6 +35,8 @@ class EncoderOdom:
         self.last_enc_time = rospy.Time.now()
         self.left_tick_vel = 0
         self.right_tick_vel = 0
+        self.last_left_tick_vel = 0
+        self.last_right_tick_vel = 0
 
         #encoder Int32MultiArray messages are received from the Arduino on
         #this topic
@@ -85,9 +87,12 @@ class EncoderOdom:
 
         last_left_vel = left_ticks / d_time #ticks/second
         last_right_vel = right_ticks / d_time
-        if last_left_vel != 0 and last_right_vel != 0:
-            self.left_tick_vel =  left_ticks / d_time #should be in ticks/second
-            self.right_tick_vel = right_ticks / d_time
+        #if last_left_vel != 0 and last_right_vel != 0:
+
+        #when computing the current tick velocity, filter the readings
+        #from the encoders as the readings are noisy at slow speeds
+        self.left_tick_vel =  .7*self.left_tick_vel + .3*(left_ticks / d_time) #should be in ticks/second
+        self.right_tick_vel = .7*self.right_tick_vel + .3*(right_ticks / d_time)
 
         # TODO find better what to determine going straight,
         # this means slight deviation is accounted
@@ -125,11 +130,11 @@ class EncoderOdom:
                          tf.transformations.quaternion_from_euler(0, 0, cur_theta),
                          current_time,
                          "base_link",
-                         "odom")
+                         "roboclaw_odom")
 
         odom = Odometry()
         odom.header.stamp = current_time
-        odom.header.frame_id = 'odom'
+        odom.header.frame_id = 'robo_claw_odom'
 
         odom.pose.pose.position.x = cur_x
         odom.pose.pose.position.y = cur_y
@@ -229,6 +234,10 @@ class Node:
         self.left_pwm = 0 #current PWM values sent to Roboclaw
         self.right_pwm = 0
         self.last_set_speed_time = rospy.get_rostime()
+        self.last_left_error = 0
+        self.last_right_error = 0
+        self.vl = 0
+        self.vr = 0
 
         #listen for Twist messages on /cmd_vel
         rospy.Subscriber("cmd_vel", Twist, self.cmd_vel_callback, queue_size=1)
@@ -254,6 +263,11 @@ class Node:
             with self.lock:
                 if (rospy.get_rostime() - self.last_set_speed_time).to_sec() > 1:
                     rospy.loginfo("Did not get command for 1 second, stopping")
+
+                    #reset the integral term for the PID controller
+
+                    self.left_integral = [0 for x in range(5)]
+                    self.right_integral = [0 for x in range(5)]
                     try:
                         roboclaw.ForwardM1(self.address, 0)
                         roboclaw.ForwardM2(self.address, 0)
@@ -294,9 +308,13 @@ class Node:
 
     def compute_pid(self, left_desired, left_actual, right_desired, right_actual):
         kp = 5
-        ki = .7
+        ki = .37
+        kd = .02
+
         left_error = left_desired - left_actual
         right_error = right_desired - right_actual
+        left_error_diff = self.last_left_error - left_error
+        right_error_diff = self.last_right_error - right_error
 
         #compute integral term
         left_sum = 0
@@ -305,19 +323,30 @@ class Node:
             left_sum += self.left_integral[i]
             right_sum += self.right_integral[i]
 
-        if left_sum > 10000 or left_sum < -10000:
-            left_sum = 10000
+        if left_sum > 5000 or left_sum < -5000:
+            left_sum = 5000
 
-        if right_sum > 10000 or right_sum < -10000:
-            right_sum = 10000
+        if right_sum > 5000 or right_sum < -5000:
+            right_sum = 5000
 
         self.left_counter = (self.left_counter + 1) % len(self.left_integral)
         self.right_counter = (self.right_counter + 1) % len(self.right_integral)
         self.left_integral[self.left_counter] = left_error
         self.right_integral[self.right_counter] = right_error
 
-        left_set_value = (kp * left_error) + (ki * left_sum)
-        right_set_value = (kp * right_error) + (ki * right_sum)
+        left_set_value = (kp * left_error) + (ki * left_sum) - (kd * left_error_diff)
+        right_set_value = (kp * right_error) + (ki * right_sum) - (kd * right_error_diff)
+
+        self.last_left_error = left_error
+        self.last_right_error = right_error
+
+        if abs(left_set_value) > 7000:
+            left_set_value = 7000
+        if abs(right_set_value) > 7000:
+            right_set_value = 7000
+
+        # left_set_value = 1000
+        # right_set_value = 1000
 
         return left_set_value, right_set_value
 
@@ -332,11 +361,11 @@ class Node:
             if abs(angular_z) > self.MAX_ABS_ANGULAR_SPEED:
                 angular_z = copysign(self.MAX_ABS_ANGULAR_SPEED, angular_z)
 
-            vr = linear_x - angular_z * self.BASE_WIDTH / 2.0  # m/s
-            vl = linear_x + angular_z * self.BASE_WIDTH / 2.0
+            self.vr = (linear_x - angular_z * self.BASE_WIDTH / 2.0)  # m/s
+            self.vl = (linear_x + angular_z * self.BASE_WIDTH / 2.0)
 
-            vr_ticks = int(vr * self.TICKS_PER_METER)  # ticks/s
-            vl_ticks = int(vl * self.TICKS_PER_METER)
+            vr_ticks = int(self.vr * self.TICKS_PER_METER)  # ticks/s
+            vl_ticks = int(self.vl * self.TICKS_PER_METER)
 
             #publish the wheel speeds to /motors/commanded_speeds
             v_wheels= Wheels_speeds()
