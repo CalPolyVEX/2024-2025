@@ -9,8 +9,8 @@
 #include <Arduino.h>
 #include "LS7366R.h"
 
-#define LEFT_ENCODER_INPUT 6
-#define RIGHT_ENCODER_INPUT 4
+#define LEFT_ENCODER_INPUT 4
+#define RIGHT_ENCODER_INPUT 6
 
 //JS
 ros::NodeHandle nh;
@@ -222,8 +222,8 @@ void loop()
     //str_msg.data = hello;
 
     //get the encoder values
-    wheel_enc_msg.data[0]=getChanEncoderValue(LEFT_ENCODER_INPUT);
-    wheel_enc_msg.data[1]=getChanEncoderValue(RIGHT_ENCODER_INPUT);
+    wheel_enc_msg.data[1]=-getChanEncoderValue(LEFT_ENCODER_INPUT);
+    wheel_enc_msg.data[0]=getChanEncoderValue(RIGHT_ENCODER_INPUT);
     //wheel_enc_msg.data[1]=getChanEncoderReg(READ_STR,1);
     //wheel_enc_msg.data[1]=getChanEncoderReg(READ_MDR0,4);
     //chatter.publish(&str_msg);

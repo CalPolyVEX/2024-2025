@@ -7,12 +7,13 @@ from geometry_msgs.msg import Quaternion, Twist
 class JoystickNode:
    def __init__(self):
       #check the number of joysticks
+      os.environ["SDL_VIDEODRIVER"] = "dummy"
       pygame.joystick.init()
       num_joystick = pygame.joystick.get_count()
       if num_joystick==0:
          print "No joysticks found."
          exit(0)
-      
+
       rospy.init_node("joystick_node",log_level=rospy.DEBUG)
       rospy.on_shutdown(self.shutdown)
       rospy.loginfo("Connecting to joystick")
@@ -62,7 +63,7 @@ class JoystickNode:
          vel_msg.angular.z = -0.5 * axis0
 
          self.motor_command_pub.publish(vel_msg)
-         
+
          r_time.sleep()
 
    def shutdown(self):

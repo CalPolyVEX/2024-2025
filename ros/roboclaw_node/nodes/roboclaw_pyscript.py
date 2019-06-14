@@ -54,7 +54,8 @@ class EncoderOdom:
         #received from the Arduino
 
         enc_left = enc_msg.data[0];
-        enc_right = -1.0 * enc_msg.data[1];
+        enc_right = enc_msg.data[1];
+        # enc_right = -1.0 * enc_msg.data[1];
 
         # 2106 per 0.1 seconds is max speed, error in the 16th bit is 32768
         # todo lets find a better way to deal with this error
@@ -96,7 +97,7 @@ class EncoderOdom:
             self.cur_y += dist * sin(self.cur_theta)
         else:
             #reverse the d_theta term
-            d_theta = -(dist_right - dist_left) / self.BASE_WIDTH
+            d_theta = (dist_right - dist_left) / self.BASE_WIDTH
             r = dist / d_theta
             self.cur_x += r * (sin(d_theta + self.cur_theta) -
                                sin(self.cur_theta))
@@ -221,8 +222,8 @@ class Node:
         self.ACC_LIM = float(rospy.get_param("~acc_lim", "0.1"))
 
         self.encodm = EncoderOdom(self.TICKS_PER_METER, self.BASE_WIDTH)
-        self.left_integral = [x for x in range(10)]
-        self.right_integral = [x for x in range(10)]
+        self.left_integral = [x for x in range(5)]
+        self.right_integral = [x for x in range(5)]
         self.left_counter = 0
         self.right_counter = 0
         self.left_pwm = 0 #current PWM values sent to Roboclaw
@@ -292,7 +293,7 @@ class Node:
             r_time.sleep()
 
     def compute_pid(self, left_desired, left_actual, right_desired, right_actual):
-        kp = 4
+        kp = 5
         ki = .7
         left_error = left_desired - left_actual
         right_error = right_desired - right_actual
@@ -304,11 +305,11 @@ class Node:
             left_sum += self.left_integral[i]
             right_sum += self.right_integral[i]
 
-        if left_sum > 30000 or left_sum < -30000:
-            left_sum = 30000
+        if left_sum > 10000 or left_sum < -10000:
+            left_sum = 10000
 
-        if right_sum > 30000 or right_sum < -30000:
-            right_sum = 30000
+        if right_sum > 10000 or right_sum < -10000:
+            right_sum = 10000
 
         self.left_counter = (self.left_counter + 1) % len(self.left_integral)
         self.right_counter = (self.right_counter + 1) % len(self.right_integral)
