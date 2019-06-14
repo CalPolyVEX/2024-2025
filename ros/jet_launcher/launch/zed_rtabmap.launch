@@ -63,7 +63,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <arg name="compressed"                value="false" />
       <arg name="rgb_image_transport"       value="compressed" />
       <arg name="depth_image_transport"     value="compressedDepth" />
-      <arg name="odom_topic"                value="/zed/zed_node/odom" />
+      <!-- <arg name="odom_topic"                value="/zed/zed_node/odom" /> -->
+      <arg name="odom_topic"                value="/ekf_node/odom" />
       <arg name="localization"                value="false" />
       <!--<arg name="database_path"                 value="$(arg rtabmap_db_path)/rtabmap.db" />-->
     </include>
