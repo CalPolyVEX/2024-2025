@@ -9,6 +9,9 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <sensor_msgs/Imu.h>
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 class GyroPublisher
 {
   ros::NodeHandle nh_;
@@ -77,9 +80,21 @@ class GyroPublisher
       imu_a.header.stamp = msg->header.stamp;
       imu_a.header.frame_id = "t265_link";
 
-      //set the orientation
-      imu_a.orientation.x = 0;
-      imu_a.orientation.y = 0;
+      //Roll & Pitch Equations
+      double fXg, fYg, fZg;
+      double roll, pitch;
+      fXg = msg->linear_acceleration.x;
+      fYg = msg->linear_acceleration.z;
+      fZg = msg->linear_acceleration.y;
+
+      roll  = (atan2(-fYg, fZg)*180.0)/M_PI;
+      pitch = (atan2(fXg, sqrt(fYg*fYg + fZg*fZg))*180.0)/M_PI;//set the orientation
+
+      imu_a.orientation.x = roll;
+      imu_a.orientation.y = pitch;
+
+      /* imu_a.orientation.x = 0; */
+      /* imu_a.orientation.y = 0; */
       imu_a.orientation.z = 0;
       imu_a.orientation.w = 0;
       for (i=0;i<9;i++) {

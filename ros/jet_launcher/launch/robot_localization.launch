@@ -1,4 +1,7 @@
 <?xml version="1.0"?>
+<!--  This launch file runs the robot_localization node which
+      combines the odometry, gyroscope, and accelerometer outputs
+      a smoothed estimate of the global robot pose  -->
 
 <launch>
   <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true">
