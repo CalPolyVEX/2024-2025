@@ -14,11 +14,12 @@ class OdometryPublisher
 {
   ros::NodeHandle nh;
   ros::Subscriber sub_;
-  ros::Publisher pub_;
+  ros::Publisher pub_, odom_req;
   int _PreviousLeftEncoderCounts;
   int _PreviousRightEncoderCounts;
   ros::Time last_time;
   double x,y,th;
+  double MAX_ABS_LINEAR_SPEED, MAX_ABS_ANGULAR_SPEED, TICKS_PER_METER, BASE_WIDTH, ACC_LIM;
 
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
@@ -110,7 +111,7 @@ class OdometryPublisher
       //sub_cmd_vel("cmd_vel", 1, Twist, self.cmd_vel_callback, 1)
 
       //read_encoder_cmd is used to send messages to the Arduino to request an encoder update
-      odom_req = nh.advertise<nav_msgs::Empty>("/read_encoder_cmd", 1, &OdometryPublisher::odometryCallBack, this);
+      odom_req = nh.advertise<std_msgs::Empty>("/read_encoder_cmd", 1, &OdometryPublisher::odometryCallBack, this);
 
       //wheel speed publisher
       //wheels_speeds_pub = nh.advertise<Wheel_speeds>("/motors/commanded_speeds", 1);
@@ -118,13 +119,13 @@ class OdometryPublisher
       //motor_current_pub = nh.advertise<Motors_currents>("/motors/read_current", 1);
 
       ROS_INFO("Connecting to roboclaw");
-      std::string dev_name, baud_rate;
+      std::string dev_name;
       int baud_rate, address;
-      nh.param("~dev", dev_name, "/dev/ttyACM0");
-      nh.param("~baud", baud_rate, 38400);
-      nh.param("~address", address, 128);
+      nh.param<std::string>("dev", dev_name, "/dev/ttyACM0");
+      nh.param<int>("baud", baud_rate, 38400);
+      nh.param<int>("address", address, 128);
       
-      if (address > 0x87 || self.address < 0x80) {
+      if (address > 0x87 || address < 0x80) {
         ROS_INFO("Address out of range");
       }
 
@@ -154,12 +155,11 @@ class OdometryPublisher
 
         /* roboclaw.SpeedM1M2(self.address, 0, 0) */
 
-        double MAX_ABS_LINEAR_SPEED, MAX_ABS_ANGULAR_SPEED, TICKS_PER_METER, BASE_WIDTH, ACC_LIM;
-        nh.param("~max_abs_linear_speed", MAX_ABS_LINEAR_SPEED, 1.0);
-        nh.param("~max_abs_angular_speed", MAX_ABS_ANGULAR_SPEED, 1.0);
-        nh.param("~ticks_per_meter", TICKS_PER_METER, 6683);
-        nh.param("~base_width", BASE_WIDTH, 0.315);
-        nh.param("~acc_lim", ACC_LIM, 0.1);
+        nh.param<double>("max_abs_linear_speed", MAX_ABS_LINEAR_SPEED, 1.0);
+        nh.param<double>("max_abs_angular_speed", MAX_ABS_ANGULAR_SPEED, 1.0);
+        nh.param<double>("ticks_per_meter", TICKS_PER_METER, 6683);
+        nh.param<double>("base_width", BASE_WIDTH, 0.315);
+        nh.param<double>("acc_lim", ACC_LIM, 0.1);
 
 
         /* self.encodm = EncoderOdom(self.TICKS_PER_METER, self.BASE_WIDTH) */
@@ -175,7 +175,7 @@ class OdometryPublisher
         /* self.vl = 0 */
         /* self.vr = 0 */
 
-        rospy.sleep(1)
+/*         rospy.sleep(1) */
 
 
     }
