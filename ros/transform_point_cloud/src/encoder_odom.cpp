@@ -8,64 +8,38 @@
 #include <ros/console.h>
 #include <serial/serial.h>
 #include <iostream>
+#include <cmath>
 #include "encoder_odom.h"
+
 using namespace std;
 
 extern ros::NodeHandle nh;
 extern ros::Subscriber sub_;
 extern ros::Publisher pub_, odom_req;
 
-void OdometryPublisher::publish_odometry_message(void) {
-  int tick_x = 0;
-  int tick_y = 0;
-
-  ros::Time current_time = ros::Time::now();
-  double DistancePerCount = (3.14159265 * 0.13) / 2626; 
-  double lengthBetweenTwoWheels = 0.25;
-
-  //extract the wheel velocities from the tick signals count
-  int deltaLeft = tick_x - _PreviousLeftEncoderCounts;
-  int deltaRight = tick_y - _PreviousRightEncoderCounts;
-
-  double omega_left = (deltaLeft * DistancePerCount) / (current_time - last_time).toSec();
-  double omega_right = (deltaRight * DistancePerCount) / (current_time - last_time).toSec();
-
-  double v_left = omega_left * 0.065; //radius
-  double v_right = omega_right * 0.065;
-
-  double vx = ((v_right + v_left) / 2)*10;
-  double vy = 0;
-  double vth = ((v_right - v_left)/lengthBetweenTwoWheels)*10;
-
-  double dt = (current_time - last_time).toSec();
-  double delta_x = (vx * cos(th)) * dt;
-  double delta_y = (vx * sin(th)) * dt;
-  double delta_th = vth * dt;
-
-  x += delta_x;
-  y += delta_y;
-  th += delta_th;
-
+void OdometryPublisher::publish_odometry_message(double vx, double vth) {
+  //publish a new odometry message
   tf2::Quaternion odom_quat;
-  odom_quat.setRPY(0,0,0);
+  odom_quat.setRPY(0,0,cur_theta);
+  ros::Time current_time = ros::Time::now();
 
   geometry_msgs::TransformStamped odom_trans;
   odom_trans.header.stamp = current_time;
-  odom_trans.header.frame_id = "robot_odom";
-  odom_trans.child_frame_id = "base_link";
+  odom_trans.header.frame_id = "roboclaw_odom";
+  odom_trans.child_frame_id = "roboclaw_center";
 
   odom_trans.transform.translation.x = x;
   odom_trans.transform.translation.y = y;
   odom_trans.transform.translation.z = 0.0;
   //odom_trans.transform.rotation = odom_quat;
-
+  
   //send the transform
   //odom_broadcaster.sendTransform(odom_trans);
-
-  //Odometry message
+  
+  //create the Odometry message
   nav_msgs::Odometry odom;
   odom.header.stamp = current_time;
-  odom.header.frame_id = "odom";
+  odom.header.frame_id = "roboclaw_odom";
 
   //set the position
   odom.pose.pose.position.x = x;
@@ -73,18 +47,66 @@ void OdometryPublisher::publish_odometry_message(void) {
   odom.pose.pose.position.z = 0.0;
   //odom.pose.pose.orientation = odom_quat;
 
+  odom.pose.covariance[0] = 0.01;
+  odom.pose.covariance[7] = 0.01;
+  odom.pose.covariance[14] = 99999;
+  odom.pose.covariance[21] = 99999;
+  odom.pose.covariance[28] = 99999;
+  odom.pose.covariance[35] = 0.01;
+
   //set the velocity
-  odom.child_frame_id = "base_link";
+  odom.child_frame_id = "roboclaw_center";
   odom.twist.twist.linear.x = vx;
-  odom.twist.twist.linear.y = vy;
+  odom.twist.twist.linear.y = 0;
   odom.twist.twist.angular.z = vth;
 
-  //publish the message
+  //set the twist covariance
+  odom.twist.covariance[0] = 0.01;
+  odom.twist.covariance[7] = 0.01;
+  odom.twist.covariance[14] = 99999;
+  odom.twist.covariance[21] = 99999;
+  odom.twist.covariance[28] = 99999;
+  odom.twist.covariance[35] = 0.01;
+
+  //send the message
   pub_.publish(odom);
-  _PreviousLeftEncoderCounts = tick_x;
-  _PreviousRightEncoderCounts = tick_y;
 
   last_time = current_time;
+/*
+  quat = tf.transformations.quaternion_from_euler(0, 0, cur_theta);
+  current_time = rospy.Time.now();
+
+  br = tf.TransformBroadcaster();
+  br.sendTransform((cur_x, cur_y, 0),
+                         tf.transformations.quaternion_from_euler(0, 0, cur_theta),
+                         current_time,
+                         "roboclaw_center",
+                         "odom");
+
+        odom = Odometry();
+        odom.header.stamp = current_time;
+        odom.header.frame_id = 'odom';
+
+        odom.pose.pose.position.x = cur_x
+        odom.pose.pose.position.y = cur_y
+        odom.pose.pose.position.z = 0.0
+        odom.pose.pose.orientation = Quaternion(*quat)
+
+        odom.pose.covariance[0] = 0.01
+        odom.pose.covariance[7] = 0.01
+        odom.pose.covariance[14] = 99999
+        odom.pose.covariance[21] = 99999
+        odom.pose.covariance[28] = 99999
+        odom.pose.covariance[35] = 0.01
+
+        odom.child_frame_id = 'roboclaw_center'
+        odom.twist.twist.linear.x = vx
+        odom.twist.twist.linear.y = 0
+        odom.twist.twist.angular.z = vth
+        odom.twist.covariance = odom.pose.covariance
+
+        self.odom_pub.publish(odom)
+        */
 }
 
 double OdometryPublisher::normalize_angle(double angle) {
@@ -99,11 +121,11 @@ double OdometryPublisher::normalize_angle(double angle) {
   return angle;
 }
 
-void OdometryPublisher::update(int enc_left, int enc_right, double* vel_x, double* vel_theta) {
+void OdometryPublisher::update_odometry(int enc_left, int enc_right, double* vel_x, double* vel_theta) {
   int left_ticks, right_ticks;
   double dist_left, dist_right, dist;
   double d_theta, r;
-  ros::Time current_time;
+  ros::Time current_time = ros::Time::now();
 
   //take the encoder counts and update the number of ticks traveled
   left_ticks = enc_left - last_enc_left;
@@ -117,7 +139,6 @@ void OdometryPublisher::update(int enc_left, int enc_right, double* vel_x, doubl
   dist = (dist_right + dist_left) / 2.0;
 
   //compute elapsed time
-  current_time = ros::Time::now();
   double d_time = (current_time - last_enc_time).toSec();
   last_enc_time = current_time;
 
@@ -128,8 +149,8 @@ void OdometryPublisher::update(int enc_left, int enc_right, double* vel_x, doubl
 
   //when computing the current tick velocity, filter the readings
   //from the encoders as the readings are noisy at slow speeds
-  left_tick_vel =  .7*left_tick_vel + .3*(left_ticks / d_time); //should be in ticks/second
-  right_tick_vel = .7*right_tick_vel + .3*(right_ticks / d_time);
+  left_tick_vel =  .7*left_tick_vel + .3*(current_left_vel); //should be in ticks/second
+  right_tick_vel = .7*right_tick_vel + .3*(current_right_vel);
 
   // TODO find better what to determine going straight,
   // this means slight deviation is accounted
@@ -140,10 +161,8 @@ void OdometryPublisher::update(int enc_left, int enc_right, double* vel_x, doubl
   } else {
     d_theta = (dist_right - dist_left) / BASE_WIDTH;
     r = dist / d_theta;
-    cur_x += r * (sin(d_theta + cur_theta) -
-        sin(cur_theta));
-    cur_y -= r * (cos(d_theta + cur_theta) -
-        cos(cur_theta));
+    cur_x += r * (sin(d_theta + cur_theta) - sin(cur_theta));
+    cur_y -= r * (cos(d_theta + cur_theta) - cos(cur_theta));
     cur_theta = normalize_angle(cur_theta - d_theta);
   }
 
@@ -158,10 +177,11 @@ void OdometryPublisher::update(int enc_left, int enc_right, double* vel_x, doubl
   return;
 }
 
-void OdometryPublisher::update_publish_cb(const std_msgs::Int32MultiArray::ConstPtr& enc_msg) {
+void OdometryPublisher::encoder_message_callback(const std_msgs::Int32MultiArray::ConstPtr& enc_msg) {
   //this callback is called when a new encoder message is
   //received from the Arduino
   int enc_left, enc_right;
+  double vel_x, vel_theta;
 
   enc_left = enc_msg->data[0];
   enc_right = enc_msg->data[1];
@@ -174,58 +194,54 @@ void OdometryPublisher::update_publish_cb(const std_msgs::Int32MultiArray::Const
     ROS_INFO("Ignoring right encoder jump: cur %d, last %d", enc_right, last_enc_right);
   } else {
     //call the update function
-    //vel_x, vel_theta = update(enc_left, enc_right);
+    update_odometry(enc_left, enc_right, &vel_x, &vel_theta);
     //publish_odometry_message(cur_x, cur_y, cur_theta, vel_x, vel_theta)
   }
+}
 
+void OdometryPublisher::compute_pid(double left_desired, double left_actual, double right_desired, double right_actual, double* left_set_value, double* right_set_value) {
+  double kp = 5;
+  double ki = .37;
+  double kd = .02;
 
-            /*
-    def update( enc_left, enc_right):
-        #take the encoder counts and update the number of ticks traveled
-        left_ticks = enc_left - last_enc_left
-        right_ticks = enc_right - last_enc_right
-        last_enc_left = enc_left
-        last_enc_right = enc_right
+  double left_error = left_desired - left_actual;
+  double right_error = right_desired - right_actual;
+  double left_error_diff = last_left_error - left_error;
+  double right_error_diff = last_right_error - right_error;
 
-        dist_left = left_ticks / TICKS_PER_METER
-        dist_right = right_ticks / TICKS_PER_METER
-        dist = (dist_right + dist_left) / 2.0
+  //compute integral term
+  double left_sum = 0;
+  double right_sum = 0;
 
-        current_time = rospy.Time.now()
-        d_time = (current_time - last_enc_time).to_sec()
-        last_enc_time = current_time
+  for (int i=0; i++; i<INTEGRAL_ARRAY_SIZE) {
+    left_sum += left_integral[i];
+    right_sum += right_integral[i];
+  }
 
-        last_left_vel = left_ticks / d_time #ticks/second
-        last_right_vel = right_ticks / d_time
-        #if last_left_vel != 0 and last_right_vel != 0:
+  if (left_sum > 5000 || left_sum < -5000) {
+    left_sum = 5000;
+  }
 
-        #when computing the current tick velocity, filter the readings
-        #from the encoders as the readings are noisy at slow speeds
-        left_tick_vel =  .7*left_tick_vel + .3*(left_ticks / d_time) #should be in ticks/second
-        right_tick_vel = .7*right_tick_vel + .3*(right_ticks / d_time)
+  if (right_sum > 5000 || right_sum < -5000) {
+    right_sum = 5000;
+  }
 
-        # TODO find better what to determine going straight,
-        # this means slight deviation is accounted
-        if left_ticks == right_ticks:
-            d_theta = 0.0
-            cur_x += dist * cos(cur_theta)
-            cur_y += dist * sin(cur_theta)
-        else:
-            d_theta = (dist_right - dist_left) / BASE_WIDTH
-            r = dist / d_theta
-            cur_x += r * (sin(d_theta + cur_theta) -
-                               sin(cur_theta))
-            cur_y -= r * (cos(d_theta + cur_theta) -
-                               cos(cur_theta))
-            cur_theta = normalize_angle(cur_theta - d_theta)
+  left_counter = (left_counter + 1) % INTEGRAL_ARRAY_SIZE;
+  right_counter = (right_counter + 1) % INTEGRAL_ARRAY_SIZE;
+  left_integral[left_counter] = left_error;
+  right_integral[right_counter] = right_error;
 
-        if abs(d_time) < 0.000001:
-            vel_x = 0.0
-            vel_theta = 0.0
-        else:
-            vel_x = dist / d_time
-            vel_theta = d_theta / d_time
+  *left_set_value = (kp * left_error) + (ki * left_sum) - (kd * left_error_diff);
+  *right_set_value = (kp * right_error) + (ki * right_sum) - (kd * right_error_diff);
 
-        return vel_x, vel_theta
-*/
+  last_left_error = left_error;
+  last_right_error = right_error;
+
+  if (abs(*left_set_value) > 7000) {
+    *left_set_value = 7000;
+  }
+  if (abs(*right_set_value) > 7000) {
+    *right_set_value = 7000;
+  }
+
 }

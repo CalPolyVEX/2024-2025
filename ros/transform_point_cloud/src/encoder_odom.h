@@ -12,6 +12,8 @@
 #include <serial/serial.h>
 #include <iostream>
 
+#define INTEGRAL_ARRAY_SIZE 5
+
 class OdometryPublisher {
   int _PreviousLeftEncoderCounts, _PreviousRightEncoderCounts;
   ros::Time last_time, last_enc_time;
@@ -21,9 +23,9 @@ class OdometryPublisher {
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
 
-  //left_integral = [x for x in range(5)]
-  //right_integral = [x for x in range(5)]
-  int left_counter, right_counter, left_pwm, right_pwm;
+  double left_integral[INTEGRAL_ARRAY_SIZE];
+  double right_integral[INTEGRAL_ARRAY_SIZE];
+  int left_counter=0, right_counter=0, left_pwm, right_pwm;
   ros::Time last_set_speed_time;
   int last_left_error, last_right_error;
   int vl, vr;
@@ -36,9 +38,10 @@ class OdometryPublisher {
     OdometryPublisher(); 
     void odometryCallBack(const std_msgs::Int32MultiArray::ConstPtr& msg);
     double normalize_angle(double angle);
-    void publish_odometry_message(void); //publish a new Odometry message
-    void update(int enc_left, int enc_right, double* vel_x, double* vel_theta);
-    void update_publish_cb(const std_msgs::Int32MultiArray::ConstPtr& enc_msg); //called when a new encoder messaged received from the Arduino
+    void publish_odometry_message(double vx, double vth); //publish a new Odometry message
+    void update_odometry(int enc_left, int enc_right, double* vel_x, double* vel_theta);
+    void encoder_message_callback(const std_msgs::Int32MultiArray::ConstPtr& enc_msg);
+    void compute_pid(double left_desired, double left_actual, double right_desired, double right_actual, double* left_set_value, double* right_set_value);
 };
 
 #endif
