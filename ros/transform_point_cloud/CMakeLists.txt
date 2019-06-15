@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_ros
   tf2_sensor_msgs
   sensor_msgs
+  serial
 )
 
 roslint_cpp()
@@ -29,7 +30,8 @@ include_directories(
 add_executable(transform_point_cloud
   src/transform_point_cloud)
 add_executable(pub_odometry
-  src/pub_odometry.cpp)
+  src/pub_odometry.cpp
+  src/encoder_odom.cpp)
 add_executable(transform_gyro_msgs
   src/transform_gyro_msgs.cpp)
 
