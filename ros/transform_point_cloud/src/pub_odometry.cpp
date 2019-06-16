@@ -20,17 +20,17 @@ ros::Subscriber sub_, sub_cmd_vel;
 ros::Publisher pub_, odom_req;
 
 OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
-  //publish Odometry messages to this topic
-  pub_ = nh->advertise<nav_msgs::Odometry>("/roboclaw_odom", 1);
-
+  //read_encoder_cmd is used to send messages to the Arduino to request an encoder update
+  odom_req = nh->advertise<std_msgs::Empty>("/read_encoder_cmd", 1);
+  
   //encoder Int32MultiArray messages are received from the Arduino on this topic
   sub_ = nh->subscribe("/encoder_service", 1, &OdometryPublisher::encoder_message_callback, this);
 
+  //publish Odometry messages to this topic
+  pub_ = nh->advertise<nav_msgs::Odometry>("/roboclaw_odom", 1);
+
   //listen for Twist messages on /cmd_vel
   sub_cmd_vel = nh->subscribe("/cmd_vel", 1, &OdometryPublisher::cmd_vel_callback, this);
-
-  //read_encoder_cmd is used to send messages to the Arduino to request an encoder update
-  odom_req = nh->advertise<std_msgs::Empty>("/read_encoder_cmd", 1);
 
   //wheel speed publisher
   //wheels_speeds_pub = nh->advertise<Wheel_speeds>("/motors/commanded_speeds", 1);
@@ -93,24 +93,6 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   last_set_speed_time = ros::Time::now();
   last_left_error = 0;
   last_right_error = 0;
-  vl = 0;
-  vr = 0;
-
-  /*         rospy.sleep(1) */
-  /* EncoderOdom encodm(TICKS_PER_METER, BASE_WIDTH); */
-  /* self.left_integral = [x for x in range(5)] */
-  /* self.right_integral = [x for x in range(5)] */
-  /* self.left_counter = 0 */
-  /* self.right_counter = 0 */
-  /* self.left_pwm = 0 #current PWM values sent to Roboclaw */
-  /* self.right_pwm = 0 */
-  /* self.last_set_speed_time = rospy.get_rostime() */
-  /* self.last_left_error = 0 */
-  /* self.last_right_error = 0 */
-  /* self.vl = 0 */
-  /* self.vr = 0 */
-
-  /*         rospy.sleep(1) */
 }
 
 void OdometryPublisher::setmotor(int motor_num, int duty_cycle) {
@@ -158,12 +140,14 @@ void OdometryPublisher::run(const ros::TimerEvent&) {
     //roboclaw.ForwardM2(self.address, 0);
   }
     
-    //# TODO need find solution to the OSError11 looks like sync problem with serial
-    //statusC, amp1, amp2 = None, None, None
+  //# TODO need find solution to the OSError11 looks like sync problem with serial
+  //statusC, amp1, amp2 = None, None, None
 
-    /*#send a message to the Arduino to request an encoder update
-    odom_req.publish(Empty())
+  //send a message to the Arduino to request an encoder update
+  std_msgs::Empty e;
+  odom_req.publish(e);
 
+    /*
     try:
         status1c, amp1, amp2 = roboclaw.ReadCurrents(self.address)
         self.updater.update()
@@ -231,10 +215,13 @@ int main(int argc, char** argv) {
   OdometryPublisher odom_pub;
   ros::AsyncSpinner s(4); //use 4 threads;
 
+  //since the encoder callback is part of the odom_pub object
+  //bind the callback using boost:bind and boost:function
   boost::function<void(const ros::TimerEvent&)> encoder_request_callback;
   encoder_request_callback=boost::bind(&OdometryPublisher::run,&odom_pub,_1);
 
   ROS_INFO("Starting motor drive");
+  //send a encoder request at 30Hz (.03333 seconds)
   ros::Timer read_enc_timer = nh->createTimer(ros::Duration(.03333), encoder_request_callback);
 
   s.start();

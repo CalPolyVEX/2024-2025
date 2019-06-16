@@ -18,9 +18,7 @@
 class OdometryPublisher {
   std::string dev_name;
   int baud_rate, address;
-  int _PreviousLeftEncoderCounts, _PreviousRightEncoderCounts;
-  ros::Time last_time, last_enc_time;
-  double x,y,th;
+  ros::Time last_enc_time; //time of the last encoder reading
   double MAX_ABS_LINEAR_SPEED, MAX_ABS_ANGULAR_SPEED, TICKS_PER_METER, BASE_WIDTH, ACC_LIM;
 
   tf2_ros::Buffer tf_buffer_;
@@ -33,10 +31,9 @@ class OdometryPublisher {
   int left_counter=0, right_counter=0, left_pwm, right_pwm;
   ros::Time last_set_speed_time;
   int last_left_error, last_right_error;
-  int vl, vr;
   int last_enc_left, last_enc_right; //last encoder counts
-  double last_left_vel, last_right_vel; //last wheel velocities
-  double left_tick_vel, right_tick_vel; //current wheel velocities
+  double last_left_vel=0, last_right_vel=0; //last wheel velocities
+  double left_tick_vel=0, right_tick_vel=0; //current wheel velocities
   double cur_x=0, cur_y=0, cur_theta=0;
 
   public:

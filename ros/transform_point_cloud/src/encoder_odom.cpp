@@ -45,12 +45,16 @@ void OdometryPublisher::publish_odometry_message(double vx, double vth) {
   nav_msgs::Odometry odom;
   odom.header.stamp = current_time;
   odom.header.frame_id = "odom";
+  odom.child_frame_id = "roboclaw_center";
 
   //set the position
   odom.pose.pose.position.x = cur_x;
   odom.pose.pose.position.y = cur_y;
   odom.pose.pose.position.z = 0.0;
-  //odom.pose.pose.orientation = odom_quat;
+  odom.pose.pose.orientation.x = odom_trans.transform.rotation.x;
+  odom.pose.pose.orientation.y = odom_trans.transform.rotation.y;
+  odom.pose.pose.orientation.z = odom_trans.transform.rotation.z;
+  odom.pose.pose.orientation.w = odom_trans.transform.rotation.w;
 
   odom.pose.covariance[0] = 0.01;
   odom.pose.covariance[7] = 0.01;
@@ -60,23 +64,15 @@ void OdometryPublisher::publish_odometry_message(double vx, double vth) {
   odom.pose.covariance[35] = 0.01;
 
   //set the velocity
-  odom.child_frame_id = "roboclaw_center";
   odom.twist.twist.linear.x = vx;
   odom.twist.twist.linear.y = 0;
   odom.twist.twist.angular.z = vth;
 
   //set the twist covariance
-  odom.twist.covariance[0] = 0.01;
-  odom.twist.covariance[7] = 0.01;
-  odom.twist.covariance[14] = 99999;
-  odom.twist.covariance[21] = 99999;
-  odom.twist.covariance[28] = 99999;
-  odom.twist.covariance[35] = 0.01;
+  odom.twist.covariance = odom.pose.covariance;
 
   //send the message
   pub_.publish(odom);
-
-  last_time = current_time;
 }
 
 double OdometryPublisher::normalize_angle(double angle) {
@@ -218,7 +214,7 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
 }
 
 void OdometryPublisher::cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist) {
-  //with self.lock:
+  //update the time, this is used for the 1 second timeout
   last_set_speed_time = ros::Time::now();
 
   double linear_x = twist->linear.x;
@@ -243,18 +239,19 @@ void OdometryPublisher::cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& t
   int vr_ticks = int(vr * TICKS_PER_METER);  // ticks/s
   int vl_ticks = int(vl * TICKS_PER_METER);
 
-    /*
-            #publish the wheel speeds to /motors/commanded_speeds
-            v_wheels= Wheels_speeds()
-            #v_wheels.wheel1=vl
-            #v_wheels.wheel2=vr
-            */
+  /*
+#publish the wheel speeds to /motors/commanded_speeds
+v_wheels= Wheels_speeds()
+#v_wheels.wheel1=vl
+#v_wheels.wheel2=vr
+*/
+
   double pid_speed_l, pid_speed_r;
   double ltv, rtv;
 
   mutex.lock();
-  ltv = left_tick_vel;
-  rtv = right_tick_vel;
+  ltv = left_tick_vel; //actual left velocity in ticks
+  rtv = right_tick_vel; //actual right velocity in ticks
   mutex.unlock();
 
   compute_pid(vl_ticks, ltv, vr_ticks, rtv, &pid_speed_l, &pid_speed_r);
@@ -273,16 +270,7 @@ void OdometryPublisher::cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& t
   int right_pid_output = int(pid_speed_r);
   ROS_INFO("left pid output: %d right pid output: %d", left_pid_output, right_pid_output);
 
+  //set the motor speeds
   setmotor(0,left_pid_output);
   setmotor(1,right_pid_output);
-
-  /*
-            try:
-                #Send motor commands to the Roboclaw
-                roboclaw.DutyM1(self.address, -left_pid_output)
-                roboclaw.DutyM2(self.address, -right_pid_output)
-            except OSError as e:
-                rospy.logwarn("SpeedM1M2 OSError: %d", e.errno)
-                rospy.logdebug(e)
-                */
 }
