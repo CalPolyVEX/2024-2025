@@ -45,7 +45,7 @@ class OdometryPublisher {
     void encoder_message_callback(const std_msgs::Int32MultiArray::ConstPtr& enc_msg);
     void compute_pid(double left_desired, double left_actual, double right_desired, double right_actual, double* left_set_value, double* right_set_value);
     void cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
-    void run(const ros::TimerEvent&);
+    void run(const ros::TimerEvent& ev);
     void setmotor(int motor_num, int duty_cycle);
 };
 

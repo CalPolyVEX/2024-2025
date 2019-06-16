@@ -38,16 +38,15 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   //motor_current_pub = nh->advertise<Motors_currents>("/motors/read_current", 1);
 
   ROS_INFO("Connecting to roboclaw");
-  nh->param<std::string>("dev", dev_name, "/dev/ttyACM0");
-  nh->param<int>("baud", baud_rate, 38400);
-  nh->param<int>("address", address, 128);
+  nh->param<std::string>("dev1", dev_name, "/dev/ttyACM0");
+  nh->param<int>("baud1", baud_rate, 38400);
+  nh->param<int>("address1", address, 128);
 
   if (address > 0x87 || address < 0x80) {
     ROS_INFO("Address out of range");
   }
 
   // Open the serial port
-  /*
   serial::Serial my_serial(dev_name, baud_rate, serial::Timeout::simpleTimeout(1000));
 
   
@@ -57,7 +56,7 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
     cout << " No." << endl;
     ROS_FATAL("Could not connect to Roboclaw");
   }
-  */
+  
 
   /* self.updater = diagnostic_updater.Updater() */
   /* self.updater.setHardwareID("Roboclaw") */
@@ -78,11 +77,11 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
 
   /* roboclaw.SpeedM1M2(self.address, 0, 0) */
 
-  nh->param<double>("max_abs_linear_speed", MAX_ABS_LINEAR_SPEED, 1.0);
-  nh->param<double>("max_abs_angular_speed", MAX_ABS_ANGULAR_SPEED, 1.0);
-  nh->param<double>("ticks_per_meter", TICKS_PER_METER, 6683);
-  nh->param<double>("base_width", BASE_WIDTH, 0.315);
-  nh->param<double>("acc_lim", ACC_LIM, 0.1);
+  nh->param<double>("max_abs_linear_speed1", MAX_ABS_LINEAR_SPEED, 1.0);
+  nh->param<double>("max_abs_angular_speed1", MAX_ABS_ANGULAR_SPEED, 1.0);
+  nh->param<double>("ticks_per_meter1", TICKS_PER_METER, 6683);
+  nh->param<double>("base_width1", BASE_WIDTH, 0.315);
+  nh->param<double>("acc_lim1", ACC_LIM, 0.1);
 
   //left_integral = [x for x in range(5)]
   //right_integral = [x for x in range(5)]
@@ -127,9 +126,9 @@ void OdometryPublisher::setmotor(int motor_num, int duty_cycle) {
   data[5] = crc & 0xFF; //send the low byte of the crc
 }
 
-void OdometryPublisher::run(const ros::TimerEvent&) {
+void OdometryPublisher::run(const ros::TimerEvent& ev) {
 
-  if ((ros::Time::now() - last_set_speed_time).toSec() > 1) {
+  if ((ev.current_real - last_set_speed_time).toSec() > 1.0) {
     ROS_INFO("Did not get command for 1 second, stopping");
 
     //reset the integral term for the PID controller

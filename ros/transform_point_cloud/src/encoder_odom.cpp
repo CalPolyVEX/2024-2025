@@ -154,6 +154,7 @@ void OdometryPublisher::encoder_message_callback(const std_msgs::Int32MultiArray
   enc_left = enc_msg->data[0];
   enc_right = enc_msg->data[1];
 
+  //ROS_INFO("debugging left: %d, right %d",  enc_left, enc_right);
   //2106 per 0.1 seconds is max speed, error in the 16th bit is 32768
   //todo lets find a better way to deal with this error
   if (abs(enc_left - last_enc_left) > 20000) {
