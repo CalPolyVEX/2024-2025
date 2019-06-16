@@ -224,12 +224,13 @@ void loop()
     //get the encoder values
     wheel_enc_msg.data[1]=-getChanEncoderValue(LEFT_ENCODER_INPUT);
     wheel_enc_msg.data[0]=getChanEncoderValue(RIGHT_ENCODER_INPUT);
-    //wheel_enc_msg.data[1]=getChanEncoderReg(READ_STR,1);
-    //wheel_enc_msg.data[1]=getChanEncoderReg(READ_MDR0,4);
-    //chatter.publish(&str_msg);
     //encoder.publish(&wheel_enc_msg);
+    
+    
+    
     nh.spinOnce();
-    delay(2);
+    encoder_service.publish(&wheel_enc_msg);
+    delay(32);
     //end JS
 } //end loop
 

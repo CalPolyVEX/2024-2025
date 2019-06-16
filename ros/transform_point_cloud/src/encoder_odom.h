@@ -25,13 +25,14 @@ class OdometryPublisher {
   tf2_ros::TransformListener tf_listener_;
   tf2_ros::TransformBroadcaster odom_broadcaster;
   boost::mutex mutex;
+  boost::mutex mutex2;
 
   double left_integral[INTEGRAL_ARRAY_SIZE];
   double right_integral[INTEGRAL_ARRAY_SIZE];
   int left_counter=0, right_counter=0, left_pwm, right_pwm;
   ros::Time last_set_speed_time;
-  int last_left_error, last_right_error;
-  int last_enc_left, last_enc_right; //last encoder counts
+  int last_left_error=0, last_right_error=0;
+  int last_enc_left=0, last_enc_right=0; //last encoder counts
   double last_left_vel=0, last_right_vel=0; //last wheel velocities
   double left_tick_vel=0, right_tick_vel=0; //current wheel velocities
   double cur_x=0, cur_y=0, cur_theta=0;

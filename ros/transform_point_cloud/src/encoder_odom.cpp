@@ -216,7 +216,9 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
 
 void OdometryPublisher::cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist) {
   //update the time, this is used for the 1 second timeout
+  mutex2.lock();
   last_set_speed_time = ros::Time::now();
+  mutex2.unlock();
 
   double linear_x = twist->linear.x;
   double angular_z = -twist->angular.z;
