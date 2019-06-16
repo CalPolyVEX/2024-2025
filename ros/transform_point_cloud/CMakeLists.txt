@@ -31,7 +31,8 @@ add_executable(transform_point_cloud
   src/transform_point_cloud)
 add_executable(pub_odometry
   src/pub_odometry.cpp
-  src/encoder_odom.cpp)
+  src/encoder_odom.cpp
+  src/encoder_odom.h)
 add_executable(transform_gyro_msgs
   src/transform_gyro_msgs.cpp)
 
