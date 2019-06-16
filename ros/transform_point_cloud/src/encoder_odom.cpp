@@ -4,6 +4,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <nav_msgs/Odometry.h>
+#include <geometry_msgs/Twist.h>
 #include <std_msgs/Int32MultiArray.h>
 #include <ros/console.h>
 #include <serial/serial.h>
@@ -13,7 +14,7 @@
 
 using namespace std;
 
-extern ros::NodeHandle nh;
+extern ros::NodeHandle *nh;
 extern ros::Subscriber sub_;
 extern ros::Publisher pub_, odom_req;
 
@@ -149,8 +150,10 @@ void OdometryPublisher::update_odometry(int enc_left, int enc_right, double* vel
 
   //when computing the current tick velocity, filter the readings
   //from the encoders as the readings are noisy at slow speeds
+  mutex.lock();
   left_tick_vel =  .7*left_tick_vel + .3*(current_left_vel); //should be in ticks/second
   right_tick_vel = .7*right_tick_vel + .3*(current_right_vel);
+  mutex.unlock();
 
   // TODO find better what to determine going straight,
   // this means slight deviation is accounted
@@ -243,5 +246,71 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
   if (abs(*right_set_value) > 7000) {
     *right_set_value = 7000;
   }
+}
 
+void OdometryPublisher::cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist) {
+  //with self.lock:
+  last_set_speed_time = ros::Time::now();
+
+  double linear_x = twist->linear.x;
+  double angular_z = -twist->angular.z;
+
+  if (abs(linear_x) > MAX_ABS_LINEAR_SPEED) {
+    if (linear_x > 0)
+      linear_x = MAX_ABS_LINEAR_SPEED;
+    else 
+      linear_x = -MAX_ABS_LINEAR_SPEED;
+  }
+  if (abs(angular_z) > MAX_ABS_ANGULAR_SPEED) {
+    if (angular_z > 0)
+      angular_z = MAX_ABS_ANGULAR_SPEED;
+    else 
+      angular_z = -MAX_ABS_ANGULAR_SPEED;
+  }
+
+  double vr = (linear_x - angular_z * BASE_WIDTH / 2.0);  // m/s
+  double vl = (linear_x + angular_z * BASE_WIDTH / 2.0);
+
+  int vr_ticks = int(vr * TICKS_PER_METER);  // ticks/s
+  int vl_ticks = int(vl * TICKS_PER_METER);
+
+    /*
+            #publish the wheel speeds to /motors/commanded_speeds
+            v_wheels= Wheels_speeds()
+            #v_wheels.wheel1=vl
+            #v_wheels.wheel2=vr
+            */
+  double pid_speed_l, pid_speed_r;
+  double ltv, rtv;
+
+  mutex.lock();
+  ltv = left_tick_vel;
+  rtv = right_tick_vel;
+  mutex.unlock();
+
+  compute_pid(vl_ticks, ltv, vr_ticks, rtv, &pid_speed_l, &pid_speed_r);
+  //v_wheels.wheel1=pid_speed_l;
+  //v_wheels.wheel2=pid_speed_r;
+  //self.wheels_speeds_pub.publish(v_wheels)
+
+  ROS_INFO("desired vl_ticks: %d desired vr_ticks: %d", vl_ticks, vr_ticks);
+  ROS_INFO("current left vel: %f current right vel: %f", \
+            ltv, rtv);
+  ROS_INFO("left error: %f right error: %f", \
+            vl_ticks - ltv, \
+            vr_ticks - rtv);
+
+  int left_pid_output = int(pid_speed_l);
+  int right_pid_output = int(pid_speed_r);
+  ROS_INFO("left pid output: %d right pid output: %d", left_pid_output, right_pid_output);
+
+  /*
+            try:
+                #Send motor commands to the Roboclaw
+                roboclaw.DutyM1(self.address, -left_pid_output)
+                roboclaw.DutyM2(self.address, -right_pid_output)
+            except OSError as e:
+                rospy.logwarn("SpeedM1M2 OSError: %d", e.errno)
+                rospy.logdebug(e)
+                */
 }

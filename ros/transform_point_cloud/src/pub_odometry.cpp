@@ -7,6 +7,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <nav_msgs/Odometry.h>
+#include <geometry_msgs/Twist.h>
 #include <std_msgs/Int32MultiArray.h>
 #include <ros/console.h>
 #include <serial/serial.h>
@@ -14,49 +15,51 @@
 #include "encoder_odom.h"
 using namespace std;
 
-ros::NodeHandle nh;
-ros::Subscriber sub_;
+ros::NodeHandle *nh;
+ros::Subscriber sub_, sub_cmd_vel;
 ros::Publisher pub_, odom_req;
 
 OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   //publish Odometry messages to this topic
-  pub_ = nh.advertise<nav_msgs::Odometry>("/roboclaw_odom", 1);
+  pub_ = nh->advertise<nav_msgs::Odometry>("/roboclaw_odom", 1);
 
   //encoder Int32MultiArray messages are received from the Arduino on this topic
-  sub_ = nh.subscribe("/encoder_service", 1, &OdometryPublisher::encoder_message_callback, this);
+  sub_ = nh->subscribe("/encoder_service", 1, &OdometryPublisher::encoder_message_callback, this);
 
   //listen for Twist messages on /cmd_vel
-  //sub_cmd_vel("cmd_vel", 1, Twist, self.cmd_vel_callback, 1)
+  sub_cmd_vel = nh->subscribe("/cmd_vel", 1, &OdometryPublisher::cmd_vel_callback, this);
 
   //read_encoder_cmd is used to send messages to the Arduino to request an encoder update
-  odom_req = nh.advertise<std_msgs::Empty>("/read_encoder_cmd", 1);
+  odom_req = nh->advertise<std_msgs::Empty>("/read_encoder_cmd", 1);
 
   //wheel speed publisher
-  //wheels_speeds_pub = nh.advertise<Wheel_speeds>("/motors/commanded_speeds", 1);
+  //wheels_speeds_pub = nh->advertise<Wheel_speeds>("/motors/commanded_speeds", 1);
   //motor current publisher
-  //motor_current_pub = nh.advertise<Motors_currents>("/motors/read_current", 1);
+  //motor_current_pub = nh->advertise<Motors_currents>("/motors/read_current", 1);
 
   ROS_INFO("Connecting to roboclaw");
   std::string dev_name;
   int baud_rate, address;
-  nh.param<std::string>("dev", dev_name, "/dev/ttyACM0");
-  nh.param<int>("baud", baud_rate, 38400);
-  nh.param<int>("address", address, 128);
+  nh->param<std::string>("dev", dev_name, "/dev/ttyACM0");
+  nh->param<int>("baud", baud_rate, 38400);
+  nh->param<int>("address", address, 128);
 
   if (address > 0x87 || address < 0x80) {
     ROS_INFO("Address out of range");
   }
 
   // Open the serial port
+  /*
   serial::Serial my_serial(dev_name, baud_rate, serial::Timeout::simpleTimeout(1000));
 
+  
   if(my_serial.isOpen())
     cout << " Yes." << endl;
   else {
     cout << " No." << endl;
     ROS_FATAL("Could not connect to Roboclaw");
-    /* rospy.signal_shutdown("Could not connect to Roboclaw") */
   }
+  */
 
   /* self.updater = diagnostic_updater.Updater() */
   /* self.updater.setHardwareID("Roboclaw") */
@@ -77,11 +80,11 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
 
   /* roboclaw.SpeedM1M2(self.address, 0, 0) */
 
-  nh.param<double>("max_abs_linear_speed", MAX_ABS_LINEAR_SPEED, 1.0);
-  nh.param<double>("max_abs_angular_speed", MAX_ABS_ANGULAR_SPEED, 1.0);
-  nh.param<double>("ticks_per_meter", TICKS_PER_METER, 6683);
-  nh.param<double>("base_width", BASE_WIDTH, 0.315);
-  nh.param<double>("acc_lim", ACC_LIM, 0.1);
+  nh->param<double>("max_abs_linear_speed", MAX_ABS_LINEAR_SPEED, 1.0);
+  nh->param<double>("max_abs_angular_speed", MAX_ABS_ANGULAR_SPEED, 1.0);
+  nh->param<double>("ticks_per_meter", TICKS_PER_METER, 6683);
+  nh->param<double>("base_width", BASE_WIDTH, 0.315);
+  nh->param<double>("acc_lim", ACC_LIM, 0.1);
 
   //left_integral = [x for x in range(5)]
   //right_integral = [x for x in range(5)]
@@ -112,8 +115,98 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   /*         rospy.sleep(1) */
 }
 
+void OdometryPublisher::run(const ros::TimerEvent&) {
+
+  if ((ros::Time::now() - last_set_speed_time).toSec() > 1) {
+    ROS_INFO("Did not get command for 1 second, stopping");
+
+    //reset the integral term for the PID controller
+    //self.left_integral = [0 for x in range(5)]
+    //self.right_integral = [0 for x in range(5)]
+
+    //roboclaw.ForwardM1(self.address, 0);
+    //roboclaw.ForwardM2(self.address, 0);
+  }
+    
+    //# TODO need find solution to the OSError11 looks like sync problem with serial
+    //statusC, amp1, amp2 = None, None, None
+
+    /*#send a message to the Arduino to request an encoder update
+    odom_req.publish(Empty())
+
+    try:
+        status1c, amp1, amp2 = roboclaw.ReadCurrents(self.address)
+        self.updater.update()
+    except ValueError:
+        pass
+
+    if (amp1 != None) & (amp2 != None):
+        rospy.logdebug(" Currents %d %d" % (amp1, amp2))
+        amps=Motors_currents()
+        amps.motor1=float(amp1)/100.0
+        amps.motor2=float(amp2)/100.0
+        self.motors_currents_pub.publish(amps)
+    else:
+        rospy.logdebug("Error Reading Currents")*/
+
+  /*
+        r_time = rospy.Rate(30)
+        while not rospy.is_shutdown():
+            with self.lock:
+                if (rospy.get_rostime() - self.last_set_speed_time).to_sec() > 1:
+                    rospy.loginfo("Did not get command for 1 second, stopping")
+
+                    #reset the integral term for the PID controller
+
+                    self.left_integral = [0 for x in range(5)]
+                    self.right_integral = [0 for x in range(5)]
+                    try:
+                        roboclaw.ForwardM1(self.address, 0)
+                        roboclaw.ForwardM2(self.address, 0)
+                        print ""
+                    except OSError as e:
+                        rospy.logerr("Could not stop")
+                        rospy.logdebug(e)
+
+                # TODO need find solution to the OSError11 looks like sync problem with serial
+                statusC, amp1, amp2 = None, None, None
+
+                #send a message to the Arduino to request an encoder update
+                self.odom_req.publish(Empty())
+
+                try:
+                    status1c, amp1, amp2 = roboclaw.ReadCurrents(self.address)
+                    self.updater.update()
+                except ValueError:
+                    pass
+
+                if (amp1 != None) & (amp2 != None):
+                    rospy.logdebug(" Currents %d %d" % (amp1, amp2))
+                    amps=Motors_currents()
+                    amps.motor1=float(amp1)/100.0
+                    amps.motor2=float(amp2)/100.0
+                    self.motors_currents_pub.publish(amps)
+                else:
+                    rospy.logdebug("Error Reading Currents")
+
+            r_time.sleep()
+            */
+}
+
 int main(int argc, char** argv) {
   ros::init(argc, argv, "roboclaw_node");
+  ros::NodeHandle n;
+  nh = &n;
+
   OdometryPublisher odom_pub;
-  ros::spin();
+  ros::AsyncSpinner s(4); //use 4 threads;
+
+  boost::function<void(const ros::TimerEvent&)> encoder_request_callback;
+  encoder_request_callback=boost::bind(&OdometryPublisher::run,&odom_pub,_1);
+
+  ROS_INFO("Starting motor drive");
+  ros::Timer read_enc_timer = nh->createTimer(ros::Duration(.03333), encoder_request_callback);
+
+  s.start();
+  ros::waitForShutdown();
 }
