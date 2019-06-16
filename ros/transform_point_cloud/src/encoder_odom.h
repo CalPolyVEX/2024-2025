@@ -3,6 +3,7 @@
 
 #include <geometry_msgs/TransformStamped.h>
 #include <tf2_ros/transform_listener.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include <tf2_sensor_msgs/tf2_sensor_msgs.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2/LinearMath/Quaternion.h>
@@ -15,6 +16,8 @@
 #define INTEGRAL_ARRAY_SIZE 5
 
 class OdometryPublisher {
+  std::string dev_name;
+  int baud_rate, address;
   int _PreviousLeftEncoderCounts, _PreviousRightEncoderCounts;
   ros::Time last_time, last_enc_time;
   double x,y,th;
@@ -22,6 +25,7 @@ class OdometryPublisher {
 
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
+  tf2_ros::TransformBroadcaster odom_broadcaster;
   boost::mutex mutex;
 
   double left_integral[INTEGRAL_ARRAY_SIZE];
@@ -45,6 +49,7 @@ class OdometryPublisher {
     void compute_pid(double left_desired, double left_actual, double right_desired, double right_actual, double* left_set_value, double* right_set_value);
     void cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
     void run(const ros::TimerEvent&);
+    void setmotor(int motor_num, int duty_cycle);
 };
 
 #endif

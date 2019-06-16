@@ -38,8 +38,6 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   //motor_current_pub = nh->advertise<Motors_currents>("/motors/read_current", 1);
 
   ROS_INFO("Connecting to roboclaw");
-  std::string dev_name;
-  int baud_rate, address;
   nh->param<std::string>("dev", dev_name, "/dev/ttyACM0");
   nh->param<int>("baud", baud_rate, 38400);
   nh->param<int>("address", address, 128);
@@ -113,6 +111,38 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   /* self.vr = 0 */
 
   /*         rospy.sleep(1) */
+}
+
+void OdometryPublisher::setmotor(int motor_num, int duty_cycle) {
+  //need non-blocking write to serial port
+  //  M1DUTY = 32
+  //  M2DUTY = 33
+  signed short d = duty_cycle;
+  unsigned char data[6];
+  unsigned int crc = 0;
+
+  data[0] = address;
+  data[1] = 32;
+  if (motor_num > 0) //left motor is 0, right motor is 1
+    data[1]++;
+
+  data[2] = (d >> 8) & 0xFF; //send the high byte of the duty cycle
+  data[3] = d & 0xFF; //send the low byte of the duty cycle
+
+  //Calculates CRC16 of nBytes of data in byte array message
+  for (int byte = 0; byte < 4; byte++) {        
+    crc = crc ^ ((unsigned int)data[byte] << 8);        
+    for (unsigned char bit = 0; bit < 8; bit++) {            
+      if (crc & 0x8000) {                
+        crc = (crc << 1) ^ 0x1021;            
+      } else {                
+        crc = crc << 1;   
+      } 
+    } 
+  } 
+
+  data[4] = (crc >> 8) & 0xFF; //send the high byte of the crc
+  data[5] = crc & 0xFF; //send the low byte of the crc
 }
 
 void OdometryPublisher::run(const ros::TimerEvent&) {

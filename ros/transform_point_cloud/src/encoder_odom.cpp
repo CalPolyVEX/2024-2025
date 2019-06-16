@@ -1,5 +1,6 @@
 #include <geometry_msgs/TransformStamped.h>
 #include <tf2_ros/transform_listener.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include <tf2_sensor_msgs/tf2_sensor_msgs.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2/LinearMath/Quaternion.h>
@@ -26,25 +27,28 @@ void OdometryPublisher::publish_odometry_message(double vx, double vth) {
 
   geometry_msgs::TransformStamped odom_trans;
   odom_trans.header.stamp = current_time;
-  odom_trans.header.frame_id = "roboclaw_odom";
+  odom_trans.header.frame_id = "odom";
   odom_trans.child_frame_id = "roboclaw_center";
 
-  odom_trans.transform.translation.x = x;
-  odom_trans.transform.translation.y = y;
+  odom_trans.transform.translation.x = cur_x;
+  odom_trans.transform.translation.y = cur_y;
   odom_trans.transform.translation.z = 0.0;
-  //odom_trans.transform.rotation = odom_quat;
+  odom_trans.transform.rotation.x = odom_quat.x();
+  odom_trans.transform.rotation.y = odom_quat.y();
+  odom_trans.transform.rotation.z = odom_quat.z();
+  odom_trans.transform.rotation.w = odom_quat.w();
   
   //send the transform
-  //odom_broadcaster.sendTransform(odom_trans);
+  odom_broadcaster.sendTransform(odom_trans);
   
   //create the Odometry message
   nav_msgs::Odometry odom;
   odom.header.stamp = current_time;
-  odom.header.frame_id = "roboclaw_odom";
+  odom.header.frame_id = "odom";
 
   //set the position
-  odom.pose.pose.position.x = x;
-  odom.pose.pose.position.y = y;
+  odom.pose.pose.position.x = cur_x;
+  odom.pose.pose.position.y = cur_y;
   odom.pose.pose.position.z = 0.0;
   //odom.pose.pose.orientation = odom_quat;
 
@@ -73,41 +77,6 @@ void OdometryPublisher::publish_odometry_message(double vx, double vth) {
   pub_.publish(odom);
 
   last_time = current_time;
-/*
-  quat = tf.transformations.quaternion_from_euler(0, 0, cur_theta);
-  current_time = rospy.Time.now();
-
-  br = tf.TransformBroadcaster();
-  br.sendTransform((cur_x, cur_y, 0),
-                         tf.transformations.quaternion_from_euler(0, 0, cur_theta),
-                         current_time,
-                         "roboclaw_center",
-                         "odom");
-
-        odom = Odometry();
-        odom.header.stamp = current_time;
-        odom.header.frame_id = 'odom';
-
-        odom.pose.pose.position.x = cur_x
-        odom.pose.pose.position.y = cur_y
-        odom.pose.pose.position.z = 0.0
-        odom.pose.pose.orientation = Quaternion(*quat)
-
-        odom.pose.covariance[0] = 0.01
-        odom.pose.covariance[7] = 0.01
-        odom.pose.covariance[14] = 99999
-        odom.pose.covariance[21] = 99999
-        odom.pose.covariance[28] = 99999
-        odom.pose.covariance[35] = 0.01
-
-        odom.child_frame_id = 'roboclaw_center'
-        odom.twist.twist.linear.x = vx
-        odom.twist.twist.linear.y = 0
-        odom.twist.twist.angular.z = vth
-        odom.twist.covariance = odom.pose.covariance
-
-        self.odom_pub.publish(odom)
-        */
 }
 
 double OdometryPublisher::normalize_angle(double angle) {
@@ -198,7 +167,7 @@ void OdometryPublisher::encoder_message_callback(const std_msgs::Int32MultiArray
   } else {
     //call the update function
     update_odometry(enc_left, enc_right, &vel_x, &vel_theta);
-    //publish_odometry_message(cur_x, cur_y, cur_theta, vel_x, vel_theta)
+    publish_odometry_message(vel_x, vel_theta);
   }
 }
 
@@ -303,6 +272,9 @@ void OdometryPublisher::cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& t
   int left_pid_output = int(pid_speed_l);
   int right_pid_output = int(pid_speed_r);
   ROS_INFO("left pid output: %d right pid output: %d", left_pid_output, right_pid_output);
+
+  setmotor(0,left_pid_output);
+  setmotor(1,right_pid_output);
 
   /*
             try:
