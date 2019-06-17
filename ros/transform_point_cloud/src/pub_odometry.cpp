@@ -128,9 +128,10 @@ void OdometryPublisher::setmotor(int motor_num, int duty_cycle) {
 
 void OdometryPublisher::run(const ros::TimerEvent& ev) {
   ros::Time last_set_speed_time2;
-  mutex2.lock();
+
+  last_set_speed_time_mutex.lock();
   last_set_speed_time2 = last_set_speed_time;
-  mutex2.unlock();
+  last_set_speed_time_mutex.unlock();
 
   if ((ev.current_real - last_set_speed_time2).toSec() > 1.0) {
     ROS_INFO("Did not get command for 1 second, stopping");
@@ -228,6 +229,14 @@ int main(int argc, char** argv) {
   ROS_INFO("Starting motor drive");
   //run diagnostics function at 5Hz (.2 seconds)
   ros::Timer diag_timer = nh->createTimer(ros::Duration(.2), diag_callback);
+
+  //since the pid callback is part of the odom_pub object, 
+  //bind the callback using boost:bind and boost:function
+  boost::function<void(const ros::TimerEvent&)> pid_callback;
+  pid_callback=boost::bind(&OdometryPublisher::run_pid,&odom_pub,_1);
+
+  //run pid function at 30Hz (.033 seconds)
+  ros::Timer pid_timer = nh->createTimer(ros::Duration(.050), pid_callback);
 
   s.start();
   ros::waitForShutdown();

@@ -24,8 +24,9 @@ class OdometryPublisher {
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
   tf2_ros::TransformBroadcaster odom_broadcaster;
-  boost::mutex mutex;
-  boost::mutex mutex2;
+  boost::mutex actual_vel_mutex;
+  boost::mutex last_set_speed_time_mutex;
+  boost::mutex desired_vel_mutex;
 
   double left_integral[INTEGRAL_ARRAY_SIZE];
   double right_integral[INTEGRAL_ARRAY_SIZE];
@@ -36,6 +37,7 @@ class OdometryPublisher {
   double last_left_vel=0, last_right_vel=0; //last wheel velocities
   double left_tick_vel=0, right_tick_vel=0; //current wheel velocities
   double cur_x=0, cur_y=0, cur_theta=0;
+  int desired_vl=0, desired_vr=0;
 
   public:
     OdometryPublisher(); 
@@ -48,6 +50,7 @@ class OdometryPublisher {
     void cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
     void run(const ros::TimerEvent& ev);
     void setmotor(int motor_num, int duty_cycle);
+    void run_pid(const ros::TimerEvent& e);
 };
 
 #endif

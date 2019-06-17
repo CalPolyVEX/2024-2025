@@ -76,7 +76,7 @@ void OdometryPublisher::publish_odometry_message(double vx, double vth) {
 }
 
 double OdometryPublisher::normalize_angle(double angle) {
-  double pi = 3.14159;
+  double pi = 3.141592654;
   while (angle > pi) {
     angle -= 2.0 * pi;
   }
@@ -115,10 +115,10 @@ void OdometryPublisher::update_odometry(int enc_left, int enc_right, double* vel
 
   //when computing the current tick velocity, filter the readings
   //from the encoders as the readings are noisy at slow speeds
-  mutex.lock();
+  actual_vel_mutex.lock();
   left_tick_vel =  .7*left_tick_vel + .3*(current_left_vel); //should be in ticks/second
   right_tick_vel = .7*right_tick_vel + .3*(current_right_vel);
-  mutex.unlock();
+  actual_vel_mutex.unlock();
 
   // TODO find better what to determine going straight,
   // this means slight deviation is accounted
@@ -182,11 +182,6 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
   double left_sum = 0;
   double right_sum = 0;
 
-  for (int i=0; i++; i<INTEGRAL_ARRAY_SIZE) {
-    left_sum += left_integral[i];
-    right_sum += right_integral[i];
-  }
-
   if (left_sum > 5000 || left_sum < -5000) {
     left_sum = 5000;
   }
@@ -199,6 +194,11 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
   right_counter = (right_counter + 1) % INTEGRAL_ARRAY_SIZE;
   left_integral[left_counter] = left_error;
   right_integral[right_counter] = right_error;
+
+  for (int i=0; i++; i<INTEGRAL_ARRAY_SIZE) {
+    left_sum += left_integral[i];
+    right_sum += right_integral[i];
+  }
 
   *left_set_value = (kp * left_error) + (ki * left_sum) - (kd * left_error_diff);
   *right_set_value = (kp * right_error) + (ki * right_sum) - (kd * right_error_diff);
@@ -214,11 +214,45 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
   }
 }
 
+void OdometryPublisher::run_pid(const ros::TimerEvent& e) {
+  double ltv, rtv;
+  int des_vel_left, des_vel_right;
+
+  desired_vel_mutex.lock();
+  des_vel_left = desired_vl; //in ticks/sec
+  des_vel_right = desired_vr;
+  desired_vel_mutex.unlock();
+
+  actual_vel_mutex.lock();
+  ltv = left_tick_vel; //actual left velocity in ticks/sec
+  rtv = right_tick_vel; //actual right velocity in ticks/sec
+  actual_vel_mutex.unlock();
+
+  double pid_speed_l, pid_speed_r;
+
+  compute_pid(des_vel_left, ltv, des_vel_right, rtv, &pid_speed_l, &pid_speed_r);
+
+  ROS_INFO("desired vl_ticks: %d desired vr_ticks: %d", des_vel_left, des_vel_right);
+  ROS_INFO("current left vel: %f current right vel: %f", \
+            ltv, rtv);
+  ROS_INFO("left error: %f right error: %f", \
+            des_vel_left - ltv, \
+            des_vel_right - rtv);
+
+  int left_pid_output = int(pid_speed_l);
+  int right_pid_output = int(pid_speed_r);
+  ROS_INFO("left pid output: %d right pid output: %d", left_pid_output, right_pid_output);
+
+  //set the motor speeds
+  setmotor(0,left_pid_output);
+  setmotor(1,right_pid_output);
+}
+
 void OdometryPublisher::cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist) {
   //update the time, this is used for the 1 second timeout
-  mutex2.lock();
+  last_set_speed_time_mutex.lock();
   last_set_speed_time = ros::Time::now();
-  mutex2.unlock();
+  last_set_speed_time_mutex.unlock();
 
   double linear_x = twist->linear.x;
   double angular_z = -twist->angular.z;
@@ -236,44 +270,11 @@ void OdometryPublisher::cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& t
       angular_z = -MAX_ABS_ANGULAR_SPEED;
   }
 
-  double vr = (linear_x - angular_z * BASE_WIDTH / 2.0);  // m/s
-  double vl = (linear_x + angular_z * BASE_WIDTH / 2.0);
+  double vl = (linear_x + angular_z * BASE_WIDTH / 2.0); //meters/sec
+  double vr = (linear_x - angular_z * BASE_WIDTH / 2.0);  
 
-  int vr_ticks = int(vr * TICKS_PER_METER);  // ticks/s
-  int vl_ticks = int(vl * TICKS_PER_METER);
-
-  /*
-#publish the wheel speeds to /motors/commanded_speeds
-v_wheels= Wheels_speeds()
-#v_wheels.wheel1=vl
-#v_wheels.wheel2=vr
-*/
-
-  double pid_speed_l, pid_speed_r;
-  double ltv, rtv;
-
-  mutex.lock();
-  ltv = left_tick_vel; //actual left velocity in ticks
-  rtv = right_tick_vel; //actual right velocity in ticks
-  mutex.unlock();
-
-  compute_pid(vl_ticks, ltv, vr_ticks, rtv, &pid_speed_l, &pid_speed_r);
-  //v_wheels.wheel1=pid_speed_l;
-  //v_wheels.wheel2=pid_speed_r;
-  //self.wheels_speeds_pub.publish(v_wheels)
-
-  ROS_INFO("desired vl_ticks: %d desired vr_ticks: %d", vl_ticks, vr_ticks);
-  ROS_INFO("current left vel: %f current right vel: %f", \
-            ltv, rtv);
-  ROS_INFO("left error: %f right error: %f", \
-            vl_ticks - ltv, \
-            vr_ticks - rtv);
-
-  int left_pid_output = int(pid_speed_l);
-  int right_pid_output = int(pid_speed_r);
-  ROS_INFO("left pid output: %d right pid output: %d", left_pid_output, right_pid_output);
-
-  //set the motor speeds
-  setmotor(0,left_pid_output);
-  setmotor(1,right_pid_output);
+  desired_vel_mutex.lock();
+  desired_vl = int(vl * TICKS_PER_METER); //ticks/sec
+  desired_vr = int(vr * TICKS_PER_METER);  
+  desired_vel_mutex.unlock();
 }
