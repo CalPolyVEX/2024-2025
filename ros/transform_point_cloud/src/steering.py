@@ -48,8 +48,9 @@ def read_keys():
         elif (char == "d"):
             t_l -= .02
 
-        elif (char == "1"):
-            print("Number 1 pressed")
+        elif (char == "a"):
+            t_l = 0
+            t_a = 0
 
         l.acquire()
         linear_velocity = t_l
@@ -80,6 +81,7 @@ def steering():
 if __name__ == '__main__':
     try:
         print "Press 'q' to quit."
+        print "Press 'a' to stop. (s,d,f,e) to control."
         pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
         rospy.init_node('steering', anonymous=True)
         rate = rospy.Rate(10) # 10hz
