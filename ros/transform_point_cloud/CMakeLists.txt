@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(transform_point_cloud)
+set(CMAKE_CXX_FLAGS "-Wall -Werror -Wextra -pedantic")
 
 find_package(catkin REQUIRED COMPONENTS
   dynamic_reconfigure

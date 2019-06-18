@@ -37,20 +37,22 @@ def read_keys():
             exit(0)
 
         if (char == "s"):
-            t_a += .01
+            t_a += .21
 
         elif (char == "f"):
-            t_a -= .01
+            t_a -= .21
 
         elif (char == "e"):
-            t_l += .01
+            t_l += .05
 
         elif (char == "d"):
-            t_l -= .01
+            t_l -= .05
 
         elif (char == "a"):
             t_l = 0
             t_a = 0
+
+        print "linear: %.2f, angular: %.2f" % (t_l, t_a)
 
         l.acquire()
         linear_velocity = t_l

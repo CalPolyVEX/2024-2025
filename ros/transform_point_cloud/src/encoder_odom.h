@@ -11,6 +11,7 @@
 #include <std_msgs/Int32MultiArray.h>
 #include <ros/console.h>
 #include <serial/serial.h>
+#include <boost/thread.hpp>
 #include <iostream>
 
 #define INTEGRAL_ARRAY_SIZE 5
@@ -28,11 +29,10 @@ class OdometryPublisher {
   boost::mutex last_set_speed_time_mutex;
   boost::mutex desired_vel_mutex;
   boost::mutex setmotor_mutex;
+  boost::mutex update_encoder_mutex;
   serial::Serial *my_serial;
 
-  double left_integral[INTEGRAL_ARRAY_SIZE];
-  double right_integral[INTEGRAL_ARRAY_SIZE];
-  int left_counter=0, right_counter=0, left_pwm, right_pwm;
+  int left_counter=0, right_counter=0;
   ros::Time last_set_speed_time;
   int last_left_error=0, last_right_error=0;
   int last_enc_left=0, last_enc_right=0; //last encoder counts
@@ -41,20 +41,23 @@ class OdometryPublisher {
   double cur_x=0, cur_y=0, cur_theta=0;
   int desired_vl=0, desired_vr=0; //desired wheel velocities
   int cur_left_motor=0, cur_right_motor=0; //current motor command
+  int update_encoders=1;
+  double left_integral[INTEGRAL_ARRAY_SIZE];
+  double right_integral[INTEGRAL_ARRAY_SIZE];
 
   public:
     OdometryPublisher(); 
-    void odometryCallBack(const std_msgs::Int32MultiArray::ConstPtr& msg);
     double normalize_angle(double angle);
     void publish_odometry_message(double vx, double vth); //publish a new Odometry message
     void update_odometry(int enc_left, int enc_right, double* vel_x, double* vel_theta);
     void encoder_message_callback(const std_msgs::Int32MultiArray::ConstPtr& enc_msg);
-    void compute_pid(double left_desired, double left_actual, double right_desired, double right_actual, double* left_set_value, double* right_set_value);
+    void read_version();
+    void compute_pid(double left_desired, double left_actual, double right_desired, double right_actual);
     void cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
     void run(const ros::TimerEvent& ev);
-    void setmotor(int motor_num, int duty_cycle);
-    void run_pid(const ros::TimerEvent& e);
-    void read_version();
+    void setmotor(int duty_cyclel, int dutycycler);
+    //void run_pid(const ros::TimerEvent& e);
+    void run_pid();
 };
 
 #endif
