@@ -37,16 +37,16 @@ def read_keys():
             exit(0)
 
         if (char == "s"):
-            t_a += .02
+            t_a += .01
 
         elif (char == "f"):
-            t_a -= .02
+            t_a -= .01
 
         elif (char == "e"):
-            t_l += .02
+            t_l += .01
 
         elif (char == "d"):
-            t_l -= .02
+            t_l -= .01
 
         elif (char == "a"):
             t_l = 0

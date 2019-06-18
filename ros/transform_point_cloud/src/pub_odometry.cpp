@@ -39,7 +39,7 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   //motor_current_pub = nh->advertise<Motors_currents>("/motors/read_current", 1);
 
   ROS_INFO("Connecting to roboclaw");
-  nh->param<std::string>("dev1", dev_name, "/dev/ttyACM0");
+  nh->param<std::string>("dev1", dev_name, "/dev/ttyACM1");
   nh->param<int>("baud1", baud_rate, 38400);
   nh->param<int>("address1", address, 128);
   nh->param<double>("max_abs_linear_speed1", MAX_ABS_LINEAR_SPEED, 1.0);
@@ -53,9 +53,9 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   }
 
   // Open the serial port
-  serial::Serial my_serial(dev_name, baud_rate, serial::Timeout::simpleTimeout(1000));
+  my_serial = new serial::Serial(dev_name, baud_rate, serial::Timeout::simpleTimeout(1000));
   
-  if(my_serial.isOpen())
+  if(my_serial->isOpen())
     cout << "Successfully opened serial port." << endl;
   else {
     cout << "Could not open serial port." << endl;
@@ -79,8 +79,13 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   /* else: */
   /* rospy.logdebug(repr(version[1])) */
 
+  //read_version();
+  setmotor_mutex.lock();
   setmotor(0,0); //set motors to stop
   setmotor(1,0);
+  cur_left_motor=0;
+  cur_right_motor=0;
+  setmotor_mutex.unlock();
 
   for (int i=0;i<INTEGRAL_ARRAY_SIZE;i++) {
     left_integral[i] = 0;
@@ -124,6 +129,52 @@ void OdometryPublisher::setmotor(int motor_num, int duty_cycle) {
 
   data[4] = (crc >> 8) & 0xFF; //send the high byte of the crc
   data[5] = crc & 0xFF; //send the low byte of the crc
+
+  my_serial->write(data,6);
+}
+
+void OdometryPublisher::read_version() {
+  //need non-blocking write to serial port
+  //  M1DUTY = 32
+  //  M2DUTY = 33
+  unsigned char data[4];
+  unsigned int crc = 0;
+  char s[50];
+
+  my_serial->flushInput();
+
+  for (int i=0;i<50;i++) {
+    s[i] = 0;
+  }
+
+  data[0] = address;
+  data[1] = 21;
+
+  //Calculates CRC16 of nBytes of data in byte array message
+  for (int byte = 0; byte < 2; byte++) {        
+    crc = crc ^ ((unsigned int)data[byte] << 8);        
+    for (unsigned char bit = 0; bit < 8; bit++) {            
+      if (crc & 0x8000) {                
+        crc = (crc << 1) ^ 0x1021;            
+      } else {                
+        crc = crc << 1;   
+      } 
+    } 
+  } 
+
+  data[2] = (crc >> 8) & 0xFF; //send the high byte of the crc
+  data[3] = crc & 0xFF; //send the low byte of the crc
+
+  int n_write = my_serial->write(data,4);
+  cout << "Bytes write: " << endl;
+  cout << n_write << endl;
+
+  cout << "Version is:   ";
+  int n = my_serial->read((unsigned char*)s,40);
+  cout << s << endl;
+  cout << "Bytes read: " << endl;
+  cout << n << endl;
+
 }
 
 void OdometryPublisher::run(const ros::TimerEvent& ev) {
@@ -142,8 +193,12 @@ void OdometryPublisher::run(const ros::TimerEvent& ev) {
         right_integral[i] = 0;
     }
 
+    setmotor_mutex.lock();
     setmotor(0,0); //turn off the motors
     setmotor(1,0);
+    cur_left_motor=0;
+    cur_right_motor=0;
+    setmotor_mutex.unlock();
   }
     
   //# TODO need find solution to the OSError11 looks like sync problem with serial

@@ -27,6 +27,8 @@ class OdometryPublisher {
   boost::mutex actual_vel_mutex;
   boost::mutex last_set_speed_time_mutex;
   boost::mutex desired_vel_mutex;
+  boost::mutex setmotor_mutex;
+  serial::Serial *my_serial;
 
   double left_integral[INTEGRAL_ARRAY_SIZE];
   double right_integral[INTEGRAL_ARRAY_SIZE];
@@ -37,7 +39,8 @@ class OdometryPublisher {
   double last_left_vel=0, last_right_vel=0; //last wheel velocities
   double left_tick_vel=0, right_tick_vel=0; //current wheel velocities
   double cur_x=0, cur_y=0, cur_theta=0;
-  int desired_vl=0, desired_vr=0;
+  int desired_vl=0, desired_vr=0; //desired wheel velocities
+  int cur_left_motor=0, cur_right_motor=0; //current motor command
 
   public:
     OdometryPublisher(); 
@@ -51,6 +54,7 @@ class OdometryPublisher {
     void run(const ros::TimerEvent& ev);
     void setmotor(int motor_num, int duty_cycle);
     void run_pid(const ros::TimerEvent& e);
+    void read_version();
 };
 
 #endif

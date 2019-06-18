@@ -116,8 +116,8 @@ void OdometryPublisher::update_odometry(int enc_left, int enc_right, double* vel
   //when computing the current tick velocity, filter the readings
   //from the encoders as the readings are noisy at slow speeds
   actual_vel_mutex.lock();
-  left_tick_vel =  .7*left_tick_vel + .3*(current_left_vel); //should be in ticks/second
-  right_tick_vel = .7*right_tick_vel + .3*(current_right_vel);
+  left_tick_vel =  (current_left_vel); //should be in ticks/second
+  right_tick_vel = (current_right_vel);
   actual_vel_mutex.unlock();
 
   // TODO find better what to determine going straight,
@@ -157,9 +157,9 @@ void OdometryPublisher::encoder_message_callback(const std_msgs::Int32MultiArray
   //ROS_INFO("debugging left: %d, right %d",  enc_left, enc_right);
   //2106 per 0.1 seconds is max speed, error in the 16th bit is 32768
   //todo lets find a better way to deal with this error
-  if (abs(enc_left - last_enc_left) > 20000) {
+  if (abs(enc_left - last_enc_left) > 10000) {
     ROS_INFO("Ignoring left encoder jump: cur %d, last %d",  enc_left, last_enc_left);
-  } else if (abs(enc_right - last_enc_right) > 20000) {
+  } else if (abs(enc_right - last_enc_right) > 10000) {
     ROS_INFO("Ignoring right encoder jump: cur %d, last %d", enc_right, last_enc_right);
   } else {
     //call the update function
@@ -169,9 +169,25 @@ void OdometryPublisher::encoder_message_callback(const std_msgs::Int32MultiArray
 }
 
 void OdometryPublisher::compute_pid(double left_desired, double left_actual, double right_desired, double right_actual, double* left_set_value, double* right_set_value) {
-  double kp = 5;
-  double ki = .37;
-  double kd = .02;
+  double kp = .5;
+  double ki = 0.0;
+  double kd = 0.0;
+
+  //if the wheel velocities are set to 0
+  if (abs(left_desired) < .0001 && abs(right_desired) < .0001) {
+    cur_left_motor = 0;
+    cur_right_motor = 0;
+
+    last_left_error = 0;
+    last_right_error = 0;
+
+    for (int i=0; i++; i<INTEGRAL_ARRAY_SIZE) {
+        left_integral[i] = 0;
+        right_integral[i] = 0;
+    }
+
+    return;
+  }
 
   double left_error = left_desired - left_actual;
   double right_error = right_desired - right_actual;
@@ -181,14 +197,6 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
   //compute integral term
   double left_sum = 0;
   double right_sum = 0;
-
-  if (left_sum > 5000 || left_sum < -5000) {
-    left_sum = 5000;
-  }
-
-  if (right_sum > 5000 || right_sum < -5000) {
-    right_sum = 5000;
-  }
 
   left_counter = (left_counter + 1) % INTEGRAL_ARRAY_SIZE;
   right_counter = (right_counter + 1) % INTEGRAL_ARRAY_SIZE;
@@ -200,18 +208,32 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
     right_sum += right_integral[i];
   }
 
-  *left_set_value = (kp * left_error) + (ki * left_sum) - (kd * left_error_diff);
-  *right_set_value = (kp * right_error) + (ki * right_sum) - (kd * right_error_diff);
+  if (left_sum > 5000 || left_sum < -5000) {
+    left_sum = 5000;
+  }
+
+  if (right_sum > 5000 || right_sum < -5000) {
+    right_sum = 5000;
+  }
+
+  /* *left_set_value = (kp * left_error) + (ki * left_sum) - (kd * left_error_diff); */
+  /* *right_set_value = (kp * right_error) + (ki * right_sum) - (kd * right_error_diff); */
+
+  cur_left_motor += (kp * left_error) + (ki * left_sum) - (kd * left_error_diff); 
+  cur_right_motor += (kp * right_error) + (ki * right_sum) - (kd * right_error_diff); 
 
   last_left_error = left_error;
   last_right_error = right_error;
 
-  if (abs(*left_set_value) > 7000) {
-    *left_set_value = 7000;
-  }
-  if (abs(*right_set_value) > 7000) {
-    *right_set_value = 7000;
-  }
+  if (cur_left_motor > 2000) {
+    cur_left_motor = 2000;
+  } else if (cur_left_motor < -2000)
+    cur_left_motor = -2000;
+
+  if (cur_right_motor > 2000) {
+    cur_right_motor = 2000;
+  } else if (cur_right_motor < -2000)
+    cur_right_motor = -2000;
 }
 
 void OdometryPublisher::run_pid(const ros::TimerEvent& e) {
@@ -241,11 +263,13 @@ void OdometryPublisher::run_pid(const ros::TimerEvent& e) {
 
   int left_pid_output = int(pid_speed_l);
   int right_pid_output = int(pid_speed_r);
-  ROS_INFO("left pid output: %d right pid output: %d", left_pid_output, right_pid_output);
+  ROS_INFO("left pid output: %d right pid output: %d", cur_left_motor, cur_right_motor);
 
   //set the motor speeds
-  setmotor(0,left_pid_output);
-  setmotor(1,right_pid_output);
+  setmotor_mutex.lock();
+  setmotor(0,-cur_left_motor);
+  setmotor(1,-cur_right_motor);
+  setmotor_mutex.unlock();
 }
 
 void OdometryPublisher::cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist) {
