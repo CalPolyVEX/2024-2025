@@ -141,29 +141,29 @@ world_frame: odom           # Defaults to the value of odom_frame if unspecified
 ##odom0_twist_rejection_threshold: 1
 
 # Roboclaw odometry settings
-odom1: /roboclaw_odom
-odom1_config: [false, false, false,
+odom0: /roboclaw_odom
+odom0_config: [true, true, true,
                false, false, false,
-               true, true, true,
+               false, false, false,
                false, false, false,
                false, false, false]
-odom1_differential: false
-odom1_relative: true
-odom1_queue_size: 2
+odom0_differential: true
+odom0_relative: true
+odom0_queue_size: 2
 #odom1_pose_rejection_threshold: 2
 #odom1_twist_rejection_threshold: 0.2
 #odom1_nodelay: false
 
 # T265 odometry settings
-odom2: /camera/odom/sample
-odom2_config: [false, false, false,
+odom1: /camera/odom/sample
+odom1_config: [false, false, false,
                false, false, false,
-               true, true, true,
+               true, false, true,
                false, false, false,
                false, false, false]
-odom2_differential: false
-odom2_relative: true
-odom2_queue_size: 2
+odom1_differential: false
+odom1_relative: true
+odom1_queue_size: 2
 
 #pose0: example/pose
 #pose0_config: [true,  true,  false,
@@ -257,7 +257,7 @@ deceleration_limits: [1.3, 0.0, 0.0, 0.0, 0.0, 4.5]
 acceleration_gains: [0.8, 0.0, 0.0, 0.0, 0.0, 0.9]
 # If your robot cannot instantaneously reach its deceleration limit, the permitted change can be controlled with these
 # gains
-deceleration_gains: [1.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+deceleration_gains: [1.0, 0.0, 0.0, 0.0, 0.0, 8.0]
 
 # [ADVANCED] The process noise covariance matrix can be difficult to tune, and can vary for each application, so it is
 # exposed as a configuration parameter. This matrix represents the noise we add to the total error after each

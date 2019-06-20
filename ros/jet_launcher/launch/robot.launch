@@ -6,6 +6,9 @@
 
    <!--<include file="$(find jet_launcher)/launch/camera.launch"/> -->
    <include file="$(find jet_launcher)/launch/zed_camera_rtabmap.launch"/>
+   <include file="$(find jet_launcher)/launch/basic.launch"/>
+   <include file="$(find roboclaw_node)/launch/joystick.launch"/>
+
 
    <group if="$(arg mapping)">
       <include file="$(find jet_launcher)/launch/zed_rtabmap.launch"/>

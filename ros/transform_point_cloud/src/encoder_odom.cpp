@@ -59,7 +59,7 @@ void OdometryPublisher::publish_odometry_message(double vx, double vth) {
 
   odom.pose.covariance[0] = 0.01;
   odom.pose.covariance[7] = 0.01;
-  odom.pose.covariance[14] = 99999;
+  odom.pose.covariance[14] = 10; //z velocity
   odom.pose.covariance[21] = 99999;
   odom.pose.covariance[28] = 99999;
   odom.pose.covariance[35] = 0.01;
@@ -116,8 +116,10 @@ void OdometryPublisher::update_odometry(int enc_left, int enc_right, double* vel
 
   //when computing the current tick velocity, filter the readings
   //from the encoders as the readings are noisy at slow speeds
-  left_tick_vel =  .3*left_tick_vel + .7*(current_left_vel); //should be in ticks/second
-  right_tick_vel = .3*right_tick_vel + .7*(current_right_vel);
+  /* left_tick_vel =  .3*left_tick_vel + .7*(current_left_vel); //should be in ticks/second */
+  /* right_tick_vel = .3*right_tick_vel + .7*(current_right_vel); */
+  left_tick_vel =  (current_left_vel); //should be in ticks/second
+  right_tick_vel = (current_right_vel);
   ROS_INFO("--update odometry --- Current tick velocity: left: %f, right: %f",  left_tick_vel, right_tick_vel);
 
   // TODO find better what to determine going straight,
@@ -140,7 +142,8 @@ void OdometryPublisher::update_odometry(int enc_left, int enc_right, double* vel
     *vel_theta = 0.0;
   } else {
     *vel_x = dist / d_time;
-    *vel_theta = d_theta / d_time;
+    //flip the sign of theta
+    *vel_theta = -d_theta / d_time;
   }
 
   return;
@@ -172,7 +175,7 @@ void OdometryPublisher::encoder_message_callback(const std_msgs::Int32MultiArray
 }
 
 void OdometryPublisher::compute_pid(double left_desired, double left_actual, double right_desired, double right_actual) {
-  double kp = 4;
+  double kp = 3.5;
   double ki = .2;
   double kd = 0.30;
   int i;
@@ -195,6 +198,9 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
     desired_vr = 0;
     desired_vel_mutex.unlock();
 
+    left_tick_vel = 0;
+    right_tick_vel = 0;
+
     return;
   }
 
@@ -212,7 +218,6 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
   left_integral[left_counter] = left_error;
   right_integral[right_counter] = right_error;
 
-  ROS_INFO("left integral value %f", right_integral[left_counter]);
   for (i=0; i<INTEGRAL_ARRAY_SIZE; i++) {
     left_sum += left_integral[i];
     right_sum += right_integral[i];

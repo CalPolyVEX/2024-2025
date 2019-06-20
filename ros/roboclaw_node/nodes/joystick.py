@@ -28,6 +28,9 @@ class JoystickNode:
       pygame.joystick.Joystick(0).init()
 
    def run(self):
+      old_linear = 0
+      old_angular = 0
+
       # Prints the joystick's name
       JoyName = pygame.joystick.Joystick(0).get_name()
       rospy.logdebug("Name of the joystick: %s", JoyName)
@@ -59,8 +62,12 @@ class JoystickNode:
          rospy.logdebug("axis 3: %f", axis3)
          rospy.logdebug("button 0: %d", pygame.joystick.Joystick(0).get_button(0))
 
-         vel_msg.linear.x = -1.0 * axis1
-         vel_msg.angular.z = -0.5 * axis0
+         vel_msg.linear.x = -.3 * axis1
+         vel_msg.angular.z = -0.7 * axis0
+         # vel_msg.linear.x = .5*old_linear + .5* -.3 * axis1
+         # vel_msg.angular.z = .5*old_angular + .5* -0.7 * axis0
+         old_linear = vel_msg.linear.x
+         old_angular = vel_msg.angular.z
 
          self.motor_command_pub.publish(vel_msg)
 

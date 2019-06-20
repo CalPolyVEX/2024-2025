@@ -5,11 +5,11 @@
 
    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="see3cam_broadcaster" args=".2 0 .584 0 0 0 1 base_link see3_camera_fixed" /> -->
 
-   <node pkg="tf2_ros" type="static_transform_publisher" name="t265_broadcaster" args=".2 0 -.6 0 0 0 1 camera_link base_link" />
+   <node pkg="tf2_ros" type="static_transform_publisher" name="t265_broadcaster" args=".1016 0 -.5842 0 0 0 1 camera_link base_link" />
 
-   <node pkg="tf2_ros" type="static_transform_publisher" name="t265_link_broadcaster" args="-0.2 0 0.584 0 0 0 1 base_link t265_link" />
+   <node pkg="tf2_ros" type="static_transform_publisher" name="t265_link_broadcaster" args="-0.1016 0 0.5842 0 0 0 1 base_link t265_link" />
 
-   <node pkg="tf2_ros" type="static_transform_publisher" name="t265_odom_broadcaster" args="0 0 0 0 0 0 1 t265_link camera_odom_frame" />
+   <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="t265_odom_broadcaster" args="0 0 0 0 0 0 1 odom camera_odom_frame" /> -->
 
    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="t265_rotate_broadcaster" args="-.1 0 .1 .5 .5 .5 .5 camera_link t265_test_rotation" />  -->
    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="t265_rotate_broadcaster" args="-.1 0 .1 3.14159 .350 0 camera_odom_frame t265_test_rotation" />  -->

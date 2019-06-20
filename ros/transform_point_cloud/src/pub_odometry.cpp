@@ -22,6 +22,8 @@ ros::Subscriber sub_, sub_cmd_vel;
 ros::Publisher pub_;
 
 OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
+  last_set_speed_time = ros::Time::now();
+
   actual_vel_mutex.unlock();
   last_set_speed_time_mutex.unlock();
   desired_vel_mutex.unlock();
@@ -96,7 +98,6 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
 
   left_counter = 0;
   right_counter = 0;
-  last_set_speed_time = ros::Time::now();
 }
 
 void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
