@@ -41,23 +41,30 @@ class OdometryPublisher {
   double cur_x=0, cur_y=0, cur_theta=0;
   int desired_vl=0, desired_vr=0; //desired wheel velocities
   int cur_left_motor=0, cur_right_motor=0; //current motor command
-  int update_encoders=1;
+  int update_encoders=1, stop=1;
   double left_integral[INTEGRAL_ARRAY_SIZE];
   double right_integral[INTEGRAL_ARRAY_SIZE];
 
   public:
     OdometryPublisher(); 
-    double normalize_angle(double angle);
     void publish_odometry_message(double vx, double vth); //publish a new Odometry message
-    void update_odometry(int enc_left, int enc_right, double* vel_x, double* vel_theta);
     void encoder_message_callback(const std_msgs::Int32MultiArray::ConstPtr& enc_msg);
-    void read_version();
-    void compute_pid(double left_desired, double left_actual, double right_desired, double right_actual);
     void cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
+    void stop_toggle_callback(const std_msgs::Empty::ConstPtr&);
     void run(const ros::TimerEvent& ev);
-    void setmotor(int duty_cyclel, int dutycycler);
-    //void run_pid(const ros::TimerEvent& e);
+
+    //motor control and odometry functions
     void run_pid();
+    void compute_pid(double left_desired, double left_actual, double right_desired, double right_actual);
+    void update_odometry(int enc_left, int enc_right, double* vel_x, double* vel_theta);
+    double normalize_angle(double angle);
+
+    //Roboclaw functions
+    void setmotor(int duty_cyclel, int dutycycler);
+    void read_version();
+    void read_voltage(unsigned short* voltage);
+    void read_motor_currents(unsigned short* left_current, unsigned short* right_current);
+    void read_status(unsigned short* status);
 };
 
 #endif

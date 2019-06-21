@@ -3,6 +3,7 @@ import pygame
 from time import sleep
 import rospy, sys, os
 from geometry_msgs.msg import Quaternion, Twist
+from std_msgs.msg import Empty
 import subprocess, threading
 
 class JoystickNode:
@@ -21,6 +22,7 @@ class JoystickNode:
       rospy.loginfo("Connecting to joystick")
 
       self.motor_command_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
+      self.robot_stop_pub = rospy.Publisher('/robot_stop', Empty, queue_size=1)
 
       rospy.sleep(1)
 
@@ -31,7 +33,7 @@ class JoystickNode:
       proc1 = subprocess.Popen('cd /mnt/temp;./ue4/ros/jet_launcher/launch/record_zed.sh', shell=True)
 
    def toggle_led(self):
-      proc = subprocess.Popen('rosservice call /zed/zed_node/toggle_led', shell=True)
+      proc = subprocess.Popen('rosservice call /zed_node/toggle_led', shell=True)
 
    def run(self):
       old_linear = 0
@@ -39,6 +41,7 @@ class JoystickNode:
       start = 0
       recording_start = 0
       recording_hold = 0
+      robot_stop = 0
 
       # Prints the joystick's name
       JoyName = pygame.joystick.Joystick(0).get_name()
@@ -89,19 +92,32 @@ class JoystickNode:
 
             self.motor_command_pub.publish(vel_msg)
 
-         #wait for a press on button 2 to begin reading recording rosbag
+         #press button 2 to begin recording rosbag
          button2 = pygame.joystick.Joystick(0).get_button(1)
          if recording_start == 0 and button2 == 1 and t.finished:
             recording_start = 1
             rospy.loginfo('Starting recording')
             self.toggle_led()
             self.record_bag()
+
+            #start a new timer to toggle the led when recording complete
             t = threading.Timer(11,self.toggle_led)
             t.start()
          elif recording_start == 1 and button2 == 1:
             button2 = 1
          else:
             recording_start = 0
+
+         #press button 3 to stop robot
+         button3 = pygame.joystick.Joystick(0).get_button(2)
+         if robot_stop == 0 and button3 == 1:
+            robot_stop = 1
+            rospy.loginfo('Stopping robot')
+            self.robot_stop_pub.publish(Empty())
+         elif robot_stop == 1 and button3 == 1:
+            button3 = 1
+         else:
+            robot_stop = 0
 
          r_time.sleep()
 

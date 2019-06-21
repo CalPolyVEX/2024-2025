@@ -17,7 +17,7 @@
 using namespace std;
 
 extern ros::NodeHandle *nh;
-extern ros::Subscriber sub_;
+extern ros::Subscriber sub_, sub_stop;
 extern ros::Publisher pub_;
 
 void OdometryPublisher::publish_odometry_message(double vx, double vth) {
@@ -181,7 +181,7 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
   int i;
 
   //if the wheel velocities are set to 0
-  if (abs(left_desired) < .0001 && abs(right_desired) < .0001) {
+  if ((abs(left_desired) < .0001 && abs(right_desired) < .0001) || stop == 1) {
     cur_left_motor = 0;
     cur_right_motor = 0;
 
@@ -308,6 +308,10 @@ void OdometryPublisher::run_pid() {
 
     /* r.sleep(); */
   /* } */
+}
+
+void OdometryPublisher::stop_toggle_callback(const std_msgs::Empty::ConstPtr&) {
+  stop ^= 1;
 }
 
 void OdometryPublisher::cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist) {

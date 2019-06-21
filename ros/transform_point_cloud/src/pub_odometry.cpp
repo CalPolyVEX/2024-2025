@@ -19,6 +19,7 @@ using namespace std;
 
 ros::NodeHandle *nh;
 ros::Subscriber sub_, sub_cmd_vel;
+ros::Subscriber sub_stop;
 ros::Publisher pub_;
 
 OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
@@ -41,6 +42,9 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
 
   //listen for Twist messages on /cmd_vel
   sub_cmd_vel = nh->subscribe("/cmd_vel", 1, &OdometryPublisher::cmd_vel_callback, this);
+  
+  //listen for Empty messages on /robot_stop
+  sub_stop = nh->subscribe("/robot_stop", 1, &OdometryPublisher::stop_toggle_callback, this);
 
   ROS_INFO("Connecting to roboclaw");
   nh->param<std::string>("dev1", dev_name, "/dev/ttyACM1");
@@ -86,7 +90,6 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   //read_version();
   setmotor_mutex.lock();
   setmotor(0,0); //set motors to stop
-  //setmotor(1,0);
   cur_left_motor=0;
   cur_right_motor=0;
   setmotor_mutex.unlock();
@@ -101,9 +104,6 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
 }
 
 void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
-  //need non-blocking write to serial port
-  //  M1DUTY = 32
-  //  M2DUTY = 33
   signed short dl = duty_cyclel;
   signed short dr = duty_cycler;
   unsigned char data[8];
@@ -113,9 +113,7 @@ void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
   my_serial->flushInput();
 
   data[0] = address;
-  data[1] = 34;
-  /* if (motor_num > 0) //left motor is 0, right motor is 1 */
-  /*   data[1]++; */
+  data[1] = 34; // set left/right motors command
 
   data[2] = (dl >> 8) & 0xFF; //send the high byte of the duty cycle
   data[3] = dl & 0xFF; //send the low byte of the duty cycle
@@ -142,6 +140,7 @@ void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
 }
 
 void OdometryPublisher::run(const ros::TimerEvent& ev) {
+  unsigned short voltage;
   ros::Time last_set_speed_time2;
 
   last_set_speed_time_mutex.lock();
@@ -159,7 +158,6 @@ void OdometryPublisher::run(const ros::TimerEvent& ev) {
 
     setmotor_mutex.lock();
     setmotor(0,0); //turn off the motors
-    //setmotor(1,0);
     cur_left_motor=0;
     cur_right_motor=0;
     last_left_error=0;
@@ -180,6 +178,56 @@ void OdometryPublisher::run(const ros::TimerEvent& ev) {
     left_tick_vel = 0;
     right_tick_vel = 0;
   }
+
+  read_voltage(&voltage);
+  ROS_INFO("Voltage: %f", (float) voltage / 10.0);
+}
+
+void OdometryPublisher::read_voltage(unsigned short* voltage) {
+  unsigned char data[8];
+
+  my_serial->flushOutput();
+  my_serial->flushInput();
+
+  data[0] = address;
+  data[1] = 24; //read main battery voltage command
+  my_serial->write(data,2);
+
+  my_serial->read(data,4);
+  *voltage = data[0] << 8; //voltage units are 0.1V
+  *voltage += data[1];
+}
+
+void OdometryPublisher::read_motor_currents(unsigned short* left_current, unsigned short* right_current) {
+  unsigned char data[8];
+
+  my_serial->flushOutput();
+  my_serial->flushInput();
+
+  data[0] = address;
+  data[1] = 49; //read motor current command
+  my_serial->write(data,2);
+
+  my_serial->read(data,6);
+  *left_current = data[0] << 8;
+  *left_current += data[1];
+  *right_current = data[2] << 8;
+  *right_current += data[3];
+}
+
+void OdometryPublisher::read_status(unsigned short* status) {
+  unsigned char data[8];
+
+  my_serial->flushOutput();
+  my_serial->flushInput();
+
+  data[0] = address;
+  data[1] = 90; //read status
+  my_serial->write(data,2);
+
+  my_serial->read(data,4);
+  *status = data[0] << 8;
+  *status += data[1];
 }
 
 int main(int argc, char** argv) {
@@ -198,7 +246,7 @@ int main(int argc, char** argv) {
 
   ROS_INFO("Starting motor drive");
   //run diagnostics function at 5Hz (.2 seconds)
-  ros::Timer diag_timer = nh->createTimer(ros::Duration(.3), diag_callback);
+  ros::Timer diag_timer = nh->createTimer(ros::Duration(.5), diag_callback);
 
   //since the pid callback is part of the odom_pub object, 
   //bind the callback using boost:bind and boost:function
