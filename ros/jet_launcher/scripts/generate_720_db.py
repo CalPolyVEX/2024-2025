@@ -6,18 +6,26 @@
 import os
 import subprocess
 import time
+import sys
+import glob
 
 l = [ '2019-05-25-08-23-46.bag',
       '2019-05-27-06-37-09.bag',
       '2019-05-27-06-39-16.bag',
       '2019-05-27-06-41-23.bag',
-      '2019-05-27-06-43-28.bag'] 
+      '2019-05-27-06-43-28.bag']
 
 db_files = ['1.db',
             '2.db',
             '3.db',
             '4.db',
             '5.db']
+
+if len(sys.argv) > 1:
+    #has command line arguments
+    files = sys.argv[1:]
+    print files
+    sys.exit()
 
 print "test"
 #os.system('roslaunch jet_launcher zed_rtabmap.launch ')
@@ -30,7 +38,7 @@ for i in range(len(l)):
    print process
    time.sleep(20)
    print process.pid
-   command = 'cd /home/jseng/.ros; rosbag play --clock -d 2 ' + l[i] + ';' 
+   command = 'cd /home/jseng/.ros; rosbag play --clock -d 2 ' + l[i] + ';'
    os.system(command)
    print command + ',' + db_files[i]
    time.sleep(5)
