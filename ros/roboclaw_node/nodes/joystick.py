@@ -23,6 +23,7 @@ class JoystickNode:
 
       self.motor_command_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
       self.robot_stop_pub = rospy.Publisher('/robot_stop', Empty, queue_size=1)
+      self.autonomous_pub = rospy.Publisher('/autonomous', Empty, queue_size=1)
 
       rospy.sleep(1)
 
@@ -43,6 +44,7 @@ class JoystickNode:
       recording_start = 0
       recording_hold = 0
       robot_stop = 0
+      autonomous = 0
 
       # Prints the joystick's name
       JoyName = pygame.joystick.Joystick(0).get_name()
@@ -125,6 +127,17 @@ class JoystickNode:
             button3 = 1
          else:
             robot_stop = 0
+
+         #press button 4 to send navigation goal
+         button4 = pygame.joystick.Joystick(0).get_button(3)
+         if autonomous == 0 and button4 == 1:
+            autonomous = 1
+            rospy.loginfo('Toggle autonomous mode')
+            self.autonomous_pub.publish(Empty())
+         elif autonomous == 1 and button4 == 1:
+            button4 = 1
+         else:
+            autonomous = 0
 
          r_time.sleep()
 

@@ -187,7 +187,8 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
   int i;
 
   //if the wheel velocities are set to 0
-  if ((abs(left_desired) < .0001 && abs(right_desired) < .0001) || stop == 1) {
+  //if ((abs(left_desired) < .0001 && abs(right_desired) < .0001) || stop == 1) {
+  if ((abs(left_desired) < .0001 && abs(right_desired) < .0001)) {
     cur_left_motor = 0;
     cur_right_motor = 0;
 
@@ -318,35 +319,75 @@ void OdometryPublisher::run_pid() {
 
 void OdometryPublisher::stop_toggle_callback(const std_msgs::Empty::ConstPtr&) {
   stop ^= 1;
+  planner ^= 1;
 }
 
 void OdometryPublisher::cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist) {
-  //update the time, this is used for the 1 second timeout
-  last_set_speed_time_mutex.lock();
-  last_set_speed_time = ros::Time::now();
-  last_set_speed_time_mutex.unlock();
+  planner_mutex.lock();
+  if (planner == 0) {
+    //update the time, this is used for the 1 second timeout
+    last_set_speed_time_mutex.lock();
+    last_set_speed_time = ros::Time::now();
+    last_set_speed_time_mutex.unlock();
 
-  double linear_x = twist->linear.x;
-  double angular_z = -twist->angular.z;
+    double linear_x = twist->linear.x;
+    double angular_z = -twist->angular.z;
 
-  if (abs(linear_x) > MAX_ABS_LINEAR_SPEED) {
-    if (linear_x > 0)
-      linear_x = MAX_ABS_LINEAR_SPEED;
-    else 
-      linear_x = -MAX_ABS_LINEAR_SPEED;
+    if (abs(linear_x) > MAX_ABS_LINEAR_SPEED) {
+      if (linear_x > 0)
+        linear_x = MAX_ABS_LINEAR_SPEED;
+      else 
+        linear_x = -MAX_ABS_LINEAR_SPEED;
+    }
+    if (abs(angular_z) > MAX_ABS_ANGULAR_SPEED) {
+      if (angular_z > 0)
+        angular_z = MAX_ABS_ANGULAR_SPEED;
+      else 
+        angular_z = -MAX_ABS_ANGULAR_SPEED;
+    }
+
+    double vl = (linear_x + angular_z * BASE_WIDTH / 2.0); //meters/sec
+    double vr = (linear_x - angular_z * BASE_WIDTH / 2.0);  
+
+    desired_vel_mutex.lock();
+    desired_vl = int(vl * TICKS_PER_METER); //ticks/sec
+    desired_vr = int(vr * TICKS_PER_METER);  
+    desired_vel_mutex.unlock();
   }
-  if (abs(angular_z) > MAX_ABS_ANGULAR_SPEED) {
-    if (angular_z > 0)
-      angular_z = MAX_ABS_ANGULAR_SPEED;
-    else 
-      angular_z = -MAX_ABS_ANGULAR_SPEED;
+  planner_mutex.unlock();
+}
+
+void OdometryPublisher::planner_cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist) {
+  planner_mutex.lock();
+  if (planner == 1) {
+    //update the time, this is used for the 1 second timeout
+    last_set_speed_time_mutex.lock();
+    last_set_speed_time = ros::Time::now();
+    last_set_speed_time_mutex.unlock();
+
+    double linear_x = twist->linear.x;
+    double angular_z = -twist->angular.z;
+
+    if (abs(linear_x) > MAX_ABS_LINEAR_SPEED) {
+      if (linear_x > 0)
+        linear_x = MAX_ABS_LINEAR_SPEED;
+      else 
+        linear_x = -MAX_ABS_LINEAR_SPEED;
+    }
+    if (abs(angular_z) > MAX_ABS_ANGULAR_SPEED) {
+      if (angular_z > 0)
+        angular_z = MAX_ABS_ANGULAR_SPEED;
+      else 
+        angular_z = -MAX_ABS_ANGULAR_SPEED;
+    }
+
+    double vl = (linear_x + angular_z * BASE_WIDTH / 2.0); //meters/sec
+    double vr = (linear_x - angular_z * BASE_WIDTH / 2.0);  
+
+    desired_vel_mutex.lock();
+    desired_vl = int(vl * TICKS_PER_METER); //ticks/sec
+    desired_vr = int(vr * TICKS_PER_METER);  
+    desired_vel_mutex.unlock();
   }
-
-  double vl = (linear_x + angular_z * BASE_WIDTH / 2.0); //meters/sec
-  double vr = (linear_x - angular_z * BASE_WIDTH / 2.0);  
-
-  desired_vel_mutex.lock();
-  desired_vl = int(vl * TICKS_PER_METER); //ticks/sec
-  desired_vr = int(vr * TICKS_PER_METER);  
-  desired_vel_mutex.unlock();
+  planner_mutex.unlock();
 }
