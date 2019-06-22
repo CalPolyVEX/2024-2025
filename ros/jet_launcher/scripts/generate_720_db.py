@@ -7,7 +7,6 @@ import os
 import subprocess
 import time
 import sys
-import glob
 
 l = [ '2019-05-25-08-23-46.bag',
       '2019-05-27-06-37-09.bag',
@@ -23,9 +22,13 @@ db_files = ['1.db',
 
 if len(sys.argv) > 1:
     #has command line arguments
-    files = sys.argv[1:]
-    print files
-    sys.exit()
+    l = sys.argv[1:]
+    print l
+    db_files = []
+    for i in range(len(l)):
+        name = str(i+1) + '.db'
+        db_files.append(name)
+    print db_files
 
 print "test"
 #os.system('roslaunch jet_launcher zed_rtabmap.launch ')
