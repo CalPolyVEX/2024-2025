@@ -4,8 +4,8 @@
     <arg name="dev" default="/dev/roboclaw"/>
     <arg name="baud" default="38400"/>
     <arg name="address" default="128"/>
-    <arg name="max_abs_linear_speed" default=".30"/>
-    <arg name="max_abs_angular_speed" default="1.50"/>
+    <arg name="max_abs_linear_speed" default=".50"/>
+    <arg name="max_abs_angular_speed" default=".170"/>
 <!-- Wheels max acceleration m/s^2 (TODO: split in angular and linear acceleration) -->
     <arg name="acc_lim" default="1"/>
 <!-- 1957 ticks/rev ; 0.2 cm diam ; 0.6283186 m/rev -->

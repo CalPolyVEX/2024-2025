@@ -161,10 +161,16 @@ void OdometryPublisher::encoder_message_callback(const std_msgs::Int32MultiArray
   //ROS_INFO("debugging left: %d, right %d",  enc_left, enc_right);
   //2106 per 0.1 seconds is max speed, error in the 16th bit is 32768
   //todo lets find a better way to deal with this error
-  if (abs(enc_left - last_enc_left) > 10000) {
+  if (abs(enc_left - last_enc_left) > 1000) {
     ROS_INFO("Ignoring left encoder jump: cur %d, last %d",  enc_left, last_enc_left);
-  } else if (abs(enc_right - last_enc_right) > 10000) {
+    //stop = 1;
+    last_enc_left = enc_left;
+    last_enc_right = enc_right;
+  } else if (abs(enc_right - last_enc_right) > 1000) {
     ROS_INFO("Ignoring right encoder jump: cur %d, last %d", enc_right, last_enc_right);
+    //stop = 1;
+    last_enc_left = enc_left;
+    last_enc_right = enc_right;
   } else {
     //call the update function
     update_odometry(enc_left, enc_right, &vel_x, &vel_theta);
@@ -176,7 +182,7 @@ void OdometryPublisher::encoder_message_callback(const std_msgs::Int32MultiArray
 
 void OdometryPublisher::compute_pid(double left_desired, double left_actual, double right_desired, double right_actual) {
   double kp = 3.5;
-  double ki = .2;
+  double ki = .4;
   double kd = 0.30;
   int i;
 
@@ -223,16 +229,16 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
     right_sum += right_integral[i];
   }
 
-  if (left_sum > 15000) {
-    left_sum = 15000;
-  } else if (left_sum < -15000) {
-    left_sum = -15000;
+  if (left_sum > 18000) {
+    left_sum = 18000;
+  } else if (left_sum < -18000) {
+    left_sum = -18000;
   }
 
-  if (right_sum > 15000) {
-    right_sum = 15000;
-  } else if (right_sum < -15000) {
-    right_sum = -15000;
+  if (right_sum > 18000) {
+    right_sum = 18000;
+  } else if (right_sum < -18000) {
+    right_sum = -18000;
   }
 
   /* *left_set_value = (kp * left_error) + (ki * left_sum) - (kd * left_error_diff); */
@@ -260,15 +266,15 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
   last_right_error = right_error;
 
   //limit the max speed
-  if (cur_left_motor > 4000) {
-    cur_left_motor = 4000;
-  } else if (cur_left_motor < -4000)
-    cur_left_motor = -4000;
+  if (cur_left_motor > 6000) {
+    cur_left_motor = 6000;
+  } else if (cur_left_motor < -6000)
+    cur_left_motor = -6000;
 
-  if (cur_right_motor > 4000) {
-    cur_right_motor = 4000;
-  } else if (cur_right_motor < -4000)
-    cur_right_motor = -4000;
+  if (cur_right_motor > 6000) {
+    cur_right_motor = 6000;
+  } else if (cur_right_motor < -6000)
+    cur_right_motor = -6000;
 }
 
 /* void OdometryPublisher::run_pid(const ros::TimerEvent& e) { */

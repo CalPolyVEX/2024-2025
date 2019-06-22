@@ -39,6 +39,7 @@ class JoystickNode:
       old_linear = 0
       old_angular = 0
       start = 0
+      send_cmd_vel = 0
       recording_start = 0
       recording_hold = 0
       robot_stop = 0
@@ -68,10 +69,16 @@ class JoystickNode:
          pygame.event.pump()
 
          #wait for a press on button 1 to begin reading the left analog stick
-         if start == 0 and pygame.joystick.Joystick(0).get_button(0) == 1:
+         button1 = pygame.joystick.Joystick(0).get_button(0)
+         if start == 0 and button1 == 1:
             start = 1
+            send_cmd_vel = send_cmd_vel ^ 1;
+         elif start == 1 and button1 == 0:
+            start = 0
 
-         if start == 1:
+#          send_cmd_vel = 1
+
+         if send_cmd_vel == 1:
             # Prints the values for axis0
             axis0 = pygame.joystick.Joystick(0).get_axis(0)
             axis1 = pygame.joystick.Joystick(0).get_axis(1)
@@ -83,8 +90,8 @@ class JoystickNode:
             # rospy.logdebug("axis 3: %f", axis3)
             # rospy.logdebug("button 0: %d", pygame.joystick.Joystick(0).get_button(0))
 
-            vel_msg.linear.x = -.3 * axis1
-            vel_msg.angular.z = -0.7 * axis0
+            vel_msg.linear.x = -.5 * axis1
+            vel_msg.angular.z = -1.0 * axis0
             # vel_msg.linear.x = .5*old_linear + .5* -.3 * axis1
             # vel_msg.angular.z = .5*old_angular + .5* -0.7 * axis0
             old_linear = vel_msg.linear.x
@@ -101,7 +108,7 @@ class JoystickNode:
             self.record_bag()
 
             #start a new timer to toggle the led when recording complete
-            t = threading.Timer(11,self.toggle_led)
+            t = threading.Timer(121,self.toggle_led)
             t.start()
          elif recording_start == 1 and button2 == 1:
             button2 = 1
