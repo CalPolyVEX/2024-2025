@@ -57,7 +57,6 @@ class EncoderOdom:
 
         enc_left = enc_msg.data[0];
         enc_right = enc_msg.data[1];
-        # enc_right = -1.0 * enc_msg.data[1];
 
         # 2106 per 0.1 seconds is max speed, error in the 16th bit is 32768
         # todo lets find a better way to deal with this error
@@ -101,7 +100,6 @@ class EncoderOdom:
             self.cur_x += dist * cos(self.cur_theta)
             self.cur_y += dist * sin(self.cur_theta)
         else:
-            #reverse the d_theta term
             d_theta = (dist_right - dist_left) / self.BASE_WIDTH
             r = dist / d_theta
             self.cur_x += r * (sin(d_theta + self.cur_theta) -
@@ -129,12 +127,12 @@ class EncoderOdom:
         br.sendTransform((cur_x, cur_y, 0),
                          tf.transformations.quaternion_from_euler(0, 0, cur_theta),
                          current_time,
-                         "base_link",
-                         "roboclaw_odom")
+                         "roboclaw_center",
+                         "odom")
 
         odom = Odometry()
         odom.header.stamp = current_time
-        odom.header.frame_id = 'robo_claw_odom'
+        odom.header.frame_id = 'odom'
 
         odom.pose.pose.position.x = cur_x
         odom.pose.pose.position.y = cur_y
@@ -148,7 +146,7 @@ class EncoderOdom:
         odom.pose.covariance[28] = 99999
         odom.pose.covariance[35] = 0.01
 
-        odom.child_frame_id = 'base_link'
+        odom.child_frame_id = 'roboclaw_center'
         odom.twist.twist.linear.x = vx
         odom.twist.twist.linear.y = 0
         odom.twist.twist.angular.z = vth
