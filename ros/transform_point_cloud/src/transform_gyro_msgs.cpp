@@ -27,7 +27,7 @@ class GyroPublisher
   int gyro_counter = 0;
 
   void gyroCallBack(const sensor_msgs::Imu::ConstPtr& msg) {
-      /* ros::Time current_time = ros::Time::now(); */
+      ros::Time current_time = ros::Time::now();
       int i;
 
       //publish a new message every other incoming gyro message
@@ -38,7 +38,8 @@ class GyroPublisher
 
       //Imu message
       imu_g.header.seq = msg->header.seq;
-      imu_g.header.stamp = msg->header.stamp;
+      //imu_g.header.stamp = msg->header.stamp;
+      imu_g.header.stamp = current_time;
       imu_g.header.frame_id = "t265_link";
 
       //set the orientation
@@ -72,12 +73,13 @@ class GyroPublisher
   }
 
   void accelCallBack(const sensor_msgs::Imu::ConstPtr& msg) {
-      /* ros::Time current_time = ros::Time::now(); */
+      ros::Time current_time = ros::Time::now();
       int i;
 
       //Imu message
       imu_a.header.seq = msg->header.seq;
-      imu_a.header.stamp = msg->header.stamp;
+      //imu_a.header.stamp = msg->header.stamp;
+      imu_a.header.stamp = current_time;
       imu_a.header.frame_id = "t265_link";
 
       //Roll & Pitch Equations

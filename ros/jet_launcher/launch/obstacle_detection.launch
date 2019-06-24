@@ -6,7 +6,7 @@
     <!-- <remap from="~input" to="/zed/throttled_point_cloud" />  -->
     <rosparam>
       filter_field_name: z
-      filter_limit_min: -0.8
+      filter_limit_min: -0.4
       filter_limit_max: 0.0
       filter_limit_negative: False
       leaf_size: 0.05
@@ -17,6 +17,7 @@
         <!-- <remap from="cloud"     to="/zed_node/point_cloud/cloud_registered"/> -->
         <remap from="cloud"     to="/voxel_grid/output"/>
         <remap from="obstacles" to="/obstacles_cloud"/>
+        <!-- <remap from="obstacles" to="/proj_obstacles"/> -->
         <remap from="ground"    to="/ground_cloud"/>
 
         <param name="frame_id"             type="string" value="base_link"/>	

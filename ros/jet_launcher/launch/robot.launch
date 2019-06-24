@@ -3,6 +3,7 @@
    <arg name="planning" default="false" />
    <arg name="mapping" default="false" />
    <arg name="localization" default="false" />
+   <arg name="rtabmapviz" default="false" />
 
    <!--<include file="$(find jet_launcher)/launch/camera.launch"/> -->
    <include file="$(find jet_launcher)/launch/zed_camera_rtabmap_nodelet.launch"/>
@@ -22,6 +23,7 @@
       <include file="$(find jet_launcher)/launch/obstacle_detection.launch"/>
       <include file="$(find jet_launcher)/launch/planner/planner.launch"/> 
       <include file="$(find jet_launcher)/launch/robot_localization.launch"/>
-      <include file="$(find transform_point_cloud)/launch/transform_gyro.launch"/> 
+      <!-- <include file="$(find transform_point_cloud)/launch/transform_gyro.launch"/> --> 
+      <include file="$(find navigation_goals)/launch/navigation_goals.launch"/> 
    </group>
 </launch>

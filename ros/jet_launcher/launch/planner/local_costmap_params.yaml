@@ -8,7 +8,7 @@ local_costmap:
   width: 4.0
   height: 4.0
   resolution: 0.025
-  origin_x: -3.0
+  origin_x: -4.0
   origin_y: -2.0
 
   observation_sources: point_cloud_sensor
