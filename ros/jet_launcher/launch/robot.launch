@@ -25,5 +25,6 @@
       <include file="$(find jet_launcher)/launch/robot_localization.launch"/>
       <!-- <include file="$(find transform_point_cloud)/launch/transform_gyro.launch"/> --> 
       <include file="$(find navigation_goals)/launch/navigation_goals.launch"/> 
+      <include file="$(find jet_launcher)/launch/laser_filter.launch"/> 
    </group>
 </launch>
