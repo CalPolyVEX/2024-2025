@@ -33,6 +33,16 @@ if sys.argv[1] == "vacuum":
     print command
     os.system(command)
     sys.exit()
+else:
+    if len(sys.argv) > 1:
+        #has command line arguments
+        l = sys.argv[1:]
+        print l
+        db_files = []
+        for i in range(len(l)):
+            name = str(i+1) + '.db'
+            db_files.append(name)
+        print db_files
 
 s = "\""
 for i in range(len(l)):
