@@ -3,6 +3,7 @@
 #include <std_msgs/Empty.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Int32MultiArray.h>
+#include <std_msgs/Int8.h>
 #include <rosserial_arduino/Test.h>
 #include <std_srvs/Empty.h>
 
@@ -16,7 +17,7 @@
 ros::NodeHandle nh;
 using std_srvs::Empty;
 void reset_encoder_callback(const std_msgs::Empty& reset_msg);
-void read_encoder_callback(const std_msgs::Empty &reset_msg);
+void read_encoder_callback(const std_msgs::Int8 &reset_msg);
 
 //std_msgs::String str_msg;
 std_msgs::Int32MultiArray wheel_enc_msg;
@@ -25,7 +26,7 @@ ros::Publisher encoder("encoder", &wheel_enc_msg);
 ros::Subscriber<std_msgs::Empty> reset_encoder("reset_encoder", &reset_encoder_callback);
 
 //topics to handle the read encoder request
-ros::Subscriber<std_msgs::Empty> read_encoder_cmd("read_encoder_cmd", &read_encoder_callback);
+ros::Subscriber<std_msgs::Int8> read_encoder_cmd("read_encoder_cmd", &read_encoder_callback);
 ros::Publisher encoder_service("encoder_service", &wheel_enc_msg);
 //char hello[13] = "hello world!";
 char dim0_label[8] = "encoder";
@@ -40,7 +41,7 @@ uint8_t counter = 0;
 //end JS
 
 //function prototypes
-void blinkActLed(void);
+void blinkActLed(uint8_t state);
 long getChanEncoderValue(int encoder);
 uint8_t getChanEncoderReg(uint8_t opcode, uint8_t encoder);
 void rstEncCnt(uint8_t encoder);
@@ -63,8 +64,10 @@ uint8_t IsrLFlag;
 
 //when a message is received on /read_encoder_cmd, then publish a message
 //with the encoder readings
-void read_encoder_callback(const std_msgs::Empty &reset_msg){
-   encoder_service.publish(&wheel_enc_msg);
+void read_encoder_callback(const std_msgs::Int8 &reset_msg){
+   uint8_t state = reset_msg.data;
+   //encoder_service.publish(&wheel_enc_msg);
+   blinkActLed(state);
 }
 
 //*************************************************
@@ -208,7 +211,7 @@ void loop()
     }
     
     //blink the LED on the encoder shield
-    counter++;
+    /*counter++;
     if (counter > 254) {
       blinkActLed();
       counter = 0;
@@ -216,7 +219,7 @@ void loop()
     } else if (counter > 220 && led_toggle == 0) {
       blinkActLed();
       led_toggle = 1;
-    }
+    }*/
 
     //JS
     //str_msg.data = hello;
@@ -236,12 +239,15 @@ void loop()
 
 //*************************************************
 //*****************************************************  
-void blinkActLed(void)
+void blinkActLed(uint8_t state)
 //*****************************************************
 {
-   static boolean LedBlink;     
-   LedBlink = !LedBlink;
-   digitalWrite(LED_ACT_pin, LedBlink);
+   //static boolean LedBlink = false;     
+   //LedBlink = !LedBlink;
+   if (state == 0)
+     digitalWrite(LED_ACT_pin, false);
+   else
+     digitalWrite(LED_ACT_pin, true);
 }
 
 //*************************************************

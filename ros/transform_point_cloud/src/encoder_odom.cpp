@@ -13,12 +13,27 @@
 #include <cmath>
 #include <boost/thread.hpp>
 #include "encoder_odom.h"
+#include <rtabmap_ros/Info.h>
 
 using namespace std;
 
 extern ros::NodeHandle *nh;
 extern ros::Subscriber sub_, sub_stop;
-extern ros::Publisher pub_;
+extern ros::Subscriber rtabmap_info_sub;
+extern ros::Publisher pub_, loop_closure_pub;
+
+void OdometryPublisher::rtabmap_info_callback(const rtabmap_ros::Info::ConstPtr& info) {
+  std_msgs::Empty e;
+  if (info->loopClosureId != loop_closure) {
+    loop_closure = info->loopClosureId;
+    loop_closure_pub.publish(e);
+  }
+
+  if (info->proximityDetectionId != proximity) {
+    proximity = info->proximityDetectionId;
+    loop_closure_pub.publish(e);
+  }
+}
 
 void OdometryPublisher::publish_odometry_message(double vx, double vth) {
   //publish a new odometry message

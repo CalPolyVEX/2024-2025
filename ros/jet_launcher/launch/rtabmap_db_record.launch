@@ -8,7 +8,7 @@
     <include file="$(find jet_launcher)/launch/robot_localization.launch" /> 
     <include file="$(find transform_point_cloud)/launch/transform_gyro.launch"/>
 
-    <arg name="joystick" default="false" />
+    <arg name="joystick" default="true" />
     <group if="$(arg joystick)">
         <include file="$(find roboclaw_node)/launch/joystick.launch"/>
     </group>

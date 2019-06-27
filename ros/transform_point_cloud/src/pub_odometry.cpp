@@ -14,13 +14,15 @@
 #include <iostream>
 #include <boost/thread.hpp>
 #include "encoder_odom.h"
+#include <rtabmap_ros/Info.h>
 
 using namespace std;
 
 ros::NodeHandle *nh;
 ros::Subscriber sub_, sub_cmd_vel, sub_planner_cmd_vel;
 ros::Subscriber sub_stop;
-ros::Publisher pub_;
+ros::Subscriber rtabmap_info_sub;
+ros::Publisher pub_, loop_closure_pub;
 
 OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   last_set_speed_time = ros::Time::now();
@@ -40,6 +42,9 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   //publish Odometry messages to this topic
   pub_ = nh->advertise<nav_msgs::Odometry>("/roboclaw_odom", 1);
 
+  //publish Odometry messages to this topic
+  loop_closure_pub = nh->advertise<std_msgs::Empty>("/loop_closure", 1);
+
   //listen for Twist messages on /cmd_vel
   sub_cmd_vel = nh->subscribe("/cmd_vel", 1, &OdometryPublisher::cmd_vel_callback, this);
   
@@ -49,14 +54,17 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   //listen for Empty messages on /robot_stop
   sub_stop = nh->subscribe("/robot_stop", 1, &OdometryPublisher::stop_toggle_callback, this);
 
+  //listen for Empty messages on /rtabmap/info
+  rtabmap_info_sub = nh->subscribe("/rtabmap/info", 1, &OdometryPublisher::rtabmap_info_callback, this);
+
   ROS_INFO("Connecting to roboclaw");
-  nh->param<std::string>("dev1", dev_name, "/dev/ttyACM1");
+  nh->param<std::string>("dev1", dev_name, "/dev/roboclaw");
   nh->param<int>("baud1", baud_rate, 38400);
   nh->param<int>("address1", address, 128);
   nh->param<double>("max_abs_linear_speed1", MAX_ABS_LINEAR_SPEED, .7);
   nh->param<double>("max_abs_angular_speed1", MAX_ABS_ANGULAR_SPEED, 2.0);
   nh->param<double>("ticks_per_meter1", TICKS_PER_METER, 6800);
-  nh->param<double>("base_width1", BASE_WIDTH, 0.3667);
+  nh->param<double>("base_width1", BASE_WIDTH, 0.371475);
   nh->param<double>("acc_lim1", ACC_LIM, 0.1);
 
   if (address > 0x87 || address < 0x80) {

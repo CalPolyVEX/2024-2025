@@ -4,9 +4,15 @@ from time import sleep
 import rospy, sys, os
 from geometry_msgs.msg import Quaternion, Twist
 from std_msgs.msg import Empty
+from std_msgs.msg import Int8
 import subprocess, threading
 
 class JoystickNode:
+   def shutdown(self):
+      pygame.joystick.quit()
+      pygame.quit()
+      rospy.loginfo("Shutting down")
+
    def __init__(self):
       os.environ["SDL_VIDEODRIVER"] = "dummy"
       pygame.joystick.init()
@@ -24,6 +30,7 @@ class JoystickNode:
       self.motor_command_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
       self.robot_stop_pub = rospy.Publisher('/robot_stop', Empty, queue_size=1)
       self.autonomous_pub = rospy.Publisher('/autonomous', Empty, queue_size=1)
+      self.autonomous_led_pub = rospy.Publisher('/read_encoder_cmd', Int8, queue_size=1)
 
       rospy.sleep(1)
 
@@ -45,6 +52,8 @@ class JoystickNode:
       recording_hold = 0
       robot_stop = 0
       autonomous = 0
+      autonomous_led_state = 0
+      button9 = 0
 
       # Prints the joystick's name
       JoyName = pygame.joystick.Joystick(0).get_name()
@@ -84,12 +93,8 @@ class JoystickNode:
             # Prints the values for axis0
             axis0 = pygame.joystick.Joystick(0).get_axis(0)
             axis1 = pygame.joystick.Joystick(0).get_axis(1)
-            axis2 = pygame.joystick.Joystick(0).get_axis(2)
-            axis3 = pygame.joystick.Joystick(0).get_axis(3)
             # rospy.logdebug("axis 0: %f", axis0)
             # rospy.logdebug("axis 1: %f", axis1)
-            # rospy.logdebug("axis 2: %f", axis2)
-            # rospy.logdebug("axis 3: %f", axis3)
             # rospy.logdebug("button 0: %d", pygame.joystick.Joystick(0).get_button(0))
 
             vel_msg.linear.x = -.5 * axis1
@@ -123,6 +128,10 @@ class JoystickNode:
             robot_stop = 1
             rospy.loginfo('Stopping robot')
             self.robot_stop_pub.publish(Empty())
+            autonomous_led_state = autonomous_led_state ^ 1
+            aled = Int8()
+            aled.data = autonomous_led_state
+            self.autonomous_led_pub.publish(aled)
          elif robot_stop == 1 and button3 == 1:
             button3 = 1
          else:
@@ -139,10 +148,16 @@ class JoystickNode:
          else:
             autonomous = 0
 
-         r_time.sleep()
+         #check for shutdown button
+         # button4 = 3
+         #button5 = pygame.joystick.Joystick(0).get_button(4)
+         #if button5 == 1:
+            #p = subprocess.Popen("ps", "a | grep \"roslaunch jet\"")
+            #    out = p.communicate()
+         #   out = "test"
+         #   print out
 
-   def shutdown(self):
-      rospy.loginfo("Shutting down")
+         r_time.sleep()
 
 if __name__ == "__main__":
     try:

@@ -13,6 +13,7 @@
 #include <serial/serial.h>
 #include <boost/thread.hpp>
 #include <iostream>
+#include <rtabmap_ros/Info.h>
 
 #define INTEGRAL_ARRAY_SIZE 5
 
@@ -43,6 +44,7 @@ class OdometryPublisher {
   int desired_vl=0, desired_vr=0; //desired wheel velocities
   int cur_left_motor=0, cur_right_motor=0; //current motor command
   int update_encoders=1, stop=1, planner=0;
+  int loop_closure = 0, proximity = 0;
   double left_integral[INTEGRAL_ARRAY_SIZE];
   double right_integral[INTEGRAL_ARRAY_SIZE];
 
@@ -52,6 +54,7 @@ class OdometryPublisher {
     void encoder_message_callback(const std_msgs::Int32MultiArray::ConstPtr& enc_msg);
     void cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
     void planner_cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
+    void rtabmap_info_callback(const rtabmap_ros::Info::ConstPtr& info);
     void stop_toggle_callback(const std_msgs::Empty::ConstPtr&);
     void run(const ros::TimerEvent& ev);
 
