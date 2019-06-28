@@ -17,8 +17,12 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 <launch>
-    <!--<param name="/rtabmap/rtabmap/Reg/Force3DoF"    value="true" /> --> 
-    <!--<param name="Optimizer/Slam2D" value="true" /> --> 
+    <!-- <param name="/rtabmap/rtabmap/Optimizer/Slam2D" value="true" /> --> 
+    <param name="/rtabmap/rtabmap/Reg/Force3DoF"    value="true" /> 
+    <param name="/rtabmap/rtabmap/Grid/RayTracing"    value="true" />  
+    <param name="/rtabmap/rtabmap/Grid/3D"    value="false" />  
+    <param name="/rtabmap/rtabmap/Grid/RangeMax"    value="2.0" />  
+
     <param name="/use_sim_time" value="true" /> 
 
     <arg name="sim"               	default="false" />

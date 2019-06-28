@@ -28,8 +28,8 @@ if sys.argv[1] == "vacuum":
               \" ; sqlite3 output.db \"VACUUM;\" ;'
 
     #remove RGB images from database
-    command += 'cd /home/jseng/.ros; sqlite3 output.db \"UPDATE Data SET image = NULL; \
-              \" ; sqlite3 output.db \"VACUUM;\" '
+    # command += 'cd /home/jseng/.ros; sqlite3 output.db \"UPDATE Data SET image = NULL; \
+    #           \" ; sqlite3 output.db \"VACUUM;\" '
     print command
     os.system(command)
     sys.exit()
