@@ -18,7 +18,9 @@
 
     <!-- Nodelet Manager -->
     <arg name="nodelet_manager_name" default="zed_nodelet_manager" />
-    <node pkg="nodelet" type="nodelet" name="$(arg nodelet_manager_name)"  args="manager" output="screen" />
+    <node pkg="nodelet" type="nodelet" name="$(arg nodelet_manager_name)"  args="manager" output="screen">
+        <param name="num_worker_threads" type="int" value="8"/>
+    </node> 
 
     <!-- ZED Wrapper Node-->
     <include file="$(find zed_wrapper)/launch/zed_camera_nodelet.launch">
@@ -30,7 +32,7 @@
 
     <node pkg="nodelet" type="nodelet" name="data_throttle" args="load rtabmap_ros/data_throttle zed_nodelet_manager" output="screen">
         <param name="rate" type="double" value="2.0"/>
-        <param name="decimation" type="int" value="1"/>
+        <!-- <param name="decimation" type="int" value="1"/> -->
         <param name="approx_sync" type="bool" value="true"/>
 
         <remap from="rgb/image_in"       to="$(arg zed_namespace)/$(arg zed_node_name)/rgb/image_rect_color"/>
@@ -42,49 +44,9 @@
         <remap from="rgb/camera_info_out" to="/zed/data_throttled_camera_info"/>
     </node> 
 
-    <!-- Run a VoxelGrid filter to clean NaNs and downsample the data -->
-    <!-- <node pkg="nodelet" type="nodelet" name="voxel_grid" args="load pcl/VoxelGrid zed_nodelet_manager" output="screen"> -->
-    <!--     <remap from="~input" to="/zed_node/point_cloud/cloud_registered" /> --> 
-    <!--     <rosparam> -->
-    <!--     filter_field_name: z -->
-    <!--     filter_limit_min: -0.8 -->
-    <!--     filter_limit_max: 0.0 -->
-    <!--     filter_limit_negative: False -->
-    <!--     leaf_size: 0.05 -->
-    <!--     </rosparam> -->
-    <!-- </node> -->
-
     <!-- Throttle the rate that the depth point clouds are published from the camera -->
-    <!-- <node pkg="topic_tools" name="throttle" type="throttle" args="messages /zed/zed_node/point_cloud/cloud_registered 4.0 /zed/throttled_point_cloud" />  -->
-    <!-- <node pkg="topic_tools" name="throttle1" type="throttle" args="messages /zed/zed_node/rgb/image_rect_color 2.0 /zed/data_throttled_image" />  
-    <node pkg="topic_tools" name="throttle2" type="throttle" args="messages /zed/zed_node/depth/depth_registered 2.0 /zed/data_throttled_image_depth" /> 
-    <node pkg="topic_tools" name="throttle3" type="throttle" args="messages /zed/zed_node/rgb/camera_info 2.0 /zed/data_throttled_camera_info" /> -->
+    <!-- <node pkg="topic_tools" name="throttle1" type="throttle" args="messages /zed_node/rgb/image_rect_color 2.0 /zed/data_throttled_image" /> -->  
+    <!-- <node pkg="topic_tools" name="throttle2" type="throttle" args="messages /zed_node/depth/depth_registered 2.0 /zed/data_throttled_image_depth" /> --> 
+    <!-- <node pkg="topic_tools" name="throttle3" type="throttle" args="messages /zed_node/rgb/camera_info 2.0 /zed/data_throttled_camera_info" /> --> 
 
-    <!-- old launch file items -->   
-    <!--<arg name="rgb_topic"               	default="rgb/image_rect_color" />
-    <arg name="depth_topic"             	default="depth/depth_registered" />
-    <arg name="camera_info_topic"       	default="rgb/camera_info" />
-    <arg name="depth_camera_info_topic" 	default="depth/camera_info" />
-    <arg name="camera_frame"              default="zed_camera_center" />
-    <arg name="quality"  value="4" />
-
-    <group ns="$(arg zed_namespace)">
-        <include file="$(find zed_wrapper)/launch/zed.launch">
-            <arg name="svo_file"            	value="$(arg svo_file)" />
-            <arg name="camera_model"        	value="$(arg camera_model)" />
-            <arg name="serial_number"       	value="$(arg serial_number)" />
-            <arg name="resolution"          	value="$(arg resolution)" />
-            <arg name="frame_rate"          	value="$(arg frame_rate)" />
-            <arg name="verbose"             	value="$(arg verbose)" />
-
-            <arg name="rgb_topic"                 value="$(arg rgb_topic)" />
-            <arg name="depth_topic"               value="$(arg depth_topic)" />
-            <arg name="rgb_info_topic"       	value="$(arg camera_info_topic)" />
-            <arg name="depth_cam_info_topic" 	value="$(arg depth_camera_info_topic)" />
-            <arg name="base_frame"                value="$(arg camera_frame)" />
-
-            <arg name="publish_map_tf"            value="false" />
-        </include>
-
-    </group> -->
 </launch>
