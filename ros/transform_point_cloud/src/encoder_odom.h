@@ -34,6 +34,7 @@ class OdometryPublisher {
   boost::mutex planner_mutex;
   serial::Serial *my_serial;
 
+  int rtabmap_started = 0;
   int left_counter=0, right_counter=0;
   ros::Time last_set_speed_time;
   int last_left_error=0, last_right_error=0;

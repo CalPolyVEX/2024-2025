@@ -24,13 +24,18 @@ extern ros::Publisher pub_, loop_closure_pub;
 
 void OdometryPublisher::rtabmap_info_callback(const rtabmap_ros::Info::ConstPtr& info) {
   std_msgs::Empty e;
-  if (info->loopClosureId != loop_closure) {
+  if (info->loopClosureId != 0) {
     loop_closure = info->loopClosureId;
     loop_closure_pub.publish(e);
   }
 
-  if (info->proximityDetectionId != proximity) {
+  if (info->proximityDetectionId != 0) {
     proximity = info->proximityDetectionId;
+    loop_closure_pub.publish(e);
+  }
+
+  if (rtabmap_started == 0) {
+    rtabmap_started = 1;
     loop_closure_pub.publish(e);
   }
 }
