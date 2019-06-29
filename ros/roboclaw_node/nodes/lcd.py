@@ -17,7 +17,7 @@ class Lcd:
 
     def init_lcd_node(self):
         #change_baud()
-        time.sleep(3)
+        time.sleep(2.5)
         self.clear_screen()
         #backlight_on()
         #set_contrast(230)

@@ -4,7 +4,9 @@ import pygame
 from time import sleep
 import rospy, sys, os, time
 import subprocess, threading
-sys.path.append("../roboclaw_node/nodes")
+dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(dir_path + "/../roboclaw_node/nodes")
+print sys.path
 from lcd import Lcd
 
 class JoystickNode:
@@ -60,6 +62,7 @@ class JoystickNode:
          print "timeout"
          self.lcd.clear_screen()
          self.lcd.print_string("Timeout")
+         self.lcd.close()
       else:
          #run the launch file
          pygame.quit()

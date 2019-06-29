@@ -16,10 +16,13 @@ class JoystickNode:
 
    def __init__(self):
       os.environ["SDL_VIDEODRIVER"] = "dummy"
+      pygame.display.init()
       pygame.joystick.init()
       pygame.joystick.quit()
       pygame.quit()
+      pygame.display.init()
       pygame.joystick.init()
+      pygame.event.clear()
 
       #check the number of joysticks
       num_joystick = pygame.joystick.get_count()
@@ -41,6 +44,20 @@ class JoystickNode:
 
       rospy.sleep(1)
 
+      #workaround for joystick bug
+      button1 = 0
+      pygame.event.pump()
+      while pygame.joystick.Joystick(0).get_button(0) == 1:
+         pygame.event.pump()
+         if button1 == 0:
+            l = Lcd()
+            l.init_serial_port()
+            l.clear_screen()
+            l.print_string('Press button 1.')
+            l.close()
+            button1 = 1
+
+
    def record_bag(self):
       proc1 = subprocess.Popen('cd /mnt/temp;./ue4/ros/jet_launcher/launch/record_zed.sh', shell=True)
 
@@ -59,6 +76,7 @@ class JoystickNode:
       autonomous_led_state = 0
       button9 = 0
       button1_hold = 0
+      button2_hold = 0
 
       # Prints the joystick's name
       JoyName = pygame.joystick.Joystick(0).get_name()
@@ -127,18 +145,22 @@ class JoystickNode:
          button2 = pygame.joystick.Joystick(0).get_button(1)
          if recording_start == 0 and button2 == 1 and t.finished:
             recording_start = 1
-            rospy.loginfo('Starting recording')
-            self.toggle_led()
-            self.record_bag()
-
-            #start a new timer to toggle the led when recording complete
-            # t = threading.Timer(121,self.toggle_led)
-            t = threading.Timer(121,self.toggle_led)
-            t.start()
          elif recording_start == 1 and button2 == 1:
             button2 = 1
+            button2_hold += 1
+
+            #start recording if button2 held down
+            if button2_hold == 25:
+                rospy.loginfo('Starting recording')
+                self.toggle_led()
+                self.record_bag()
+
+                #start a new timer to toggle the led when recording complete
+                t = threading.Timer(121,self.toggle_led)
+                t.start()
          else:
             recording_start = 0
+            button2_hold = 0
 
          #press button 3 to stop robot
          button3 = pygame.joystick.Joystick(0).get_button(2)
