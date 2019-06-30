@@ -13,11 +13,13 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   message_generation
   tf2_ros
+  tf2_sensor_msgs
   sensor_msgs
+  geometry_msgs
 )
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS system)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -142,7 +144,7 @@ add_executable(${PROJECT_NAME}_node src/transform_gyro_msgs.cpp)
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
 ## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
-set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
+#set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
 set_target_properties(${PROJECT_NAME}_node PROPERTIES LINKER_LANGUAGE CXX)
 
 ## Add cmake target dependencies of the executable
