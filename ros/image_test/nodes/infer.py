@@ -42,14 +42,14 @@ class GroundDetector:
          self.point_filter_list.append(self.k)
 
       #needed to prevent memory errors on the Jetson TX2
-      config = tf.compat.v1.ConfigProto()
+      config = tf.ConfigProto()
       config.gpu_options.allow_growth = True
 
       #load the graph
       self.load_graph()
       self.input_operation = self.graph.get_operation_by_name(self.input_name);
       self.output_operation = self.graph.get_operation_by_name(self.output_name);
-      self.sess = tf.compat.v1.Session(config=config,graph=self.graph)
+      self.sess = tf.Session(config=config,graph=self.graph)
 
       #load the second graph
       if 1==0:
@@ -59,8 +59,8 @@ class GroundDetector:
          self.sess1 = tf.Session(config=config,graph=self.graph1)
 
    def load_graph(self):
-      self.graph = tf.compat.v1.Graph()
-      self.graph_def = tf.compat.v1.GraphDef()
+      self.graph = tf.Graph()
+      self.graph_def = tf.GraphDef()
 
       with open(self.protobuf_model, "rb") as f:
          self.graph_def.ParseFromString(f.read())
