@@ -22,7 +22,7 @@ class GroundDetector:
       self.input_name = "import/" + input_layer
       self.output_name = "import/" + output_layer
       self.counter=0
-      
+
       self.point_filter_list = []
       for i in range(48):
          self.k = cv2.KalmanFilter(1, 1, 0, cv2.CV_32F)
@@ -33,8 +33,8 @@ class GroundDetector:
          self.k.transitionMatrix = np.ones((1,1))
 
          # 1/270 = .0037
-         self.k.measurementNoiseCov = .008 * np.ones((1,1))
-         self.k.processNoiseCov= .003 * np.ones((1,1))
+         self.k.measurementNoiseCov = .002 * np.ones((1,1))
+         self.k.processNoiseCov= .001 * np.ones((1,1))
 
          self.k.statePost = .10 * np.ones((1,1))
          self.k.errorCovPost = .10 * np.ones((1,1))
@@ -42,14 +42,14 @@ class GroundDetector:
          self.point_filter_list.append(self.k)
 
       #needed to prevent memory errors on the Jetson TX2
-      config = tf.ConfigProto()
+      config = tf.compat.v1.ConfigProto()
       config.gpu_options.allow_growth = True
 
       #load the graph
       self.load_graph()
       self.input_operation = self.graph.get_operation_by_name(self.input_name);
       self.output_operation = self.graph.get_operation_by_name(self.output_name);
-      self.sess = tf.Session(config=config,graph=self.graph)
+      self.sess = tf.compat.v1.Session(config=config,graph=self.graph)
 
       #load the second graph
       if 1==0:
@@ -59,8 +59,8 @@ class GroundDetector:
          self.sess1 = tf.Session(config=config,graph=self.graph1)
 
    def load_graph(self):
-      self.graph = tf.Graph()
-      self.graph_def = tf.GraphDef()
+      self.graph = tf.compat.v1.Graph()
+      self.graph_def = tf.compat.v1.GraphDef()
 
       with open(self.protobuf_model, "rb") as f:
          self.graph_def.ParseFromString(f.read())
@@ -102,7 +102,7 @@ class GroundDetector:
          #rospy.loginfo(results)
          return output
       return results
-      
+
       #rospy.loginfo("%s", output)
 
 
@@ -127,7 +127,6 @@ class image_converter:
 
       self.msgpub = rospy.Publisher('/point_array', ground_boundary, queue_size=1)
       self.camera_t = camera_transform()
-      self.orb = cv2.ORB_create()
 
    def callback(self,data):
       try:
@@ -139,26 +138,13 @@ class image_converter:
       (rows,cols,channels) = cv_image.shape
 
       #resize and convert the image to numpy array
-      resized_image_nn = cv2.resize(cv_image, (480, 270)) 
-      #resized_image = resized_image_nn.copy() 
+      resized_image_nn = cv2.resize(cv_image, (480, 270))
+      #resized_image = resized_image_nn.copy()
       np_image_data = np.asarray(resized_image_nn)
       #float_caster = tf.cast(np_image_data, tf.float32)
       float_caster = np_image_data / 255.0
       np_final = np.expand_dims(float_caster,axis=0)
       #print (np_final.shape)
-
-      #test ORB features
-      if 1 == 0:
-         start_orb_time1 = time.time()
-         #find the keypoints
-         kp = self.orb.detect(resized_image,None)
-
-         # compute the descriptors with ORB
-         kp, des = self.orb.compute(resized_image, kp)
-
-         # draw only keypoints location,not size and orientation
-         #resized_image = cv2.drawKeypoints(resized_image,kp,np.array([]), color=(0,255,0), flags=0)
-         start_orb_time2 = time.time()
 
       #get the neural network computation time
       time1 = time.time()
@@ -188,7 +174,6 @@ class image_converter:
       font = cv2.FONT_HERSHEY_SIMPLEX
       fps = 1 / ((time2-time1))
       cv2.putText(resized_image_nn, "%.2ffps" % fps, (390, 20), font, 0.6, (0, 255, 0), 1, cv2.LINE_AA)
-      #cv2.putText(resized_image_nn, "orb time: %.2fms" % ((start_orb_time2-start_orb_time1)*1000.0), (300, 40), font, 0.6, (0, 255, 0), 1, cv2.LINE_AA)
 
       #stats
       #if ((time2-time1) > .070):
