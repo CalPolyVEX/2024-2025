@@ -30,28 +30,6 @@ class ImageConverter
   tensorflow::Session* session; //tensorflow session
   tensorflow::GraphDef graph_def;
 
-  void imageCb(const sensor_msgs::ImageConstPtr& msg) {
-    cv_bridge::CvImagePtr cv_ptr;
-    
-    try
-    {
-      cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
-    }
-    catch (cv_bridge::Exception& e)
-    {
-      ROS_ERROR("cv_bridge exception: %s", e.what());
-      return;
-    }
-
-    //resize image to 480x270
-    cv::resize(cv_ptr->image, new_image, cv::Size(480,270), CV_INTER_LINEAR);
-    
-    //publish message
-    sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", new_image).toImageMsg();
-    image_pub_.publish(pub_msg);
-  }
-
-
   public:
 
   void run_network(const sensor_msgs::ImageConstPtr& msg) {
@@ -92,6 +70,7 @@ class ImageConverter
     /*   } */
     /* } */
 
+    //fill in tensor with image data
     int depth = 3;
     tensorflow::Tensor input_tensor(tensorflow::DT_FLOAT,
         tensorflow::TensorShape({1, new_image.rows, new_image.cols, depth}));
@@ -116,9 +95,8 @@ class ImageConverter
     string input = "input_1";
     pair <string,tensorflow::Tensor> p(input, input_tensor);
     vector <std::pair<string,tensorflow::Tensor>> v{p};
-    status = session->Run(v, {"k2tfout_0"}, {}, &outputs);
-    /* status = session->Run({input_tensor}, {"k2tfout_"}, {}, &outputs); */
 
+    status = session->Run(v, {"k2tfout_0"}, {}, &outputs);
     if (!status.ok()) {
       std::cout << status.ToString() << "\n";
     }
@@ -129,7 +107,21 @@ class ImageConverter
     // Grab the first output (we only evaluated one graph node: "c")
     // and convert the node to a scalar representation.
     auto output_c = outputs[0].tensor<float,1>();
-    cout << output_c << endl;
+    float x;
+    int col_counter = 0;
+    
+    for (int i=0; i < 48; i++) {
+      x = output_c(i);
+      x = x * 270.0;
+
+      /* new_image.at<Vec3b>(Point((int)x, col_counter))[0] = 255; */
+      /* new_image.at<Vec3b>(Point((int)x, col_counter))[1] = 0; */
+      /* new_image.at<Vec3b>(Point((int)x, col_counter))[2] = 0; */
+      circle(new_image, Point(col_counter, (int)x), 3, Scalar(0,0,255), -1);
+      col_counter += 10;
+    }
+
+    cout << x << endl;
     
     //publish message
     sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", new_image).toImageMsg();
@@ -139,8 +131,9 @@ class ImageConverter
   ImageConverter() :
       it_(nh_)
     {
-      /* image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &ImageConverter::imageCb, this); */
-      image_sub_ = it_.subscribe("/zed/data_throttled_image", 1, &ImageConverter::run_network, this);
+      image_transport::TransportHints hints("compressed");
+      image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &ImageConverter::run_network, this, hints);
+      /* image_sub_ = it_.subscribe("/zed/data_throttled_image", 1, &ImageConverter::run_network, this); */
       image_pub_ = it_.advertise("/image_converter/output_video", 1);
       new_image = Mat(270, 480, CV_8UC(3));
     }
