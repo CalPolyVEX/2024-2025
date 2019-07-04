@@ -17,7 +17,7 @@
 
 using namespace cv;
 using namespace std;
-using namespace tensorflow;
+//using namespace tensorflow;
 
 class ImageConverter
 {
@@ -27,8 +27,8 @@ class ImageConverter
   image_transport::Publisher image_pub_;
   cv::Mat new_image;
 
-  Session* session; //tensorflow session
-  GraphDef graph_def;
+  tensorflow::Session* session; //tensorflow session
+  tensorflow::GraphDef graph_def;
 
   void imageCb(const sensor_msgs::ImageConstPtr& msg) {
     cv_bridge::CvImagePtr cv_ptr;
@@ -56,7 +56,7 @@ class ImageConverter
 
   void run_network(const sensor_msgs::ImageConstPtr& msg) {
     cv_bridge::CvImagePtr cv_ptr;
-    Status status;
+    tensorflow::Status status;
     // Setup inputs and outputs:
 
     try
@@ -71,28 +71,69 @@ class ImageConverter
     //resize image to 480x270
     cv::resize(cv_ptr->image, new_image, cv::Size(480,270), CV_INTER_LINEAR);
 
-    // Our graph doesn't require any inputs, since it specifies default values,
-    // but we'll change an input to demonstrate.
-    Tensor input_tensor(DT_UINT8, TensorShape({1, 270, 480, 3}));
+    /* Tensor input_tensor(tensorflow::DT_FLOAT, TensorShape({1, 270, 480, 3})); */
+    /* auto input_tensor_mapped = input_tensor.tensor<float, 4>(); */
+
     // get pointer to memory for that Tensor
-    unsigned char* ptr = input_tensor.flat<unsigned char>().data();
-    cv::Mat tensor_image(270, 480, CV_8UC3, ptr);
-    tensor_image.convertTo(new_image, CV_8UC3);  
+    /* unsigned char* ptr = input_tensor.flat<unsigned char>().data(); */
+    /* cv::Mat camera_image(270, 480, CV_8UC(3), ptr); */
+    /* cv::Mat image_pixels(270, 480, CV_8UC(3)); */
+    /* image_pixels.convertTo(camera_image, CV_8UC3); */  
+
+    /* const unsigned char* source_data = new_image.data; */
+    /* for (int y = 0; y < height; ++y) { */
+    /*   const unsigned char* source_row = source_data + (y * width * depth); */
+    /*   for (int x = 0; x < width; ++x) { */
+    /*     const unsigned char* source_pixel = source_row + (x * depth); */
+    /*     for (int c = 0; c < depth; ++c) { */
+    /*       const float* source_value = source_pixel + c; */
+    /*       input_tensor_mapped(0, y, x, c) = *source_value; */
+    /*     } */
+    /*   } */
+    /* } */
+
+    int depth = 3;
+    tensorflow::Tensor input_tensor(tensorflow::DT_FLOAT,
+        tensorflow::TensorShape({1, new_image.rows, new_image.cols, depth}));
+
+    auto input_tensor_mapped = input_tensor.tensor<float, 4>();
+
+    for (int y = 0; y < new_image.rows; y++) {
+      for (int x = 0; x < new_image.cols; x++) {
+        Vec3b pixel = new_image.at<Vec3b>(y, x);
+
+        input_tensor_mapped(0, y, x, 0) = pixel.val[2]; //R
+        input_tensor_mapped(0, y, x, 1) = pixel.val[1]; //G
+        input_tensor_mapped(0, y, x, 2) = pixel.val[0]; //B
+      }
+    }
 
     // The session will initialize the outputs
     std::vector<tensorflow::Tensor> outputs;
 
     // Run the session, evaluating our "c" operation from the graph
-    status = session->Run(new_image, {"k2tfout_"}, {}, &outputs);
+    /* status = session->Run({new_image}, &outputs); */
+    string input = "input_1";
+    pair <string,tensorflow::Tensor> p(input, input_tensor);
+    vector <std::pair<string,tensorflow::Tensor>> v{p};
+    status = session->Run(v, {"k2tfout_0"}, {}, &outputs);
+    /* status = session->Run({input_tensor}, {"k2tfout_"}, {}, &outputs); */
+
     if (!status.ok()) {
       std::cout << status.ToString() << "\n";
     }
 
-    /* cout << outputs.size(); */
+    //print out the dimension of the tensor
+    //cout << outputs[0].shape().dim_size(0);
+
     // Grab the first output (we only evaluated one graph node: "c")
     // and convert the node to a scalar representation.
-    /* auto output_c = outputs[0].scalar<float>(); */
-    //cout << output_c;
+    auto output_c = outputs[0].tensor<float,1>();
+    cout << output_c << endl;
+    
+    //publish message
+    sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", new_image).toImageMsg();
+    image_pub_.publish(pub_msg);
   }
 
   ImageConverter() :
@@ -101,26 +142,27 @@ class ImageConverter
       /* image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &ImageConverter::imageCb, this); */
       image_sub_ = it_.subscribe("/zed/data_throttled_image", 1, &ImageConverter::run_network, this);
       image_pub_ = it_.advertise("/image_converter/output_video", 1);
-      new_image = Mat(270, 480, CV_8UC3);
+      new_image = Mat(270, 480, CV_8UC(3));
     }
 
   int init_tensorflow() {
     // Initialize a tensorflow session
-    tensorflow::SessionOptions options = SessionOptions();
+    tensorflow::SessionOptions options = tensorflow::SessionOptions();
     options.config.mutable_gpu_options()->set_allow_growth(true);
-    Status status = NewSession(options, &session);
+    tensorflow::Status status = tensorflow::NewSession(options, &session);
     if (!status.ok()) {
       std::cout << status.ToString() << "\n";
       return 1;
     }
 
     // Read in the protobuf graph we exported.
-    status = ReadBinaryProto(Env::Default(), ros::package::getPath("tensorflow_ros_test") + "/models/output_graph.pb", &graph_def);
+    status = tensorflow::ReadBinaryProto(tensorflow::Env::Default(), ros::package::getPath("tensorflow_ros_test") + "/models/output_graph.pb", &graph_def);
     if (!status.ok()) {
       std::cout << status.ToString() << "\n";
       return 1;
     }
 
+    status = session->Create(graph_def);
     /* int node_count = graph_def.node_size(); */
     /* for (int i=0; i< node_count; i++) { */
     /*   auto n = graph_def.node(i); */
