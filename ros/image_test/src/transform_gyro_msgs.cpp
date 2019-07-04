@@ -49,27 +49,6 @@ class ImageConverter
     //resize image to 480x270
     cv::resize(cv_ptr->image, new_image, cv::Size(480,270), CV_INTER_LINEAR);
 
-    /* Tensor input_tensor(tensorflow::DT_FLOAT, TensorShape({1, 270, 480, 3})); */
-    /* auto input_tensor_mapped = input_tensor.tensor<float, 4>(); */
-
-    // get pointer to memory for that Tensor
-    /* unsigned char* ptr = input_tensor.flat<unsigned char>().data(); */
-    /* cv::Mat camera_image(270, 480, CV_8UC(3), ptr); */
-    /* cv::Mat image_pixels(270, 480, CV_8UC(3)); */
-    /* image_pixels.convertTo(camera_image, CV_8UC3); */  
-
-    /* const unsigned char* source_data = new_image.data; */
-    /* for (int y = 0; y < height; ++y) { */
-    /*   const unsigned char* source_row = source_data + (y * width * depth); */
-    /*   for (int x = 0; x < width; ++x) { */
-    /*     const unsigned char* source_pixel = source_row + (x * depth); */
-    /*     for (int c = 0; c < depth; ++c) { */
-    /*       const float* source_value = source_pixel + c; */
-    /*       input_tensor_mapped(0, y, x, c) = *source_value; */
-    /*     } */
-    /*   } */
-    /* } */
-
     //fill in tensor with image data
     int depth = 3;
     tensorflow::Tensor input_tensor(tensorflow::DT_FLOAT,
@@ -81,9 +60,9 @@ class ImageConverter
       for (int x = 0; x < new_image.cols; x++) {
         Vec3b pixel = new_image.at<Vec3b>(y, x);
 
-        input_tensor_mapped(0, y, x, 0) = pixel.val[2]; //R
-        input_tensor_mapped(0, y, x, 1) = pixel.val[1]; //G
-        input_tensor_mapped(0, y, x, 2) = pixel.val[0]; //B
+        input_tensor_mapped(0, y, x, 0) = ((float)pixel.val[2])/255.0; //R
+        input_tensor_mapped(0, y, x, 1) = ((float)pixel.val[1])/255.0; //G
+        input_tensor_mapped(0, y, x, 2) = ((float)pixel.val[0])/255.0; //B
       }
     }
 
@@ -114,15 +93,10 @@ class ImageConverter
       x = output_c(i);
       x = x * 270.0;
 
-      /* new_image.at<Vec3b>(Point((int)x, col_counter))[0] = 255; */
-      /* new_image.at<Vec3b>(Point((int)x, col_counter))[1] = 0; */
-      /* new_image.at<Vec3b>(Point((int)x, col_counter))[2] = 0; */
       circle(new_image, Point(col_counter, (int)x), 3, Scalar(0,0,255), -1);
       col_counter += 10;
     }
 
-    cout << x << endl;
-    
     //publish message
     sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", new_image).toImageMsg();
     image_pub_.publish(pub_msg);
