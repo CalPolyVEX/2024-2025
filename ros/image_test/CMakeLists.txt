@@ -15,7 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   image_transport
   cv_bridge
-#  tensorflow_ros_cpp
+  tensorflow_ros_cpp
 )
 
 ## System dependencies are found with CMake's conventions
@@ -110,7 +110,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES image_test
- CATKIN_DEPENDS roscpp rospy std_msgs message_runtime image_transport cv_bridge 
+ CATKIN_DEPENDS roscpp rospy std_msgs message_runtime image_transport cv_bridge tensorflow_ros_cpp
 #  DEPENDS system_lib
 )
 
@@ -122,7 +122,7 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
 # include
-  #${tensorflow_ros_cpp_INCLUDE_DIRS}  
+  ${tensorflow_ros_cpp_INCLUDE_DIRS}  
   ${catkin_INCLUDE_DIRS} 
 )
 
@@ -154,7 +154,7 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
-   #${tensorflow_ros_cpp_LIBRARIES}
+   ${tensorflow_ros_cpp_LIBRARIES}
    ${catkin_LIBRARIES}
 )
 

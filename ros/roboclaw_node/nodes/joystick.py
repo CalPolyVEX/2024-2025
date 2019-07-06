@@ -132,7 +132,7 @@ class JoystickNode:
             # rospy.logdebug("axis 1: %f", axis1)
             # rospy.logdebug("button 0: %d", pygame.joystick.Joystick(0).get_button(0))
 
-            vel_msg.linear.x = -.5 * axis1
+            vel_msg.linear.x = -.8 * axis1
             vel_msg.angular.z = -1.0 * axis0
             # vel_msg.linear.x = .5*old_linear + .5* -.3 * axis1
             # vel_msg.angular.z = .5*old_angular + .5* -0.7 * axis0
