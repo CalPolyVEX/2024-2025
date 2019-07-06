@@ -5,10 +5,11 @@
 # Setup sources.lst
 sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
 # Setup keys
-sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
+sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+
 # Installation
 sudo apt-get update
-sudo apt-get install ros-melodic-ros-base -y
+sudo apt-get install git ros-melodic-ros-base -y
 
 # Initialize rosdep
 sudo apt-get install python-rosdep -y
@@ -47,9 +48,9 @@ sudo apt install python-pip ros-melodic-pcl-conversions ros-melodic-pcl-ros ros-
 sudo apt install python3-pip ros-melodic-move-base-msgs ros-melodic-costmap-2d ros-melodic-octomap-msgs ros-melodic-find-object-2d ros-melodic-camera-info-manager
 
 #install Tensorflow for python3 (Jetpack 4.2)
-pip3 install --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v42 tensorflow-gpu==1.13.1+nv19.4 --user
-pip install numpy
-pip3 install numpy
+#pip3 install --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v42 tensorflow-gpu==1.13.1+nv19.4 --user
+#pip install numpy
+#pip3 install numpy
 
 #install vim pathogen
 sudo apt install curl
@@ -61,7 +62,7 @@ git config --global user.email "jseng@calpoly.edu"
 git config --global user.name "John Seng"
 
 #stuff for building OpenCV
-sudo apt-get install cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
-sudo apt-get install python-dev python-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev
+#sudo apt-get install cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
+#sudo apt-get install python-dev python-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev
 
 
