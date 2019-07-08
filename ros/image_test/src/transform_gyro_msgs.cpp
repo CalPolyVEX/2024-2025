@@ -60,9 +60,9 @@ class ImageConverter
       for (int x = 0; x < new_image.cols; x++) {
         Vec3b pixel = new_image.at<Vec3b>(y, x);
 
-        input_tensor_mapped(0, y, x, 0) = ((float)pixel.val[2])/255.0; //R
-        input_tensor_mapped(0, y, x, 1) = ((float)pixel.val[1])/255.0; //G
-        input_tensor_mapped(0, y, x, 2) = ((float)pixel.val[0])/255.0; //B
+        input_tensor_mapped(0, y, x, 0) = ((float)pixel.val[2]); //R
+        input_tensor_mapped(0, y, x, 1) = ((float)pixel.val[1]); //G
+        input_tensor_mapped(0, y, x, 2) = ((float)pixel.val[0]); //B
       }
     }
 
@@ -87,7 +87,7 @@ class ImageConverter
     // and convert the node to a scalar representation.
     auto output_c = outputs[0].tensor<float,1>();
     float x;
-    int col_counter = 0;
+    int col_counter = 5;
     
     for (int i=0; i < 48; i++) {
       x = output_c(i);
@@ -123,7 +123,7 @@ class ImageConverter
     }
 
     // Read in the protobuf graph we exported.
-    status = tensorflow::ReadBinaryProto(tensorflow::Env::Default(), ros::package::getPath("tensorflow_ros_test") + "/models/output_graph.pb", &graph_def);
+    status = tensorflow::ReadBinaryProto(tensorflow::Env::Default(), ros::package::getPath("image_test") + "/models/output_graph.pb", &graph_def);
     if (!status.ok()) {
       std::cout << status.ToString() << "\n";
       return 1;
