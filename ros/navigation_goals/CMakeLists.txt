@@ -3,7 +3,6 @@ project(navigation_goals)
 set(CMAKE_CXX_FLAGS "-Wall -Werror")
 
 find_package(catkin REQUIRED COMPONENTS
-  dynamic_reconfigure
   roscpp
   roslint
   move_base_msgs
