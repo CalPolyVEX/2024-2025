@@ -21,7 +21,7 @@ generate_dynamic_reconfigure_options(
 )
 
 catkin_package(
-  CATKIN_DEPENDS roscpp tf2_ros
+  CATKIN_DEPENDS roscpp tf2_ros dynamic_reconfigure
 )
 
 include_directories(
