@@ -26,44 +26,56 @@ class ImageConverter
   image_transport::Subscriber image_sub_;
   image_transport::Publisher image_pub_;
   cv::Mat new_image;
-
+  cv::Mat cameraImg;
+  tensorflow::Tensor *input_tensor;
+  
   tensorflow::Session* session; //tensorflow session
   tensorflow::GraphDef graph_def;
 
   public:
 
   void run_network(const sensor_msgs::ImageConstPtr& msg) {
-    cv_bridge::CvImagePtr cv_ptr;
+    cv_bridge::CvImageConstPtr cv_ptr;
     tensorflow::Status status;
     // Setup inputs and outputs:
 
     try
     {
-      cv_ptr = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+      cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::BGR8);
     }
     catch (cv_bridge::Exception& e)
     {
       ROS_ERROR("cv_bridge exception: %s", e.what());
     }
 
-    //resize image to 480x270
-    cv::resize(cv_ptr->image, new_image, cv::Size(480,270), CV_INTER_LINEAR);
-
     //fill in tensor with image data
-    int depth = 3;
-    tensorflow::Tensor input_tensor(tensorflow::DT_FLOAT,
-        tensorflow::TensorShape({1, new_image.rows, new_image.cols, depth}));
+    if (1==1) {
+       //resize image to 480x270
+       cv::resize(cv_ptr->image, new_image, cv::Size(480,270), CV_INTER_LINEAR);
 
-    auto input_tensor_mapped = input_tensor.tensor<float, 4>();
+       auto input_tensor_mapped = input_tensor->tensor<float, 4>();
 
-    for (int y = 0; y < new_image.rows; y++) {
-      for (int x = 0; x < new_image.cols; x++) {
-        Vec3b pixel = new_image.at<Vec3b>(y, x);
+       for (int y = 0; y < 270; y++) {
+          for (int x = 0; x < 480; x++) {
+             Vec3b pixel = new_image.at<Vec3b>(y, x);
 
-        input_tensor_mapped(0, y, x, 0) = ((float)pixel.val[2]); //R
-        input_tensor_mapped(0, y, x, 1) = ((float)pixel.val[1]); //G
-        input_tensor_mapped(0, y, x, 2) = ((float)pixel.val[0]); //B
-      }
+             input_tensor_mapped(0, y, x, 0) = ((float)pixel.val[0]); //R
+             input_tensor_mapped(0, y, x, 1) = ((float)pixel.val[1]); //G
+             input_tensor_mapped(0, y, x, 2) = ((float)pixel.val[2]); //B
+          }
+       }
+
+       /* float *p1 = input_tensor->flat<float>().data(); */ 
+       /* float *p2 = (float*) new_image.data; */ 
+       /* memcpy(p1,p2,480*270*4); */
+    } else {
+       // get pointer to memory for that Tensor
+       //float *p1 = input_tensor->flat<float>().data(); 
+
+       // create a "fake" cv::Mat from it
+       //cv::Mat cameraImg(270, 480, CV_32FC3, p1); 
+       cv::resize(cv_ptr->image, cameraImg, cv::Size(480,270), CV_INTER_LINEAR);
+       cv::resize(cameraImg, new_image, cv::Size(480,270), CV_INTER_LINEAR);
     }
 
     // The session will initialize the outputs
@@ -72,7 +84,7 @@ class ImageConverter
     // Run the session, evaluating our "c" operation from the graph
     /* status = session->Run({new_image}, &outputs); */
     string input = "input_1";
-    pair <string,tensorflow::Tensor> p(input, input_tensor);
+    pair <string,tensorflow::Tensor> p(input, *input_tensor);
     vector <std::pair<string,tensorflow::Tensor>> v{p};
 
     status = session->Run(v, {"k2tfout_0"}, {}, &outputs);
@@ -94,22 +106,32 @@ class ImageConverter
       x = x * 270.0;
 
       circle(new_image, Point(col_counter, (int)x), 3, Scalar(0,0,255), -1);
+      //circle(cameraImg, Point(col_counter, (int)x), 3, Scalar(0,0,255), -1);
       col_counter += 10;
     }
 
     //publish message
     sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", new_image).toImageMsg();
+    //sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", cameraImg).toImageMsg();
     image_pub_.publish(pub_msg);
   }
 
   ImageConverter() :
       it_(nh_)
     {
+      //new_image = Mat(270, 480, CV_8UC(3));
+      new_image = Mat(270, 480, CV_32FC(3));
+
+      input_tensor = new tensorflow::Tensor(tensorflow::DT_FLOAT, 
+         tensorflow::TensorShape({1, new_image.rows, new_image.cols, 3})); 
+
+      float_t *p1 = input_tensor->flat<float_t>().data(); 
+      cameraImg = Mat(270, 480, CV_32FC3, p1); 
+
       image_transport::TransportHints hints("compressed");
       image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &ImageConverter::run_network, this, hints);
       /* image_sub_ = it_.subscribe("/zed/data_throttled_image", 1, &ImageConverter::run_network, this); */
       image_pub_ = it_.advertise("/image_converter/output_video", 1);
-      new_image = Mat(270, 480, CV_8UC(3));
     }
 
   int init_tensorflow() {
