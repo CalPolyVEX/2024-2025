@@ -15,7 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   image_transport
   cv_bridge
-  tensorflow_ros_cpp
+  #tensorflow_ros_cpp
 )
 
 ## System dependencies are found with CMake's conventions
@@ -107,16 +107,30 @@ generate_messages(
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
-catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES image_test
- CATKIN_DEPENDS roscpp rospy std_msgs message_runtime image_transport cv_bridge tensorflow_ros_cpp
-#  DEPENDS system_lib
-)
+if (TRUE)
+    catkin_package(
+    #  INCLUDE_DIRS include
+    #  LIBRARIES image_test
+    CATKIN_DEPENDS roscpp rospy std_msgs message_runtime image_transport cv_bridge 
+    #tensorflow_ros_cpp
+    #  DEPENDS system_lib
+    )
+endif()
+
+if (FALSE)
+    catkin_package(
+    #  INCLUDE_DIRS include
+    #  LIBRARIES image_test
+    CATKIN_DEPENDS roscpp rospy std_msgs message_runtime image_transport cv_bridge tensorflow_ros_cpp
+    #tensorflow_ros_cpp
+    #  DEPENDS system_lib
+    )
+endif()
 
 ###########
 ## Build ##
 ###########
+if (FALSE)
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
@@ -134,7 +148,7 @@ include_directories(
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+#add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
@@ -157,6 +171,8 @@ target_link_libraries(${PROJECT_NAME}_node
    ${tensorflow_ros_cpp_LIBRARIES}
    ${catkin_LIBRARIES}
 )
+
+endif()
 
 #############
 ## Install ##
