@@ -142,7 +142,8 @@ class image_converter:
       #resized_image = resized_image_nn.copy()
       np_image_data = np.asarray(resized_image_nn)
       #float_caster = tf.cast(np_image_data, tf.float32)
-      float_caster = np_image_data / 255.0
+      #float_caster = np_image_data / 255.0
+      float_caster = np_image_data / 1.0
       np_final = np.expand_dims(float_caster,axis=0)
       #print (np_final.shape)
 
