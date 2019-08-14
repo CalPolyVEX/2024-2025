@@ -1,4 +1,11 @@
 # ue4
+Joystick controls
+
+* button 1 press - toggle manual control
+* button 1 hold - exit ROS
+* button 2 hold - record .bag file
+* button 3 press - toggle manual/autonomous driving
+* button 4 press - send navigation goal
 
 Sparse checkout for ROS
 
