@@ -65,17 +65,17 @@ class ImageConverter
           }
        }
 
-       /* float *p1 = input_tensor->flat<float>().data(); */ 
-       /* float *p2 = (float*) new_image.data; */ 
-       /* memcpy(p1,p2,480*270*4); */
+       //float *p1 = input_tensor->flat<float>().data(); 
+       //float *p2 = (float*) new_image.data; 
+       //memcpy(p1,p2,480*270*3);
     } else {
        // get pointer to memory for that Tensor
-       //float *p1 = input_tensor->flat<float>().data(); 
+       float *p1 = input_tensor->flat<float>().data(); 
 
        // create a "fake" cv::Mat from it
-       //cv::Mat cameraImg(270, 480, CV_32FC3, p1); 
+       cv::Mat cameraImg(270, 480, CV_32FC3, p1); 
        cv::resize(cv_ptr->image, cameraImg, cv::Size(480,270), CV_INTER_LINEAR);
-       cv::resize(cameraImg, new_image, cv::Size(480,270), CV_INTER_LINEAR);
+       //cv::resize(cameraImg, new_image, cv::Size(480,270), CV_INTER_LINEAR);
     }
 
     // The session will initialize the outputs
