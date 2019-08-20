@@ -143,9 +143,9 @@ world_frame: odom           # Defaults to the value of odom_frame if unspecified
 # Roboclaw odometry settings
 odom0: /roboclaw_odom
 odom0_config: [true, true, true,
-               false, false, false,
-               false, false, false,
                false, false, true,
+               true, true, true,
+               false, false, false,
                false, false, false]
 odom0_differential: false
 odom0_relative: true
@@ -164,6 +164,16 @@ odom1_config: [false, false, false,
 odom1_differential: true
 odom1_relative: true
 odom1_queue_size: 2
+
+# odom1: /zed_node/odom
+# odom1_config: [false, false, false,
+#                false, false, false,
+#                false, false, false,
+#                false, false, true,
+#                false, false, false]
+# odom1_differential: true
+# odom1_relative: true
+# odom1_queue_size: 2
 
 #pose0: example/pose
 #pose0_config: [true,  true,  false,
@@ -240,7 +250,7 @@ imu1_remove_gravitational_acceleration: true
 # which will be used during predicition. Note that if an acceleration measurement for the 
 # variable in question is available from one of the inputs, the control term will be ignored.  
 # Whether or not we use the control input during prediction. Defaults to false.
-use_control: true
+use_control: false
 # Whether the input (assumed to be cmd_vel) is a geometry_msgs/Twist or geometry_msgs/TwistStamped message. Defaults to
 # false.
 stamped_control: false

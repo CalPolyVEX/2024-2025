@@ -132,8 +132,8 @@ class JoystickNode:
             # rospy.logdebug("axis 1: %f", axis1)
             # rospy.logdebug("button 0: %d", pygame.joystick.Joystick(0).get_button(0))
 
-            vel_msg.linear.x = -.8 * axis1
-            vel_msg.angular.z = -1.0 * axis0
+            vel_msg.linear.x = -.5 * axis1
+            vel_msg.angular.z = -1.3 * axis0
             # vel_msg.linear.x = .5*old_linear + .5* -.3 * axis1
             # vel_msg.angular.z = .5*old_angular + .5* -0.7 * axis0
             old_linear = vel_msg.linear.x
@@ -156,7 +156,7 @@ class JoystickNode:
                 self.record_bag()
 
                 #start a new timer to toggle the led when recording complete
-                t = threading.Timer(121,self.toggle_led)
+                t = threading.Timer(302,self.toggle_led) #run after 4 minutes
                 t.start()
          else:
             recording_start = 0

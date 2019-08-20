@@ -15,6 +15,8 @@
 #include "encoder_odom.h"
 #include <rtabmap_ros/Info.h>
 
+#define MAX_MOTOR_SPEED 13000
+
 using namespace std;
 
 extern ros::NodeHandle *nh;
@@ -83,6 +85,7 @@ void OdometryPublisher::publish_odometry_message(double vx, double vth) {
   odom.pose.covariance[21] = 99999;
   odom.pose.covariance[28] = 99999;
   odom.pose.covariance[35] = 0.01;
+  /* odom.pose.covariance[35] = 0.003; */
 
   //set the velocity
   odom.twist.twist.linear.x = vx;
@@ -287,15 +290,15 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
   last_right_error = right_error;
 
   //limit the max speed
-  if (cur_left_motor > 6000) {
-    cur_left_motor = 6000;
-  } else if (cur_left_motor < -6000)
-    cur_left_motor = -6000;
+  if (cur_left_motor > MAX_MOTOR_SPEED) {
+    cur_left_motor = MAX_MOTOR_SPEED;
+  } else if (cur_left_motor < -MAX_MOTOR_SPEED)
+    cur_left_motor = -MAX_MOTOR_SPEED;
 
-  if (cur_right_motor > 6000) {
-    cur_right_motor = 6000;
-  } else if (cur_right_motor < -6000)
-    cur_right_motor = -6000;
+  if (cur_right_motor > MAX_MOTOR_SPEED) {
+    cur_right_motor = MAX_MOTOR_SPEED;
+  } else if (cur_right_motor < -MAX_MOTOR_SPEED)
+    cur_right_motor = -MAX_MOTOR_SPEED;
 }
 
 /* void OdometryPublisher::run_pid(const ros::TimerEvent& e) { */
