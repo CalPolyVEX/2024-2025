@@ -38,13 +38,14 @@
 #include <ros/ros.h>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
+#include <std_msgs/String.h>
 
 ros::NodeHandle *nh;
 ros::Publisher pub_;
 
 Adafruit_BNO055::Adafruit_BNO055() : tf_listener_(tf_buffer_) {
   //publish Odometry messages to this topic
-  pub_ = nh->advertise<nav_msgs::Odometry>("/bno055_reading", 1);
+  pub_ = nh->advertise<std_msgs::String>("/bno055_reading", 1);
 
   ROS_INFO("Connecting to BNO055");
 
@@ -985,6 +986,27 @@ bool Adafruit_BNO055::readLen(adafruit_bno055_reg_t reg, uint8_t *buffer,
   return true;
 }
 
+void Adafruit_BNO055::run_loop() {
+  ros::Rate loop_rate(10);
+
+  while (ros::ok())
+  {
+    std_msgs::String msg;
+
+    std::stringstream ss;
+    ss << "hello world " << 0;
+    msg.data = ss.str();
+
+    ROS_INFO("%s", msg.data.c_str());
+
+    pub_.publish(msg);
+
+    ros::spinOnce();
+
+    loop_rate.sleep();
+  }
+}
+
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "bno055_node");
@@ -993,7 +1015,7 @@ int main(int argc, char** argv) {
 
   Adafruit_BNO055 odom_pub;
 
-  //odom_pub.run_loop();
+  odom_pub.run_loop();
 
   ros::spin();
   ros::waitForShutdown();
