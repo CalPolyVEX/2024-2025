@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(transform_point_cloud)
-set(CMAKE_CXX_FLAGS "-Wall -Werror -Wextra -pedantic")
+#set(CMAKE_CXX_FLAGS "-Wall -Werror -Wextra -pedantic")
+set(CMAKE_CXX_FLAGS "")
 
 find_package(catkin REQUIRED COMPONENTS
   dynamic_reconfigure
@@ -40,8 +41,8 @@ add_executable(transform_gyro_msgs
   src/transform_gyro_msgs.cpp)
 
 add_executable(bno055
-  src/bno055.cpp
-  src/bno055.h)
+  src/Adafruit_BNO055.cpp
+  src/Adafruit_BNO055.h)
 
 add_dependencies(transform_point_cloud ${PROJECT_NAME}_gencfg)
 target_link_libraries(transform_point_cloud ${catkin_LIBRARIES})
