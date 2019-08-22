@@ -37,6 +37,10 @@ add_executable(pub_odometry
 add_executable(transform_gyro_msgs
   src/transform_gyro_msgs.cpp)
 
+add_executable(bno055
+  src/bno055.cpp
+  src/bno055.h)
+
 add_dependencies(transform_point_cloud ${PROJECT_NAME}_gencfg)
 target_link_libraries(transform_point_cloud ${catkin_LIBRARIES})
 
@@ -45,3 +49,6 @@ target_link_libraries(pub_odometry ${catkin_LIBRARIES})
 
 add_dependencies(transform_gyro_msgs ${PROJECT_NAME}_gencfg)
 target_link_libraries(transform_gyro_msgs ${catkin_LIBRARIES})
+
+add_dependencies(bno055 ${PROJECT_NAME}_gencfg)
+target_link_libraries(bno055 ${catkin_LIBRARIES})
