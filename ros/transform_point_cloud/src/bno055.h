@@ -14,51 +14,36 @@
 #include <boost/thread.hpp>
 #include <iostream>
 #include <rtabmap_ros/Info.h>
+#include <linux/i2c-dev.h>
+#include <unistd.h>
+#include <errno.h>
+#include <stdint.h>
+#include <fcntl.h>
+#include <cstdlib>
+#include <cstdio>
+#include <sys/ioctl.h>
 
 #define INTEGRAL_ARRAY_SIZE 5
 
 class bno055 {
   std::string dev_name;
-  int baud_rate, address;
   ros::Time last_enc_time; //time of the last encoder reading
-  double MAX_ABS_LINEAR_SPEED, MAX_ABS_ANGULAR_SPEED, TICKS_PER_METER, BASE_WIDTH, ACC_LIM;
+  int bno055I2CBus; 
+  int bno055I2CAddress;
+  int error;
 
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
   tf2_ros::TransformBroadcaster odom_broadcaster;
-  boost::mutex actual_vel_mutex;
-  boost::mutex last_set_speed_time_mutex;
-  boost::mutex desired_vel_mutex;
-  boost::mutex setmotor_mutex;
-  boost::mutex update_encoder_mutex;
-  boost::mutex planner_mutex;
-  serial::Serial *my_serial;
-
-  int rtabmap_started = 0;
-  int left_counter=0, right_counter=0;
   ros::Time last_set_speed_time;
-  int last_left_error=0, last_right_error=0;
-  int last_enc_left=0, last_enc_right=0; //last encoder counts
-  double last_left_vel=0, last_right_vel=0; //last wheel velocities
-  double left_tick_vel=0, right_tick_vel=0; //current wheel velocities
-  double cur_x=0, cur_y=0, cur_theta=0;
-  int desired_vl=0, desired_vr=0; //desired wheel velocities
-  int cur_left_motor=0, cur_right_motor=0; //current motor command
-  int update_encoders=1, stop=1, planner=0;
-  int loop_closure = 0, proximity = 0;
-  double left_integral[INTEGRAL_ARRAY_SIZE];
-  double right_integral[INTEGRAL_ARRAY_SIZE];
+  int bno055I2CFileDescriptor;
 
   public:
     bno055(); 
-    void publish_odometry_message(double vx, double vth); //publish a new Odometry message
-    void encoder_message_callback(const std_msgs::Int32MultiArray::ConstPtr& enc_msg);
-    void cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
-    void planner_cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
-    void rtabmap_info_callback(const rtabmap_ros::Info::ConstPtr& info);
-    void stop_toggle_callback(const std_msgs::Empty::ConstPtr&);
+    void run_loop();
+    bool openbno055();
+    void closebno055();
     void run(const ros::TimerEvent& ev);
-
 };
 
 #endif
