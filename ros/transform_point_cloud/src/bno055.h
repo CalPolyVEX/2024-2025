@@ -17,7 +17,7 @@
 
 #define INTEGRAL_ARRAY_SIZE 5
 
-class OdometryPublisher {
+class bno055 {
   std::string dev_name;
   int baud_rate, address;
   ros::Time last_enc_time; //time of the last encoder reading
@@ -50,7 +50,7 @@ class OdometryPublisher {
   double right_integral[INTEGRAL_ARRAY_SIZE];
 
   public:
-    OdometryPublisher(); 
+    bno055(); 
     void publish_odometry_message(double vx, double vth); //publish a new Odometry message
     void encoder_message_callback(const std_msgs::Int32MultiArray::ConstPtr& enc_msg);
     void cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
@@ -59,18 +59,6 @@ class OdometryPublisher {
     void stop_toggle_callback(const std_msgs::Empty::ConstPtr&);
     void run(const ros::TimerEvent& ev);
 
-    //motor control and odometry functions
-    void run_pid();
-    void compute_pid(double left_desired, double left_actual, double right_desired, double right_actual);
-    void update_odometry(int enc_left, int enc_right, double* vel_x, double* vel_theta);
-    double normalize_angle(double angle);
-
-    //Roboclaw functions
-    void setmotor(int duty_cyclel, int dutycycler);
-    void read_version();
-    void read_voltage(unsigned short* voltage);
-    void read_motor_currents(unsigned short* left_current, unsigned short* right_current);
-    void read_status(unsigned short* status);
 };
 
 #endif
