@@ -319,6 +319,7 @@ public:
   void setSensorOffsets(const uint8_t *calibData);
   void setSensorOffsets(const adafruit_bno055_offsets_t &offsets_type);
   bool isFullyCalibrated();
+  void run_loop();
 
   /* Power managments functions */
   void enterSuspendMode();
