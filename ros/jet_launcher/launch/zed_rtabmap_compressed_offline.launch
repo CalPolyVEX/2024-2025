@@ -22,6 +22,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <param name="/rtabmap/rtabmap/Grid/RayTracing"    value="true" />  
     <param name="/rtabmap/rtabmap/Grid/3D"    value="false" />  
     <param name="/rtabmap/rtabmap/Grid/RangeMax"    value="3.0" />  
+    <include file="$(find jet_launcher)/launch/rtabmap_relay.launch" /> 
 
     <param name="/use_sim_time" value="true" /> 
 
@@ -64,7 +65,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
       <arg name="odom_frame_id"                  value="odom" />
       <arg name="approx_sync"               value="true" />
       <arg name="visual_odometry"           value="false" />
-      <arg name="compressed"                value="false" />
+      <arg name="compressed"                value="true" />
       <arg name="rgb_image_transport"       value="compressed" />
       <arg name="depth_image_transport"     value="compressedDepth" />
       <!-- <arg name="odom_topic"                value="/zed/zed_node/odom" /> -->
