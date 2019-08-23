@@ -34,10 +34,12 @@
 #include <chrono>
 #include <thread>
 #include <nav_msgs/Odometry.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <ros/console.h>
 #include <ros/ros.h>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
+#include <tf2/LinearMath/Quaternion.h>
 #include <std_msgs/String.h>
 
 ros::NodeHandle *nh;
@@ -45,12 +47,17 @@ ros::Publisher pub_;
 
 Adafruit_BNO055::Adafruit_BNO055() : tf_listener_(tf_buffer_) {
   //publish Odometry messages to this topic
-  pub_ = nh->advertise<std_msgs::String>("/bno055_reading", 1);
+  pub_ = nh->advertise<geometry_msgs::PoseStamped>("/bno055_pose", 1);
 
   ROS_INFO("Connecting to BNO055");
 
   _sensorID = 1;
   _address = 0x28; // Defaults to 0x28 for bno055 on Adafruit
+
+  //openbno055();
+  begin();
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  setExtCrystalUse(true); //use the external crystal
 }
 
 /*!
@@ -71,12 +78,14 @@ bool Adafruit_BNO055::openbno055()
    sprintf(fileNameBuffer,"/dev/i2c-%d", 1); //assuming bus 1
    bno055I2CFileDescriptor = open(fileNameBuffer, O_RDWR);
    if (bno055I2CFileDescriptor < 0) {
-       // Could not open the file
-      error = errno ;
-      return false ;
+    // Could not open the file
+    ROS_INFO("Could not open i2c bus.");
+    error = errno ;
+    return false ;
    }
    if (ioctl(bno055I2CFileDescriptor, I2C_SLAVE, _address) < 0) {
        // Could not open the device on the bus
+       ROS_INFO("Could not open correct device on the i2c bus.");
        error = errno ;
        return false ;
    }
@@ -987,23 +996,33 @@ bool Adafruit_BNO055::readLen(adafruit_bno055_reg_t reg, uint8_t *buffer,
 }
 
 void Adafruit_BNO055::run_loop() {
+  int count = 0;
+  sensors_event_t orientationData;
+  imu::Quaternion q;
+  geometry_msgs::PoseStamped p;
+
   ros::Rate loop_rate(10);
 
   while (ros::ok())
   {
-    std_msgs::String msg;
+    q = getQuat();
 
-    std::stringstream ss;
-    ss << "hello world " << 0;
-    msg.data = ss.str();
+    p.header.seq = count;
+    ros::Time current_time = ros::Time::now();
+    p.header.stamp = current_time;
+    p.header.frame_id = "odom";
 
-    ROS_INFO("%s", msg.data.c_str());
+    p.pose.orientation.x = q.x();
+    p.pose.orientation.y = q.y();
+    p.pose.orientation.z = q.z();
+    p.pose.orientation.w = q.w();
 
-    pub_.publish(msg);
+    pub_.publish(p);
 
     ros::spinOnce();
 
     loop_rate.sleep();
+    count++;
   }
 }
 
