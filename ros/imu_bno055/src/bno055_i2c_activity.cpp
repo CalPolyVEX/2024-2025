@@ -95,6 +95,7 @@ bool BNO055I2CActivity::start() {
     ROS_INFO("starting");
 
     if(!pub_data) pub_data = nh.advertise<sensor_msgs::Imu>("data", 1);
+    if(!pub_pose) pub_pose = nh.advertise<geometry_msgs::PoseStamped>("pose", 1);
     if(!pub_raw) pub_raw = nh.advertise<sensor_msgs::Imu>("raw", 1);
     if(!pub_mag) pub_mag = nh.advertise<sensor_msgs::MagneticField>("mag", 1);
     if(!pub_temp) pub_temp = nh.advertise<sensor_msgs::Temperature>("temp", 1);
@@ -198,6 +199,30 @@ bool BNO055I2CActivity::spinOnce() {
     msg_data.angular_velocity.x = (double)record.raw_angular_velocity_x / 900.0;
     msg_data.angular_velocity.y = (double)record.raw_angular_velocity_y / 900.0;
     msg_data.angular_velocity.z = (double)record.raw_angular_velocity_z / 900.0;
+    //JS
+    //msg_data.linear_acceleration.x = 0;
+    //msg_data.linear_acceleration.y = 0;
+    //msg_data.linear_acceleration.z = 0;
+    //msg_data.angular_velocity.x = 0;
+    //msg_data.angular_velocity.y = 0;
+    //msg_data.angular_velocity.z = 0;
+    msg_data.angular_velocity_covariance[0] = -1;
+    msg_data.linear_acceleration_covariance[0] = -1;
+
+    geometry_msgs::PoseStamped msg_pose;
+    msg_pose.header.stamp = time;
+    msg_pose.header.frame_id = param_frame_id;
+    msg_pose.header.seq = seq;
+
+    msg_pose.pose.position.x = 0;  
+    msg_pose.pose.position.y = 0; 
+    msg_pose.pose.position.z = 0; 
+
+    msg_pose.pose.orientation.w = (double)record.fused_orientation_w / fused_orientation_norm;
+    msg_pose.pose.orientation.x = (double)record.fused_orientation_x / fused_orientation_norm;
+    msg_pose.pose.orientation.y = (double)record.fused_orientation_y / fused_orientation_norm;
+    msg_pose.pose.orientation.z = (double)record.fused_orientation_z / fused_orientation_norm;
+    //end JS
 
     sensor_msgs::Temperature msg_temp;
     msg_temp.header.stamp = time;
@@ -205,6 +230,7 @@ bool BNO055I2CActivity::spinOnce() {
     msg_temp.header.seq = seq;
     msg_temp.temperature = (double)record.temperature;
 
+    pub_pose.publish(msg_pose);
     pub_data.publish(msg_data);
     pub_raw.publish(msg_raw);
     pub_mag.publish(msg_mag);

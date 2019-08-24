@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
     watchdog->start(5000);
 
     int param_rate;
-    nh_priv->param("rate", param_rate, (int)100);
+    nh_priv->param("rate", param_rate, (int)50); //50Hz
 
     ros::Rate rate(param_rate);
     while(ros::ok()) {

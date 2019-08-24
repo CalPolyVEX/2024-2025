@@ -16,6 +16,7 @@
 #include <diagnostic_msgs/DiagnosticStatus.h>
 #include <diagnostic_msgs/DiagnosticArray.h>
 #include <diagnostic_msgs/KeyValue.h>
+#include <geometry_msgs/PoseStamped.h>
 
 #include <linux/i2c-dev.h>
 #include <smbus_functions.h>
@@ -260,6 +261,7 @@ class BNO055I2CActivity {
     ros::NodeHandle nh_priv;
 
     // ROS publishers
+    ros::Publisher pub_pose;
     ros::Publisher pub_data;
     ros::Publisher pub_raw;
     ros::Publisher pub_mag;
