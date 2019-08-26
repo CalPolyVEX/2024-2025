@@ -55,7 +55,9 @@ Adafruit_BNO055::Adafruit_BNO055() : tf_listener_(tf_buffer_) {
   _address = 0x28; // Defaults to 0x28 for bno055 on Adafruit
 
   //openbno055();
-  begin();
+  if (begin() == false) {
+    ROS_INFO("begin() error");
+  }
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   setExtCrystalUse(true); //use the external crystal
 }
@@ -130,7 +132,10 @@ bool Adafruit_BNO055::begin(adafruit_bno055_opmode_t mode) {
   /* Enable I2C */
   //JS
   //_wire->begin();
-  openbno055();
+  if (openbno055() == false) {
+    ROS_INFO("openbno055() error.");
+    return false;
+  }
 
   // BNO055 clock stretches for 500us or more!
 #ifdef ESP8266
@@ -144,6 +149,7 @@ bool Adafruit_BNO055::begin(adafruit_bno055_opmode_t mode) {
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     id = read8(BNO055_CHIP_ID_ADDR);
     if (id != BNO055_ID) {
+      ROS_INFO("error reading ID.");
       return false; // still not? ok bail
     }
   }
@@ -926,6 +932,7 @@ bool Adafruit_BNO055::write8(adafruit_bno055_reg_t reg, uint8_t value) {
   
   if (write(bno055I2CFileDescriptor,&value,1) != 1) {
     printf ("write error\n");
+    ROS_INFO("Write error.");
     exit(-1);
   }
 
@@ -957,6 +964,7 @@ uint8_t Adafruit_BNO055::read8(adafruit_bno055_reg_t reg) {
 
   if (read(bno055I2CFileDescriptor,&value,1) != 1) {
     printf ("read byte error\n");
+    ROS_INFO("Read error.");
     exit(-1);
   }
 
@@ -988,6 +996,7 @@ bool Adafruit_BNO055::readLen(adafruit_bno055_reg_t reg, uint8_t *buffer,
 
   if (read(bno055I2CFileDescriptor,buffer,len) != len) {
     printf ("readLen error\n");
+    ROS_INFO("ReadLen error.");
     exit(-1);
   }
 
@@ -1012,6 +1021,8 @@ void Adafruit_BNO055::run_loop() {
     p.header.stamp = current_time;
     p.header.frame_id = "odom";
 
+    p.pose.position.x = 5;
+    p.pose.position.y = getTemp();
     p.pose.orientation.x = q.x();
     p.pose.orientation.y = q.y();
     p.pose.orientation.z = q.z();
