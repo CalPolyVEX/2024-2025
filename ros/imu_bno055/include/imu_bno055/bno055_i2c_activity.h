@@ -16,7 +16,9 @@
 #include <diagnostic_msgs/DiagnosticStatus.h>
 #include <diagnostic_msgs/DiagnosticArray.h>
 #include <diagnostic_msgs/KeyValue.h>
-#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Matrix3x3.h>
 
 #include <linux/i2c-dev.h>
 #include <smbus_functions.h>
@@ -253,6 +255,7 @@ class BNO055I2CActivity {
 
     // ROS parameters
     std::string param_frame_id;
+    std::string param_odom_frame_id;
     std::string param_device;
     int param_address;
 

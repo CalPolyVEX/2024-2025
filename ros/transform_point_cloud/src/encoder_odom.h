@@ -48,6 +48,7 @@ class OdometryPublisher {
   int loop_closure = 0, proximity = 0;
   double left_integral[INTEGRAL_ARRAY_SIZE];
   double right_integral[INTEGRAL_ARRAY_SIZE];
+  int debug_odometry = 0;
 
   public:
     OdometryPublisher(); 

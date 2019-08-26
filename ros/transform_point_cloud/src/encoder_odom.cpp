@@ -143,7 +143,10 @@ void OdometryPublisher::update_odometry(int enc_left, int enc_right, double* vel
   /* right_tick_vel = .3*right_tick_vel + .7*(current_right_vel); */
   left_tick_vel =  (current_left_vel); //should be in ticks/second
   right_tick_vel = (current_right_vel);
-  ROS_INFO("--update odometry --- Current tick velocity: left: %f, right: %f",  left_tick_vel, right_tick_vel);
+
+  if (debug_odometry == 1) {
+    ROS_INFO("--update odometry --- Current tick velocity: left: %f, right: %f",  left_tick_vel, right_tick_vel);
+  }
 
   // TODO find better what to determine going straight,
   // this means slight deviation is accounted
@@ -279,7 +282,9 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
   ir_out = ki * right_sum;
   dr_out = kd * right_error_diff;
 
-  ROS_INFO("P: %f, I: %f, D: %f", pl_out, il_out, dl_out);
+  if (debug_odometry == 1) {
+    ROS_INFO("P: %f, I: %f, D: %f", pl_out, il_out, dl_out);
+  }
 
   cur_left_motor = pl_out + il_out + dl_out;
   cur_right_motor = pr_out + ir_out + dr_out;
@@ -319,14 +324,16 @@ void OdometryPublisher::run_pid() {
 
     compute_pid(des_vel_left, ltv, des_vel_right, rtv);
 
-    ROS_INFO("desired vl_ticks: %f desired vr_ticks: %f", des_vel_left, des_vel_right);
-    ROS_INFO("current left vel: %f current right vel: %f", \
-        ltv, rtv);
-    ROS_INFO("left error: %f right error: %f", \
-        des_vel_left - ltv, \
-        des_vel_right - rtv);
+    if (debug_odometry == 1) {
+      ROS_INFO("desired vl_ticks: %f desired vr_ticks: %f", des_vel_left, des_vel_right);
+      ROS_INFO("current left vel: %f current right vel: %f", \
+          ltv, rtv);
+      ROS_INFO("left error: %f right error: %f", \
+          des_vel_left - ltv, \
+          des_vel_right - rtv);
 
-    ROS_INFO("left pid output: %d right pid output: %d", cur_left_motor, cur_right_motor);
+      ROS_INFO("left pid output: %d right pid output: %d", cur_left_motor, cur_right_motor);
+    }
 
     //set the motor speeds
     setmotor_mutex.lock();

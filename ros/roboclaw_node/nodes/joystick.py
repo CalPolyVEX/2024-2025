@@ -93,8 +93,8 @@ class JoystickNode:
       vel_msg = Twist()
 
       #do not print SDL messages
-      #sys.stdout = os.devnull
-      #sys.stderr = os.devnull
+      # sys.stdout = os.devnull
+      # sys.stderr = os.devnull
 
       t=threading.Timer(61,self.toggle_led)
       t.cancel()
@@ -156,7 +156,7 @@ class JoystickNode:
                 self.record_bag()
 
                 #start a new timer to toggle the led when recording complete
-                t = threading.Timer(302,self.toggle_led) #run after 4 minutes
+                t = threading.Timer(242,self.toggle_led) #run after 4 minutes
                 t.start()
          else:
             recording_start = 0

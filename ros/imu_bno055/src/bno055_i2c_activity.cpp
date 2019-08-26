@@ -17,6 +17,7 @@ BNO055I2CActivity::BNO055I2CActivity(ros::NodeHandle &_nh, ros::NodeHandle &_nh_
     nh_priv.param("device", param_device, (std::string)"/dev/i2c-1");
     nh_priv.param("address", param_address, (int)BNO055_ADDRESS_A);
     nh_priv.param("frame_id", param_frame_id, (std::string)"imu");
+    nh_priv.param("odom_frame_id", param_odom_frame_id, (std::string)"odom");
 
     current_status.level = 0;
     current_status.name = "BNO055 IMU";
@@ -95,7 +96,7 @@ bool BNO055I2CActivity::start() {
     ROS_INFO("starting");
 
     if(!pub_data) pub_data = nh.advertise<sensor_msgs::Imu>("data", 1);
-    if(!pub_pose) pub_pose = nh.advertise<geometry_msgs::PoseStamped>("pose", 1);
+    if(!pub_pose) pub_pose = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("pose", 1);
     if(!pub_raw) pub_raw = nh.advertise<sensor_msgs::Imu>("raw", 1);
     if(!pub_mag) pub_mag = nh.advertise<sensor_msgs::MagneticField>("mag", 1);
     if(!pub_temp) pub_temp = nh.advertise<sensor_msgs::Temperature>("temp", 1);
@@ -178,6 +179,7 @@ bool BNO055I2CActivity::spinOnce() {
     msg_mag.magnetic_field.y = (double)record.raw_magnetic_field_y / 16.0;
     msg_mag.magnetic_field.z = (double)record.raw_magnetic_field_z / 16.0;
 
+    //create Imu message
     sensor_msgs::Imu msg_data;
     msg_data.header.stamp = time;
     msg_data.header.frame_id = param_frame_id;
@@ -200,28 +202,61 @@ bool BNO055I2CActivity::spinOnce() {
     msg_data.angular_velocity.y = (double)record.raw_angular_velocity_y / 900.0;
     msg_data.angular_velocity.z = (double)record.raw_angular_velocity_z / 900.0;
     //JS
-    //msg_data.linear_acceleration.x = 0;
-    //msg_data.linear_acceleration.y = 0;
-    //msg_data.linear_acceleration.z = 0;
-    //msg_data.angular_velocity.x = 0;
-    //msg_data.angular_velocity.y = 0;
-    //msg_data.angular_velocity.z = 0;
-    msg_data.angular_velocity_covariance[0] = -1;
-    msg_data.linear_acceleration_covariance[0] = -1;
+    msg_data.orientation_covariance[0] = .0001;
+    msg_data.orientation_covariance[4] = .0001;
+    msg_data.orientation_covariance[8] = .0001;
+    msg_data.angular_velocity_covariance[0] = .01;
+    msg_data.angular_velocity_covariance[4] = .01;
+    msg_data.angular_velocity_covariance[8] = .001;
+    msg_data.linear_acceleration_covariance[0] = .01;
+    msg_data.linear_acceleration_covariance[4] = .01;
+    msg_data.linear_acceleration_covariance[8] = .01;
 
-    geometry_msgs::PoseStamped msg_pose;
+    ////////////////////////////////////////////////////////////////////////
+    //create Pose message
+    geometry_msgs::PoseWithCovarianceStamped msg_pose;
     msg_pose.header.stamp = time;
-    msg_pose.header.frame_id = param_frame_id;
+    msg_pose.header.frame_id = param_odom_frame_id;
     msg_pose.header.seq = seq;
 
-    msg_pose.pose.position.x = 0;  
-    msg_pose.pose.position.y = 0; 
-    msg_pose.pose.position.z = 0; 
+    msg_pose.pose.pose.position.x = 0;  
+    msg_pose.pose.pose.position.y = 0; 
+    msg_pose.pose.pose.position.z = 0; 
 
-    msg_pose.pose.orientation.w = (double)record.fused_orientation_w / fused_orientation_norm;
-    msg_pose.pose.orientation.x = (double)record.fused_orientation_x / fused_orientation_norm;
-    msg_pose.pose.orientation.y = (double)record.fused_orientation_y / fused_orientation_norm;
-    msg_pose.pose.orientation.z = (double)record.fused_orientation_z / fused_orientation_norm;
+    //rotate pose to correct orientation
+    tf2::Quaternion quat(record.fused_orientation_x,
+            record.fused_orientation_y,
+            record.fused_orientation_z,
+            record.fused_orientation_w);
+    //quat.normalize();
+
+    /* msg_pose.pose.pose.orientation.w = (double)record.fused_orientation_w ; */
+    /* msg_pose.pose.pose.orientation.x = (double)record.fused_orientation_x ; */
+    /* msg_pose.pose.pose.orientation.y = (double)record.fused_orientation_y ; */
+    /* msg_pose.pose.pose.orientation.z = (double)record.fused_orientation_z ; */
+
+    msg_pose.pose.pose.orientation.w = (double)quat.w();
+    msg_pose.pose.pose.orientation.x = (double)quat.x();
+    msg_pose.pose.pose.orientation.y = (double)quat.y();
+    msg_pose.pose.pose.orientation.z = (double)quat.z();
+
+    //rotate pose to correct orientation
+    //tf2::Quaternion new_quat;
+    //new_quat.setRPY(0,0,1);
+    //double roll, pitch, yaw;
+    //tf2::Matrix3x3(quat).getRPY(roll,pitch,yaw);
+    //ROS_INFO("yaw: %f", yaw);
+
+    int i;
+    for (i=0;i<36;i++) {
+        msg_pose.pose.covariance[i] = (double)0;
+    }
+    msg_pose.pose.covariance[0] = (double).001;
+    msg_pose.pose.covariance[7] = (double).001;
+    msg_pose.pose.covariance[14] = (double).001;
+    msg_pose.pose.covariance[21] = (double)99999;
+    msg_pose.pose.covariance[28] = (double)99999;
+    msg_pose.pose.covariance[35] = (double).001;
     //end JS
 
     sensor_msgs::Temperature msg_temp;
