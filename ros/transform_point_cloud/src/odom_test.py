@@ -32,7 +32,7 @@ def old_odom(left_diff_count, right_diff_count):
     d_theta = (dist_right - dist_left) / base_width
     r = dist / d_theta
     old_x += r * (math.sin(d_theta + old_theta) - math.sin(old_theta))
-    old_y -= r * (math.cos(d_theta + old_theta) - math.cos(old_theta))
+    old_y += r * (math.cos(d_theta + old_theta) - math.cos(old_theta))
     old_theta = normalize_theta(old_theta - d_theta)
 
 def new_odom(left_diff_count, right_diff_count):
@@ -43,11 +43,11 @@ def new_odom(left_diff_count, right_diff_count):
     dist_right = right_diff_count / ticks_per_meter
 
     #distance the center point traveled
-    dist = (dist_right + dist_left) / 2.0
+    dist = -(dist_right + dist_left) / 2.0
 
     new_x += dist * math.cos(new_theta + ((dist_right - dist_left) / (2*base_width)))
-    new_y += dist * math.sin(new_theta + ((dist_right - dist_left) / (2*base_width)))
-    new_theta += (dist_right - dist_left) / base_width
+    new_y -= dist * math.sin(new_theta + ((dist_right - dist_left) / (2*base_width)))
+    new_theta -= (dist_right - dist_left) / base_width
     new_theta = normalize_theta(new_theta)
 
 def main():
@@ -62,7 +62,7 @@ def main():
     for i in range(100):
         old_odom(100,200)
         new_odom(100,200)
-        print ("%d\t%d\t%f\t%f\t%f\t%f" % (l,r, old_x, new_x, old_y, new_y))
+        print ("%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f" % (l,r, old_x, new_x, old_y, new_y, old_theta, new_theta))
         l += 100
         r += 200
 
