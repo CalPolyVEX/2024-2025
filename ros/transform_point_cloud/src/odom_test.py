@@ -50,6 +50,23 @@ def new_odom(left_diff_count, right_diff_count):
     new_theta -= (dist_right - dist_left) / base_width
     new_theta = normalize_theta(new_theta)
 
+def new_odom2(left_diff_count, right_diff_count):
+    global new_x, new_y, new_theta
+
+    #distance each wheel traveled
+    dist_left = left_diff_count / ticks_per_meter
+    dist_right = right_diff_count / ticks_per_meter
+
+    rc = (base_width / 2.0) * (dist_right + dist_left) / (dist_right - dist_left)
+    delta_theta = (dist_right - dist_left) / base_width
+
+    delta_x = rc * ((math.cos(new_theta)*math.sin(delta_theta)) - math.sin(new_theta)*(1.0-math.cos(delta_theta)))
+    delta_y = rc * ((math.sin(new_theta)*math.sin(delta_theta)) + math.cos(new_theta)*(1.0-math.cos(delta_theta)))
+    new_x -= delta_x
+    new_y += delta_y
+    new_theta -= delta_theta
+    new_theta = normalize_theta(new_theta)
+
 def main():
     global old_x, old_y, old_theta
     global new_x, new_y, new_theta
@@ -61,7 +78,7 @@ def main():
 
     for i in range(100):
         old_odom(100,200)
-        new_odom(100,200)
+        new_odom2(100,200)
         print ("%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f" % (l,r, old_x, new_x, old_y, new_y, old_theta, new_theta))
         l += 100
         r += 200
