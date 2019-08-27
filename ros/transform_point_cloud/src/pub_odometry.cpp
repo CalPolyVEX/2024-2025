@@ -8,6 +8,7 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Twist.h>
+#include <geometry_msgs/TwistWithCovarianceStamped.h>
 #include <std_msgs/Int32MultiArray.h>
 #include <ros/console.h>
 #include <serial/serial.h>
@@ -23,6 +24,7 @@ ros::Subscriber sub_, sub_cmd_vel, sub_planner_cmd_vel;
 ros::Subscriber sub_stop;
 ros::Subscriber rtabmap_info_sub;
 ros::Publisher pub_, loop_closure_pub;
+ros::Publisher twist_pub;
 
 OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   last_set_speed_time = ros::Time::now();
@@ -41,6 +43,9 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
 
   //publish Odometry messages to this topic
   pub_ = nh->advertise<nav_msgs::Odometry>("/roboclaw_odom", 1);
+
+  //publish Twist messages to this topic
+  twist_pub = nh->advertise<geometry_msgs::TwistWithCovarianceStamped>("/roboclaw_twist", 1);
 
   //publish Odometry messages to this topic
   loop_closure_pub = nh->advertise<std_msgs::Empty>("/loop_closure", 1);
@@ -158,7 +163,7 @@ void OdometryPublisher::run(const ros::TimerEvent& ev) {
   last_set_speed_time2 = last_set_speed_time;
   last_set_speed_time_mutex.unlock();
 
-  if ((ros::Time::now() - last_set_speed_time2).toSec() > 1.0) {
+  if ((ros::Time::now() - last_set_speed_time2).toSec() > 10.0) {
     ROS_INFO("Did not get command for 1 second, stopping");
 
     //reset the integral term for the PID controller
@@ -191,7 +196,7 @@ void OdometryPublisher::run(const ros::TimerEvent& ev) {
   }
 
   read_voltage(&voltage);
-  ROS_INFO("Voltage: %f", (float) voltage / 10.0);
+  //ROS_INFO("Voltage: %f", (float) voltage / 10.0);
 }
 
 void OdometryPublisher::read_voltage(unsigned short* voltage) {
@@ -257,7 +262,7 @@ int main(int argc, char** argv) {
 
   ROS_INFO("Starting motor drive");
   //run diagnostics function at 5Hz (.2 seconds)
-  ros::Timer diag_timer = nh->createTimer(ros::Duration(.5), diag_callback);
+  ros::Timer diag_timer = nh->createTimer(ros::Duration(1.5), diag_callback);
 
   //since the pid callback is part of the odom_pub object, 
   //bind the callback using boost:bind and boost:function

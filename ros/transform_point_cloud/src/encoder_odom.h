@@ -9,10 +9,14 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/Int32MultiArray.h>
+#include <geometry_msgs/Twist.h>
+#include <geometry_msgs/TwistWithCovarianceStamped.h>
+
 #include <ros/console.h>
 #include <serial/serial.h>
 #include <boost/thread.hpp>
 #include <iostream>
+#include <cmath>
 #include <rtabmap_ros/Info.h>
 
 #define INTEGRAL_ARRAY_SIZE 5
