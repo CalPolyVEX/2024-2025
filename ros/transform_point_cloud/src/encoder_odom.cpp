@@ -1,19 +1,4 @@
-#include <geometry_msgs/TransformStamped.h>
-#include <tf2_ros/transform_listener.h>
-#include <tf2_ros/transform_broadcaster.h>
-#include <tf2_sensor_msgs/tf2_sensor_msgs.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2/LinearMath/Quaternion.h>
-#include <nav_msgs/Odometry.h>
-#include <geometry_msgs/Twist.h>
-#include <std_msgs/Int32MultiArray.h>
-#include <ros/console.h>
-#include <serial/serial.h>
-#include <iostream>
-#include <cmath>
-#include <boost/thread.hpp>
 #include "encoder_odom.h"
-#include <rtabmap_ros/Info.h>
 
 #define MAX_MOTOR_SPEED 13000
 
@@ -23,8 +8,10 @@ extern ros::NodeHandle *nh;
 extern ros::Subscriber sub_, sub_stop;
 extern ros::Subscriber rtabmap_info_sub;
 extern ros::Publisher pub_, loop_closure_pub;
+extern ros::Publisher twist_pub;
 
 void OdometryPublisher::rtabmap_info_callback(const rtabmap_ros::Info::ConstPtr& info) {
+  //this function is called when a message is published to /rtabmap/info
   std_msgs::Empty e;
   if (info->loopClosureId != 0) {
     loop_closure = info->loopClosureId;
@@ -97,18 +84,23 @@ void OdometryPublisher::publish_odometry_message(double vx, double vth) {
 
   //send the message
   pub_.publish(odom);
-}
+  
+  ////////////////////////
+  //create the Twist message
+  geometry_msgs::TwistWithCovarianceStamped t;
+  t.header.stamp = current_time;
+  t.header.frame_id = "roboclaw_center";
 
-double OdometryPublisher::normalize_angle(double angle) {
-  double pi = 3.141592654;
-  while (angle > pi) {
-    angle -= 2.0 * pi;
-  }
-  while (angle < -pi) {
-    angle += 2.0 * pi;
-  }
-
-  return angle;
+  t.twist.twist.linear.x = vx;
+  t.twist.twist.linear.y = 0;
+  t.twist.twist.linear.z = 0;
+  t.twist.twist.angular.x = 0;
+  t.twist.twist.angular.y = 0;
+  t.twist.twist.angular.z = vth;
+  t.twist.covariance = odom.pose.covariance;
+  
+  //send the message
+  twist_pub.publish(t);
 }
 
 void OdometryPublisher::update_odometry(int enc_left, int enc_right, double* vel_x, double* vel_theta) {
@@ -170,6 +162,7 @@ void OdometryPublisher::update_odometry(int enc_left, int enc_right, double* vel
     *vel_x = dist / d_time;
     //flip the sign of theta
     *vel_theta = -d_theta / d_time;
+    ROS_INFO("--debugging --- d_theta: %f, d_time: %f",  d_theta, d_time);
   }
 
   return;
@@ -177,22 +170,21 @@ void OdometryPublisher::update_odometry(int enc_left, int enc_right, double* vel
 
 void OdometryPublisher::encoder_message_callback(const std_msgs::Int32MultiArray::ConstPtr& enc_msg) {
   //this callback is called when a new encoder message is
-  //received from the Arduino
+  //received from the Arduino on the /encoder_service topic
   int enc_left, enc_right;
   double vel_x, vel_theta;
 
   enc_left = enc_msg->data[0];
   enc_right = enc_msg->data[1];
 
-  //ROS_INFO("debugging left: %d, right %d",  enc_left, enc_right);
-  //2106 per 0.1 seconds is max speed, error in the 16th bit is 32768
-  //todo lets find a better way to deal with this error
-  if (abs(enc_left - last_enc_left) > 1000) {
+  ROS_INFO("debugging left: %d, right %d",  enc_left, enc_right);
+  //if there is a big jump in the encoder readings, then ignore the reading
+  if (abs(enc_left - last_enc_left) > 2500) {
     ROS_INFO("Ignoring left encoder jump: cur %d, last %d",  enc_left, last_enc_left);
     //stop = 1;
     last_enc_left = enc_left;
     last_enc_right = enc_right;
-  } else if (abs(enc_right - last_enc_right) > 1000) {
+  } else if (abs(enc_right - last_enc_right) > 2500) {
     ROS_INFO("Ignoring right encoder jump: cur %d, last %d", enc_right, last_enc_right);
     //stop = 1;
     last_enc_left = enc_left;
@@ -201,9 +193,41 @@ void OdometryPublisher::encoder_message_callback(const std_msgs::Int32MultiArray
     //call the update function
     update_odometry(enc_left, enc_right, &vel_x, &vel_theta);
     publish_odometry_message(vel_x, vel_theta);
+
+    run_pid();
   }
 
-  run_pid();
+}
+
+void OdometryPublisher::run_pid() { 
+  double ltv, rtv;
+  double des_vel_left, des_vel_right;
+
+  desired_vel_mutex.lock();
+  des_vel_left = (double) desired_vl; //in ticks/sec
+  des_vel_right = (double) desired_vr;
+  desired_vel_mutex.unlock();
+
+  ltv = left_tick_vel; //actual left velocity in ticks/sec
+  rtv = right_tick_vel; //actual right velocity in ticks/sec
+
+  compute_pid(des_vel_left, ltv, des_vel_right, rtv); //compute the new motor speeds
+
+  if (debug_odometry == 1) {
+    ROS_INFO("desired vl_ticks: %f desired vr_ticks: %f", des_vel_left, des_vel_right);
+    ROS_INFO("current left vel: %f current right vel: %f", \
+         ltv, rtv);
+    ROS_INFO("left error: %f right error: %f", \
+         des_vel_left - ltv, \
+         des_vel_right - rtv);
+
+    ROS_INFO("left pid output: %d right pid output: %d", cur_left_motor, cur_right_motor);
+  }
+
+  //set the motor speeds
+  setmotor_mutex.lock();
+  setmotor(-cur_left_motor, -cur_right_motor);
+  setmotor_mutex.unlock();
 }
 
 void OdometryPublisher::compute_pid(double left_desired, double left_actual, double right_desired, double right_actual) {
@@ -288,8 +312,6 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
 
   cur_left_motor = pl_out + il_out + dl_out;
   cur_right_motor = pr_out + ir_out + dr_out;
-  //cur_left_motor = (kp * left_error) + (ki * left_sum) + (kd * left_error_diff); 
-  //cur_right_motor = (kp * right_error) + (ki * right_sum) + (kd * right_error_diff); 
 
   last_left_error = left_error;
   last_right_error = right_error;
@@ -304,47 +326,6 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
     cur_right_motor = MAX_MOTOR_SPEED;
   } else if (cur_right_motor < -MAX_MOTOR_SPEED)
     cur_right_motor = -MAX_MOTOR_SPEED;
-}
-
-/* void OdometryPublisher::run_pid(const ros::TimerEvent& e) { */
-void OdometryPublisher::run_pid() { 
-  /* ros::Rate r(30); */
-
-  /* while(1) { */
-    double ltv, rtv;
-    double des_vel_left, des_vel_right;
-
-    //desired_vel_mutex.lock();
-    des_vel_left = (double) desired_vl; //in ticks/sec
-    des_vel_right = (double) desired_vr;
-    //desired_vel_mutex.unlock();
-
-    ltv = left_tick_vel; //actual left velocity in ticks/sec
-    rtv = right_tick_vel; //actual right velocity in ticks/sec
-
-    compute_pid(des_vel_left, ltv, des_vel_right, rtv);
-
-    if (debug_odometry == 1) {
-      ROS_INFO("desired vl_ticks: %f desired vr_ticks: %f", des_vel_left, des_vel_right);
-      ROS_INFO("current left vel: %f current right vel: %f", \
-          ltv, rtv);
-      ROS_INFO("left error: %f right error: %f", \
-          des_vel_left - ltv, \
-          des_vel_right - rtv);
-
-      ROS_INFO("left pid output: %d right pid output: %d", cur_left_motor, cur_right_motor);
-    }
-
-    //set the motor speeds
-    setmotor_mutex.lock();
-    //setmotor(0,-cur_left_motor);
-    //setmotor(1,-cur_right_motor);
-    setmotor(-cur_left_motor, -cur_right_motor);
-    //setmotor(1,-1100);
-    setmotor_mutex.unlock();
-
-    /* r.sleep(); */
-  /* } */
 }
 
 void OdometryPublisher::stop_toggle_callback(const std_msgs::Empty::ConstPtr&) {
@@ -420,4 +401,16 @@ void OdometryPublisher::planner_cmd_vel_callback(const geometry_msgs::Twist::Con
     desired_vel_mutex.unlock();
   }
   planner_mutex.unlock();
+}
+
+double OdometryPublisher::normalize_angle(double angle) {
+  double pi = 3.141592654;
+  while (angle > pi) {
+    angle -= 2.0 * pi;
+  }
+  while (angle < -pi) {
+    angle += 2.0 * pi;
+  }
+
+  return angle;
 }

@@ -156,7 +156,7 @@ class JoystickNode:
                 self.record_bag()
 
                 #start a new timer to toggle the led when recording complete
-                t = threading.Timer(242,self.toggle_led) #run after 4 minutes
+                t = threading.Timer(122,self.toggle_led) #run after 4 minutes
                 t.start()
          else:
             recording_start = 0
