@@ -22,6 +22,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <param name="/rtabmap/rtabmap/Grid/RayTracing"    value="true" />  
     <param name="/rtabmap/rtabmap/Grid/3D"    value="false" />  
     <param name="/rtabmap/rtabmap/Grid/RangeMax"    value="3.0" />  
+    <param name="/rtabmap/rtabmap/GFTT/BlockSize"    value="4" />  
+    <param name="/rtabmap/rtabmap/GFTT/MinDistance"    value="7" />  
+    <!-- <param name="/rtabmap/rtabmap/Kp/GridRows"    value="3" /> -->  
+    <!-- <param name="/rtabmap/rtabmap/Kp/GridCols"    value="2" /> -->  
+    <!-- <param name="/rtabmap/rtabmap/Kp/MaxFeatures"    value="200" /> -->  
 
     <param name="/use_sim_time" value="true" /> 
 
