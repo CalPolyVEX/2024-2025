@@ -36,10 +36,10 @@ my_env = os.environ.copy()
 my_env["PATH"] = "/opt/ros/melodic/bin:/home/jseng/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
 
 for i in range(len(l)):
-   #process = subprocess.Popen(["roslaunch", "jet_launcher", "zed_rtabmap.launch", "sim:=true"], env=my_env, close_fds=True)
+   #process = subprocess.Popen(["roslaunch", "jet_launcher", "zed_rtabmap_compressed_offline.launch"], env=my_env, close_fds=True)
    process = subprocess.Popen(["roslaunch", "jet_launcher", "zed_rtabmap.launch"], env=my_env, close_fds=True)
    print process
-   time.sleep(20)
+   time.sleep(15)
    print process.pid
    command = 'cd /home/jseng/.ros; rosbag play --clock -d 2 ' + l[i] + ';'
    os.system(command)
