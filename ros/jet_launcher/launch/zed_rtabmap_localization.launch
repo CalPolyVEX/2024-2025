@@ -16,7 +16,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
 <launch>
-    <param name="/rtabmap/rtabmap/Reg/Force3DoF"    value="true" />   
+    <include file="$(find jet_launcher)/launch/rtabmap_parameters.xml" /> 
     <!--<param name="/rtabmap/rtabmap/RGBD/SavedLocalizationIgnored" value="true" />-->
 
     <arg name="zed_namespace"             default="zed" />

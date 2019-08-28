@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<launch>
+
+<param name="/rtabmap/rtabmap/Reg/Force3DoF"         value="true" /> 
+<param name="/rtabmap/rtabmap/Grid/RayTracing"       value="true" />  
+<param name="/rtabmap/rtabmap/Grid/3D"               value="false" />  
+<param name="/rtabmap/rtabmap/Grid/RangeMax"         value="5.0" />  
+
+<param name="/rtabmap/rtabmap/Kp/DetectorStrategy"   value="8" />  
+<param name="/rtabmap/rtabmap/GFTT/BlockSize"        value="4" />  
+<param name="/rtabmap/rtabmap/GFTT/MinDistance"      value="7" />  
+<param name="/rtabmap/rtabmap/GFTT/QualityLevel"     value=".007" />  
+
+</launch>
