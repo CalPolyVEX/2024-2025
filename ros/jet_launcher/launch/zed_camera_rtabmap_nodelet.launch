@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 
 <!-- This file starts the ZED camera on the robot -->
+<!-- This file does not start rtabmap             -->
 
 <launch>
     <include file="$(find image_test)/launch/tf_publisher.launch" /> 

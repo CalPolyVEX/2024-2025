@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
 
+<!-- This file starts rtabmap for mapping. -->
+
 <launch>
     <include file="$(find jet_launcher)/launch/rtabmap_parameters.xml" /> 
 

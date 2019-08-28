@@ -1,6 +1,11 @@
 <?xml version="1.0"?>
 
-<!-- This runs all the launch files needed when recording data to build the rtabmap database  -->
+<!-- This runs all the launch files needed when recording data to build  -->
+<!-- the rtabmap database.                                               -->
+
+<!-- To run:                                                             -->
+<!-- roslaunch pid=/mnt/temp/r.pid jet_launcher rtabmap_db_record.launch -->
+<!-- (put a double dash before 'pid' in the previous line                -->
 
 <launch>
     <include file="$(find jet_launcher)/launch/basic.launch" /> 

@@ -10,7 +10,7 @@
     <arg name="acc_lim" default="1"/>
 <!-- 1957 ticks/rev ; 0.2 cm diam ; 0.6283186 m/rev -->
     <arg name="ticks_per_meter" default="6800"/>
-    <arg name="base_width" default="0.371475"/>
+    <arg name="base_width" default="0.363537"/>
     <arg name="run_diag" default="true"/>
 
     <node if="$(arg run_diag)" pkg="transform_point_cloud" type="pub_odometry" name="roboclaw_node">
