@@ -59,7 +59,29 @@ class JoystickNode:
 
 
    def record_bag(self):
-      proc1 = subprocess.Popen('cd /mnt/temp;./ue4/ros/jet_launcher/launch/record_zed.sh', shell=True)
+      l = Lcd()
+      l.init_serial_port()
+      l.clear_screen()
+      l.print_string('Recording...')
+      l.close()
+      rec_topics = "rosbag record /zed/data_throttled_image_depth \
+         /zed/data_throttled_image /zed/data_throttled_camera_info \
+         /tf /tf_static /ekf_node/odom /camera/fisheye1/image_raw/compressed \
+         /roboclaw_twist /encoder_service /cmd_vel \
+         __name:=my_bag_recorder"
+      proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
+      #rosbag record -o /file/name /topic __name:=my_bag
+      #rosnode kill /my_bag_recorder
+
+   def stop_record_bag(self):
+      l = Lcd()
+      l.init_serial_port()
+      l.clear_screen()
+      l.print_string('Stop Recording.')
+      l.close()
+      proc1 = subprocess.Popen('cd /mnt/temp;rosnode kill /my_bag_recorder', shell=True)
+      #rosbag record -o /file/name /topic __name:=my_bag
+      #rosnode kill /my_bag_recorder
 
    def toggle_led(self):
       proc = subprocess.Popen('rosservice call /zed_node/toggle_led', shell=True)
@@ -143,23 +165,27 @@ class JoystickNode:
 
          #press button 2 to begin recording rosbag
          button2 = pygame.joystick.Joystick(0).get_button(1)
-         if recording_start == 0 and button2 == 1 and t.finished:
-            recording_start = 1
-         elif recording_start == 1 and button2 == 1:
-            button2 = 1
+         if button2 == 1:
             button2_hold += 1
 
             #start recording if button2 held down
-            if button2_hold == 25:
-                rospy.loginfo('Starting recording')
-                self.toggle_led()
-                self.record_bag()
+            if button2_hold == 20:
+               if recording_start == 0:
+                  recording_start = 1
+                  rospy.loginfo('Starting recording')
+                  self.toggle_led()
+                  self.record_bag()
 
-                #start a new timer to toggle the led when recording complete
-                t = threading.Timer(122,self.toggle_led) #run after 4 minutes
-                t.start()
+                  #start a new timer to toggle the led when recording complete
+                  #t = threading.Timer(122,self.toggle_led) #run after 4 minutes
+                  # t.start()
+               else:
+                  recording_start = 0
+                  rospy.loginfo('Stopping recording')
+                  self.toggle_led()
+                  self.stop_record_bag()
+               button2_hold = 0
          else:
-            recording_start = 0
             button2_hold = 0
 
          #press button 3 to stop robot

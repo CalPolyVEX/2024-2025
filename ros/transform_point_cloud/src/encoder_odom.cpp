@@ -33,7 +33,7 @@ void OdometryPublisher::publish_odometry_message(double vx, double vth) {
   //publish a new odometry message
   tf2::Quaternion odom_quat;
   odom_quat.setRPY(0,0,cur_theta);
-  ros::Time current_time = ros::Time::now();
+  current_time = ros::Time::now();
 
   geometry_msgs::TransformStamped odom_trans;
   odom_trans.header.stamp = current_time;
@@ -107,7 +107,7 @@ void OdometryPublisher::update_odometry(int enc_left, int enc_right, double* vel
   int left_ticks, right_ticks;
   double dist_left, dist_right, dist;
   double d_theta, r;
-  ros::Time current_time = ros::Time::now();
+  //ros::Time current_time = ros::Time::now();
 
   //take the encoder counts and update the number of ticks traveled
   left_ticks = enc_left - last_enc_left;
@@ -190,11 +190,18 @@ void OdometryPublisher::encoder_message_callback(const std_msgs::Int32MultiArray
     last_enc_left = enc_left;
     last_enc_right = enc_right;
   } else {
-    //call the update function
-    update_odometry(enc_left, enc_right, &vel_x, &vel_theta);
-    publish_odometry_message(vel_x, vel_theta);
+    current_time = ros::Time::now();
 
-    run_pid();
+    //if over 20ms has elapsed since the last encoder message, then process
+    if ((current_time.toSec() - last_enc_time.toSec()) > .020) {
+      //call the update function
+      update_odometry(enc_left, enc_right, &vel_x, &vel_theta);
+      publish_odometry_message(vel_x, vel_theta);
+
+      run_pid();
+    } else {
+      ROS_INFO("Encoder delay error.");
+    }
   }
 
 }

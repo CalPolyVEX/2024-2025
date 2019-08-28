@@ -25,6 +25,7 @@ class OdometryPublisher {
   std::string dev_name;
   int baud_rate, address;
   ros::Time last_enc_time; //time of the last encoder reading
+  ros::Time current_time;
   double MAX_ABS_LINEAR_SPEED, MAX_ABS_ANGULAR_SPEED, TICKS_PER_METER, BASE_WIDTH, ACC_LIM;
 
   tf2_ros::Buffer tf_buffer_;
