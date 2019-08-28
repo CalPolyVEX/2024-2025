@@ -19,30 +19,29 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
     <param name="/rtabmap/rtabmap/Reg/Force3DoF"    value="true" />   
     <!--<param name="/rtabmap/rtabmap/RGBD/SavedLocalizationIgnored" value="true" />-->
 
-    <arg name="zed_namespace"		    	default="zed" />
+    <arg name="zed_namespace"             default="zed" />
 
-    <arg name="svo_file"              	default="" /> <!-- <arg name="svo_file" default="path/to/svo/file.svo"> -->
-    <arg name="loc"              	default="false" /> 
+    <arg name="svo_file"                  default="" /> <!-- <arg name="svo_file" default="path/to/svo/file.svo"> -->
+    <arg name="loc"                       default="false" /> 
 
-    <arg name="camera_model"         	default="0" /> <!-- 0=ZED, 1=ZEDM-->
-    <arg name="serial_number"        	default="0" />
-    <arg name="verbose"              	default="true" />
-    <arg name="resolution"           	default="2" /> <!--0=RESOLUTION_HD2K, 1=RESOLUTION_HD1080, 2=RESOLUTION_HD720, 3=RESOLUTION_VGA -->
-    <arg name="frame_rate"           	default="15" />
+    <arg name="camera_model"              default="0" /> <!-- 0=ZED, 1=ZEDM-->
+    <arg name="serial_number"             default="0" />
+    <arg name="verbose"                   default="true" />
+    <arg name="resolution"                default="2" /> <!--0=RESOLUTION_HD2K, 1=RESOLUTION_HD1080, 2=RESOLUTION_HD720, 3=RESOLUTION_VGA -->
+    <arg name="frame_rate"                default="15" />
     <!-- RESOLUTION_HD2K   -> 2208*1242, available framerates: 15 fps.
        RESOLUTION_HD1080 -> 1920*1080, available framerates: 15, 30 fps.
        RESOLUTION_HD720  -> 1280*720,  available framerates: 15, 30, 60 fps.
        RESOLUTION_VGA    -> 672*376,   available framerates: 15, 30, 60, 100 fps. -->
 
-    <arg name="rgb_topic"               	default="rgb/image_rect_color" />
-    <arg name="depth_topic"             	default="depth/depth_registered" />
-    <arg name="camera_info_topic"       	default="rgb/camera_info" />
-    <arg name="depth_camera_info_topic" 	default="depth/camera_info" />
+    <arg name="rgb_topic"                 default="rgb/image_rect_color" />
+    <arg name="depth_topic"               default="depth/depth_registered" />
+    <arg name="camera_info_topic"         default="rgb/camera_info" />
+    <arg name="depth_camera_info_topic"   default="depth/camera_info" />
     <arg name="camera_frame"              default="zed_camera_center" />
 
-    <arg name="sim"               	default="false" />
+    <arg name="sim"                       default="false" />
     <group if="$(arg sim)">
-        <!--<param name="/rtabmap/rtabmap/Reg/Force3DoF"    value="true" />  -->
         <param name="/use_sim_time" value="true" />
         <include file="$(find image_test)/launch/tf_publisher.launch" /> 
         <!--<include file="$(find jet_launcher)/launch/robot_localization.launch" />  -->
@@ -50,24 +49,22 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 
     <!-- RTAB-map Node-->
     <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
-      <arg name="rgb_topic"               	value="/$(arg zed_namespace)/data_throttled_image" />
-      <arg name="depth_topic"             	value="/$(arg zed_namespace)/data_throttled_image_depth" />
-      <arg name="camera_info_topic"       	value="/$(arg zed_namespace)/data_throttled_camera_info" />
+      <arg name="rgb_topic"               value="/$(arg zed_namespace)/data_throttled_image" />
+      <arg name="depth_topic"             value="/$(arg zed_namespace)/data_throttled_image_depth" />
+      <arg name="camera_info_topic"       value="/$(arg zed_namespace)/data_throttled_camera_info" />
 <!--      <arg name="depth_camera_info_topic" 	value="/$(arg zed_namespace)/zed_node/depth/camera_info" /> -->
       <!--<arg name="frame_id"                  value="$(arg camera_frame)" /> -->
-      <arg name="frame_id"                  value="base_link" /> 
-      <arg name="approx_sync"               value="true" />
-      <arg name="visual_odometry"           value="false" />
-      <arg name="compressed"                value="false" />
-      <arg name="rgb_image_transport"       value="compressed" />
-      <arg name="depth_image_transport"     value="compressedDepth" />
-      <!--<arg name="odom_topic"                value="/$(arg zed_namespace)/new_odom" /> -->
+      <arg name="frame_id"                value="base_link" /> 
+      <arg name="approx_sync"             value="true" />
+      <arg name="visual_odometry"         value="false" />
+      <arg name="compressed"              value="false" />
+      <arg name="rgb_image_transport"     value="compressed" />
+      <arg name="depth_image_transport"   value="compressedDepth" />
       <!-- <arg name="odom_topic"                value="/zed/zed_node/odom" /> -->
-      <arg name="odom_topic"                value="/ekf_node/odom" />
-      <arg name="wait_for_transform"                value=".8" />
-      <!--<arg name="localization"                value="false" /> -->
-      <arg name="database_path"                 value="~/.ros/rtabmap.db" />
-      <arg name="localization"                value="true" />
+      <arg name="odom_topic"              value="/ekf_node/odom" />
+      <arg name="wait_for_transform"      value=".8" />
+      <arg name="database_path"           value="~/.ros/rtabmap.db" />
+      <arg name="localization"            value="true" />
       <!--<param name="publish_tf" type="bool" value="false" /> -->
     </include>
 </launch>
