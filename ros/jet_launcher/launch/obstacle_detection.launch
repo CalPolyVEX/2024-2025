@@ -1,39 +1,47 @@
 <?xml version="1.0"?>
 <launch>
+  <!-- Run a PassThough filter to clean NaNs and limit depth -->
+  <node pkg="nodelet" type="nodelet" name="passthrough" args="load pcl/PassThrough zed_nodelet_manager" output="screen">
+    <remap from="~input" to="/zed_node/point_cloud/cloud_registered" /> 
+    <rosparam>
+      filter_field_name: x
+      filter_limit_min: 0.0
+      filter_limit_max: 2.3
+      filter_limit_negative: False
+    </rosparam>
+  </node>
+
   <!-- Run a VoxelGrid filter to clean NaNs and downsample the data -->
   <node pkg="nodelet" type="nodelet" name="voxel_grid" args="load pcl/VoxelGrid zed_nodelet_manager" output="screen">
-    <remap from="~input" to="/zed_node/point_cloud/cloud_registered" /> 
-    <!-- <remap from="~input" to="/zed/throttled_point_cloud" />  -->
+    <!-- <remap from="~input" to="/zed_node/point_cloud/cloud_registered" /> --> 
+    <remap from="~input" to="/passthrough/output" /> 
     <rosparam>
       filter_field_name: z
       filter_limit_min: -0.55
       filter_limit_max: -0.1
       filter_limit_negative: False
-      leaf_size: 0.05
+      leaf_size: 0.07
     </rosparam>
   </node>
 
-   <node pkg="nodelet" type="nodelet" name="obstacles_detection" args="load rtabmap_ros/obstacles_detection zed_nodelet_manager" output="screen">
-        <!-- <remap from="cloud"     to="/zed_node/point_cloud/cloud_registered"/> -->
-        <remap from="cloud"     to="/voxel_grid/output"/>
-        <remap from="obstacles" to="/obstacles_cloud"/>
-        <!-- <remap from="obstacles" to="/proj_obstacles"/> -->
-        <remap from="ground"    to="/ground_cloud"/>
+   <!-- <node pkg="nodelet" type="nodelet" name="obstacles_detection" args="load rtabmap_ros/obstacles_detection zed_nodelet_manager" output="screen"> -->
+   <!--      <remap from="cloud"     to="/voxel_grid/output"/> -->
+   <!--      <remap from="obstacles" to="/obstacles_cloud"/> -->
+   <!--      <remap from="ground"    to="/ground_cloud"/> -->
 
-        <param name="frame_id"             type="string" value="base_link"/>	
-        <param name="map_frame_id"         type="string" value="map"/>
-        <!-- <param name="wait_for_transform"   type="bool" value="tfalse"/> -->
-        <param name="wait_for_transform"   type="bool" value="true"/>
-        <param name="Grid/MinClusterSize"     type="int" value="20"/> 
-        <param name="Grid/MaxObstaclesHeight" type="double" value="0.4"/> 
-   </node>   
+   <!--      <param name="frame_id"             type="string" value="base_link"/> -->	
+   <!--      <param name="map_frame_id"         type="string" value="map"/> -->
+   <!--      <param name="wait_for_transform"   type="bool" value="true"/> -->
+   <!--      <param name="Grid/MinClusterSize"     type="int" value="20"/> --> 
+   <!--      <param name="Grid/MaxObstaclesHeight" type="double" value="0.4"/> --> 
+   <!-- </node> -->   
 
-   <!-- <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan"> -->
    <node pkg="nodelet" type="nodelet" name="pointcloud_to_laserscan" args="load pointcloud_to_laserscan/pointcloud_to_laserscan_nodelet zed_nodelet_manager" output="screen">
-    <!-- See all params at http://wiki.ros.org/pointcloud_to_laserscan -->
         
     <!-- Min and max height to sample from depth data - these values worked for my drone -->
-    <param name="min_height" value="-.41"/>
+    <!-- <param name="min_height" value="-.41"/> -->
+    <!-- <param name="max_height" value=".00"/> -->
+    <param name="min_height" value="-.4"/>
     <param name="max_height" value=".00"/>
     <param name="use_inf" value="false"/>
         
@@ -48,7 +56,8 @@
     <!-- <param name="target_frame" value="base_link"/> -->
 
     <!-- Topic from which to read PointCloud2 -->
-    <remap from="cloud_in" to="/obstacles_cloud"/>
+    <!-- <remap from="cloud_in" to="/obstacles_cloud"/> -->
+    <remap from="cloud_in" to="/voxel_grid/output"/>
 
     <!-- Topic to which LaserScan will be published -->
     <remap from="scan" to="/laser_scan"/>

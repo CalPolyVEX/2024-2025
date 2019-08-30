@@ -4,7 +4,8 @@
 
 <launch>
     <include file="$(find jet_launcher)/launch/rtabmap_parameters.xml" /> 
-    <!--<param name="/rtabmap/rtabmap/RGBD/SavedLocalizationIgnored" value="true" />-->
+    <!-- <param name="/rtabmap/rtabmap/RGBD/SavedLocalizationIgnored" value="true" /> -->
+    <!-- <param name="/rtabmap/rtabmap/Rtabmap/MemoryThr" value="1000" /> -->
 
     <arg name="zed_namespace"             default="zed" />
 
@@ -51,6 +52,7 @@
       <arg name="wait_for_transform"      value=".8" />
       <arg name="database_path"           value="~/.ros/rtabmap.db" />
       <arg name="localization"            value="true" />
+      <arg name="rtabmapviz"              value="false" />
       <!--<param name="publish_tf" type="bool" value="false" /> -->
     </include>
 </launch>

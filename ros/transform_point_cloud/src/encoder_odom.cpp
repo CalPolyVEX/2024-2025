@@ -162,7 +162,7 @@ void OdometryPublisher::update_odometry(int enc_left, int enc_right, double* vel
     *vel_x = dist / d_time;
     //flip the sign of theta
     *vel_theta = -d_theta / d_time;
-    ROS_INFO("--debugging --- d_theta: %f, d_time: %f",  d_theta, d_time);
+    //ROS_INFO("--debugging --- d_theta: %f, d_time: %f",  d_theta, d_time);
   }
 
   return;
@@ -177,7 +177,7 @@ void OdometryPublisher::encoder_message_callback(const std_msgs::Int32MultiArray
   enc_left = enc_msg->data[0];
   enc_right = enc_msg->data[1];
 
-  ROS_INFO("debugging left: %d, right %d",  enc_left, enc_right);
+  //ROS_INFO("debugging left: %d, right %d",  enc_left, enc_right);
   //if there is a big jump in the encoder readings, then ignore the reading
   if (abs(enc_left - last_enc_left) > 2500) {
     ROS_INFO("Ignoring left encoder jump: cur %d, last %d",  enc_left, last_enc_left);
