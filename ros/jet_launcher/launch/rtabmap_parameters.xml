@@ -9,7 +9,7 @@
 <param name="/rtabmap/rtabmap/Mem/DepthAsMask"       value="true"  />  
 
 <param name="/rtabmap/rtabmap/Kp/DetectorStrategy"   value="8"     /> <!-- use GFTT/ORB -->  
-<param name="/rtabmap/rtabmap/GFTT/BlockSize"        value="4"     />  
+<param name="/rtabmap/rtabmap/GFTT/BlockSize"        value="5"     />  
 <param name="/rtabmap/rtabmap/GFTT/MinDistance"      value="6"     />  
 <param name="/rtabmap/rtabmap/GFTT/QualityLevel"     value=".0007"  />  
 

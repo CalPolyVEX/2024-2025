@@ -39,7 +39,7 @@ class JoystickNode:
 
       self.motor_command_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
       self.robot_stop_pub = rospy.Publisher('/robot_stop', Empty, queue_size=1)
-      self.autonomous_pub = rospy.Publisher('/autonomous', Empty, queue_size=1)
+      self.autonomous_pub = rospy.Publisher('/autonomous', Int8, queue_size=1)
       self.autonomous_led_pub = rospy.Publisher('/read_encoder_cmd', Int8, queue_size=1)
 
       rospy.sleep(1)
@@ -99,6 +99,7 @@ class JoystickNode:
       button9 = 0
       button1_hold = 0
       button2_hold = 0
+      button4_hold = 0
 
       # Prints the joystick's name
       JoyName = pygame.joystick.Joystick(0).get_name()
@@ -208,11 +209,21 @@ class JoystickNode:
          if autonomous == 0 and button4 == 1:
             autonomous = 1
             rospy.loginfo('Toggle autonomous mode')
-            self.autonomous_pub.publish(Empty())
+            autonomous_command = Int8()
+            autonomous_command.data = 1 #switch to autonomous mode
+            self.autonomous_pub.publish(autonomous_command)
          elif autonomous == 1 and button4 == 1:
-            button4 = 1
+            button4_hold += 1
+
+            if button4_hold == 20:
+               #cancel all goals
+               autonomous_command = Int8()
+               autonomous_command.data = 2 #cancel all goals
+               self.autonomous_pub.publish(autonomous_command)
+               button4_hold = 0
          else:
             autonomous = 0
+            button4_hold = 0
 
          #check for shutdown button
          button10 = pygame.joystick.Joystick(0).get_button(9)
