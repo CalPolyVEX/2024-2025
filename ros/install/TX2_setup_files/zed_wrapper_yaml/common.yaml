@@ -8,14 +8,14 @@ exposure:                   100                                 # Dynamic
 gain:                       100                                 # Dynamic
 confidence:                 100                                 # Dynamic
 mat_resize_factor:          1.0                                 # Dynamic
-point_cloud_freq:           9.0                                # Dynamic - frequency of the pointcloud publishing (equal or less to `frame_rate` value)
+point_cloud_freq:           8.0                                # Dynamic - frequency of the pointcloud publishing (equal or less to `frame_rate` value)
 
 general:
     camera_flip:                false
     zed_id:                     -1
     serial_number:              0
     resolution:                 2                                   # '0': HD2K, '1': HD1080, '2': HD720, '3': VGA
-    frame_rate:                 15
+    frame_rate:                 30
     gpu_id:                     -1
     base_frame:                 'base_link'                         # must be equal to the frame_id used in the URDF file
     camera_frame:               'zed_camera_center'                 # must be equal to the frame_id used in the URDF file
@@ -38,7 +38,7 @@ depth:
     quality:                    2                                   # '0': NONE, '1': PERFORMANCE, '2': MEDIUM, '3': QUALITY, '4': ULTRA
     sensing_mode:               0                                   # '0': STANDARD, '1': FILL
     #JS depth_stabilization:        1                                   # `0`: disabled, `1`: enabled
-    depth_stabilization:        0                                   # `0`: disabled, `1`: enabled
+    depth_stabilization:        1                                   # `0`: disabled, `1`: enabled
     openni_depth_mode:          0                                   # '0': 32bit float meters, '1': 16bit uchar millimeters
     depth_topic_root:           'depth'                             # default `depth/depth_registered` or `depth/depth_raw_registered` if `openni_depth_mode` is true
     point_cloud_topic_root:     'point_cloud'
@@ -49,7 +49,7 @@ tracking:
     #JS  publish_tf:                 true                                # publish `odom -> base_link` TF
     publish_tf:                 false # publish `odom -> base_link` TF
     #JS publish_map_tf:             true                                # publish `map -> odom` TF
-    publish_map_tf:             true# publish `map -> odom` TF
+    publish_map_tf:             false# publish `map -> odom` TF
     world_frame:                'map'                               # the reference fixed frame (same as `map_frame` or `odometry_frame`)
     map_frame:                  'map'
     odometry_frame:             'odom'
@@ -64,10 +64,10 @@ tracking:
     fixed_covariance:           false                               # Set the covariance for pose and odometry to a diagonal matrix with `fixed_cov_value` on the diagonal
     fixed_cov_value:            1e-6                                # Value used on the diagonal of the fixed covariance matrix (`fixed_covariance -> true`)
     odometry_topic:             'odom'
-    init_odom_with_first_valid_pose: true                           # Enable to initialize the odometry with the first valid pose
-    path_pub_rate:              2.0                                 # Path positions punlishing frequency
+    init_odom_with_first_valid_pose: false # Enable to initialize the odometry with the first valid pose
+    path_pub_rate:              0                                 # Path positions punlishing frequency
     path_max_count:             -1                                  # use '-1' for unlimited path size
-    two_d_mode:                 false                               # Force navigation on a plane. If true the Z value will be fixed to "fixed_z_value", roll and pitch to zero
+    two_d_mode:                 true # Force navigation on a plane. If true the Z value will be fixed to "fixed_z_value", roll and pitch to zero
     fixed_z_value:              1.0                                 # Value to be used for Z coordinate if `two_d_mode` is true
 
 mapping:
