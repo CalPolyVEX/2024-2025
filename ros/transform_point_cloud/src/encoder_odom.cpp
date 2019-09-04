@@ -209,6 +209,7 @@ void OdometryPublisher::encoder_message_callback(const std_msgs::Int32MultiArray
 void OdometryPublisher::run_pid() { 
   double ltv, rtv;
   double des_vel_left, des_vel_right;
+  int last_left_motor_cmd=0, last_right_motor_cmd=0; //last motor command
 
   desired_vel_mutex.lock();
   des_vel_left = (double) desired_vl; //in ticks/sec
@@ -217,6 +218,9 @@ void OdometryPublisher::run_pid() {
 
   ltv = left_tick_vel; //actual left velocity in ticks/sec
   rtv = right_tick_vel; //actual right velocity in ticks/sec
+
+  last_left_motor_cmd = cur_left_motor;
+  last_right_motor_cmd = cur_right_motor;
 
   compute_pid(des_vel_left, ltv, des_vel_right, rtv); //compute the new motor speeds
 
@@ -231,6 +235,15 @@ void OdometryPublisher::run_pid() {
     ROS_INFO("left pid output: %d right pid output: %d", cur_left_motor, cur_right_motor);
   }
 
+  //TODO: limit motor acceleration/deceleration
+  if (abs(cur_left_motor - last_left_motor_cmd) > 300) {
+    cur_left_motor = cur_left_motor * .08 + last_left_motor_cmd * .92;
+  }
+
+  if (abs(cur_right_motor - last_right_motor_cmd) > 300) {
+    cur_right_motor = cur_right_motor * .08 + last_right_motor_cmd * .92;
+  }
+
   //set the motor speeds
   setmotor_mutex.lock();
   setmotor(-cur_left_motor, -cur_right_motor);
@@ -243,9 +256,15 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
   double kd = 0.30;
   int i;
 
+  //test acceleration
+  if ((abs(left_desired) < 1000) || (abs(right_desired) < 1000) || (abs(left_actual) < 1000) || (abs(right_actual) < 1000)) {
+  //if ((abs(left_desired) < 1000) || (abs(right_desired) < 1000) ) {
+    //kp = 1.0;
+  }
+
   //if the wheel velocities are set to 0
   //if ((abs(left_desired) < .0001 && abs(right_desired) < .0001) || stop == 1) {
-  if ((abs(left_desired) < .0001 && abs(right_desired) < .0001)) {
+  if ((abs(left_desired) < .0001 && abs(right_desired) < .0001) && (1==0)) {
     cur_left_motor = 0;
     cur_right_motor = 0;
 
@@ -316,6 +335,7 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
   if (debug_odometry == 1) {
     ROS_INFO("P: %f, I: %f, D: %f", pl_out, il_out, dl_out);
   }
+
 
   cur_left_motor = pl_out + il_out + dl_out;
   cur_right_motor = pr_out + ir_out + dr_out;

@@ -59,5 +59,6 @@ local_inflation_layer:
     inflation_radius:     0.5  # max. distance from an obstacle at which costs are incurred for planning paths.
 
 static_layer:
-    map_topic: /rtabmap/grid_map
+    #map_topic: /rtabmap/grid_map
+    map_topic: /map
     subscribe_to_updates: true

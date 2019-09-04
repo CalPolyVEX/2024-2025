@@ -6,6 +6,7 @@
     <include file="$(find jet_launcher)/launch/rtabmap_parameters.xml" /> 
     <param name="/rtabmap/rtabmap/RGBD/SavedLocalizationIgnored" value="true" />
     <param name="/rtabmap/rtabmap/Mem/IncrementalMemory" value="false" />
+    <param name="/rtabmap/rtabmap/RGBD/CreateOccupancyGrid" value="false" />
     <!-- <param name="/rtabmap/rtabmap/Rtabmap/MemoryThr" value="1000" /> -->
     <!-- <param name="/rtabmap/rtabmap/DbSqlite3//InMemory" value="true" /> -->
 

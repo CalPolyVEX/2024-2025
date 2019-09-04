@@ -5,6 +5,7 @@
    <arg name="localization" default="false" />
    <arg name="rtabmapviz" default="false" />
 
+   <include file="$(find jet_launcher)/launch/map.launch"/>
    <!-- Start the ZED camera node -->
    <include file="$(find jet_launcher)/launch/zed_camera_rtabmap_nodelet.launch"/>
 

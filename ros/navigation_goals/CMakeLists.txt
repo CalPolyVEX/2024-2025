@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   roslint
   move_base_msgs
   actionlib
+  tf2_ros
 )
 
 roslint_cpp()
