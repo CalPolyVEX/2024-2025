@@ -1,5 +1,6 @@
 Steps to compile tensorflow for use with ROS:
- * install Bazel
+ * install Bazel (v0.15.0)
+   https://github.com/bazelbuild/bazel/releases/download/0.15.0/bazel-0.15.0-dist.zip
  * git clone https://github.com/tensorflow/tensorflow.git
  * cd tensorflow
  * git checkout v1.12.0
