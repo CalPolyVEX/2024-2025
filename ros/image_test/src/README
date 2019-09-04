@@ -9,3 +9,8 @@ Steps to compile tensorflow for use with ROS:
     mkdir ../my_proj/lib
     cp bazel-bin/tensorflow/libtensorflow_cc.so ../my_proj/lib/
     cp bazel-bin/tensorflow/libtensorflow_framework.so ../my_proj/lib/
+ * copy the include files:
+    cp -r bazel-genfiles/* /home/jseng/catkin_ws/image_test/include/
+    cp -r tensorflow/cc /home/jseng/catkin_ws/image_test/include/tensorflow
+    cp -r tensorflow/core /home/jseng/catkin_ws/image_test/include/tensorflow
+    cp -r third_party /home/jseng/catkin_ws/image_test/include/
