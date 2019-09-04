@@ -1,0 +1,9 @@
+Steps to compile tensorflow for use with ROS:
+ * install Bazel
+ * git clone https://github.com/tensorflow/tensorflow.git
+ * cd tensorflow and run ./configure
+ * bazel build -c opt --config=monolithic //tensorflow:libtensorflow_cc.so (refer to https://medium.com/@tomdeore/standalone-c-build-tensorflow-opencv-6dc9d8a1412d)
+ * copy the library files to a lib directory:
+    mkdir ../my_proj/lib
+    cp bazel-bin/tensorflow/libtensorflow_cc.so ../my_proj/lib/
+    cp bazel-bin/tensorflow/libtensorflow_framework.so ../my_proj/lib/
