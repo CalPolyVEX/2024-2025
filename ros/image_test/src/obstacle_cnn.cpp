@@ -91,19 +91,23 @@ class ImageConverter {
       x = x * 270.0;
       scan[i] = x;
 
-      circle(new_image, Point(col_counter, (int)x), 3, Scalar(0,0,255), -1);
+      if (1==0) {
+        circle(new_image, Point(col_counter, (int)x), 3, Scalar(0,0,255), -1);
+      }
+
       col_counter += 10;
     }
 
-    //publish message
-    sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", new_image).toImageMsg();
-    image_pub_.publish(pub_msg);
+    if (1==0) {
+      //publish message
+      sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", new_image).toImageMsg();
+      image_pub_.publish(pub_msg);
+    }
+
     publish_point_cloud();
   }
 
   void publish_point_cloud() {
-    /* cv::Mat_<cv::Vec3f> mat = points_mat_; */
-
     // Fill in new PointCloud2 message (2D image-like layout)
     sensor_msgs::PointCloud2 points_msg = sensor_msgs::PointCloud2();
 
@@ -142,8 +146,8 @@ class ImageConverter {
     int offset = 0;
     float cur_x = 5;
     float z = 0;
-    for (int u = 0; u < 48; u++) {
-        float t_x = cur_x / 240.0;
+    for (int u = 47; u >= 0 ; u--) {
+        float t_x = (cur_x / 240.0);
         float t_y = (270.0-scan[u]) / 135.0;
         // x,y,z,rgba
         memcpy (&points_msg.data[offset + 0], &t_y, sizeof (float));
