@@ -73,6 +73,20 @@ class JoystickNode:
       #rosbag record -o /file/name /topic __name:=my_bag
       #rosnode kill /my_bag_recorder
 
+   def record_bag_debugging(self):
+      l = Lcd()
+      l.init_serial_port()
+      l.clear_screen()
+      l.print_string('Recording...')
+      l.close()
+      rec_topics = "rosbag record /zed/data_throttled_image_depth \
+         /zed/data_throttled_image /zed/data_throttled_camera_info \
+         /tf /tf_static /ekf_node/odom /voxel_grid/output /obstacles_cloud \
+         __name:=my_bag_recorder"
+      proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
+      #rosbag record -o /file/name /topic __name:=my_bag
+      #rosnode kill /my_bag_recorder
+
    def stop_record_bag(self):
       l = Lcd()
       l.init_serial_port()
@@ -175,7 +189,18 @@ class JoystickNode:
                   recording_start = 1
                   rospy.loginfo('Starting recording')
                   self.toggle_led()
-                  self.record_bag()
+
+                  topics = rospy.get_published_topics()
+                  print topics
+                  planning_mode = 0
+                  for x in topics:
+                     if "voxel_grid" in x[0]:
+                        planning_mode = 1
+
+                  if planning_mode == 1:
+                     self.record_bag_debugging()
+                  else:
+                     self.record_bag()
 
                   #start a new timer to toggle the led when recording complete
                   #t = threading.Timer(122,self.toggle_led) #run after 4 minutes
