@@ -9,26 +9,26 @@ Steps to compile tensorflow for use with ROS:
  * ./configure (Jetpack 4.2 = CUDA 10.0, CuDNN 7.3.1, TX2 compute capability 6.2)
  * bazel build -c opt --config=monolithic //tensorflow:libtensorflow_cc.so (refer to https://medium.com/@tomdeore/standalone-c-build-tensorflow-opencv-6dc9d8a1412d)
  * copy the library files to a lib directory:
-    mkdir ../my_proj/lib
-    cp bazel-bin/tensorflow/libtensorflow_cc.so /home/jseng/catkin_ws/src/ros/image_test/lib
-    cp bazel-bin/tensorflow/libtensorflow_framework.so /home/jseng/catkin_ws/src/ros/image_test/lib
+   * mkdir ../my_project/lib
+   * cp bazel-bin/tensorflow/libtensorflow_cc.so /home/jseng/catkin_ws/src/ros/image_test/lib
+   * cp bazel-bin/tensorflow/libtensorflow_framework.so /home/jseng/catkin_ws/src/ros/image_test/lib
  * copy the include files:
-    cp -r bazel-genfiles/* /home/jseng/catkin_ws/src/ros/image_test/include/
-    cp -r tensorflow/cc /home/jseng/catkin_ws/src/ros/image_test/include/tensorflow
-    cp -r tensorflow/core /home/jseng/catkin_ws/src/ros/image_test/include/tensorflow
-    cp -r third_party /home/jseng/catkin_ws/src/ros/image_test/include/
+   * cp -r bazel-genfiles/* /home/jseng/catkin_ws/src/ros/image_test/include/
+   * cp -r tensorflow/cc /home/jseng/catkin_ws/src/ros/image_test/include/tensorflow
+   * cp -r tensorflow/core /home/jseng/catkin_ws/src/ros/image_test/include/tensorflow
+   * cp -r third_party /home/jseng/catkin_ws/src/ros/image_test/include/
  * install protobuf 3.6.0
    * git clone https://github.com/protocolbuffers/protobuf.git
    * cd protobuf
    * git submodule update --init --recursive
    * ./autogen.sh
  * create a symbolic link in the include directory to the protobuf include directory
-   ln -s /home/jseng/protobuf/src/google google 
+   * ln -s /home/jseng/protobuf/src/google google 
  * copy all the Eigen include files
-   cd /usr/include/eigen3
-   cp -r * /home/jseng/catkin_ws/src/ros/image_test/include
+   * cd /usr/include/eigen3
+   * cp -r * /home/jseng/catkin_ws/src/ros/image_test/include
  * absl header error
    * git clone absl into the tensorflow directory
    * create a link from 'absl' to 'absl-cpp'
    * create a link from 'include/absl' to 'tensorflow/absl'
-   (https://github.com/tensorflow/tensorflow/issues/22007#issuecomment-424553600)
+   * (https://github.com/tensorflow/tensorflow/issues/22007#issuecomment-424553600)
