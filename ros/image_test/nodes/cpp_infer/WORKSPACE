@@ -1,4 +1,0 @@
-local_repository(
-    name = "tensorflow_project",
-    path = "/mnt/temp/tensorflow",
-)
