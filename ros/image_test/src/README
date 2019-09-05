@@ -17,3 +17,8 @@ Steps to compile tensorflow for use with ROS:
     cp -r tensorflow/cc /home/jseng/catkin_ws/image_test/include/tensorflow
     cp -r tensorflow/core /home/jseng/catkin_ws/image_test/include/tensorflow
     cp -r third_party /home/jseng/catkin_ws/image_test/include/
+ * install protobuf 3.6.0
+   * git clone https://github.com/protocolbuffers/protobuf.git
+   * cd protobuf
+   * git submodule update --init --recursive
+   * ./autogen.sh
