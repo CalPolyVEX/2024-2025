@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   image_transport
   cv_bridge
+  OpenCV REQUIRED
 )
 
 ## System dependencies are found with CMake's conventions
@@ -171,6 +172,7 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 target_link_libraries(${PROJECT_NAME}_node
    -ltensorflow_cc
    ${catkin_LIBRARIES}
+   ${OpenCV_LIBS}
 )
 
 endif()

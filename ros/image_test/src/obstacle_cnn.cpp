@@ -8,6 +8,7 @@
 #include <sensor_msgs/image_encodings.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/PointField.h>
 
@@ -31,6 +32,7 @@ class ImageConverter {
   tensorflow::Tensor *input_tensor;
   float scan[48];
   int scan_counter = 0;
+  cv::Mat r_t_inv;
   
   tensorflow::Session* session; //tensorflow session
   tensorflow::GraphDef graph_def;
@@ -165,6 +167,122 @@ class ImageConverter {
     point_pub.publish(points_msg);
   }
 
+  void init_camera_transform() {
+    std::vector<cv::Point3f> objectPoints;
+    float objectPoints_array[10][3] = {
+      {18,0,45}, //these points are measured on the ground (in inches) 
+      {27,0,27}, 
+      {9,0,63}, 
+      {54,0,54}, 
+      {0,0,36},
+      {-18,0,36},
+      {-18,0,45},
+      {-18,0,63},
+      {0,0,90},
+      {-18,0,90}
+    };
+
+    std::vector<cv::Point2f> imagePoints;
+    float imagePoints_array[10][3] = {
+      {527,339}, //740x415 calibrate script 
+      {673,409}, 
+      {424,285}, 
+      {708,283}, 
+      {357,394},
+      {164,380},
+      {192,339},
+      {228,284},
+      {360,232},
+      {264,235}
+    };
+
+    //intrinsic matrix
+    double cameraMatrix[3][3] = {
+      {1258.513767, 0.000000, 949.143263},
+      {0.000000, 1260.515476, 587.553871},
+      {0.000000, 0.000000, 1.000000}
+    };
+
+    //distortion coefficients
+    double distCoeffs[5][1] = {-0.350545, 0.098685, -0.004605, -0.001945, 0.000000};
+
+    //create the matrices
+    cv::Mat cameraMatrix_mat(3,3,CV_64F,cameraMatrix);
+    cv::Mat distCoeffs_mat(5,1,CV_64F,distCoeffs);
+
+    //create the point vectors
+    for (int i=0;i<10;i++) {
+      float temp_x = objectPoints_array[i][0] * .0254; //convert to meters 
+      float temp_y = 0; 
+      float temp_z = objectPoints_array[i][2] * .0254; 
+
+      float temp_image_x = imagePoints_array[i][0] / 1.54; //scale to 480x270
+      float temp_image_y = imagePoints_array[i][1] / 1.54; 
+      
+      objectPoints.push_back(cv::Point3f(temp_x, temp_y, temp_z));
+      imagePoints.push_back(cv::Point2f(temp_image_x, temp_image_y));
+    }
+
+    //scale to 480x270, so divide by 4
+    cameraMatrix_mat = cameraMatrix_mat / 4.000;
+
+    //create rvec and tvec
+    cv::Mat rvec(3,1,cv::DataType<double>::type);
+    cv::Mat tvec(3,1,cv::DataType<double>::type);
+
+    //self.retval, self.rvec, self.tvec = cv2.solvePnP(self.objectPoints, self.imagePoints, self.cameraMatrix, self.distCoeffs, flags=cv2.SOLVEPNP_ITERATIVE)
+    cv::solvePnP(objectPoints, imagePoints, cameraMatrix_mat, distCoeffs_mat, rvec, tvec);
+    
+    //self.rmat, self.rmat_jacobian = cv2.Rodrigues(self.rvec)
+    cv::Mat rmat(3,3,cv::DataType<double>::type);
+    cv::Mat rmat_jacobian(3,9,cv::DataType<double>::type);
+    cv::Rodrigues(rvec, rmat, rmat_jacobian);
+    
+    //concatenate r and t matrix
+    //self.r_t_max = np.concatenate((self.rmat,self.tvec), axis=1)
+    cv::Mat r_t_mat(3,4,cv::DataType<double>::type);
+    cv::hconcat(rmat, tvec, r_t_mat);
+
+    //#multiply intrinsic matrix with R|t matrix
+    //self.A = np.matmul(self.cameraMatrix, self.r_t_max)
+    cv::Mat A(3,4,cv::DataType<double>::type);
+    A = cameraMatrix_mat * r_t_mat;
+
+    //remove the second column because it is a plane
+    //self.A = np.delete(self.A,1,1)
+    cv::Mat A_plane = A.col(0);
+    cv::hconcat(A_plane, A.col(2), A_plane);
+    cv::hconcat(A_plane, A.col(3), A_plane);
+    //cout << "---" << A_plane.rows << "-----" << A_plane.cols << "-----";
+
+    //compute the inverse of the A matrix
+    //self.r_t_inv = np.linalg.inv(self.A)
+    Mat temp = A_plane.inv();
+    r_t_inv = temp.clone();
+  }
+
+  void transform_point(int x, int y, double* x_object, double* y_object) {
+    /* def compute(self,x,y): */
+    /*    imagepoint = np.array([x,y,1],dtype=np.float32) */
+    double ip[3] = {(double)x, (double)y, 1.0};
+    cv::Mat imagepoint(3,1,cv::DataType<double>::type, ip);   
+
+    /*    ans = np.matmul(self.r_t_inv, imagepoint) */
+    cv::Mat ans = r_t_inv * imagepoint;
+
+    /*    w = ans.item(2) */
+    double w = ans.at<double>(2,0);
+
+    /*    ans = ans / w */
+    ans = ans / w;
+
+    /*    #ans = ans / .0254 #convert back to inches */
+
+    /*    return ans.tolist()[0:2] #answer is in meters */
+    *x_object = ans.at<double>(0,0);
+    *y_object = ans.at<double>(1,0);
+  }
+
   ImageConverter() : it_(nh_) {
     //new_image = Mat(270, 480, CV_8UC(3));
     new_image = Mat(270, 480, CV_32FC(3));
@@ -179,6 +297,14 @@ class ImageConverter {
     /* image_sub_ = it_.subscribe("/zed/data_throttled_image", 1, &ImageConverter::run_network, this); */
     image_pub_ = it_.advertise("/image_converter/output_video", 1);
     point_pub = nh_.advertise<sensor_msgs::PointCloud2>("/test_point_cloud", 1);
+
+    init_camera_transform();
+    double x,y;
+    transform_point(264/1.54,235/1.54, &x, &y);
+    cout << "x:";
+    cout << x/.0254;
+    cout << "y:";
+    cout << y/.0254;
   }
 
   int init_tensorflow() {
