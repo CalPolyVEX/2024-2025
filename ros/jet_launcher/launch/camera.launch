@@ -21,8 +21,8 @@
       <arg name="flip_vertical" value="false" />
       <!-- visualize on an image_view window the stream generated -->
       <arg name="visualize" value="false" />
-      <arg name="width" value="1920" />
-      <arg name="height" value="1080" />
+      <arg name="width" value="960" />
+      <arg name="height" value="540" />
    </include>
 
    <!-- Throttle the rate that images are published from the camera to 1.0Hz-->

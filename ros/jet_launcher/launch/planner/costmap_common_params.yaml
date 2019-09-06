@@ -24,7 +24,7 @@ aggressive_clear:
     #reset_distance: 1.84
     reset_distance: .1
 
-map_type: voxel
+map_type: costmap
 max_obstacle_height: .6
 obstacle_layer:
     enabled: true

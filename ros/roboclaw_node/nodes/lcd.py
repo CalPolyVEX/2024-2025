@@ -21,6 +21,7 @@ class Lcd:
         self.clear_screen()
         #backlight_on()
         #set_contrast(230)
+        self.backlight_off()
         self.autoscroll_on()
         self.clear_screen()
         self.set_cursor_position(1,1)

@@ -95,14 +95,14 @@ class ImageConverter {
       x = x * 270.0;
       scan[i] = x;
 
-      if (1==0) {
+      if (1==1) {
         circle(new_image, Point(col_counter, (int)x), 3, Scalar(0,0,255), -1);
       }
 
       col_counter += 10;
     }
 
-    if (1==0) {
+    if (1==1) {
       //publish message
       sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", new_image).toImageMsg();
       image_pub_.publish(pub_msg);
@@ -213,7 +213,7 @@ class ImageConverter {
   }
 
   ImageConverter() : it_(nh_) {
-    if (1==0) {
+    if (1==1) {
     //new_image = Mat(270, 480, CV_8UC(3));
     new_image = Mat(270, 480, CV_32FC(3));
 
@@ -265,6 +265,6 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "gyro_pub");
   ImageConverter gyro_pub;
-  //gyro_pub.init_tensorflow();
-  //ros::spin();
+  gyro_pub.init_tensorflow();
+  ros::spin();
 }

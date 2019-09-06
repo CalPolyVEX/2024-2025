@@ -16,8 +16,8 @@ ros::NodeHandle* nh;
 class Navigation {
   ros::Subscriber goal_sub;
   MoveBaseClient* ac;
-  double goals[3][2];
-  int goal_counter = 2;
+  double goals[4][2];
+  int goal_counter = 3;
 
   public:
     Navigation();
@@ -40,8 +40,11 @@ Navigation::Navigation() {
   goals[1][0] = 15.2227;  //x of id#369 (women's bathroom)
   goals[1][1] = -11.4279; //y of id#369
 
-  goals[2][0] = .5;        //x of id#1 (office)
-  goals[2][1] = 0;        //y of id#1
+  goals[2][0] = -12.9478;        //x of id#1315 (south quad)
+  goals[2][1] = -12.7342;        //y of id#1315
+
+  goals[3][0] = .5;        //x of id#1 (office)
+  goals[3][1] = 0;        //y of id#1
 }
 
 void Navigation::init_action_client() {
@@ -99,7 +102,7 @@ void Navigation::run_loop() {
     double dist = pow((pow(x_dest - x_disp, 2) + pow(y_dest - y_disp, 2)), .5);
 
     if (dist < 3.0) {
-      goal_counter = (goal_counter + 1) % 3;
+      goal_counter = (goal_counter + 1) % 4;
 
       //send goal
       move_base_msgs::MoveBaseGoal goal;
@@ -145,7 +148,7 @@ void Navigation::send_goal_callback(const std_msgs::Int8::ConstPtr& mesg) {
 
     if(ac->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
       ROS_INFO("Hooray, the base moved 1 meter forward");
-      goal_counter = (goal_counter + 1) % 3;
+      goal_counter = (goal_counter + 1) % 4;
     } else {
       ROS_INFO("The base failed to move forward 1 meter for some reason");
     }
