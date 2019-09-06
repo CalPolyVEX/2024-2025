@@ -30,7 +30,9 @@ class ImageConverter {
   ros::Publisher point_pub;
   cv::Mat new_image;
   tensorflow::Tensor *input_tensor;
-  float scan[48];
+  float scan[48]; //index 0 is left, index 47 is right 
+  float obstacle_x[48]; //the x and y coordinates of the obstacles,
+  float obstacle_y[48]; //defined in the same coordinate system as ROS (x forward, y to left)
   int scan_counter = 0;
   cv::Mat r_t_inv;
   
@@ -146,169 +148,66 @@ class ImageConverter {
     points_msg.is_dense = true; // there are no invalid points
 
     int offset = 0;
-    float cur_x = 5;
-    float z = 0;
-    for (int u = 47; u >= 0 ; u--) {
-        float t_x = (cur_x / 240.0);
-        float t_y = (270.0-scan[u]) / 135.0;
-        // x,y,z,rgba
-        memcpy (&points_msg.data[offset + 0], &t_y, sizeof (float));
-        memcpy (&points_msg.data[offset + 4], &t_x, sizeof (float));
-        memcpy (&points_msg.data[offset + 8], &z, sizeof (float));
+    float cur_x = 5; //the starting x coordinate
+    float z = 0; //the ground is a plane so the Z-coordinate is 0
+    for (int u = 0; u < 48 ; u++) { //go through the 48 points
+      float img_x = cur_x;
+      float img_y = scan[u];
 
-        //set the color
-        unsigned int color = 0xff0000ff;
-        memcpy (&points_msg.data[offset + 12], &color, sizeof (int));
+      double c_x,c_y;
+      transform_point(img_x, img_y, &c_x, &c_y);
+      float temp_x, temp_y;
+      temp_x = -c_x;
+      temp_y = c_y;
 
-        cur_x += 10;
-        offset += 16;
+      // x,y,z
+      memcpy (&points_msg.data[offset + 0], &temp_y, sizeof (float));
+      memcpy (&points_msg.data[offset + 4], &temp_x, sizeof (float));
+      memcpy (&points_msg.data[offset + 8], &z, sizeof (float));
+
+      //set the color
+      unsigned int color = 0xff0000ff;
+      memcpy (&points_msg.data[offset + 12], &color, sizeof (int));
+
+      cur_x += 10;
+      offset += 16;
     }
 
     point_pub.publish(points_msg);
   }
 
   void init_camera_transform() {
-    std::vector<cv::Point3d> objectPoints;
-    double objectPoints_array[17][3] = {
-      {18,0,45}, //these points are measured on the ground (in inches) 
-      {27,0,27}, 
-      {9,0,63}, 
-      {54,0,54}, 
-      {0,0,36},
-      {-18,0,36},
-      {-18,0,45},
-      {-18,0,63},
-      {0,0,90},
-      {-18,0,90},
-      //data after this line gathered on 11/3/18
-      {0,0,120},
-      {-36,0,120},
-      {48,0,120},
-      {0,0,180},
-      {48,0,180},
-      {48,0,41},
-      {0,0,240}
-    };
-
-    std::vector<cv::Point2d> imagePoints;
-    double imagePoints_array[17][3] = {
-      {527,339}, //740x415 calibrate script 
-      {673,409}, 
-      {424,285}, 
-      {708,283}, 
-      {357,394},
-      {164,380},
-      {192,339},
-      {228,284},
-      {360,232},
-      {264,235},
-      //data after this line gathered on 11/3/18
-      {356,207},
-      {213,209},
-      {538,203},
-      {360,175},
-      {487,173},
-      {733,315},
-      {358,161}
-    };
-
-    //intrinsic matrix
-    double cameraMatrix[3][3] = {
-      {1258.513767, 0.000000, 949.143263},
-      {0.000000, 1260.515476, 587.553871},
-      {0.000000, 0.000000, 1.000000}
-    };
-
-    //distortion coefficients
-    double distCoeffs[5][1] = {-0.350545, 0.098685, -0.004605, -0.001945, 0.000000};
-
-    //create the matrices
-    cv::Mat cameraMatrix_mat(3,3,cv::DataType<double>::type,cameraMatrix);
-    cv::Mat distCoeffs_mat(5,1,cv::DataType<double>::type,distCoeffs);
-
-    //create the point vectors
-    for (int i=0;i<17;i++) {
-      double temp_x = objectPoints_array[i][0] * .0254; //convert to meters 
-      double temp_y = 0; 
-      double temp_z = objectPoints_array[i][2] * .0254; 
-
-      double temp_image_x = imagePoints_array[i][0] / 1.54; //scale to 480x270
-      double temp_image_y = imagePoints_array[i][1] / 1.54; 
-      
-      objectPoints.push_back(cv::Point3d(temp_x, temp_y, temp_z));
-      imagePoints.push_back(cv::Point2d(temp_image_x, temp_image_y));
-    }
-
-    //scale to 480x270, so divide by 4
-    cameraMatrix_mat = cameraMatrix_mat / 4.000;
-
-    //create rvec and tvec
-    cv::Mat rvec(3,1,cv::DataType<double>::type);
-    cv::Mat tvec(3,1,cv::DataType<double>::type);
-
-    //self.retval, self.rvec, self.tvec = cv2.solvePnP(self.objectPoints, self.imagePoints, self.cameraMatrix, self.distCoeffs, flags=cv2.SOLVEPNP_ITERATIVE)
-    cv::solvePnP(objectPoints, imagePoints, cameraMatrix_mat, distCoeffs_mat, rvec, tvec);
-    
-    //self.rmat, self.rmat_jacobian = cv2.Rodrigues(self.rvec)
-    cv::Mat rmat(3,3,cv::DataType<double>::type);
-    cv::Mat rmat_jacobian(3,9,cv::DataType<double>::type);
-    cv::Rodrigues(rvec, rmat, rmat_jacobian);
-    
-    //concatenate r and t matrix
-    //self.r_t_max = np.concatenate((self.rmat,self.tvec), axis=1)
-    cv::Mat r_t_mat(3,4,cv::DataType<double>::type);
-    cv::hconcat(rmat, tvec, r_t_mat);
-
-    //#multiply intrinsic matrix with R|t matrix
-    //self.A = np.matmul(self.cameraMatrix, self.r_t_max)
-    cv::Mat A(3,4,cv::DataType<double>::type);
-    A = cameraMatrix_mat * r_t_mat;
-
-    //remove the second column because it is a plane
-    //self.A = np.delete(self.A,1,1)
-    cv::Mat A_plane = cv::Mat(3,3,cv::DataType<double>::type);
-    /* cv::Mat A_plane = A.col(0); */
-    /* cv::hconcat(A_plane, A.col(2), A_plane); */
-    /* cv::hconcat(A_plane, A.col(3), A_plane); */
-    //cout << "---" << A_plane.rows << "-----" << A_plane.cols << "-----";
-    A.col(0).copyTo(A_plane.col(0));
-    A.col(2).copyTo(A_plane.col(1));
-    A.col(3).copyTo(A_plane.col(2));
-
     //compute the inverse of the A matrix
     //self.r_t_inv = np.linalg.inv(self.A)
     cv::Mat temp(3,3,cv::DataType<double>::type);
-    temp = A_plane.inv();
 
     double v[3][3] = {
       { 0.0031784365485609833 , -8.632513240555703e-07 , -0.7390697592912845 },
       { -4.4643917161382675e-05 , -0.0005914395002240171 , 1.0808936509326386 },
-      { 7.418011022223405e-05 , 0.005344582012109148 , -0.4032597845481824 }};
+      { 7.418011022223405e-05 , 0.005344582012109148 , -0.4032597845481824 }
+    };
 
     temp = cv::Mat(3,3,cv::DataType<double>::type, v);
     r_t_inv = temp.clone();
   }
 
   void transform_point(double x, double y, double* x_object, double* y_object) {
-    /* def compute(self,x,y): */
-    /*    imagepoint = np.array([x,y,1],dtype=np.float32) */
+    /* imagepoint = np.array([x,y,1],dtype=np.float32) */
     double ip[3] = {x, y, 1.0000};
     cv::Mat imagepoint(3,1,cv::DataType<double>::type, ip);   
 
-    /*    ans = np.matmul(self.r_t_inv, imagepoint) */
+    /* ans = np.matmul(self.r_t_inv, imagepoint) */
     cv::Mat ans(3,1,cv::DataType<double>::type);   
     ans = r_t_inv * imagepoint;
     cout << "M = "<< endl << " "  << ans << endl << endl;
 
-    /*    w = ans.item(2) */
+    /* w = ans.item(2) */
     double w = ans.at<double>(2,0);
 
-    /*    ans = ans / w */
+    /* ans = ans / w */
     ans = ans / w;
 
-    /*    #ans = ans / .0254 #convert back to inches */
-
-    /*    return ans.tolist()[0:2] #answer is in meters */
+    /* return ans.tolist()[0:2] #answer is in meters */
     *x_object = ans.at<double>(0,0);
     *y_object = ans.at<double>(1,0);
   }
@@ -330,7 +229,6 @@ class ImageConverter {
     point_pub = nh_.advertise<sensor_msgs::PointCloud2>("/test_point_cloud", 1);
     }
 
-    r_t_inv = cv::Mat(3,3, cv::DataType<double>::type);
     init_camera_transform();
     double x,y;
     transform_point(213/1.54,209/1.54, &x, &y);

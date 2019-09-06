@@ -65,6 +65,7 @@ class camera_transform:
 
       #set the 2,2 element back to 1 in the camera matrix
       self.cameraMatrix[2,2] = 1
+      print "Camera Matrix:"
       print self.cameraMatrix
 
       #distortion coefficients
@@ -86,8 +87,8 @@ class camera_transform:
 
       #compute the inverse of the A matrix
       self.r_t_inv = np.linalg.inv(self.A)
-      print "r_t_inv"
-      print self.r_t_inv
+      print "r_t_inv Matrix:"
+      #print self.r_t_inv
       counter = 0;
       for x in np.nditer(self.r_t_inv, order = 'C'):
           if counter == 0:
