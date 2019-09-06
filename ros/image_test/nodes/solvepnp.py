@@ -11,17 +11,17 @@ import cv2, numpy as np, sys
 
 class camera_transform:
    def __init__(self):
-      self.objectPoints = np.array([[18,0,45], #in inches 
-                        [27,0,27], 
-                        [9,0,63], 
-                        [54,0,54], 
+      self.objectPoints = np.array([[18,0,45], #in inches
+                        [27,0,27],
+                        [9,0,63],
+                        [54,0,54],
                         [0,0,36],
                         [-18,0,36],
                         [-18,0,45],
                         [-18,0,63],
                         [0,0,90],
                         [-18,0,90],
-                        [54,0,81], 
+                        [54,0,81],
                         #data after this line gathered on 11/3/18
                         [0,0,120],
                         [-36,0,120],
@@ -33,10 +33,10 @@ class camera_transform:
                         dtype=np.float32)
       self.objectPoints = .0254*self.objectPoints #convert to meters
 
-      self.imagePoints = np.array([[527,339], #740x415 calibrate script 
-                        [673,409], 
-                        [424,285], 
-                        [708,283], 
+      self.imagePoints = np.array([[527,339], #740x415 calibrate script
+                        [673,409],
+                        [424,285],
+                        [708,283],
                         [357,394],
                         [164,380],
                         [192,339],
@@ -86,10 +86,25 @@ class camera_transform:
 
       #compute the inverse of the A matrix
       self.r_t_inv = np.linalg.inv(self.A)
+      print "r_t_inv"
+      print self.r_t_inv
+      counter = 0;
+      for x in np.nditer(self.r_t_inv, order = 'C'):
+          if counter == 0:
+              print "{",
+          counter += 1
+          if counter != 3:
+              print x,
+              print ",",
+          else:
+              print x,
+              print "},"
+              counter = 0
 
    def compute(self,x,y):
       imagepoint = np.array([x,y,1],dtype=np.float32)
       ans = np.matmul(self.r_t_inv, imagepoint)
+      # print ans
       w = ans.item(2)
       ans = ans / w
       #ans = ans / .0254 #convert back to inches

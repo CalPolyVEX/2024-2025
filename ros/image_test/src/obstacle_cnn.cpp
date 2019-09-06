@@ -168,8 +168,8 @@ class ImageConverter {
   }
 
   void init_camera_transform() {
-    std::vector<cv::Point3f> objectPoints;
-    float objectPoints_array[10][3] = {
+    std::vector<cv::Point3d> objectPoints;
+    double objectPoints_array[17][3] = {
       {18,0,45}, //these points are measured on the ground (in inches) 
       {27,0,27}, 
       {9,0,63}, 
@@ -179,11 +179,19 @@ class ImageConverter {
       {-18,0,45},
       {-18,0,63},
       {0,0,90},
-      {-18,0,90}
+      {-18,0,90},
+      //data after this line gathered on 11/3/18
+      {0,0,120},
+      {-36,0,120},
+      {48,0,120},
+      {0,0,180},
+      {48,0,180},
+      {48,0,41},
+      {0,0,240}
     };
 
-    std::vector<cv::Point2f> imagePoints;
-    float imagePoints_array[10][3] = {
+    std::vector<cv::Point2d> imagePoints;
+    double imagePoints_array[17][3] = {
       {527,339}, //740x415 calibrate script 
       {673,409}, 
       {424,285}, 
@@ -193,7 +201,15 @@ class ImageConverter {
       {192,339},
       {228,284},
       {360,232},
-      {264,235}
+      {264,235},
+      //data after this line gathered on 11/3/18
+      {356,207},
+      {213,209},
+      {538,203},
+      {360,175},
+      {487,173},
+      {733,315},
+      {358,161}
     };
 
     //intrinsic matrix
@@ -207,20 +223,20 @@ class ImageConverter {
     double distCoeffs[5][1] = {-0.350545, 0.098685, -0.004605, -0.001945, 0.000000};
 
     //create the matrices
-    cv::Mat cameraMatrix_mat(3,3,CV_64F,cameraMatrix);
-    cv::Mat distCoeffs_mat(5,1,CV_64F,distCoeffs);
+    cv::Mat cameraMatrix_mat(3,3,cv::DataType<double>::type,cameraMatrix);
+    cv::Mat distCoeffs_mat(5,1,cv::DataType<double>::type,distCoeffs);
 
     //create the point vectors
-    for (int i=0;i<10;i++) {
-      float temp_x = objectPoints_array[i][0] * .0254; //convert to meters 
-      float temp_y = 0; 
-      float temp_z = objectPoints_array[i][2] * .0254; 
+    for (int i=0;i<17;i++) {
+      double temp_x = objectPoints_array[i][0] * .0254; //convert to meters 
+      double temp_y = 0; 
+      double temp_z = objectPoints_array[i][2] * .0254; 
 
-      float temp_image_x = imagePoints_array[i][0] / 1.54; //scale to 480x270
-      float temp_image_y = imagePoints_array[i][1] / 1.54; 
+      double temp_image_x = imagePoints_array[i][0] / 1.54; //scale to 480x270
+      double temp_image_y = imagePoints_array[i][1] / 1.54; 
       
-      objectPoints.push_back(cv::Point3f(temp_x, temp_y, temp_z));
-      imagePoints.push_back(cv::Point2f(temp_image_x, temp_image_y));
+      objectPoints.push_back(cv::Point3d(temp_x, temp_y, temp_z));
+      imagePoints.push_back(cv::Point2d(temp_image_x, temp_image_y));
     }
 
     //scale to 480x270, so divide by 4
@@ -250,25 +266,39 @@ class ImageConverter {
 
     //remove the second column because it is a plane
     //self.A = np.delete(self.A,1,1)
-    cv::Mat A_plane = A.col(0);
-    cv::hconcat(A_plane, A.col(2), A_plane);
-    cv::hconcat(A_plane, A.col(3), A_plane);
+    cv::Mat A_plane = cv::Mat(3,3,cv::DataType<double>::type);
+    /* cv::Mat A_plane = A.col(0); */
+    /* cv::hconcat(A_plane, A.col(2), A_plane); */
+    /* cv::hconcat(A_plane, A.col(3), A_plane); */
     //cout << "---" << A_plane.rows << "-----" << A_plane.cols << "-----";
+    A.col(0).copyTo(A_plane.col(0));
+    A.col(2).copyTo(A_plane.col(1));
+    A.col(3).copyTo(A_plane.col(2));
 
     //compute the inverse of the A matrix
     //self.r_t_inv = np.linalg.inv(self.A)
-    Mat temp = A_plane.inv();
+    cv::Mat temp(3,3,cv::DataType<double>::type);
+    temp = A_plane.inv();
+
+    double v[3][3] = {
+      { 0.0031784365485609833 , -8.632513240555703e-07 , -0.7390697592912845 },
+      { -4.4643917161382675e-05 , -0.0005914395002240171 , 1.0808936509326386 },
+      { 7.418011022223405e-05 , 0.005344582012109148 , -0.4032597845481824 }};
+
+    temp = cv::Mat(3,3,cv::DataType<double>::type, v);
     r_t_inv = temp.clone();
   }
 
-  void transform_point(int x, int y, double* x_object, double* y_object) {
+  void transform_point(double x, double y, double* x_object, double* y_object) {
     /* def compute(self,x,y): */
     /*    imagepoint = np.array([x,y,1],dtype=np.float32) */
-    double ip[3] = {(double)x, (double)y, 1.0};
+    double ip[3] = {x, y, 1.0000};
     cv::Mat imagepoint(3,1,cv::DataType<double>::type, ip);   
 
     /*    ans = np.matmul(self.r_t_inv, imagepoint) */
-    cv::Mat ans = r_t_inv * imagepoint;
+    cv::Mat ans(3,1,cv::DataType<double>::type);   
+    ans = r_t_inv * imagepoint;
+    cout << "M = "<< endl << " "  << ans << endl << endl;
 
     /*    w = ans.item(2) */
     double w = ans.at<double>(2,0);
@@ -284,6 +314,7 @@ class ImageConverter {
   }
 
   ImageConverter() : it_(nh_) {
+    if (1==0) {
     //new_image = Mat(270, 480, CV_8UC(3));
     new_image = Mat(270, 480, CV_32FC(3));
 
@@ -297,10 +328,12 @@ class ImageConverter {
     /* image_sub_ = it_.subscribe("/zed/data_throttled_image", 1, &ImageConverter::run_network, this); */
     image_pub_ = it_.advertise("/image_converter/output_video", 1);
     point_pub = nh_.advertise<sensor_msgs::PointCloud2>("/test_point_cloud", 1);
+    }
 
+    r_t_inv = cv::Mat(3,3, cv::DataType<double>::type);
     init_camera_transform();
     double x,y;
-    transform_point(264/1.54,235/1.54, &x, &y);
+    transform_point(213/1.54,209/1.54, &x, &y);
     cout << "x:";
     cout << x/.0254;
     cout << "y:";
@@ -334,6 +367,6 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "gyro_pub");
   ImageConverter gyro_pub;
-  gyro_pub.init_tensorflow();
-  ros::spin();
+  //gyro_pub.init_tensorflow();
+  //ros::spin();
 }
