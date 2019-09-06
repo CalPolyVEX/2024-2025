@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+   <node pkg="image_test" type="image_test_node" name="image_test_node" cwd="node" />
+   <node pkg="image_test" type="range_data_publisher.py" name="range_data" cwd="node" />
+   <include file="$(find image_test)/launch/tf_publisher.launch"/> 
+</launch>
