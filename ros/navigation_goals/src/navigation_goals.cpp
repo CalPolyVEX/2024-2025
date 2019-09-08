@@ -30,8 +30,9 @@ class Navigation {
   ros::Subscriber goal_sub;
   MoveBaseClient* ac;
   struct goal goals[40]; //database of all the goals
-  struct route routes[4];
+  struct route routes[10];
   int goal_counter = 0;
+  int current_route;
 
   public:
     Navigation();
@@ -65,7 +66,7 @@ Navigation::Navigation() {
   goals[3].y = -12.7342; //y of id#1315
   goals[3].id = 1315;  
 
-  goals[4].x = 3.21606;   //x of id#198 (Kurfess office)
+  goals[4].x = 3.86606;   //x of id#198 (Kurfess office)
   goals[4].y = -0.235708; //y of id#198
   goals[4].id = 198;  
 
@@ -73,8 +74,8 @@ Navigation::Navigation() {
   goals[5].y = -13.6663; //y of id#1315
   goals[5].id = 1315;  
 
-  goals[6].x = -13.8928; //x of id#1714 (outside south quad, west entrance)
-  goals[6].y = 4.95869;  //y of id#1714
+  goals[6].x = -13.6928; //x of id#1714 (outside south quad, west entrance)
+  goals[6].y = 5.05869;  //y of id#1714
   goals[6].id = 1714;  
 
   goals[7].x = -14.6241; //x of id#855 (Phil's office)
@@ -86,9 +87,10 @@ Navigation::Navigation() {
   goals[8].id = 1529;  
 
   goals[9].x = 4.30702;  //x of id#1151 (outside north quad, west entrance)
-  goals[9].y = 5.90079; //y of id#1151
+  goals[9].y = 6.40079; //y of id#1151
   goals[9].id = 1151;  
 
+  //north quad clockwise loop
   routes[0].waypoints[0] = 0; //office
   routes[0].heading[0] = 0;
   routes[0].waypoints[1] = 4; //Kurfess
@@ -108,6 +110,21 @@ Navigation::Navigation() {
   /* routes[0].waypoints[2] = 2; //women's bathroom */
   /* routes[0].heading[2] = 180; */
   /* routes[0].length = 3; */
+
+  //south quad counterclockwise loop
+  routes[1].waypoints[0] = 0; //office
+  routes[1].heading[0] = 0;
+  routes[1].waypoints[1] = 4; //Kurfess
+  routes[1].heading[1] = 270;
+  routes[1].waypoints[2] = 9; //north quad, outside west
+  routes[1].heading[2] = 180;
+  routes[1].waypoints[3] = 6; //south quad, outside wes
+  routes[1].heading[3] = 90;
+  routes[1].waypoints[4] = 9; //north quad, outside west
+  routes[1].heading[4] = 90;
+  routes[1].length = 5;
+
+  current_route = 1;
 }
 
 void Navigation::set_heading(int degrees, double* w, double* x, double* y, double* z) {
@@ -158,11 +175,11 @@ void Navigation::run_loop() {
   goal.target_pose.header.frame_id = "map";
   goal.target_pose.header.stamp = ros::Time::now();
 
-  goal.target_pose.pose.position.x = goals[routes[0].waypoints[goal_counter]].x;
-  goal.target_pose.pose.position.y = goals[routes[0].waypoints[goal_counter]].y;
+  goal.target_pose.pose.position.x = goals[routes[current_route].waypoints[goal_counter]].x;
+  goal.target_pose.pose.position.y = goals[routes[current_route].waypoints[goal_counter]].y;
   goal.target_pose.pose.position.z = 0;
 
-  set_heading(routes[0].heading[goal_counter],
+  set_heading(routes[current_route].heading[goal_counter],
     &(goal.target_pose.pose.orientation.w),
     &(goal.target_pose.pose.orientation.x),
     &(goal.target_pose.pose.orientation.y),
@@ -223,11 +240,11 @@ void Navigation::send_goal_callback(const std_msgs::Int8::ConstPtr& mesg) {
     goal.target_pose.header.frame_id = "map";
     goal.target_pose.header.stamp = ros::Time::now();
 
-    goal.target_pose.pose.position.x = goals[routes[0].waypoints[goal_counter]].x;
-    goal.target_pose.pose.position.y = goals[routes[0].waypoints[goal_counter]].y;
+    goal.target_pose.pose.position.x = goals[routes[current_route].waypoints[goal_counter]].x;
+    goal.target_pose.pose.position.y = goals[routes[current_route].waypoints[goal_counter]].y;
     goal.target_pose.pose.position.z = 0;
 
-    set_heading(routes[0].heading[goal_counter],
+    set_heading(routes[current_route].heading[goal_counter],
       &(goal.target_pose.pose.orientation.w),
       &(goal.target_pose.pose.orientation.x),
       &(goal.target_pose.pose.orientation.y),
@@ -241,7 +258,7 @@ void Navigation::send_goal_callback(const std_msgs::Int8::ConstPtr& mesg) {
 
     if(ac->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
       ROS_INFO("Hooray, the base moved 1 meter forward");
-      goal_counter = (goal_counter + 1) % routes[0].length;
+      goal_counter = (goal_counter + 1) % routes[current_route].length;
     } else {
       ROS_INFO("The base failed to move forward 1 meter for some reason");
     }

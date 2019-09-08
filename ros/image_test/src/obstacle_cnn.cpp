@@ -9,6 +9,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/video/tracking.hpp>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/PointField.h>
 
@@ -33,6 +34,7 @@ class ImageConverter {
   float scan[48]; //index 0 is left, index 47 is right 
   float obstacle_x[48]; //the x and y coordinates of the obstacles,
   float obstacle_y[48]; //defined in the same coordinate system as ROS (x forward, y to left)
+  KalmanFilter* kf[48];
   int scan_counter = 0;
   cv::Mat r_t_inv;
   
@@ -227,6 +229,19 @@ class ImageConverter {
     /* image_sub_ = it_.subscribe("/zed/data_throttled_image", 1, &ImageConverter::run_network, this); */
     image_pub_ = it_.advertise("/image_converter/output_video", 1);
     point_pub = nh_.advertise<sensor_msgs::PointCloud2>("/test_point_cloud", 1);
+    }
+
+    for (int i=0; i<48; i++) {
+      kf[i] = new KalmanFilter(1,1); 
+
+      Mat_<float> measurement(1,1); measurement.setTo(Scalar(0));
+
+      /* KF[i].statePre.at<float>(0) = 0; */
+      /* setIdentity(kf[i].transitionMatrix); */
+      /* setIdentity(kf[i].measurementMatrix); */
+      /* setIdentity(kf[i].processNoiseCov, Scalar::all(1e-4)); */
+      /* setIdentity(kf[i].measurementNoiseCov, Scalar::all(10)); */
+      /* setIdentity(kf[i].errorCovPost, Scalar::all(.1)); */
     }
 
     init_camera_transform();
