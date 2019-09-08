@@ -87,6 +87,20 @@ class JoystickNode:
       #rosbag record -o /file/name /topic __name:=my_bag
       #rosnode kill /my_bag_recorder
 
+   def record_bag_debugging_cnn(self):
+      l = Lcd()
+      l.init_serial_port()
+      l.clear_screen()
+      l.print_string('Recording...')
+      l.close()
+      rec_topics = "rosbag record /image_converter/output_video /planner/move_base/status \
+         /zed/data_throttled_image /zed/data_throttled_camera_info /laser_scan_filtered \
+         /tf /tf_static /ekf_node/odom /voxel_grid/output /obstacles_cloud \
+         __name:=my_bag_recorder"
+      proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
+      #rosbag record -o /file/name /topic __name:=my_bag
+      #rosnode kill /my_bag_recorder
+
    def stop_record_bag(self):
       l = Lcd()
       l.init_serial_port()
@@ -196,9 +210,13 @@ class JoystickNode:
                   for x in topics:
                      if "voxel_grid" in x[0]:
                         planning_mode = 1
+                     if "see3cam_cu20" in x[0]:
+                        planning_mode = 2
 
                   if planning_mode == 1:
                      self.record_bag_debugging()
+                  elif planning_mode == 2:
+                     self.record_bag_debugging_cnn()
                   else:
                      self.record_bag()
 

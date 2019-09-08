@@ -118,7 +118,7 @@ class ImageConverter {
     /* points_msg->header = disp_msg->header; */
     points_msg.header.stamp = ros::Time::now();
     points_msg.header.seq = scan_counter;
-    points_msg.header.frame_id = "base_link";
+    points_msg.header.frame_id = "zed_camera_center";
     scan_counter++;
 
     points_msg.height = 1;
@@ -149,7 +149,7 @@ class ImageConverter {
 
     int offset = 0;
     float cur_x = 5; //the starting x coordinate
-    float z = 0; //the ground is a plane so the Z-coordinate is 0
+    float z = .02; //the ground is a plane so the Z-coordinate is 0
     for (int u = 0; u < 48 ; u++) { //go through the 48 points
       float img_x = cur_x;
       float img_y = scan[u];
@@ -182,9 +182,9 @@ class ImageConverter {
     cv::Mat temp(3,3,cv::DataType<double>::type);
 
     double v[3][3] = {
-      { 0.0031784365485609833 , -8.632513240555703e-07 , -0.7390697592912845 },
-      { -4.4643917161382675e-05 , -0.0005914395002240171 , 1.0808936509326386 },
-      { 7.418011022223405e-05 , 0.005344582012109148 , -0.4032597845481824 }
+        { 0.003177133082733796 , 1.8499652567739467e-06 , -0.7264610724942869 },
+        { -6.591220075064677e-05 , -0.0020528332318763406 , 1.0799234439814596 },
+        { -7.880320453704039e-05 , 0.003235512856501372 , 0.4549696157572542 }
     };
 
     temp = cv::Mat(3,3,cv::DataType<double>::type, v);
@@ -199,7 +199,7 @@ class ImageConverter {
     /* ans = np.matmul(self.r_t_inv, imagepoint) */
     cv::Mat ans(3,1,cv::DataType<double>::type);   
     ans = r_t_inv * imagepoint;
-    cout << "M = "<< endl << " "  << ans << endl << endl;
+    //cout << "M = "<< endl << " "  << ans << endl << endl;
 
     /* w = ans.item(2) */
     double w = ans.at<double>(2,0);

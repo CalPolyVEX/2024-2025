@@ -3,21 +3,21 @@
    <node pkg="nodelet" type="nodelet" name="pointcloud_to_laserscan" args="load pointcloud_to_laserscan/pointcloud_to_laserscan_nodelet zed_nodelet_manager" output="screen">
         
     <!-- Min and max height to sample from depth data - these values worked for my drone -->
-    <param name="min_height" value="-.1"/>
-    <param name="max_height" value=".1"/>
+    <param name="min_height" value="-.2"/>
+    <param name="max_height" value=".2"/>
     <!-- <param name="min_height" value="-.4"/> -->
     <!-- <param name="max_height" value=".00"/> -->
     <param name="use_inf" value="false"/>
         
-    <param name="angle_min" value="-.78539"/>
-    <param name="angle_max" value=".78539"/>
+    <param name="angle_min" value="-.75539"/>
+    <param name="angle_max" value=".75539"/>
     <param name="angle_increment" value="0.00045"/>
     <!-- Min and max range range of generated laser scan - set this to match your depth sensor -->
     <param name="range_min" value="-0.2"/>
     <param name="range_max" value="4.0"/>
 
     <!-- Frame of your depth sensor -->
-    <!-- <param name="target_frame" value="base_link"/> -->
+    <param name="target_frame" value="zed_camera_center"/>
 
     <!-- Topic from which to read PointCloud2 -->
     <remap from="cloud_in" to="/test_point_cloud"/>
