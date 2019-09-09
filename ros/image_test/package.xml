@@ -55,6 +55,7 @@
   <depend>std_msgs</depend> 
   <depend>image_transport</depend> 
   <depend>cv_bridge</depend> 
+  <depend>tf2_ros</depend> 
   <!-- <depend>tensorflow_ros_cpp</depend> --> 
 
   <exec_depend>message_runtime</exec_depend>
