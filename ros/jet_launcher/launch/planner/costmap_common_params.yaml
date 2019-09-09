@@ -1,3 +1,4 @@
+latch_xy_goal_tolerance: true
 obstacle_range: 2.5
 raytrace_range: 3.0
 footprint: [[ 0.19,  0.19], [-0.19,  0.19], [-0.19, -0.19], [ 0.19, -0.19]]

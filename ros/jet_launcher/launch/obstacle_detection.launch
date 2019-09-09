@@ -50,7 +50,7 @@
         
     <param name="angle_min" value="-.78539"/>
     <param name="angle_max" value=".78539"/>
-    <param name="angle_increment" value="0.00045"/>
+    <!-- <param name="angle_increment" value="0.00045"/> -->
     <!-- Min and max range range of generated laser scan - set this to match your depth sensor -->
     <param name="range_min" value="-0.2"/>
     <param name="range_max" value="4.0"/>
