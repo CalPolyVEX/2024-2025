@@ -1,0 +1,15 @@
+GlobalPlanner:
+    planner_patience: 4.0
+    planner_frequency: .1
+    allow_unknown: true
+    # allow_unknown: false
+
+    map_type: costmap
+    max_obstacle_height: .6
+
+    xy_goal_tolerance:  0.1
+    yaw_goal_tolerance: 0.1
+    latch_xy_goal_tolerance: true
+
+    neutral_cost: 66
+    cost_factor: .55
