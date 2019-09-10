@@ -3,13 +3,6 @@
 
 #include <ros/ros.h>
 #include <ros/package.h>
-#include <cv_bridge/cv_bridge.h>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/calib3d/calib3d.hpp>
-#include <opencv2/video/tracking.hpp>
-#include <opencv2/opencv.hpp>
-#include <opencv2/core/types.hpp>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/PointField.h>
 #include <sensor_msgs/LaserScan.h>
@@ -21,13 +14,14 @@
 #include <pcl/point_types.h>
 #include <pcl/sample_consensus/ransac.h>
 #include <pcl/sample_consensus/sac_model_line.h>
+#include <pcl/point_cloud.h>
+#include <pcl/common/io.h>
 
 #define _USE_MATH_DEFINES
 #include <cmath>
 
 ros::NodeHandle *nh;
 
-using namespace cv;
 using namespace std;
 
 class ScanProcessor {
@@ -75,8 +69,69 @@ class ScanProcessor {
     ransac.setDistanceThreshold (.01);
     ransac.computeModel();
     ransac.getInliers(inliers);
+
+    // copies all inliers of the model computed to another PointCloud
+    pcl::copyPointCloud<pcl::PointXYZ>(*cloud1, inliers, *final1);
     ROS_INFO("original size: %d", i);
     ROS_INFO("inliers size: %d", (int)inliers.size());
+
+    publish_point_cloud(final1);
+  }
+
+  void publish_point_cloud(pcl::PointCloud<pcl::PointXYZ>::Ptr final1) {
+    // Fill in new PointCloud2 message (2D image-like layout)
+    sensor_msgs::PointCloud2 points_msg = sensor_msgs::PointCloud2();
+
+    /* points_msg->header = disp_msg->header; */
+    points_msg.header.stamp = ros::Time::now();
+    points_msg.header.seq = 0;
+    points_msg.header.frame_id = "zed_camera_center";
+
+    points_msg.height = 1;
+    points_msg.width  = final1->width;
+    points_msg.fields.resize (4);
+    points_msg.fields[0].name = "x";
+    points_msg.fields[0].offset = 0;
+    points_msg.fields[0].count = 1;
+    points_msg.fields[0].datatype = sensor_msgs::PointField::FLOAT32;
+    points_msg.fields[1].name = "y";
+    points_msg.fields[1].offset = 4;
+    points_msg.fields[1].count = 1;
+    points_msg.fields[1].datatype = sensor_msgs::PointField::FLOAT32;
+    points_msg.fields[2].name = "z";
+    points_msg.fields[2].offset = 8;
+    points_msg.fields[2].count = 1;
+    points_msg.fields[2].datatype = sensor_msgs::PointField::FLOAT32;
+    points_msg.fields[3].name = "rgb";
+    points_msg.fields[3].offset = 12;
+    points_msg.fields[3].count = 1;
+    points_msg.fields[3].datatype = sensor_msgs::PointField::UINT32;
+    //points_msg->is_bigendian = false; ???
+    static const int STEP = 16;
+    points_msg.point_step = STEP;
+    points_msg.row_step = points_msg.point_step * points_msg.width;
+    points_msg.data.resize (points_msg.row_step * points_msg.height);
+    points_msg.is_dense = true; // there are no invalid points
+
+    int offset = 0;
+    for (int u = 0; u < 48 ; u++) { //go through the 48 points
+      float x = final1->points[u].x;
+      float y = final1->points[u].y;
+      float z = final1->points[u].z;
+
+      // x,y,z
+      memcpy (&points_msg.data[offset + 0], &x, sizeof (float));
+      memcpy (&points_msg.data[offset + 4], &y, sizeof (float));
+      memcpy (&points_msg.data[offset + 8], &z, sizeof (float));
+
+      //set the color
+      unsigned int color = 0xff0000ff;
+      memcpy (&points_msg.data[offset + 12], &color, sizeof (int));
+
+      offset += 16;
+    }
+
+    point_pub.publish(points_msg);
   }
 
   ScanProcessor() : tf_listener_(tf_buffer_) {
