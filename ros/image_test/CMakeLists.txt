@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(image_test)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -17,6 +17,8 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   tf2_ros
   tf2_sensor_msgs
+  laser_geometry
+  PCL
   OpenCV REQUIRED
 )
 
@@ -113,7 +115,7 @@ if (TRUE)
     catkin_package(
     INCLUDE_DIRS include
     #  LIBRARIES image_test
-    CATKIN_DEPENDS roscpp rospy std_msgs message_runtime image_transport cv_bridge tf2_ros
+    CATKIN_DEPENDS roscpp rospy std_msgs message_runtime image_transport cv_bridge tf2_ros laser_geometry
     #  DEPENDS system_lib
     )
 endif()
@@ -139,6 +141,7 @@ include_directories(
 #  /home/jseng/install_bin/include
   ./include
   ${catkin_INCLUDE_DIRS} 
+  ${PCL_INCLUDE_DIRS} 
 )
 link_directories(
   ./lib
@@ -180,6 +183,7 @@ target_link_libraries(${PROJECT_NAME}_node
    ${OpenCV_LIBS}
 )
 target_link_libraries(laser_hallway_node
+   ${PCL_LIBRARY_DIRS}
    ${catkin_LIBRARIES}
    ${OpenCV_LIBS}
 )
