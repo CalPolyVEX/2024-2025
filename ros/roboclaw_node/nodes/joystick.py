@@ -81,7 +81,8 @@ class JoystickNode:
       l.close()
       rec_topics = "rosbag record /zed/data_throttled_image_depth \
          /zed/data_throttled_image /zed/data_throttled_camera_info /laser_scan_filtered \
-         /tf /tf_static /ekf_node/odom /voxel_grid/output /obstacles_cloud \
+         /tf /tf_static /ekf_node/odom /obstacles_cloud \
+         /autonomous /map \
          __name:=my_bag_recorder"
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
       #rosbag record -o /file/name /topic __name:=my_bag
