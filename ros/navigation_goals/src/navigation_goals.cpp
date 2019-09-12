@@ -156,6 +156,17 @@ Navigation::Navigation() {
   routes[3].heading[5] = 180;
   routes[3].length = 6;
 
+  //north quad clockwise loop
+  routes[4].waypoints[0] = 0; //office
+  routes[4].heading[0] = 0;
+  routes[4].waypoints[1] = 4; //Kurfess
+  routes[4].heading[1] = 270;
+  routes[4].waypoints[2] = 9; //outside north quad, west entrance
+  routes[4].heading[2] = 90;
+  routes[4].waypoints[3] = 4; //Kurfess
+  routes[4].heading[3] = 180;
+  routes[4].length = 4;
+
   current_route = 3;
 }
 

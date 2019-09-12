@@ -3,6 +3,7 @@
    <group ns="planner">
       <!-- <remap from="openni_points" to="/obstacles_cloud"/> -->
       <remap from="openni_points" to="/proj_obstacles"/>
+      <!-- <remap from="map" to="/rtabmap/grid_map"/> -->
       <remap from="map" to="/map"/>
       <remap from="move_base_simple/goal" to="/planner_goal"/>
         

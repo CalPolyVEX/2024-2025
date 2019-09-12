@@ -28,9 +28,6 @@ obstacle_layer:
         min_obstacle_height: .4
         max_obstacle_height: .45
         
-        #min_obstacle_height: 0
-        #max_obstacle_height: .1
-
 inflation_layer:
     enabled:              true
     cost_scaling_factor:  3.8  # exponential rate at which the obstacle cost drops off (default: 10)

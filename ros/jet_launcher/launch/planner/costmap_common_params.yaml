@@ -8,7 +8,7 @@ transform_tolerance: 1
 #cost_scaling_factor: 2.5
 
 controller_patience: 4.0
-controller_frequency: 15
+controller_frequency: 20
 
 planner_patience: 4.0
 planner_frequency: .1

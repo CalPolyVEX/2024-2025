@@ -34,8 +34,7 @@
     <arg name="sim"                       default="false" />
     <group if="$(arg sim)">
         <param name="/use_sim_time" value="true" />
-        <include file="$(find image_test)/launch/tf_publisher.launch" /> 
-        <!--<include file="$(find jet_launcher)/launch/robot_localization.launch" />  -->
+        <!-- <include file="$(find image_test)/launch/tf_publisher.launch" /> --> 
     </group>
 
     <!-- RTAB-map Node-->
