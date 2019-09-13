@@ -35,9 +35,10 @@ git pull origin master
 git clone https://github.com/ros-perception/image_transport_plugins.git
 git clone https://github.com/ros-perception/vision_opencv.git
 git clone https://github.com/ros-drivers/video_stream_opencv.git
-git clone https://github.com/IntelRealSense/realsense-ros.git
+#git clone https://github.com/IntelRealSense/realsense-ros.git
 git clone https://github.com/introlab/rtabmap_ros.git
 git clone https://github.com/stereolabs/zed-ros-wrapper.git
+git clone https://github.com/ros-drivers/libuvc_ros.git
 
 #install dependencies
 sudo apt install python-pygame gfortran libogg-dev libtheora-dev

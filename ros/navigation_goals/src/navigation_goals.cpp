@@ -67,7 +67,7 @@ Navigation::Navigation() {
   goals[3].id = 1315;  
 
   goals[4].x = 3.96606;   //x of id#198 (Kurfess office)
-  goals[4].y = -0.135708; //y of id#198
+  goals[4].y = .321492; //y of id#198
   goals[4].id = 198;  
 
   goals[5].x = 4.531087;   //x of id#1315 (outside north quad, east entrance)
@@ -86,7 +86,7 @@ Navigation::Navigation() {
   goals[8].y = -6.37767; //y of id#1529
   goals[8].id = 1529;  
 
-  goals[9].x = 4.30702;  //x of id#1151 (outside north quad, west entrance)
+  goals[9].x = 3.84982;  //x of id#1151 (outside north quad, west entrance)
   goals[9].y = 6.40079; //y of id#1151
   goals[9].id = 1151;  
 
@@ -96,15 +96,17 @@ Navigation::Navigation() {
   routes[0].heading[0] = 0;
   routes[0].waypoints[1] = 4; //Kurfess
   routes[0].heading[1] = 270;
-  routes[0].waypoints[2] = 1; //men's bathroom
-  routes[0].heading[2] = 90;
-  routes[0].waypoints[3] = 2; //women's bathroom
-  routes[0].heading[3] = 180;
-  routes[0].waypoints[4] = 5; //outside north quad, east entrance
-  routes[0].heading[4] = 270;
-  routes[0].waypoints[5] = 8; //Ventura
-  routes[0].heading[5] = 180;
-  routes[0].length = 6;
+  routes[0].waypoints[2] = 9; //outside north quad, west entrance
+  routes[0].heading[2] = 0;
+  routes[0].waypoints[3] = 1; //men's bathroom
+  routes[0].heading[3] = 90;
+  routes[0].waypoints[4] = 2; //women's bathroom
+  routes[0].heading[4] = 180;
+  routes[0].waypoints[5] = 5; //outside north quad, east entrance
+  routes[0].heading[5] = 270;
+  routes[0].waypoints[6] = 8; //Ventura
+  routes[0].heading[6] = 180;
+  routes[0].length = 7;
 
   //north quad counterclockwise loop
   routes[1].waypoints[0] = 0; //office
@@ -160,7 +162,7 @@ Navigation::Navigation() {
   routes[4].heading[3] = 180;
   routes[4].length = 4;
 
-  current_route = 3;
+  current_route = 0;
 }
 
 void Navigation::set_heading(int degrees, double* w, double* x, double* y, double* z) {
