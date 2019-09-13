@@ -31,8 +31,9 @@ class Navigation {
   MoveBaseClient* ac;
   struct goal goals[40]; //database of all the goals
   struct route routes[10];
-  int goal_counter = 0;
+  int cur_goal_in_route = 0; //the current goal index in the route
   int current_route;
+  int current_goal_index;
 
   public:
     Navigation();
@@ -41,13 +42,12 @@ class Navigation {
     void set_action_client(MoveBaseClient* a);
     void run_loop();
     void set_heading(int degrees, double* w, double* x, double* y, double* z);
+    double get_distance_from_goal();
+    void fill_goal_info(move_base_msgs::MoveBaseGoal *goal, int goal_index, int heading);
 };
 
 Navigation::Navigation() {
-  //tell the action client that we want to spin a thread by default
-  /* MoveBaseClient ac("move_base", true); */
-  //ac = MoveBaseClient("planner/move_base", true);
-
+  //the /autonomous topic send a message if a goal is requested
   goal_sub = nh->subscribe("/autonomous",1,&Navigation::send_goal_callback,this); 
 
   goals[0].x = .5;       //x of id#1 (Seng office)
@@ -66,8 +66,8 @@ Navigation::Navigation() {
   goals[3].y = -13.27466; //y of id#1315
   goals[3].id = 1315;  
 
-  goals[4].x = 3.86606;   //x of id#198 (Kurfess office)
-  goals[4].y = -0.235708; //y of id#198
+  goals[4].x = 3.96606;   //x of id#198 (Kurfess office)
+  goals[4].y = -0.135708; //y of id#198
   goals[4].id = 198;  
 
   goals[5].x = 4.531087;   //x of id#1315 (outside north quad, east entrance)
@@ -90,7 +90,8 @@ Navigation::Navigation() {
   goals[9].y = 6.40079; //y of id#1151
   goals[9].id = 1151;  
 
-  //north quad clockwise loop
+  //north quad clockwise loop 
+  //heading (clockwise convention): 0=north, 90=east, 180=south, 270=west
   routes[0].waypoints[0] = 0; //office
   routes[0].heading[0] = 0;
   routes[0].waypoints[1] = 4; //Kurfess
@@ -120,14 +121,6 @@ Navigation::Navigation() {
   routes[1].heading[5] = 90;
   routes[1].length = 6;
 
-  /* routes[0].waypoints[0] = 0; //office */
-  /* routes[0].heading[0] = 0; */
-  /* routes[0].waypoints[1] = 1; //men's bathroom */
-  /* routes[0].heading[1] = 90; */
-  /* routes[0].waypoints[2] = 2; //women's bathroom */
-  /* routes[0].heading[2] = 180; */
-  /* routes[0].length = 3; */
-
   //south quad counterclockwise loop
   routes[2].waypoints[0] = 0; //office
   routes[2].heading[0] = 0;
@@ -141,7 +134,7 @@ Navigation::Navigation() {
   routes[2].heading[4] = 90;
   routes[2].length = 5;
 
-  //south quad clockwise loop
+  //testing: south quad clockwise loop
   routes[3].waypoints[0] = 0; //office
   routes[3].heading[0] = 0;
   routes[3].waypoints[1] = 8; //Ventura
@@ -156,7 +149,7 @@ Navigation::Navigation() {
   routes[3].heading[5] = 180;
   routes[3].length = 6;
 
-  //north quad clockwise loop
+  //testing:  north quad clockwise loop
   routes[4].waypoints[0] = 0; //office
   routes[4].heading[0] = 0;
   routes[4].waypoints[1] = 4; //Kurfess
@@ -206,67 +199,35 @@ void Navigation::set_action_client(MoveBaseClient* a) {
 }
 
 void Navigation::run_loop() {
+  int goal_index, goal_heading;
   tf2_ros::Buffer tfBuffer;
   tf2_ros::TransformListener tfListener(tfBuffer);
 
   ros::Rate rate(10.0);
 
   //send first goal
-  goal_counter = 0;
+  cur_goal_in_route = 0;
+  goal_index = routes[current_route].waypoints[0];
+  goal_heading = routes[current_route].heading[0];
   move_base_msgs::MoveBaseGoal goal;
 
-  goal.target_pose.header.frame_id = "map";
-  goal.target_pose.header.stamp = ros::Time::now();
-
-  goal.target_pose.pose.position.x = goals[routes[current_route].waypoints[goal_counter]].x;
-  goal.target_pose.pose.position.y = goals[routes[current_route].waypoints[goal_counter]].y;
-  goal.target_pose.pose.position.z = 0;
-
-  set_heading(routes[current_route].heading[goal_counter],
-    &(goal.target_pose.pose.orientation.w),
-    &(goal.target_pose.pose.orientation.x),
-    &(goal.target_pose.pose.orientation.y),
-    &(goal.target_pose.pose.orientation.z)
-    );
+  fill_goal_info(&goal, goal_index, goal_heading);
 
   ROS_INFO("Sending goal");
   ac->sendGoal(goal);
 
   while (nh->ok()){
-    geometry_msgs::TransformStamped transformStamped;
-    try{
-      transformStamped = tfBuffer.lookupTransform("map", "base_link", ros::Time(0));
-    }
-    catch (tf2::TransformException &ex) {
-      ROS_WARN("%s",ex.what());
-      ros::Duration(1.0).sleep();
-      continue;
-    }
-
-    double x_disp = transformStamped.transform.translation.x;
-    double y_disp = transformStamped.transform.translation.y;
-
-    double x_dest = goals[goal_counter].x;
-    double y_dest = goals[goal_counter].y;
-
-    double dist = pow((pow(x_dest - x_disp, 2) + pow(y_dest - y_disp, 2)), .5);
+    double dist = get_distance_from_goal();
 
     if (dist < 3.0) {
-      goal_counter = (goal_counter + 1) % 4;
+      cur_goal_in_route = (cur_goal_in_route + 1) % 4;
 
       //send goal
+      goal_index = routes[current_route].waypoints[cur_goal_in_route];
+      goal_heading = routes[current_route].heading[cur_goal_in_route];
       move_base_msgs::MoveBaseGoal goal;
 
-      goal.target_pose.header.frame_id = "map";
-      goal.target_pose.header.stamp = ros::Time::now();
-
-      goal.target_pose.pose.position.x = goals[goal_counter].x;
-      goal.target_pose.pose.position.y = goals[goal_counter].y;
-      goal.target_pose.pose.position.z = 0;
-      goal.target_pose.pose.orientation.w = 1.0;
-      goal.target_pose.pose.orientation.x = 0;
-      goal.target_pose.pose.orientation.y = 0;
-      goal.target_pose.pose.orientation.z = 0;
+      fill_goal_info(&goal, goal_index, goal_heading);
 
       ROS_INFO("Sending goal");
       ac->sendGoal(goal);
@@ -276,6 +237,47 @@ void Navigation::run_loop() {
   }
 }
 
+//return the distance from the current position to the goal
+void Navigation::fill_goal_info(move_base_msgs::MoveBaseGoal *goal, int goal_index, int heading) {
+  goal->target_pose.header.frame_id = "map";
+  goal->target_pose.header.stamp = ros::Time::now();
+
+  goal->target_pose.pose.position.x = goals[goal_index].x;
+  goal->target_pose.pose.position.y = goals[goal_index].y;
+  goal->target_pose.pose.position.z = 0;
+
+  set_heading(heading,
+      &(goal->target_pose.pose.orientation.w),
+      &(goal->target_pose.pose.orientation.x),
+      &(goal->target_pose.pose.orientation.y),
+      &(goal->target_pose.pose.orientation.z)
+      );
+}
+
+//return the distance from the current position to the goal
+double Navigation::get_distance_from_goal() {
+  tf2_ros::Buffer tfBuffer;
+  tf2_ros::TransformListener tfListener(tfBuffer);
+
+  geometry_msgs::TransformStamped transformStamped;
+  try{
+    transformStamped = tfBuffer.lookupTransform("map", "base_link", ros::Time(0));
+  }
+  catch (tf2::TransformException &ex) {
+    ROS_WARN("%s",ex.what());
+    return -1;  //if error, return -1
+  }
+
+  double x_disp = transformStamped.transform.translation.x;
+  double y_disp = transformStamped.transform.translation.y;
+
+  double x_dest = goals[current_goal_index].x;
+  double y_dest = goals[current_goal_index].y;
+
+  double dist = pow((pow(x_dest - x_disp, 2) + pow(y_dest - y_disp, 2)), .5);
+  return dist;
+}
+
 void Navigation::send_goal_callback(const std_msgs::Int8::ConstPtr& mesg) {
   if (mesg->data == 1) { //received new navigation goal
     move_base_msgs::MoveBaseGoal goal;
@@ -283,11 +285,12 @@ void Navigation::send_goal_callback(const std_msgs::Int8::ConstPtr& mesg) {
     goal.target_pose.header.frame_id = "map";
     goal.target_pose.header.stamp = ros::Time::now();
 
-    goal.target_pose.pose.position.x = goals[routes[current_route].waypoints[goal_counter]].x;
-    goal.target_pose.pose.position.y = goals[routes[current_route].waypoints[goal_counter]].y;
+    current_goal_index = routes[current_route].waypoints[cur_goal_in_route];
+    goal.target_pose.pose.position.x = goals[current_goal_index].x;
+    goal.target_pose.pose.position.y = goals[current_goal_index].y;
     goal.target_pose.pose.position.z = 0;
 
-    set_heading(routes[current_route].heading[goal_counter],
+    set_heading(routes[current_route].heading[cur_goal_in_route],
       &(goal.target_pose.pose.orientation.w),
       &(goal.target_pose.pose.orientation.x),
       &(goal.target_pose.pose.orientation.y),
@@ -300,10 +303,10 @@ void Navigation::send_goal_callback(const std_msgs::Int8::ConstPtr& mesg) {
     ac->waitForResult();
 
     if(ac->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
-      ROS_INFO("Hooray, the base moved 1 meter forward");
-      goal_counter = (goal_counter + 1) % routes[current_route].length;
+      ROS_INFO("Hooray, reached goal");
+      cur_goal_in_route = (cur_goal_in_route + 1) % routes[current_route].length;
     } else {
-      ROS_INFO("The base failed to move forward 1 meter for some reason");
+      ROS_INFO("The base failed to reach goal");
     }
   } else if (mesg->data == 2) {
     //cancel all goals

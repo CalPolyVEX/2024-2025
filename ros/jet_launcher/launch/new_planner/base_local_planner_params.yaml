@@ -5,24 +5,24 @@ TrajectoryPlannerROS:
     acc_lim_y:  0.0
     acc_lim_theta: 10.00
     max_vel_x:  0.44
-    min_vel_x:  0.13
+    min_vel_x:  0.16
     max_vel_y:  0.0
     max_rotational_vel: 1.0
     min_in_place_vel_theta: 0.96
     escape_vel: -0.15
     holonomic_robot: false
 
-    sim_time: 1.6
+    sim_time: 1.2
     sim_granularity: 0.025
     vx_samples: 10
     vtheta_samples: 20
 
-    xy_goal_tolerance:  0.11
-    yaw_goal_tolerance: 0.05
+    xy_goal_tolerance:  0.1
+    yaw_goal_tolerance: 0.1
     latch_xy_goal_tolerance: true
 
-    goal_distance_bias: 0.8
-    path_distance_bias: 0.6
+    gdist_scale: 0.8
+    pdist_scale: 0.6
     occdist_scale: 0.01
     heading_lookahead: 0.325
     dwa: true
@@ -40,7 +40,7 @@ TrajectoryPlannerROS:
     ]
 
     conservative_clear: 
-        reset_distance: .20
+        reset_distance: .40
     aggressive_clear:
         reset_distance: 1.84
         #reset_distance: .1

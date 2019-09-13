@@ -155,12 +155,18 @@ class ImageConverter {
     for (int u = 0; u < 48 ; u++) { //go through the 48 points
       float img_x = cur_x;
       float img_y = scan[u];
+      Mat measurement;
 
       double c_x,c_y;
       transform_point(img_x, img_y, &c_x, &c_y);
       float temp_x, temp_y;
       temp_x = -c_x;
       temp_y = c_y;
+
+      measurement = (Mat_<float>(1, 1) << c_y);
+
+      temp_y = (kf[u]->predict()).at<float>(0,0);
+      kf[u]->correct(measurement);
 
       // x,y,z
       memcpy (&points_msg.data[offset + 0], &temp_y, sizeof (float));
@@ -236,12 +242,12 @@ class ImageConverter {
 
       Mat_<float> measurement(1,1); measurement.setTo(Scalar(0));
 
-      /* KF[i].statePre.at<float>(0) = 0; */
-      /* setIdentity(kf[i].transitionMatrix); */
-      /* setIdentity(kf[i].measurementMatrix); */
-      /* setIdentity(kf[i].processNoiseCov, Scalar::all(1e-4)); */
-      /* setIdentity(kf[i].measurementNoiseCov, Scalar::all(10)); */
-      /* setIdentity(kf[i].errorCovPost, Scalar::all(.1)); */
+      kf[i]->statePre.at<float>(0) = 0;
+      setIdentity(kf[i]->transitionMatrix);
+      setIdentity(kf[i]->measurementMatrix);
+      setIdentity(kf[i]->processNoiseCov, Scalar::all(1e-4));
+      setIdentity(kf[i]->measurementNoiseCov, Scalar::all(.1));
+      setIdentity(kf[i]->errorCovPost, Scalar::all(1));
     }
 
     init_camera_transform();
