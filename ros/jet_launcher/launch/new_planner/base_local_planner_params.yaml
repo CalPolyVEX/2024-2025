@@ -4,12 +4,12 @@ TrajectoryPlannerROS:
     acc_lim_x:  10.00
     acc_lim_y:  0.0
     acc_lim_theta: 10.00
-    max_vel_x:  0.44
+    max_vel_x:  0.45
     min_vel_x:  0.16
     max_vel_y:  0.0
     max_rotational_vel: 1.0
     min_in_place_vel_theta: 0.96
-    escape_vel: -0.15
+    escape_vel: -0.17
     holonomic_robot: false
 
     sim_time: 1.2

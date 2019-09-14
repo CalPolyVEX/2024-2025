@@ -236,11 +236,11 @@ void OdometryPublisher::run_pid() {
   }
 
   //TODO: limit motor acceleration/deceleration
-  if (abs(cur_left_motor - last_left_motor_cmd) > 300) {
+  if (abs(cur_left_motor - last_left_motor_cmd) > 400) {
     cur_left_motor = cur_left_motor * .08 + last_left_motor_cmd * .92;
   }
 
-  if (abs(cur_right_motor - last_right_motor_cmd) > 300) {
+  if (abs(cur_right_motor - last_right_motor_cmd) > 400) {
     cur_right_motor = cur_right_motor * .08 + last_right_motor_cmd * .92;
   }
 

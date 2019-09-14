@@ -32,8 +32,6 @@ class ImageConverter {
   cv::Mat new_image;
   tensorflow::Tensor *input_tensor;
   float scan[48]; //index 0 is left, index 47 is right 
-  float obstacle_x[48]; //the x and y coordinates of the obstacles,
-  float obstacle_y[48]; //defined in the same coordinate system as ROS (x forward, y to left)
   KalmanFilter* kf[48];
   int scan_counter = 0;
   cv::Mat r_t_inv;
@@ -98,9 +96,9 @@ class ImageConverter {
       x = output_c(i);
       x = x * 270.0;
       measurement = (Mat_<float>(1, 1) << x);
-      scan[i] = x;
 
       x = (kf[i]->predict()).at<float>(0,0);
+      scan[i] = x;
       kf[i]->correct(measurement);
 
       if (1==1) {
@@ -161,18 +159,12 @@ class ImageConverter {
     for (int u = 0; u < 48 ; u++) { //go through the 48 points
       float img_x = cur_x;
       float img_y = scan[u];
-      Mat measurement;
 
       double c_x,c_y;
       transform_point(img_x, img_y, &c_x, &c_y);
       float temp_x, temp_y;
       temp_x = -c_x;
-
-      measurement = (Mat_<float>(1, 1) << c_y);
-
-      //temp_y = (kf[u]->predict()).at<float>(0,0);
-      //temp_y = c_y;
-      //kf[u]->correct(measurement);
+      temp_y = c_y;
 
       // x,y,z
       memcpy (&points_msg.data[offset + 0], &temp_y, sizeof (float));

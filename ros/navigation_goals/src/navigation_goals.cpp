@@ -7,6 +7,8 @@
 #include <tf2_ros/transform_listener.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <cmath>
+#include <boost/thread.hpp>
+#include <boost/chrono.hpp>
 
 using namespace std;
 
@@ -34,61 +36,56 @@ class Navigation {
   int cur_goal_in_route = 0; //the current goal index in the route
   int current_route;
   int current_goal_index;
+  int start_route = 0;
+  boost::mutex route_mutex;
+  boost::thread *workerThread;
 
   public:
     Navigation();
     void init_action_client();
     void send_goal_callback(const std_msgs::Int8::ConstPtr& mesg);
     void set_action_client(MoveBaseClient* a);
-    void run_loop();
     void set_heading(int degrees, double* w, double* x, double* y, double* z);
     double get_distance_from_goal();
     void fill_goal_info(move_base_msgs::MoveBaseGoal *goal, int goal_index, int heading);
+    void route_thread();
 };
 
 Navigation::Navigation() {
+  workerThread = new boost::thread(boost::bind(&Navigation::route_thread, this));
+
   //the /autonomous topic send a message if a goal is requested
   goal_sub = nh->subscribe("/autonomous",1,&Navigation::send_goal_callback,this); 
 
   goals[0].x = .5;       //x of id#1 (Seng office)
   goals[0].y = 0;        //y of id#1
-  goals[0].id = 1;       
 
   goals[1].x = 14.5542;  //x of id#65 (men's bathroom)
   goals[1].y = 6.03422;  //y of id#65
-  goals[1].id = 65;  
 
   goals[2].x = 15.2227;  //x of id#369 (women's bathroom)
   goals[2].y = -11.9279; //y of id#369
-  goals[2].id = 369;  
 
   goals[3].x = -12.203691; //x of id#1315 (outside south quad, east entrance)
   goals[3].y = -13.27466; //y of id#1315
-  goals[3].id = 1315;  
 
   goals[4].x = 3.96606;   //x of id#198 (Kurfess office)
   goals[4].y = .321492; //y of id#198
-  goals[4].id = 198;  
 
   goals[5].x = 4.531087;   //x of id#1315 (outside north quad, east entrance)
   goals[5].y = -12.982945; //y of id#1315
-  goals[5].id = 1041;  
 
   goals[6].x = -13.6928; //x of id#1714 (outside south quad, west entrance)
   goals[6].y = 5.05869;  //y of id#1714
-  goals[6].id = 1714;  
 
   goals[7].x = -14.6241; //x of id#855 (Phil's office)
   goals[7].y = -1.31144; //y of id#855
-  goals[7].id = 855;  
   
   goals[8].x = 4.17692;  //x of id#1529 (Ventura's office)
   goals[8].y = -6.37767; //y of id#1529
-  goals[8].id = 1529;  
 
   goals[9].x = 3.84982;  //x of id#1151 (outside north quad, west entrance)
   goals[9].y = 6.40079; //y of id#1151
-  goals[9].id = 1151;  
 
   //north quad clockwise loop 
   //heading (clockwise convention): 0=north, 90=east, 180=south, 270=west
@@ -121,7 +118,9 @@ Navigation::Navigation() {
   routes[1].heading[4] = 180;
   routes[1].waypoints[5] = 9; //outside north quad, west entrance
   routes[1].heading[5] = 90;
-  routes[1].length = 6;
+  routes[1].waypoints[6] = 4; //Kurfess
+  routes[1].heading[6] = 180;
+  routes[1].length = 7;
 
   //south quad counterclockwise loop
   routes[2].waypoints[0] = 0; //office
@@ -130,11 +129,15 @@ Navigation::Navigation() {
   routes[2].heading[1] = 270;
   routes[2].waypoints[2] = 9; //north quad, outside west
   routes[2].heading[2] = 180;
-  routes[2].waypoints[3] = 6; //south quad, outside wes
+  routes[2].waypoints[3] = 6; //south quad, outside west
   routes[2].heading[3] = 90;
-  routes[2].waypoints[4] = 9; //north quad, outside west
-  routes[2].heading[4] = 90;
-  routes[2].length = 5;
+  routes[2].waypoints[4] = 3; //south quad, outside east
+  routes[2].heading[4] = 0;
+  routes[2].waypoints[5] = 5; //outside north quad, east entrance
+  routes[2].heading[5] = 270;
+  routes[2].waypoints[6] = 8; //Ventura
+  routes[2].heading[6] = 0;
+  routes[2].length = 7;
 
   //testing: south quad clockwise loop
   routes[3].waypoints[0] = 0; //office
@@ -145,11 +148,13 @@ Navigation::Navigation() {
   routes[3].heading[2] = 180;
   routes[3].waypoints[3] = 3; //outside south quad, east entrance
   routes[3].heading[3] = 270;
-  routes[3].waypoints[4] = 5; //outside north quad, east entrance
-  routes[3].heading[4] = 270;
-  routes[3].waypoints[5] = 8; //Ventura
-  routes[3].heading[5] = 180;
-  routes[3].length = 6;
+  routes[3].waypoints[4] = 6; //south quad, outside west
+  routes[3].heading[4] = 0;
+  routes[3].waypoints[5] = 9; //outside north quad, west entrance
+  routes[3].heading[5] = 90;
+  routes[3].waypoints[6] = 4; //Kurfess
+  routes[3].heading[6] = 180;
+  routes[3].length = 7;
 
   //testing:  north quad clockwise loop
   routes[4].waypoints[0] = 0; //office
@@ -157,12 +162,59 @@ Navigation::Navigation() {
   routes[4].waypoints[1] = 4; //Kurfess
   routes[4].heading[1] = 270;
   routes[4].waypoints[2] = 9; //outside north quad, west entrance
-  routes[4].heading[2] = 90;
-  routes[4].waypoints[3] = 4; //Kurfess
-  routes[4].heading[3] = 180;
-  routes[4].length = 4;
+  routes[4].heading[2] = 180;
+  routes[4].waypoints[3] = 6; //south quad, outside west
+  routes[4].heading[3] = 90;
+  routes[4].waypoints[4] = 9; //outside north quad, west entrance
+  routes[4].heading[4] = 90;
+  routes[4].waypoints[5] = 4; //Kurfess
+  routes[4].heading[5] = 180;
+  routes[4].length = 6;
 
-  current_route = 0;
+  current_route = 4;
+}
+
+void Navigation::route_thread() {
+  int begin = 0;
+
+  while(ros::ok()) {
+    route_mutex.lock();
+    if (start_route == 1) {
+      begin = 1;
+      start_route = 0;
+    }
+    route_mutex.unlock();
+
+    if (begin == 1) {
+      //start sending goals
+      int goal_index, goal_heading;
+      cur_goal_in_route = 0;
+
+      while (cur_goal_in_route < routes[current_route].length) {
+        goal_index = routes[current_route].waypoints[cur_goal_in_route];
+        goal_heading = routes[current_route].heading[cur_goal_in_route];
+        move_base_msgs::MoveBaseGoal goal;
+
+        fill_goal_info(&goal, goal_index, goal_heading);
+
+        ROS_INFO("Sending goal");
+        ac->sendGoal(goal);
+        ac->waitForResult();
+
+        if(ac->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
+          ROS_INFO("Hooray, reached goal");
+          cur_goal_in_route++;
+        } else {
+          ROS_INFO("The base failed to reach goal");
+        }
+      }
+    }
+
+    begin = 0;
+    
+    /* ROS_INFO("test"); */
+    boost::this_thread::sleep_for(boost::chrono::milliseconds(500));
+  }
 }
 
 void Navigation::set_heading(int degrees, double* w, double* x, double* y, double* z) {
@@ -198,45 +250,6 @@ void Navigation::init_action_client() {
 
 void Navigation::set_action_client(MoveBaseClient* a) {
   ac = a;
-}
-
-void Navigation::run_loop() {
-  int goal_index, goal_heading;
-  tf2_ros::Buffer tfBuffer;
-  tf2_ros::TransformListener tfListener(tfBuffer);
-
-  ros::Rate rate(10.0);
-
-  //send first goal
-  cur_goal_in_route = 0;
-  goal_index = routes[current_route].waypoints[0];
-  goal_heading = routes[current_route].heading[0];
-  move_base_msgs::MoveBaseGoal goal;
-
-  fill_goal_info(&goal, goal_index, goal_heading);
-
-  ROS_INFO("Sending goal");
-  ac->sendGoal(goal);
-
-  while (nh->ok()){
-    double dist = get_distance_from_goal();
-
-    if (dist < 3.0) {
-      cur_goal_in_route = (cur_goal_in_route + 1) % 4;
-
-      //send goal
-      goal_index = routes[current_route].waypoints[cur_goal_in_route];
-      goal_heading = routes[current_route].heading[cur_goal_in_route];
-      move_base_msgs::MoveBaseGoal goal;
-
-      fill_goal_info(&goal, goal_index, goal_heading);
-
-      ROS_INFO("Sending goal");
-      ac->sendGoal(goal);
-    }
-
-    rate.sleep();
-  }
 }
 
 //return the distance from the current position to the goal
@@ -281,6 +294,12 @@ double Navigation::get_distance_from_goal() {
 }
 
 void Navigation::send_goal_callback(const std_msgs::Int8::ConstPtr& mesg) {
+  route_mutex.lock();
+  start_route = 1;
+  route_mutex.unlock();
+  return;
+
+
   if (mesg->data == 1) { //received new navigation goal
     move_base_msgs::MoveBaseGoal goal;
 
