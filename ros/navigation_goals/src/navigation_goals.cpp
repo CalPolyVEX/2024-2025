@@ -25,6 +25,7 @@ struct goal {
 struct route {
   int waypoints[20];
   int heading[20];
+  int pause[20]; //the amount of time to pause at that location (default is 0)
   int length;
 };
 
@@ -60,22 +61,22 @@ Navigation::Navigation() {
   goals[0].x = .5;       //x of id#1 (Seng office)
   goals[0].y = 0;        //y of id#1
 
-  goals[1].x = 14.5542;  //x of id#65 (men's bathroom)
+  goals[1].x = 14.4542;  //x of id#65 (men's bathroom)
   goals[1].y = 6.03422;  //y of id#65
 
   goals[2].x = 15.2227;  //x of id#369 (women's bathroom)
   goals[2].y = -11.9279; //y of id#369
 
-  goals[3].x = -12.203691; //x of id#1315 (outside south quad, east entrance)
+  goals[3].x = -12.303691; //x of id#1315 (outside south quad, east entrance)
   goals[3].y = -13.27466; //y of id#1315
 
   goals[4].x = 3.96606;   //x of id#198 (Kurfess office)
   goals[4].y = .321492; //y of id#198
 
-  goals[5].x = 4.531087;   //x of id#1315 (outside north quad, east entrance)
+  goals[5].x = 4.731087;   //x of id#1315 (outside north quad, east entrance)
   goals[5].y = -12.982945; //y of id#1315
 
-  goals[6].x = -13.6928; //x of id#1714 (outside south quad, west entrance)
+  goals[6].x = -13.3928; //x of id#1714 (outside south quad, west entrance)
   goals[6].y = 5.05869;  //y of id#1714
 
   goals[7].x = -14.6241; //x of id#855 (Phil's office)
@@ -86,6 +87,12 @@ Navigation::Navigation() {
 
   goals[9].x = 3.84982;  //x of id#1151 (outside north quad, west entrance)
   goals[9].y = 6.40079; //y of id#1151
+
+  for(int i=0;i<10;i++) { //max 10 routes
+    for(int j=0;j<20;j++) { //max 10 waypoints per route
+      routes[i].pause[j] = 0;
+    }
+  }
 
   //north quad clockwise loop 
   //heading (clockwise convention): 0=north, 90=east, 180=south, 270=west
@@ -164,24 +171,26 @@ Navigation::Navigation() {
   routes[4].waypoints[2] = 9; //outside north quad, west entrance
   routes[4].heading[2] = 180;
   routes[4].waypoints[3] = 6; //south quad, outside west
-  routes[4].heading[3] = 90;
+  routes[4].heading[3] = 0;
   routes[4].waypoints[4] = 9; //outside north quad, west entrance
   routes[4].heading[4] = 90;
   routes[4].waypoints[5] = 4; //Kurfess
   routes[4].heading[5] = 180;
   routes[4].length = 6;
 
-  current_route = 4;
+  current_route = 0;
 }
 
 void Navigation::route_thread() {
   int begin = 0;
+  int loop_complete = 0;
 
   while(ros::ok()) {
     route_mutex.lock();
     if (start_route == 1) {
       begin = 1;
       start_route = 0;
+      loop_complete = 0;
     }
     route_mutex.unlock();
 
@@ -203,7 +212,17 @@ void Navigation::route_thread() {
 
         if(ac->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
           ROS_INFO("Hooray, reached goal");
-          cur_goal_in_route++;
+
+          if (loop_complete == 1) { //if just completed a loop, then break
+            loop_complete = 0;
+            break;
+          }
+
+          cur_goal_in_route = (cur_goal_in_route + 1) % routes[current_route].length;
+
+          if (cur_goal_in_route == 0) {
+            loop_complete = 1;  //just complete a loop through the waypoints
+          }
         } else {
           ROS_INFO("The base failed to reach goal");
         }

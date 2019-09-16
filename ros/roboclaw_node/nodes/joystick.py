@@ -57,7 +57,6 @@ class JoystickNode:
             l.close()
             button1 = 1
 
-
    def record_bag(self):
       l = Lcd()
       l.init_serial_port()
@@ -70,8 +69,6 @@ class JoystickNode:
          /roboclaw_twist /encoder_service /cmd_vel \
          __name:=my_bag_recorder"
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
-      #rosbag record -o /file/name /topic __name:=my_bag
-      #rosnode kill /my_bag_recorder
 
    def record_bag_debugging(self):
       l = Lcd()
@@ -87,8 +84,6 @@ class JoystickNode:
          /autonomous /map \
          __name:=my_bag_recorder"
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
-      #rosbag record -o /file/name /topic __name:=my_bag
-      #rosnode kill /my_bag_recorder
 
    def record_bag_debugging_cnn(self):
       l = Lcd()
@@ -98,11 +93,11 @@ class JoystickNode:
       l.close()
       rec_topics = "rosbag record /image_converter/output_video /planner/move_base/status \
          /zed/data_throttled_image /zed/data_throttled_camera_info /laser_scan_filtered \
-         /tf /tf_static /ekf_node/odom /voxel_grid/output /obstacles_cloud \
+         /tf /tf_static /ekf_node/odom \
+         /planner/move_base/local_planner/local_costmap \
+         /planner/move_base/local_planner/local_costmap_updates /map \
          __name:=my_bag_recorder"
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
-      #rosbag record -o /file/name /topic __name:=my_bag
-      #rosnode kill /my_bag_recorder
 
    def stop_record_bag(self):
       l = Lcd()
@@ -111,8 +106,6 @@ class JoystickNode:
       l.print_string('Stop Recording.')
       l.close()
       proc1 = subprocess.Popen('cd /mnt/temp;rosnode kill /my_bag_recorder', shell=True)
-      #rosbag record -o /file/name /topic __name:=my_bag
-      #rosnode kill /my_bag_recorder
 
    def toggle_led(self):
       proc = subprocess.Popen('rosservice call /zed_node/toggle_led', shell=True)
@@ -213,7 +206,7 @@ class JoystickNode:
                   for x in topics:
                      if "voxel_grid" in x[0]:
                         planning_mode = 1
-                     if "see3cam_cu20" in x[0]:
+                     if "camera" in x[0]:
                         planning_mode = 2
 
                   if planning_mode == 1:

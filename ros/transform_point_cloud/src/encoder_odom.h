@@ -49,11 +49,12 @@ class OdometryPublisher {
   double cur_x=0, cur_y=0, cur_theta=0;
   int desired_vl=0, desired_vr=0; //desired wheel velocities
   int cur_left_motor=0, cur_right_motor=0; //current motor command
-  int update_encoders=1, stop=1, planner=0;
+  int update_encoders=1, stop=0, planner=0;
   int loop_closure = 0, proximity = 0;
   double left_integral[INTEGRAL_ARRAY_SIZE];
   double right_integral[INTEGRAL_ARRAY_SIZE];
   int debug_odometry = 0;
+  int current_counter = 0;
 
   public:
     OdometryPublisher(); 
@@ -63,7 +64,7 @@ class OdometryPublisher {
     void planner_cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
     void rtabmap_info_callback(const rtabmap_ros::Info::ConstPtr& info);
     void stop_toggle_callback(const std_msgs::Empty::ConstPtr&);
-    void run(const ros::TimerEvent& ev);
+    void safety_callback(const ros::TimerEvent& ev);
 
     //motor control and odometry functions
     void run_pid();

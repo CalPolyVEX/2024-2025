@@ -70,7 +70,7 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   nh->param<double>("max_abs_angular_speed1", MAX_ABS_ANGULAR_SPEED, 2.0);
   nh->param<double>("ticks_per_meter1", TICKS_PER_METER, 6800);
   //nh->param<double>("base_width1", BASE_WIDTH, 0.371475);
-  nh->param<double>("base_width1", BASE_WIDTH, 0.363537);
+  nh->param<double>("base_width1", BASE_WIDTH, .346075);
   nh->param<double>("acc_lim1", ACC_LIM, 0.1);
 
   if (address > 0x87 || address < 0x80) {
@@ -87,24 +87,6 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
     ROS_FATAL("Could not connect to Roboclaw");
   }
   
-  /* self.updater = diagnostic_updater.Updater() */
-  /* self.updater.setHardwareID("Roboclaw") */
-  /* self.updater.add(diagnostic_updater. */
-  /*              FunctionDiagnosticTask("Vitals", self.check_vitals)) */
-
-  /* try: */
-  /* version = roboclaw.ReadVersion(self.address) */
-  /* except Exception as e: */
-  /* rospy.logwarn("Problem getting roboclaw version") */
-  /* rospy.logdebug(e) */
-  /* pass */
-
-  /* if not version[0]: */
-  /* rospy.logwarn("Could not get version from roboclaw") */
-  /* else: */
-  /* rospy.logdebug(repr(version[1])) */
-
-  //read_version();
   setmotor_mutex.lock();
   setmotor(0,0); //set motors to stop
   cur_left_motor=0;
@@ -156,15 +138,16 @@ void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
   my_serial->write(data,8);
 }
 
-void OdometryPublisher::run(const ros::TimerEvent& ev) {
+void OdometryPublisher::safety_callback(const ros::TimerEvent& ev) {
   unsigned short voltage;
+  unsigned short left_current, right_current;
   ros::Time last_set_speed_time2;
 
   last_set_speed_time_mutex.lock();
   last_set_speed_time2 = last_set_speed_time;
   last_set_speed_time_mutex.unlock();
 
-  if ((ros::Time::now() - last_set_speed_time2).toSec() > 10.0) {
+  if ((ros::Time::now() - last_set_speed_time2).toSec() > 3.0) {
     ROS_INFO("Did not get command for 1 second, stopping");
 
     //reset the integral term for the PID controller
@@ -196,7 +179,31 @@ void OdometryPublisher::run(const ros::TimerEvent& ev) {
     right_tick_vel = 0;
   }
 
-  read_voltage(&voltage);
+  //check for overcurrent situation with motors
+  setmotor_mutex.lock();
+  read_motor_currents(&left_current, &right_current);
+  setmotor_mutex.unlock();
+  left_current *= 10; //convert the current values to mA
+  right_current *= 10;
+  ROS_INFO("Motor current: %d %d", left_current, right_current);
+
+  if ((left_current > 3000) || (right_current > 3000)) { //3000mA
+    current_counter++;
+  } else {
+    current_counter = 0;
+  }
+
+  if (current_counter > 1) {
+    //overcurrent for motors
+    //stop = 1;
+    ROS_INFO("Overcurrent for motors");
+  }
+
+  //check for stalled motors
+
+  //check for tilted robot
+
+  //read_voltage(&voltage);
   //ROS_INFO("Voltage: %f", (float) voltage / 10.0);
 }
 
@@ -255,27 +262,15 @@ int main(int argc, char** argv) {
   OdometryPublisher odom_pub;
   //ros::AsyncSpinner s(4); //use 4 threads;
 
-
   //since the diagnostics callback is part of the odom_pub object, 
   //bind the callback using boost:bind and boost:function
   boost::function<void(const ros::TimerEvent&)> diag_callback;
-  diag_callback=boost::bind(&OdometryPublisher::run,&odom_pub,_1);
+  diag_callback=boost::bind(&OdometryPublisher::safety_callback,&odom_pub,_1);
 
   ROS_INFO("Starting motor drive");
   //run diagnostics function at 5Hz (.2 seconds)
-  ros::Timer diag_timer = nh->createTimer(ros::Duration(1.5), diag_callback);
+  ros::Timer diag_timer = nh->createTimer(ros::Duration(1.2), diag_callback);
 
-  //since the pid callback is part of the odom_pub object, 
-  //bind the callback using boost:bind and boost:function
-  //boost::function<void()> pid_callback;
-  //pid_callback=boost::bind(&OdometryPublisher::run_pid,&odom_pub);
-
-  //run pid function at 30Hz (.033 seconds)
-  //ros::Timer pid_timer = nh->createTimer(ros::Duration(.035), pid_callback);
-
-  //boost::thread testthread(pid_callback);
-
-  //s.start();
   ros::spin();
   ros::waitForShutdown();
 }

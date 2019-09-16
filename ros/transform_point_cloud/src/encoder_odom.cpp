@@ -235,7 +235,7 @@ void OdometryPublisher::run_pid() {
     ROS_INFO("left pid output: %d right pid output: %d", cur_left_motor, cur_right_motor);
   }
 
-  //TODO: limit motor acceleration/deceleration
+  //limit motor acceleration/deceleration
   if (abs(cur_left_motor - last_left_motor_cmd) > 400) {
     cur_left_motor = cur_left_motor * .08 + last_left_motor_cmd * .92;
   }
@@ -245,9 +245,15 @@ void OdometryPublisher::run_pid() {
   }
 
   //set the motor speeds
-  setmotor_mutex.lock();
-  setmotor(-cur_left_motor, -cur_right_motor);
-  setmotor_mutex.unlock();
+  /* if (stop == 0) { */
+    setmotor_mutex.lock();
+    setmotor(-cur_left_motor, -cur_right_motor);
+    setmotor_mutex.unlock();
+  /* } else { */
+  /*   setmotor_mutex.lock(); */
+  /*   setmotor(0,0); */
+  /*   setmotor_mutex.unlock(); */
+  /* } */
 }
 
 void OdometryPublisher::compute_pid(double left_desired, double left_actual, double right_desired, double right_actual) {
@@ -336,7 +342,6 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
     ROS_INFO("P: %f, I: %f, D: %f", pl_out, il_out, dl_out);
   }
 
-
   cur_left_motor = pl_out + il_out + dl_out;
   cur_right_motor = pr_out + ir_out + dr_out;
 
@@ -356,7 +361,7 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
 }
 
 void OdometryPublisher::stop_toggle_callback(const std_msgs::Empty::ConstPtr&) {
-  stop ^= 1;
+  //stop ^= 1;
   planner ^= 1;
 }
 
