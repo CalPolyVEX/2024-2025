@@ -76,13 +76,13 @@ class JoystickNode:
       l.clear_screen()
       l.print_string('Recording...')
       l.close()
-      rec_topics = "rosbag record /zed/data_throttled_image_depth \
+      rec_topics = "rosbag record \
          /zed/data_throttled_image /zed/data_throttled_camera_info /laser_scan_filtered \
          /tf /tf_static /ekf_node/odom /obstacles_cloud \
-         /planner/move_base/local_planner/local_costmap \
-         /planner/move_base/local_planner/local_costmap_updates \
-         /autonomous /map \
+         /passthrough/output \
          __name:=my_bag_recorder"
+         #/planner/move_base/local_planner/local_costmap \
+         #/planner/move_base/local_planner/local_costmap_updates /autonomous /map \
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
 
    def record_bag_debugging_cnn(self):
@@ -204,9 +204,9 @@ class JoystickNode:
                   print topics
                   planning_mode = 0
                   for x in topics:
-                     if "voxel_grid" in x[0]:
+                     if "passthrough" in x[0]:
                         planning_mode = 1
-                     if "camera" in x[0]:
+                     elif "output_video" in x[0]:
                         planning_mode = 2
 
                   if planning_mode == 1:

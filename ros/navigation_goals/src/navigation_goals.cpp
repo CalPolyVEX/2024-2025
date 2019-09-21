@@ -38,8 +38,11 @@ class Navigation {
   int current_route;
   int current_goal_index;
   int start_route = 0;
+  /* tf2_ros::Buffer tfBuffer; */
+  /* tf2_ros::TransformListener* tfListener; */
   boost::mutex route_mutex;
   boost::thread *workerThread;
+  boost::thread *check_thread;
 
   public:
     Navigation();
@@ -50,10 +53,14 @@ class Navigation {
     double get_distance_from_goal();
     void fill_goal_info(move_base_msgs::MoveBaseGoal *goal, int goal_index, int heading);
     void route_thread();
+    void check_distance_thread();
 };
 
+/* Navigation::Navigation() : tfListener(tfBuffer) { */
 Navigation::Navigation() {
+  /* tfListener = new tf2_ros::TransformListener(tfBuffer); */
   workerThread = new boost::thread(boost::bind(&Navigation::route_thread, this));
+  check_thread = new boost::thread(boost::bind(&Navigation::check_distance_thread, this));
 
   //the /autonomous topic send a message if a goal is requested
   goal_sub = nh->subscribe("/autonomous",1,&Navigation::send_goal_callback,this); 
@@ -89,7 +96,7 @@ Navigation::Navigation() {
   goals[9].y = 6.40079; //y of id#1151
 
   for(int i=0;i<10;i++) { //max 10 routes
-    for(int j=0;j<20;j++) { //max 10 waypoints per route
+    for(int j=0;j<20;j++) { //max 20 waypoints per route
       routes[i].pause[j] = 0;
     }
   }
@@ -143,10 +150,10 @@ Navigation::Navigation() {
   routes[2].waypoints[5] = 5; //outside north quad, east entrance
   routes[2].heading[5] = 270;
   routes[2].waypoints[6] = 8; //Ventura
-  routes[2].heading[6] = 0;
+  routes[2].heading[6] = 90;
   routes[2].length = 7;
 
-  //testing: south quad clockwise loop
+  //south quad clockwise loop
   routes[3].waypoints[0] = 0; //office
   routes[3].heading[0] = 0;
   routes[3].waypoints[1] = 8; //Ventura
@@ -163,7 +170,7 @@ Navigation::Navigation() {
   routes[3].heading[6] = 180;
   routes[3].length = 7;
 
-  //testing:  north quad clockwise loop
+  //north quad, west hallway loop
   routes[4].waypoints[0] = 0; //office
   routes[4].heading[0] = 0;
   routes[4].waypoints[1] = 4; //Kurfess
@@ -178,7 +185,45 @@ Navigation::Navigation() {
   routes[4].heading[5] = 180;
   routes[4].length = 6;
 
-  current_route = 0;
+  //long outside loop
+  routes[5].waypoints[0] = 0; //office
+  routes[5].heading[0] = 0;
+  routes[5].waypoints[1] = 4; //Kurfess
+  routes[5].heading[1] = 270;
+  routes[5].waypoints[2] = 9; //outside north quad, west entrance
+  routes[5].heading[2] = 180;
+  routes[5].waypoints[3] = 6; //south quad, outside west
+  routes[5].heading[3] = 0;
+  routes[5].waypoints[4] = 1; //men's bathroom
+  routes[5].heading[4] = 90;
+  routes[5].waypoints[5] = 2; //women's bathroom
+  routes[5].heading[5] = 180;
+  routes[5].waypoints[6] = 3; //outside south quad, east entrance
+  routes[5].heading[6] = 0;
+  routes[5].waypoints[7] = 5; //outside north quad, east entrance
+  routes[5].heading[7] = 270;
+  routes[5].waypoints[8] = 8; //Ventura
+  routes[5].heading[8] = 180;
+  routes[5].length = 9;
+
+  //testing:  north quad, east hallway loop
+  routes[6].waypoints[0] = 0; //office
+  routes[6].heading[0] = 0;
+  routes[6].waypoints[1] = 8; //Ventura
+  routes[6].heading[1] = 90;
+  routes[6].waypoints[2] = 5; //outside north quad, east entrance
+  routes[6].heading[2] = 0;
+  routes[6].waypoints[3] = 2; //women's bathroom
+  routes[6].heading[3] = 180;
+  routes[6].waypoints[4] = 3; //outside south quad, east entrance
+  routes[6].heading[4] = 0;
+  routes[6].waypoints[5] = 5; //outside north quad, east entrance
+  routes[6].heading[5] = 270;
+  routes[6].waypoints[6] = 8; //Ventura
+  routes[6].heading[6] = 180;
+  routes[6].length = 7;
+
+  current_route = 5;
 }
 
 void Navigation::route_thread() {
@@ -236,6 +281,28 @@ void Navigation::route_thread() {
   }
 }
 
+void Navigation::check_distance_thread() {
+  while(ros::ok()) {
+    if (get_distance_from_goal() > 2.0) {
+      int i = 0;
+      nh->getParam("/planner/move_base/TrajectoryPlannerROS/sim_time", i);
+      ROS_INFO("sim_time: %d", i);
+
+      /* std::string param_name; */
+      /* if (nh->searchParam("sim_time", param_name)) */
+      /* { */
+      /*   // Found parameter, can now query it using param_name */
+      /*   nh->getParam(param_name, i); */
+      /* } */
+    } else {
+
+    }
+
+    ROS_INFO("distance from goal: %f", get_distance_from_goal());
+    boost::this_thread::sleep_for(boost::chrono::milliseconds(2000));
+  }
+}
+
 void Navigation::set_heading(int degrees, double* w, double* x, double* y, double* z) {
   if (degrees == 0) {
     *w = 1;
@@ -271,7 +338,7 @@ void Navigation::set_action_client(MoveBaseClient* a) {
   ac = a;
 }
 
-//return the distance from the current position to the goal
+//fill in the goal with pose and heading
 void Navigation::fill_goal_info(move_base_msgs::MoveBaseGoal *goal, int goal_index, int heading) {
   goal->target_pose.header.frame_id = "map";
   goal->target_pose.header.stamp = ros::Time::now();
@@ -294,6 +361,7 @@ double Navigation::get_distance_from_goal() {
   tf2_ros::TransformListener tfListener(tfBuffer);
 
   geometry_msgs::TransformStamped transformStamped;
+
   try{
     transformStamped = tfBuffer.lookupTransform("map", "base_link", ros::Time(0));
   }
