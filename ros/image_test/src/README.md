@@ -20,6 +20,7 @@ Steps to compile tensorflow for use with ROS:
  * install protobuf 3.6.0
    * git clone https://github.com/protocolbuffers/protobuf.git
    * cd protobuf
+   * git checkout v3.6.0
    * git submodule update --init --recursive
    * ./autogen.sh
  * create a symbolic link in the include directory to the protobuf include directory
