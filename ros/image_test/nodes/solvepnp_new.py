@@ -1,5 +1,8 @@
 #!/usr/bin/python
 
+#this file computes the matrix to transform coordinates in the image plane
+#to coordinates in 3-d space
+
 #max resolution: 740x415
 #(18,45) = (527,339)
 #(27, 27) = (673,409)
@@ -11,6 +14,10 @@ import cv2, numpy as np, sys
 
 class camera_transform:
    def __init__(self):
+      #The objectpoints array has the coordinates that are measured on the ground (inches)
+      #
+      #The order of the points is X,Y,Z where +X is towards the right of the robot
+      #+Y is down and +Z is towards the front of the robot
       self.objectPoints = np.array([
         [9,  0,  18],
         [18, 0,  18],
@@ -25,6 +32,9 @@ class camera_transform:
                         dtype=np.float32)
       self.objectPoints = .0254*self.objectPoints #convert to meters
 
+      #The imagepoints array has the coordinates of the corresponding points as they
+      #appear in the image.  The order of the points is col,row where the origin is 
+      #the upper left 
       self.imagePoints = np.array([
         [624,476],
         [765,461],
@@ -44,7 +54,7 @@ class camera_transform:
                               [0.000000, 1260.515476, 587.553871],
                               [0.000000, 0.000000, 1.000000]])
 
-      #scale to 480x270, so divide by 4
+      #scale the camera matrix to 480x270, so divide by 4
       self.cameraMatrix = self.cameraMatrix / 4.000
 
       #set the 2,2 element back to 1 in the camera matrix
@@ -72,7 +82,7 @@ class camera_transform:
       #compute the inverse of the A matrix
       self.r_t_inv = np.linalg.inv(self.A)
       print "r_t_inv Matrix:"
-      #print self.r_t_inv
+      print "------------copy from here-----------------"
       counter = 0;
       for x in np.nditer(self.r_t_inv, order = 'C'):
           if counter == 0:
@@ -85,6 +95,7 @@ class camera_transform:
               print x,
               print "},"
               counter = 0
+      print "------------end copy from here-----------------"
 
    def compute(self,x,y):
       imagepoint = np.array([x,y,1],dtype=np.float32)

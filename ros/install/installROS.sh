@@ -47,6 +47,7 @@ sudo apt install ros-melodic-tf2-sensor-msgs ros-melodic-tf2-geometry-msgs ros-m
 sudo apt install ros-melodic-roslint ros-melodic-image-transport ros-melodic-diagnostic-updater
 sudo apt install python-pip ros-melodic-pcl-conversions ros-melodic-pcl-ros ros-melodic-dynamic-robot-state-publisher ros-melodic-robot-localization
 sudo apt install python3-pip ros-melodic-move-base-msgs ros-melodic-costmap-2d ros-melodic-octomap-msgs ros-melodic-find-object-2d ros-melodic-camera-info-manager
+sudo apt install ros-melodic-rviz ros-melodic-serial libuvc-dev ros-melodic-rqt-common-plugins
 
 #install Tensorflow for python3 (Jetpack 4.2)
 #pip3 install --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v42 tensorflow-gpu==1.13.1+nv19.4 --user
