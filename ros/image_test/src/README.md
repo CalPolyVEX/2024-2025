@@ -29,7 +29,9 @@ Steps to compile tensorflow for use with ROS:
    * cp -r * /home/jseng/catkin_ws/src/ros/image_test/include
  * absl header error
    * git clone absl into the tensorflow directory
-   * create a link from 'absl' to 'absl-cpp'
+     * cd /home/jseng/tensorflow
+     * git clone https://github.com/abseil/abseil-cpp.git
+     * ln -s abseil-cpp/absl ./absl
    * create a link from 'include/absl' to 'tensorflow/absl'
      * cd /home/jseng/catkin_ws/src/ros/image_test/include
      * ln -s /home/jseng/tensorflow/absl absl
