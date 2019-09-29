@@ -33,8 +33,8 @@ class camera_transform:
       self.objectPoints = .0254*self.objectPoints #convert to meters
 
       #The imagepoints array has the coordinates of the corresponding points as they
-      #appear in the image.  The order of the points is col,row where the origin is 
-      #the upper left 
+      #appear in the image.  The order of the points is col,row where the origin is
+      #the upper left
       self.imagePoints = np.array([
         [624,476],
         [765,461],
@@ -50,9 +50,15 @@ class camera_transform:
       self.imagePoints = self.imagePoints / 2.0000 #scale to 480x270
 
       #intrinsic matrix
-      self.cameraMatrix = np.array([[1258.513767, 0.000000, 949.143263],
-                              [0.000000, 1260.515476, 587.553871],
-                              [0.000000, 0.000000, 1.000000]])
+      #3.6mm lens
+      # self.cameraMatrix = np.array([[1258.513767, 0.000000, 949.143263],
+      #                         [0.000000, 1260.515476, 587.553871],
+      #                         [0.000000, 0.000000, 1.000000]])
+
+      #1.8mm lens
+      self.cameraMatrix = np.array([[2733.727422, 0.000000, 995.635599],
+                                    [0.000000, 2653.464732, 563.684444],
+                                    [0.000000, 0.000000, 1.000000]])
 
       #scale the camera matrix to 480x270, so divide by 4
       self.cameraMatrix = self.cameraMatrix / 4.000
@@ -63,7 +69,12 @@ class camera_transform:
       print self.cameraMatrix
 
       #distortion coefficients
-      self.distCoeffs = np.array([[-0.350545], [0.098685], [-0.004605], [-0.001945], [0.000000]])
+      #3.6mm lens
+      #self.distCoeffs = np.array([[-0.350545], [0.098685], [-0.004605], [-0.001945], [0.000000]])
+
+      #1.8mm lens
+      self.distCoeffs = np.array([[-1.244250], [1.763492], [0.081195], [-0.018647], [0.000000]])
+
       #self.distCoeffs = np.array([[0], [0], [0], [0], [0.000000]])
 
       self.retval, self.rvec, self.tvec = cv2.solvePnP(self.objectPoints, self.imagePoints, self.cameraMatrix, self.distCoeffs, flags=cv2.SOLVEPNP_ITERATIVE)
