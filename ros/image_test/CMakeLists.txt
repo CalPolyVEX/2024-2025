@@ -3,6 +3,7 @@ project(image_test)
 
 #JS the following line is to compile on x86 Ubuntu 18.04
 set(PCL_DIR "/usr/lib/x86_64-linux-gnu/cmake/pcl")
+set(PCL_DIR "/usr/lib/aarch64-linux-gnu/cmake/pcl")
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)

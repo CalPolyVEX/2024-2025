@@ -2,9 +2,9 @@
 
 <launch>
 
-   <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="see3cam_broadcaster" args=".2 0 .584 0 0 0 1 base_link see3_camera_fixed" /> -->
+   <node pkg="tf2_ros" type="static_transform_publisher" name="see3cam_broadcaster" args=".13 0 .22 0 0 0 1 base_link see3_cam" />
 
-   <node pkg="tf2_ros" type="static_transform_publisher" name="t265_broadcaster" args=".1016 0 -.5842 0 0 0 1 camera_link base_link" />
+   <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="t265_broadcaster" args=".1016 0 -.5842 0 0 0 1 camera_link base_link" /> -->
 
    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="t265_link_broadcaster" args="-0.1016 0 0.5842 0 0 0 1 base_link t265_link" /> -->
 

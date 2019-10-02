@@ -40,9 +40,9 @@ TrajectoryPlannerROS:
     ]
 
     conservative_clear: 
-        reset_distance: .40
+        reset_distance: 3.0
     aggressive_clear:
-        reset_distance: 1.84
+        reset_distance: 3.2
         #reset_distance: .1
 
     map_type: costmap

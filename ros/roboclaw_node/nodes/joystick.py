@@ -80,6 +80,8 @@ class JoystickNode:
          /zed/data_throttled_image /zed/data_throttled_camera_info /laser_scan_filtered \
          /tf /tf_static /ekf_node/odom /obstacles_cloud \
          /passthrough/output \
+         /planner/move_base/local_planner/local_costmap \
+         /planner/move_base/local_planner/local_costmap_updates /autonomous /map \
          __name:=my_bag_recorder"
          #/planner/move_base/local_planner/local_costmap \
          #/planner/move_base/local_planner/local_costmap_updates /autonomous /map \

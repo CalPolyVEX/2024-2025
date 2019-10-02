@@ -10,10 +10,16 @@
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
 
+#include <dynamic_reconfigure/DoubleParameter.h>
+#include <dynamic_reconfigure/Reconfigure.h>
+#include <dynamic_reconfigure/Config.h>
+
 using namespace std;
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 ros::NodeHandle* nh;
+tf2_ros::Buffer tfBuffer_;
+tf2_ros::TransformListener* tfListener_;
 
 struct goal {
   double x;
@@ -38,8 +44,6 @@ class Navigation {
   int current_route;
   int current_goal_index;
   int start_route = 0;
-  /* tf2_ros::Buffer tfBuffer; */
-  /* tf2_ros::TransformListener* tfListener; */
   boost::mutex route_mutex;
   boost::thread *workerThread;
   boost::thread *check_thread;
@@ -58,7 +62,6 @@ class Navigation {
 
 /* Navigation::Navigation() : tfListener(tfBuffer) { */
 Navigation::Navigation() {
-  /* tfListener = new tf2_ros::TransformListener(tfBuffer); */
   workerThread = new boost::thread(boost::bind(&Navigation::route_thread, this));
   check_thread = new boost::thread(boost::bind(&Navigation::check_distance_thread, this));
 
@@ -83,7 +86,7 @@ Navigation::Navigation() {
   goals[5].x = 4.731087;   //x of id#1315 (outside north quad, east entrance)
   goals[5].y = -12.982945; //y of id#1315
 
-  goals[6].x = -13.3928; //x of id#1714 (outside south quad, west entrance)
+  goals[6].x = -13.2928; //x of id#1714 (outside south quad, west entrance)
   goals[6].y = 5.05869;  //y of id#1714
 
   goals[7].x = -14.6241; //x of id#855 (Phil's office)
@@ -246,6 +249,7 @@ void Navigation::route_thread() {
 
       while (cur_goal_in_route < routes[current_route].length) {
         goal_index = routes[current_route].waypoints[cur_goal_in_route];
+        current_goal_index = goal_index;
         goal_heading = routes[current_route].heading[cur_goal_in_route];
         move_base_msgs::MoveBaseGoal goal;
 
@@ -282,24 +286,41 @@ void Navigation::route_thread() {
 }
 
 void Navigation::check_distance_thread() {
+
   while(ros::ok()) {
     if (get_distance_from_goal() > 2.0) {
-      int i = 0;
-      nh->getParam("/planner/move_base/TrajectoryPlannerROS/sim_time", i);
-      ROS_INFO("sim_time: %d", i);
+      dynamic_reconfigure::ReconfigureRequest srv_req;
+      dynamic_reconfigure::ReconfigureResponse srv_resp;
+      dynamic_reconfigure::DoubleParameter double_param;
+      dynamic_reconfigure::Config conf;
 
-      /* std::string param_name; */
-      /* if (nh->searchParam("sim_time", param_name)) */
-      /* { */
-      /*   // Found parameter, can now query it using param_name */
-      /*   nh->getParam(param_name, i); */
-      /* } */
+      double_param.name = "sim_time";
+      double_param.value = 2.0;
+      conf.doubles.push_back(double_param);
+
+      srv_req.config = conf;
+
+      ros::service::call("/planner/move_base/TrajectoryPlannerROS/set_parameters", srv_req, srv_resp);
     } else {
+      dynamic_reconfigure::ReconfigureRequest srv_req;
+      dynamic_reconfigure::ReconfigureResponse srv_resp;
+      dynamic_reconfigure::DoubleParameter double_param;
+      dynamic_reconfigure::Config conf;
 
+      double_param.name = "sim_time";
+      double_param.value = 1.2;
+      conf.doubles.push_back(double_param);
+
+      srv_req.config = conf;
+
+      ros::service::call("/planner/move_base/TrajectoryPlannerROS/set_parameters", srv_req, srv_resp);
     }
 
-    ROS_INFO("distance from goal: %f", get_distance_from_goal());
-    boost::this_thread::sleep_for(boost::chrono::milliseconds(2000));
+    /* double s_time; */
+    /* nh->getParam("/planner/move_base/TrajectoryPlannerROS/sim_time", s_time); */
+    /* ROS_INFO("sim_time: %f", s_time); */
+    /* ROS_INFO("distance from goal: %f", get_distance_from_goal()); */
+    boost::this_thread::sleep_for(boost::chrono::milliseconds(5000));
   }
 }
 
@@ -357,13 +378,10 @@ void Navigation::fill_goal_info(move_base_msgs::MoveBaseGoal *goal, int goal_ind
 
 //return the distance from the current position to the goal
 double Navigation::get_distance_from_goal() {
-  tf2_ros::Buffer tfBuffer;
-  tf2_ros::TransformListener tfListener(tfBuffer);
-
   geometry_msgs::TransformStamped transformStamped;
 
   try{
-    transformStamped = tfBuffer.lookupTransform("map", "base_link", ros::Time(0));
+    transformStamped = tfBuffer_.lookupTransform("map", "base_link", ros::Time(0));
   }
   catch (tf2::TransformException &ex) {
     ROS_WARN("%s",ex.what());
@@ -376,6 +394,7 @@ double Navigation::get_distance_from_goal() {
   double x_dest = goals[current_goal_index].x;
   double y_dest = goals[current_goal_index].y;
 
+  ROS_INFO("xdisp: %f xdest: %f y_disp: %f y_dest: %f", x_disp, x_dest, y_disp, y_dest);
   double dist = pow((pow(x_dest - x_disp, 2) + pow(y_dest - y_disp, 2)), .5);
   return dist;
 }
@@ -385,48 +404,13 @@ void Navigation::send_goal_callback(const std_msgs::Int8::ConstPtr& mesg) {
   start_route = 1;
   route_mutex.unlock();
   return;
-
-
-  if (mesg->data == 1) { //received new navigation goal
-    move_base_msgs::MoveBaseGoal goal;
-
-    goal.target_pose.header.frame_id = "map";
-    goal.target_pose.header.stamp = ros::Time::now();
-
-    current_goal_index = routes[current_route].waypoints[cur_goal_in_route];
-    goal.target_pose.pose.position.x = goals[current_goal_index].x;
-    goal.target_pose.pose.position.y = goals[current_goal_index].y;
-    goal.target_pose.pose.position.z = 0;
-
-    set_heading(routes[current_route].heading[cur_goal_in_route],
-      &(goal.target_pose.pose.orientation.w),
-      &(goal.target_pose.pose.orientation.x),
-      &(goal.target_pose.pose.orientation.y),
-      &(goal.target_pose.pose.orientation.z)
-      );
-
-    ROS_INFO("Sending goal");
-    ac->sendGoal(goal);
-
-    ac->waitForResult();
-
-    if(ac->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
-      ROS_INFO("Hooray, reached goal");
-      cur_goal_in_route = (cur_goal_in_route + 1) % routes[current_route].length;
-    } else {
-      ROS_INFO("The base failed to reach goal");
-    }
-  } else if (mesg->data == 2) {
-    //cancel all goals
-    ac->cancelAllGoals();
-  } else if (mesg->data == 3) { //testing
-  }
 }
 
 int main(int argc, char** argv){
   ros::init(argc, argv, "navigation_goals");
   ros::NodeHandle n;
   nh = &n;
+  tfListener_ = new tf2_ros::TransformListener(tfBuffer_);
 
   Navigation nav;
   MoveBaseClient a("planner/move_base", true);

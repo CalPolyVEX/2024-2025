@@ -124,7 +124,7 @@ class ImageConverter {
     /* points_msg->header = disp_msg->header; */
     points_msg.header.stamp = ros::Time::now();
     points_msg.header.seq = scan_counter;
-    points_msg.header.frame_id = "zed_camera_center";
+    points_msg.header.frame_id = "see3_cam";
     scan_counter++;
 
     points_msg.height = 1;
@@ -228,8 +228,8 @@ class ImageConverter {
 
     float_t *p1 = input_tensor->flat<float_t>().data(); 
 
-    image_transport::TransportHints hints("compressed");
-    image_sub_ = it_.subscribe("/camera/image_raw", 1, &ImageConverter::run_network, this, hints);
+    //image_transport::TransportHints hints("compressed");
+    image_sub_ = it_.subscribe("/camera/image_raw", 1, &ImageConverter::run_network, this);
     /* image_sub_ = it_.subscribe("/zed/data_throttled_image", 1, &ImageConverter::run_network, this); */
     image_pub_ = it_.advertise("/image_converter/output_video", 1);
     point_pub = nh_.advertise<sensor_msgs::PointCloud2>("/test_point_cloud", 1);
@@ -245,7 +245,7 @@ class ImageConverter {
       setIdentity(kf[i]->measurementMatrix);
       setIdentity(kf[i]->processNoiseCov, Scalar::all(1e-2));
       //setIdentity(kf[i]->measurementNoiseCov, Scalar::all(.1));
-      setIdentity(kf[i]->measurementNoiseCov, Scalar::all(.0001));
+      setIdentity(kf[i]->measurementNoiseCov, Scalar::all(.0013));
       setIdentity(kf[i]->errorCovPost, Scalar::all(.1));
     }
 

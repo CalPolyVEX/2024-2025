@@ -35,7 +35,7 @@
         <param name="wait_for_transform"   type="bool" value="true"/>
         <!-- <param name="normal_estimation_radius"   type="double" value=".08"/> -->
         <param name="Grid/ClusterRadius"     type="double" value=".08"/> 
-        <param name="Grid/MinClusterSize"     type="int" value="20"/> 
+        <param name="Grid/MinClusterSize"     type="int" value="15"/> 
         <param name="Grid/MaxObstaclesHeight" type="double" value="0.4"/> 
    </node>   
 
