@@ -9,15 +9,15 @@
     <!-- <param name="max_height" value=".00"/> -->
     <param name="use_inf" value="false"/>
         
-    <param name="angle_min" value="-.75539"/>
-    <param name="angle_max" value=".75539"/>
+    <param name="angle_min" value="-1.2"/>
+    <param name="angle_max" value="1.2"/>
     <param name="angle_increment" value="0.00045"/>
     <!-- Min and max range range of generated laser scan - set this to match your depth sensor -->
     <param name="range_min" value="-0.2"/>
     <param name="range_max" value="4.0"/>
 
     <!-- Frame of your depth sensor -->
-    <param name="target_frame" value="zed_camera_center"/>
+    <param name="target_frame" value="see3_cam"/>
 
     <!-- Topic from which to read PointCloud2 -->
     <remap from="cloud_in" to="/test_point_cloud"/>

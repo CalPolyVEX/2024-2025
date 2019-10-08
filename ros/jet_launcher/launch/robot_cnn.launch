@@ -28,7 +28,7 @@
 
    <group if="$(arg planning)">
       <include file="$(find jet_launcher)/launch/obstacle_detection_cnn.launch"/>
-      <include file="$(find jet_launcher)/launch/new_planner/planner.launch"/> 
+      <include file="$(find jet_launcher)/launch/new_planner/planner_cnn.launch"/> 
       <include file="$(find jet_launcher)/launch/robot_localization.launch"/>
       <include file="$(find navigation_goals)/launch/navigation_goals.launch"/> 
       <include file="$(find jet_launcher)/launch/laser_filter.launch"/> 

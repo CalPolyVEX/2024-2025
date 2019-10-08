@@ -10,8 +10,8 @@
       <param name="index" value="0"/>
 
       <!-- Image size and type -->
-      <param name="width" value="1920"/>
-      <param name="height" value="1080"/>
+      <param name="width" value="960"/>
+      <param name="height" value="540"/>
       <!-- choose whichever uncompressed format the camera supports: -->
       <param name="video_mode" value="uyvy"/> <!-- or yuyv/nv12/mjpeg -->
       <param name="frame_rate" value="30"/>

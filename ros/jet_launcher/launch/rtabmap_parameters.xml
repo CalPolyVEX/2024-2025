@@ -13,4 +13,9 @@
 <param name="/rtabmap/rtabmap/GFTT/MinDistance"      value="6"     />  
 <param name="/rtabmap/rtabmap/GFTT/QualityLevel"     value=".0007"  />  
 
+<!-- <param name="/rtabmap/rtabmap/Mem/InitWMWithAllNodes"     value="false"  /> -->  
+<!-- <param name="/rtabmap/rtabmap/Rtabmap/MemoryThr"     value="1000"  /> -->  
+<!-- <param name="/rtabmap/rtabmap/Rtabmap/TimeThr"     value="800"  /> -->  
+<param name="/rtabmap/rtabmap/RGBD/SavedLocalizationIgnored"     value="false"  />  
+
 </launch>
