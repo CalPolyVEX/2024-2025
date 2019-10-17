@@ -4,6 +4,7 @@
    <arg name="mapping" default="false" />
    <arg name="localization" default="false" />
    <arg name="rtabmapviz" default="false" />
+   <arg name="rtabmap_debug" default="false" />
 
    <include file="$(find jet_launcher)/launch/map.launch"/>
    <!-- Start the ZED camera node -->
@@ -23,7 +24,16 @@
    </group>
 
    <group if="$(arg localization)">
-      <include file="$(find jet_launcher)/launch/zed_rtabmap_localization.launch"/>
+      <group if="$(arg rtabmap_debug)">
+         <include file="$(find jet_launcher)/launch/zed_rtabmap_localization.launch">
+               <arg name="rtabmap_flags" value="--udebug" />
+         </include> 
+      </group>
+      <group unless="$(arg rtabmap_debug)">
+         <include file="$(find jet_launcher)/launch/zed_rtabmap_localization.launch">
+               <arg name="rtabmap_flags" value="" />
+         </include> 
+      </group>
    </group>
 
    <group if="$(arg planning)">
