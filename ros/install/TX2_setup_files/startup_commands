@@ -1,3 +1,4 @@
+sudo sh -c "echo -1 > /sys/module/usbcore/parameters/autosuspend"
 sudo rfkill block all
 sudo systemctl stop wpa_supplicant.service
 export ROS_IP=127.0.0.1
