@@ -6,6 +6,7 @@
 #include <iostream>
 #include <tf2_ros/transform_listener.h>
 #include <geometry_msgs/TransformStamped.h>
+#include <geometry_msgs/Twist.h>
 #include <cmath>
 #include <boost/thread.hpp>
 #include <boost/chrono.hpp>
@@ -37,6 +38,7 @@ struct route {
 
 class Navigation {
   ros::Subscriber goal_sub;
+//  ros::Subscriber sub_planner_cmd_vel;
   MoveBaseClient* ac;
   struct goal goals[40]; //database of all the goals
   struct route routes[10];
@@ -47,26 +49,37 @@ class Navigation {
   boost::mutex route_mutex;
   boost::thread *workerThread;
   boost::thread *check_thread;
+  /* boost::thread *check_movement_thread_ptr; */
+  /* boost::mutex planner_cmd_vel_mutex; */
+  /* double linear_x; */
+  /* double angular_z; */
 
   public:
     Navigation();
     void init_action_client();
     void send_goal_callback(const std_msgs::Int8::ConstPtr& mesg);
+    void planner_cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
     void set_action_client(MoveBaseClient* a);
     void set_heading(int degrees, double* w, double* x, double* y, double* z);
     double get_distance_from_goal();
     void fill_goal_info(move_base_msgs::MoveBaseGoal *goal, int goal_index, int heading);
     void route_thread();
     void check_distance_thread();
+//    void check_movement_thread();
 };
 
 /* Navigation::Navigation() : tfListener(tfBuffer) { */
 Navigation::Navigation() {
+  /* planner_cmd_vel_mutex.unlock(); */
   workerThread = new boost::thread(boost::bind(&Navigation::route_thread, this));
   check_thread = new boost::thread(boost::bind(&Navigation::check_distance_thread, this));
+  //check_movement_thread_ptr = new boost::thread(boost::bind(&Navigation::check_movement_thread, this));
 
   //the /autonomous topic send a message if a goal is requested
   goal_sub = nh->subscribe("/autonomous",1,&Navigation::send_goal_callback,this); 
+
+  //subscribe to the planner velocity messages
+  //sub_planner_cmd_vel = nh->subscribe("/planner/cmd_vel", 1, &Navigation::planner_cmd_vel_callback, this);
 
   goals[0].x = .5;       //x of id#1 (Seng office)
   goals[0].y = 0;        //y of id#1
@@ -270,7 +283,7 @@ void Navigation::route_thread() {
           cur_goal_in_route = (cur_goal_in_route + 1) % routes[current_route].length;
 
           if (cur_goal_in_route == 0) {
-            loop_complete = 1;  //just complete a loop through the waypoints
+            loop_complete = 1;  //just completed a loop through the waypoints
           }
         } else {
           ROS_INFO("The base failed to reach goal");
@@ -286,7 +299,6 @@ void Navigation::route_thread() {
 }
 
 void Navigation::check_distance_thread() {
-
   while(ros::ok()) {
     if (get_distance_from_goal() > 2.0) {
       dynamic_reconfigure::ReconfigureRequest srv_req;
@@ -323,6 +335,46 @@ void Navigation::check_distance_thread() {
     boost::this_thread::sleep_for(boost::chrono::milliseconds(5000));
   }
 }
+
+/* void Navigation::planner_cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist) { */
+/*   planner_cmd_vel_mutex.lock(); */
+/*   linear_x = twist->linear.x; */
+/*   angular_z = -twist->angular.z; */
+/*   planner_cmd_vel_mutex.unlock(); */
+
+/*   return; */
+/* } */
+
+//thread to check if the robot has not moved and the goal is still active
+//if that is true, then something is blocking the path, so play a sound
+/* void Navigation::check_movement_thread() { */
+/*   int stop_counter = 0; */
+
+/*   boost::this_thread::sleep_for(boost::chrono::milliseconds(10000)); */
+
+/*   while(ros::ok()) { */
+/*     double linear; */
+/*     double angular; */
+
+/*     planner_cmd_vel_mutex.lock(); */
+/*     linear = linear_x; */
+/*     angular = angular_z; */
+/*     planner_cmd_vel_mutex.unlock(); */
+
+/*     if ((linear < .01) && (angular < .01)) { */
+/*       stop_counter++; */ 
+/*     } else { */
+/*       stop_counter = 0; */
+/*     } */
+
+/*     if (stop_counter == 3) { */
+/*       //play sound */
+/*       stop_counter = 0; */
+/*     } */
+
+/*     boost::this_thread::sleep_for(boost::chrono::milliseconds(1000)); */
+/*   } */
+/* } */
 
 void Navigation::set_heading(int degrees, double* w, double* x, double* y, double* z) {
   if (degrees == 0) {

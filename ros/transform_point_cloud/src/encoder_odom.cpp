@@ -257,8 +257,8 @@ void OdometryPublisher::run_pid() {
 }
 
 void OdometryPublisher::compute_pid(double left_desired, double left_actual, double right_desired, double right_actual) {
-  double kp = 3.6;
-  double ki = .4;
+  double kp = 3.7;
+  double ki = .5;
   double kd = 0.30;
   int i;
 
