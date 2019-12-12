@@ -82,7 +82,7 @@ class ImageConverter {
     }
 
     //print out the dimension of the tensor
-    //cout << outputs[0].shape().dim_size(0);
+    cout << outputs[0].shape().dim_size(0);
 
     // Grab the first output (we only evaluated one graph node: "c")
     // and convert the node to a scalar representation.
@@ -231,8 +231,9 @@ class ImageConverter {
 
     float_t *p1 = input_tensor->flat<float_t>().data(); 
 
-    //image_transport::TransportHints hints("compressed");
-    image_sub_ = it_.subscribe("/camera/image_raw", 1, &ImageConverter::run_network, this);
+    image_transport::TransportHints hints("compressed");
+    //image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &ImageConverter::run_network, this);
+    image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &ImageConverter::run_network, this, hints);
     /* image_sub_ = it_.subscribe("/zed/data_throttled_image", 1, &ImageConverter::run_network, this); */
     image_pub_ = it_.advertise("/image_converter/output_video", 1);
     point_pub = nh_.advertise<sensor_msgs::PointCloud2>("/test_point_cloud", 1);
