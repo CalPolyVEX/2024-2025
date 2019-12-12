@@ -21,6 +21,7 @@ typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseCl
 ros::NodeHandle* nh;
 tf2_ros::Buffer tfBuffer_;
 tf2_ros::TransformListener* tfListener_;
+boost::thread *check_movement_ptr;
 
 struct goal {
   double x;
@@ -37,22 +38,21 @@ struct route {
 };
 
 class Navigation {
+  float linear_x;
+  float angular_z;
   ros::Subscriber goal_sub;
-//  ros::Subscriber sub_planner_cmd_vel;
+  ros::Subscriber sub_planner_cmd;
   MoveBaseClient* ac;
-  struct goal goals[40]; //database of all the goals
-  struct route routes[10];
   int cur_goal_in_route = 0; //the current goal index in the route
   int current_route;
   int current_goal_index;
   int start_route = 0;
-  boost::mutex route_mutex;
   boost::thread *workerThread;
   boost::thread *check_thread;
-  /* boost::thread *check_movement_thread_ptr; */
-  /* boost::mutex planner_cmd_vel_mutex; */
-  /* double linear_x; */
-  /* double angular_z; */
+  boost::mutex route_mutex;
+  boost::mutex planner_cmd_mutex;
+  struct goal goals[40]; //database of all the goals
+  struct route routes[10];
 
   public:
     Navigation();
@@ -65,7 +65,7 @@ class Navigation {
     void fill_goal_info(move_base_msgs::MoveBaseGoal *goal, int goal_index, int heading);
     void route_thread();
     void check_distance_thread();
-//    void check_movement_thread();
+    void check_movement_thread();
 };
 
 /* Navigation::Navigation() : tfListener(tfBuffer) { */
@@ -73,13 +73,13 @@ Navigation::Navigation() {
   /* planner_cmd_vel_mutex.unlock(); */
   workerThread = new boost::thread(boost::bind(&Navigation::route_thread, this));
   check_thread = new boost::thread(boost::bind(&Navigation::check_distance_thread, this));
-  //check_movement_thread_ptr = new boost::thread(boost::bind(&Navigation::check_movement_thread, this));
+  check_movement_ptr = new boost::thread(boost::bind(&Navigation::check_movement_thread, this));
 
   //the /autonomous topic send a message if a goal is requested
   goal_sub = nh->subscribe("/autonomous",1,&Navigation::send_goal_callback,this); 
 
   //subscribe to the planner velocity messages
-  //sub_planner_cmd_vel = nh->subscribe("/planner/cmd_vel", 1, &Navigation::planner_cmd_vel_callback, this);
+  sub_planner_cmd = nh->subscribe("/planner/cmd_vel", 1, &Navigation::planner_cmd_vel_callback, this);
 
   goals[0].x = .5;       //x of id#1 (Seng office)
   goals[0].y = 0;        //y of id#1
@@ -336,45 +336,56 @@ void Navigation::check_distance_thread() {
   }
 }
 
-/* void Navigation::planner_cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist) { */
-/*   planner_cmd_vel_mutex.lock(); */
-/*   linear_x = twist->linear.x; */
-/*   angular_z = -twist->angular.z; */
-/*   planner_cmd_vel_mutex.unlock(); */
+void Navigation::planner_cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist) {
+  planner_cmd_mutex.lock();
+  linear_x = twist->linear.x;
+  angular_z = -twist->angular.z;
+  planner_cmd_mutex.unlock();
 
-/*   return; */
-/* } */
+  return;
+}
 
 //thread to check if the robot has not moved and the goal is still active
 //if that is true, then something is blocking the path, so play a sound
-/* void Navigation::check_movement_thread() { */
-/*   int stop_counter = 0; */
+void Navigation::check_movement_thread() {
+  int stop_counter = 0;
 
-/*   boost::this_thread::sleep_for(boost::chrono::milliseconds(10000)); */
+  boost::this_thread::sleep_for(boost::chrono::milliseconds(10000));
 
-/*   while(ros::ok()) { */
-/*     double linear; */
-/*     double angular; */
+  while(ros::ok()) {
+    float linear;
+    float angular;
 
-/*     planner_cmd_vel_mutex.lock(); */
-/*     linear = linear_x; */
-/*     angular = angular_z; */
-/*     planner_cmd_vel_mutex.unlock(); */
+    planner_cmd_mutex.lock();
+    linear = linear_x;
+    angular = angular_z;
+    planner_cmd_mutex.unlock();
 
-/*     if ((linear < .01) && (angular < .01)) { */
-/*       stop_counter++; */ 
-/*     } else { */
-/*       stop_counter = 0; */
-/*     } */
+    if ((linear < .01) && (abs(angular) < .01) && (ac->getState() == actionlib::SimpleClientGoalState::ACTIVE)) {
+    /* if ((linear < .01) && (angular < .01) ) { */
+      stop_counter++; 
+    } else {
+      stop_counter = 0;
+    }
 
-/*     if (stop_counter == 3) { */
-/*       //play sound */
-/*       stop_counter = 0; */
-/*     } */
+    if (stop_counter == 2) {
+      //play sound
+      int sound_count = 1; //TODO: convert this to a random number
+      std::string str = "play /home/jseng/" + std::to_string(sound_count) + ".wav";
+      char* cstr = new char[50];
+      std::strcpy(cstr, str.c_str());
 
-/*     boost::this_thread::sleep_for(boost::chrono::milliseconds(1000)); */
-/*   } */
-/* } */
+      int i;
+      i = system (cstr);
+      //ROS_INFO("test");
+      i = 0;
+      stop_counter = i;
+      delete[] cstr;
+    }
+
+    boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
+  }
+}
 
 void Navigation::set_heading(int degrees, double* w, double* x, double* y, double* z) {
   if (degrees == 0) {
