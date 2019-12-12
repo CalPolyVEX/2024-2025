@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+
+<launch>
+    <node ns="gps" name="gps_node" pkg="nmea_navsat_driver" type="nmea_serial_driver" respawn="true" respawn_delay="2" args="_port:=/dev/ttyACM2 _baud:=38400">
+    </node>
+</launch>
