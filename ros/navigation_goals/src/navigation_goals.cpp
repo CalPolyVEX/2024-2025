@@ -56,6 +56,7 @@ class Navigation {
 
   public:
     Navigation();
+    void enable_rtabmap_mapping(int enable);
     void init_action_client();
     void send_goal_callback(const std_msgs::Int8::ConstPtr& mesg);
     void planner_cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
@@ -110,6 +111,17 @@ Navigation::Navigation() {
 
   goals[9].x = 3.84982;  //x of id#1151 (outside north quad, west entrance)
   goals[9].y = 6.40079; //y of id#1151
+
+  //---------Dexter lawn goals------------
+  goals[10].x = 3.84982; //x of id#1151 (reference start in front of the Waypoint sign)
+  goals[10].y = 6.40079; //y of id#1151
+
+  goals[11].x = 3.84982; //x of id#1151 (outside north quad, west entrance)
+  goals[11].y = 6.40079; //y of id#1151
+
+  goals[12].x = 3.84982; //x of id#1151 (in front of the bench)
+  goals[12].y = 6.40079; //y of id#1151
+  //---------End Dexter lawn goals------------
 
   for(int i=0;i<10;i++) { //max 10 routes
     for(int j=0;j<20;j++) { //max 20 waypoints per route
@@ -296,6 +308,25 @@ void Navigation::route_thread() {
     /* ROS_INFO("test"); */
     boost::this_thread::sleep_for(boost::chrono::milliseconds(500));
   }
+}
+
+void Navigation::enable_rtabmap_mapping(int enable) {
+    dynamic_reconfigure::ReconfigureRequest srv_req;
+    dynamic_reconfigure::ReconfigureResponse srv_resp;
+    dynamic_reconfigure::DoubleParameter double_param;
+    dynamic_reconfigure::Config conf;
+
+    double_param.name = "sim_time";
+    double_param.value = 2.0;
+    conf.doubles.push_back(double_param);
+
+    srv_req.config = conf;
+
+    if (enable == 1) {
+      ros::service::call("/rtabmap/set_mode/localization", srv_req, srv_resp);
+    } else {
+      ros::service::call("/rtabmap/set_mode/mapping", srv_req, srv_resp);
+    }
 }
 
 void Navigation::check_distance_thread() {
