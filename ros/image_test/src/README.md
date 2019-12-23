@@ -8,6 +8,7 @@ Steps to compile tensorflow for use with ROS:
  * git checkout v1.12.0
  * ./configure (Jetpack 4.2 = CUDA 10.0, CuDNN 7.3.1, TX2 compute capability 6.2)
  * bazel build -c opt --config=monolithic //tensorflow:libtensorflow_cc.so (refer to https://medium.com/@tomdeore/standalone-c-build-tensorflow-opencv-6dc9d8a1412d)
+   * if you get a AWS linking error:  https://github.com/tensorflow/serving/issues/832
  * copy the library files to a lib directory:
    * mkdir ../my_project/lib
    * cp bazel-bin/tensorflow/libtensorflow_cc.so /home/jseng/catkin_ws/src/ros/image_test/lib
