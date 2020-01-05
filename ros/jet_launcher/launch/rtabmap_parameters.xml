@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 
 <launch>
+<arg name="testing_map" default="false" />
 
 <param name="/rtabmap/rtabmap/Reg/Force3DoF"         value="true"  /> 
 <param name="/rtabmap/rtabmap/Grid/RayTracing"       value="true"  />  
@@ -9,13 +10,21 @@
 <param name="/rtabmap/rtabmap/Mem/DepthAsMask"       value="true"  />  
 
 <param name="/rtabmap/rtabmap/Kp/DetectorStrategy"   value="8"     /> <!-- use GFTT/ORB -->  
-<param name="/rtabmap/rtabmap/GFTT/BlockSize"        value="5"     />  
-<param name="/rtabmap/rtabmap/GFTT/MinDistance"      value="6"     />  
-<param name="/rtabmap/rtabmap/GFTT/QualityLevel"     value=".0007"  />  
+
+<group if="$(arg testing_map)">
+    <param name="/rtabmap/rtabmap/GFTT/BlockSize"        value="10"     />  
+    <param name="/rtabmap/rtabmap/GFTT/MinDistance"      value="10"     />  
+    <param name="/rtabmap/rtabmap/GFTT/QualityLevel"     value=".0005"  />  
+</group>
+<group unless="$(arg testing_map)">
+    <param name="/rtabmap/rtabmap/GFTT/BlockSize"        value="5"     />  
+    <param name="/rtabmap/rtabmap/GFTT/MinDistance"      value="6"     />  
+    <param name="/rtabmap/rtabmap/GFTT/QualityLevel"     value=".0007"  />  
+</group>
 
 <!-- <param name="/rtabmap/rtabmap/Mem/InitWMWithAllNodes"     value="false"  /> -->  
 <!-- <param name="/rtabmap/rtabmap/Rtabmap/MemoryThr"     value="1000"  /> -->  
 <!-- <param name="/rtabmap/rtabmap/Rtabmap/TimeThr"     value="800"  /> -->  
-<param name="/rtabmap/rtabmap/RGBD/SavedLocalizationIgnored"     value="false"  />  
+<param name="/rtabmap/rtabmap/RGBD/SavedLocalizationIgnored"     value="true"  />  
 
 </launch>
