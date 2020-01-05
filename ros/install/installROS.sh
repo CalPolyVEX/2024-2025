@@ -33,7 +33,13 @@ echo 'ros/' > .git/info/sparse-checkout
 git remote add -f origin https://github.com/jsseng/ue4.git
 git pull origin master
 git clone https://github.com/ros-perception/image_transport_plugins.git
+
+#vision_opencv
 git clone https://github.com/ros-perception/vision_opencv.git
+#For OpenCV4 compatibility
+#git clone https://github.com/BrutusTT/vision_opencv.git
+#git checkout 8e01b44c5c1c0003dc91273076f8ca7feb9a8025
+
 git clone https://github.com/ros-drivers/video_stream_opencv.git
 #git clone https://github.com/IntelRealSense/realsense-ros.git
 git clone https://github.com/introlab/rtabmap_ros.git
@@ -67,4 +73,15 @@ git config --global user.name "John Seng"
 #sudo apt-get install cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
 #sudo apt-get install python-dev python-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev
 
+#disable graphical boot
+systemctl set-default multi-user.target
+
+#install g2o for rtabmap
+sudo apt install ros-melodic-libg2o
+
+#disable services
+systemctl disable ModemManager.service
+systemctl disable containerd.service
+sudo systemctl disable docker.service
+sudo systemctl disable docker.socket
 
