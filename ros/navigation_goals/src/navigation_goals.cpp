@@ -462,7 +462,7 @@ void Navigation::planner_cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& 
 void Navigation::check_movement_thread() {
   int stop_counter = 0;
 
-  boost::this_thread::sleep_for(boost::chrono::milliseconds(10000));
+  boost::this_thread::sleep_for(boost::chrono::milliseconds(10000)); //wait 10 seconds
 
   while(ros::ok()) {
     float linear;
@@ -481,18 +481,26 @@ void Navigation::check_movement_thread() {
     }
 
     if (stop_counter == 2) {
-      //play sound
-      int sound_count = 1; //TODO: convert this to a random number
-      std::string str = "play /home/jseng/" + std::to_string(sound_count) + ".wav";
-      char* cstr = new char[50];
-      std::strcpy(cstr, str.c_str());
+      //get autonomous mode
+      bool autonomous_mode = false;
+      nh->getParam("/autonomous_mode", autonomous_mode);
 
-      int i;
-      i = system (cstr);
-      //ROS_INFO("test");
-      i = 0;
-      stop_counter = i;
-      delete[] cstr;
+      if (autonomous_mode == true) {
+        //play sound
+        int sound_count = 1; //TODO: convert this to a random number
+        std::string str = "play /home/jseng/" + std::to_string(sound_count) + ".wav";
+        char* cstr = new char[50];
+        std::strcpy(cstr, str.c_str());
+
+        int i;
+        i = system (cstr);
+        //ROS_INFO("test");
+        i = 0;
+        stop_counter = i;
+        delete[] cstr;
+      } else {
+        stop_counter = 0;
+      }
     }
 
     boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
