@@ -19,7 +19,8 @@ from cv_bridge import CvBridge, CvBridgeError
 
 class image_converter:
 
-   def __init__(self):
+   def __init__(self, max=100):
+      self.max = max
       self.counter = 0
       self.image_pub = rospy.Publisher("/see3cam_cu20/test_image_topic_2",Image,queue_size=1)
 
@@ -58,14 +59,20 @@ class image_converter:
             print(e)
 
          self.last_time = now
-         if self.counter == 10:
+         if self.counter == self.max:
             self.image_sub.unregister()
             print ("Exiting...")
             sys.exit(0)
             rospy.signal_shutdown()
 
 def main(args):
-   ic = image_converter()
+   print(args)
+   if len(args) == 2:
+     print(args)
+     ic = image_converter(int(args[1]))
+   else:
+     ic = image_converter(100)
+
    rospy.init_node('image_converter', anonymous=True)
    try:
       rospy.spin()
