@@ -73,6 +73,8 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   nh->param<double>("base_width1", BASE_WIDTH, .346075);
   nh->param<double>("acc_lim1", ACC_LIM, 0.1);
 
+  nh->setParam("/autonomous_mode", false);
+
   if (address > 0x87 || address < 0x80) {
     ROS_INFO("Address out of range");
   }

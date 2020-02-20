@@ -13,6 +13,6 @@
 
   </node>
   <include file="$(find imu_bno055)/launch/imu.launch" />
-  <include file="$(find imu_bno055)/launch/gps.launch" />
+  <!-- <include file="$(find imu_bno055)/launch/gps.launch" /> -->
 </launch>
 

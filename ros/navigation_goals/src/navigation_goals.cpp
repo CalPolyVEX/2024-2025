@@ -113,16 +113,55 @@ Navigation::Navigation() {
   goals[9].y = 6.40079; //y of id#1151
 
   //---------Dexter lawn goals------------
-  goals[10].x = 3.84982; //x of id#1151 (reference start in front of the Waypoint sign)
-  goals[10].y = 6.40079; //y of id#1151
+  goals[10].x = 0; //x of id#1151 (reference start in front of the Waypoint sign)
+  goals[10].y = 0; //y of id#1151
 
-  goals[11].x = 3.84982; //x of id#1151 (outside north quad, west entrance)
-  goals[11].y = 6.40079; //y of id#1151
+  goals[11].x = -19.0; //x of id#1151 (in front of the bench)
+  goals[11].y = -.2;  //y of id#1151
 
-  goals[12].x = 3.84982; //x of id#1151 (in front of the bench)
-  goals[12].y = 6.40079; //y of id#1151
+  goals[12].x = 1.17; //x of id#1151 (right of the sign)
+  goals[12].y = -1.22; //y of id#1151
+
+  goals[13].x = 3.64; //x of id#1151 (next to the sign)
+  goals[13].y = -1.38; //y of id#1151
+
+  goals[14].x = 6.79; //x of id#1151 (cross diagonal)
+  goals[14].y = -3.61; //y of id#1151
   //---------End Dexter lawn goals------------
 
+  //---------new building 14 goals------------
+  float offset_x = .5;
+  goals[15].x = .5 + offset_x;       //x of id#1 (Seng office)
+  goals[15].y = 0;        //y of id#1
+
+  goals[16].x = 14.4542+ offset_x;  //x of id#65 (men's bathroom)
+  goals[16].y = 6.03422;  //y of id#65
+
+  goals[17].x = 15.2227+ offset_x;  //x of id#369 (women's bathroom)
+  goals[17].y = -11.9279; //y of id#369
+
+  goals[18].x = -12.303691+ offset_x; //x of id#1315 (outside south quad, east entrance)
+  goals[18].y = -13.27466; //y of id#1315
+
+  goals[19].x = 3.96606+ offset_x;   //x of id#198 (Kurfess office)
+  goals[19].y = .321492; //y of id#198
+
+  goals[20].x = 4.731087+ offset_x;   //x of id#1315 (outside north quad, east entrance)
+  goals[20].y = -12.982945; //y of id#1315
+
+  goals[21].x = -13.2928+ offset_x; //x of id#1714 (outside south quad, west entrance)
+  goals[21].y = 5.05869;  //y of id#1714
+
+  goals[22].x = -14.6241+ offset_x; //x of id#855 (Phil's office)
+  goals[22].y = -1.31144; //y of id#855
+  
+  goals[23].x = 4.17692+ offset_x;  //x of id#1529 (Ventura's office)
+  goals[23].y = -6.37767; //y of id#1529
+
+  goals[24].x = 3.84982+ offset_x;  //x of id#1151 (outside north quad, west entrance)
+  goals[24].y = 6.40079; //y of id#1151
+  //---------end new building 14 goals------------
+  
   for(int i=0;i<10;i++) { //max 10 routes
     for(int j=0;j<20;j++) { //max 20 waypoints per route
       routes[i].pause[j] = 0;
@@ -234,7 +273,7 @@ Navigation::Navigation() {
   routes[5].heading[8] = 180;
   routes[5].length = 9;
 
-  //testing:  north quad, east hallway loop
+  //testing: north quad, east hallway loop
   routes[6].waypoints[0] = 0; //office
   routes[6].heading[0] = 0;
   routes[6].waypoints[1] = 8; //Ventura
@@ -251,7 +290,49 @@ Navigation::Navigation() {
   routes[6].heading[6] = 180;
   routes[6].length = 7;
 
-  current_route = 5;
+  //testing: Dexter lawn
+  routes[7].waypoints[0] = 10; //waypoint sign
+  routes[7].heading[0] = 0;
+  routes[7].waypoints[1] = 11; //5m away from sign
+  routes[7].heading[1] = 0;
+  routes[7].waypoints[2] = 10; //waypoint sign
+  routes[7].heading[2] = 0;
+  routes[7].waypoints[3] = 12; //right of the sign
+  routes[7].heading[3] = 0;
+  routes[7].waypoints[4] = 13; //
+  routes[7].heading[4] = 0;
+  routes[7].waypoints[5] = 14; //cross diagonal
+  routes[7].heading[5] = 0;
+  routes[7].waypoints[6] = 13; //
+  routes[7].heading[6] = 0;
+  routes[7].waypoints[7] = 12; //right of the sign
+  routes[7].heading[7] = 0;
+  routes[7].length = 8;
+
+  //new building 14 map - long outside loop
+  routes[8].waypoints[0] = 15; //office
+  routes[8].heading[0] = 0;
+  routes[8].waypoints[1] = 19; //Kurfess
+  routes[8].heading[1] = 270;
+  routes[8].waypoints[2] = 24; //outside north quad, west entrance
+  routes[8].heading[2] = 180;
+  routes[8].waypoints[3] = 21; //south quad, outside west
+  routes[8].heading[3] = 0;
+  routes[8].waypoints[4] = 16; //men's bathroom
+  routes[8].heading[4] = 90;
+  routes[8].waypoints[5] = 17; //women's bathroom
+  routes[8].heading[5] = 180;
+  routes[8].waypoints[6] = 18; //outside south quad, east entrance
+  routes[8].heading[6] = 0;
+  routes[8].waypoints[7] = 20; //outside north quad, east entrance
+  routes[8].heading[7] = 270;
+  routes[8].waypoints[8] = 23; //Ventura
+  routes[8].heading[8] = 180;
+  routes[8].length = 9;
+
+  current_route = 5;  //old building 14
+  //current_route = 7; //Dexter lawn
+  //current_route = 8;  //new building 14
 }
 
 void Navigation::route_thread() {
@@ -381,7 +462,7 @@ void Navigation::planner_cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& 
 void Navigation::check_movement_thread() {
   int stop_counter = 0;
 
-  boost::this_thread::sleep_for(boost::chrono::milliseconds(10000));
+  boost::this_thread::sleep_for(boost::chrono::milliseconds(10000)); //wait 10 seconds
 
   while(ros::ok()) {
     float linear;
@@ -400,18 +481,26 @@ void Navigation::check_movement_thread() {
     }
 
     if (stop_counter == 2) {
-      //play sound
-      int sound_count = 1; //TODO: convert this to a random number
-      std::string str = "play /home/jseng/" + std::to_string(sound_count) + ".wav";
-      char* cstr = new char[50];
-      std::strcpy(cstr, str.c_str());
+      //get autonomous mode
+      bool autonomous_mode = false;
+      nh->getParam("/autonomous_mode", autonomous_mode);
 
-      int i;
-      i = system (cstr);
-      //ROS_INFO("test");
-      i = 0;
-      stop_counter = i;
-      delete[] cstr;
+      if (autonomous_mode == true) {
+        //play sound
+        int sound_count = 1; //TODO: convert this to a random number
+        std::string str = "play /home/jseng/" + std::to_string(sound_count) + ".wav";
+        char* cstr = new char[50];
+        std::strcpy(cstr, str.c_str());
+
+        int i;
+        i = system (cstr);
+        //ROS_INFO("test");
+        i = 0;
+        stop_counter = i;
+        delete[] cstr;
+      } else {
+        stop_counter = 0;
+      }
     }
 
     boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));

@@ -363,6 +363,12 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
 void OdometryPublisher::stop_toggle_callback(const std_msgs::Empty::ConstPtr&) {
   //stop ^= 1;
   planner ^= 1;
+
+  if (planner == 1) { //running in autonomous mode
+    nh->setParam("/autonomous_mode", true);
+  } else {
+    nh->setParam("/autonomous_mode", false);
+  }
 }
 
 void OdometryPublisher::cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist) {

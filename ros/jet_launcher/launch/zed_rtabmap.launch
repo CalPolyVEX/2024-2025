@@ -3,7 +3,12 @@
 <!-- This file starts rtabmap for mapping. -->
 
 <launch>
-    <include file="$(find jet_launcher)/launch/rtabmap_parameters.xml" /> 
+    <arg name="testing_map" default="false" />
+
+    <include file="$(find jet_launcher)/launch/rtabmap_parameters.xml"> 
+       <arg name="testing_map" value="$(arg testing_map)" />
+    </include>
+    <!-- <include file="$(find jet_launcher)/launch/rtabmap_parameters.xml" /> --> 
     <arg name="rt_args"          default="--delete_db_on_start" />
 
     <param name="/use_sim_time"  value="true" /> 
@@ -43,7 +48,7 @@
       <arg name="camera_info_topic"          value="/$(arg zed_namespace)/data_throttled_camera_info" />
 <!--      <arg name="depth_camera_info_topic" 	value="/$(arg zed_namespace)/zed_node/depth/camera_info" /> -->
       <!--<arg name="frame_id"                  value="$(arg camera_frame)" /> -->
-      <arg name="gps_topic"                  value="/gps/fix" /> 
+      <arg name="gps_topic"                  value="/gps/fi" /> 
       <arg name="frame_id"                   value="base_link" /> 
       <arg name="odom_frame_id"              value="odom" />
       <arg name="approx_sync"                value="true" />

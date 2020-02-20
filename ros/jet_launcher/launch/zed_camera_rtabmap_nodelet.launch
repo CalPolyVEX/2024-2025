@@ -33,7 +33,6 @@
 
     <node pkg="nodelet" type="nodelet" name="data_throttle" args="load rtabmap_ros/data_throttle zed_nodelet_manager" output="screen">
         <param name="rate" type="double" value="2.0"/>
-        <!-- <param name="decimation" type="int" value="1"/> -->
         <param name="approx_sync" type="bool" value="true"/>
 
         <remap from="rgb/image_in"       to="$(arg zed_namespace)/$(arg zed_node_name)/rgb/image_rect_color"/>
