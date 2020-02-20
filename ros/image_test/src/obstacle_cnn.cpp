@@ -23,6 +23,10 @@ using namespace cv;
 using namespace std;
 //using namespace tensorflow;
 
+#define NUM_OUTPUTS 128
+#define IMG_HEIGHT 360
+#define IMG_WIDTH 640
+
 class ImageConverter {
   ros::NodeHandle nh_;
   image_transport::ImageTransport it_;
@@ -31,8 +35,8 @@ class ImageConverter {
   ros::Publisher point_pub;
   cv::Mat new_image;
   tensorflow::Tensor *input_tensor;
-  float scan[48]; //index 0 is left, index 47 is right 
-  KalmanFilter* kf[48];
+  float scan[NUM_OUTPUTS]; //index 0 is left, index 47 is right 
+  KalmanFilter* kf[NUM_OUTPUTS];
   int scan_counter = 0;
   cv::Mat r_t_inv;
   
@@ -52,18 +56,18 @@ class ImageConverter {
     }
     
     //resize image to 480x270
-    cv::resize(cv_ptr->image, new_image, cv::Size(480,270), CV_INTER_LINEAR);
+    cv::resize(cv_ptr->image, new_image, cv::Size(IMG_WIDTH,IMG_HEIGHT), CV_INTER_LINEAR);
 
     auto input_tensor_mapped = input_tensor->tensor<float, 4>();
 
     //fill in tensor with image data
-    for (int y = 0; y < 270; y++) {
-        for (int x = 0; x < 480; x++) {
+    for (int y = 0; y < IMG_HEIGHT; y++) {
+        for (int x = 0; x < IMG_WIDTH; x++) {
             Vec3b pixel = new_image.at<Vec3b>(y, x);
 
-            input_tensor_mapped(0, y, x, 0) = ((float)pixel.val[0]); //R
-            input_tensor_mapped(0, y, x, 1) = ((float)pixel.val[1]); //G
-            input_tensor_mapped(0, y, x, 2) = ((float)pixel.val[2]); //B
+            input_tensor_mapped(0, y, x, 0) = ((float)pixel.val[2] / 255.0); //R
+            input_tensor_mapped(0, y, x, 1) = ((float)pixel.val[1] / 255.0); //G
+            input_tensor_mapped(0, y, x, 2) = ((float)pixel.val[0] / 255.0); //B
         }
     }
 
@@ -82,19 +86,19 @@ class ImageConverter {
     }
 
     //print out the dimension of the tensor
-    cout << outputs[0].shape().dim_size(0);
+    //cout << outputs[0].shape().dim_size(0);
 
     // Grab the first output (we only evaluated one graph node: "c")
     // and convert the node to a scalar representation.
     auto output_c = outputs[0].tensor<float,1>();
     float x;
-    int col_counter = 5;
+    int col_counter = 0;
     
-    for (int i=0; i < 48; i++) {
+    for (int i=0; i < NUM_OUTPUTS; i++) {
       Mat measurement;
 
       x = output_c(i);
-      x = x * 270.0;
+      x = x * (float)IMG_HEIGHT;
       measurement = (Mat_<float>(1, 1) << x);
 
       x = (kf[i]->predict()).at<float>(0,0);
@@ -102,10 +106,10 @@ class ImageConverter {
       kf[i]->correct(measurement);
 
       if (1==1) {
-        circle(new_image, Point(col_counter, (int)x), 3, Scalar(0,0,255), -1);
+        circle(new_image, Point(col_counter, (int)x), 2, Scalar(0,0,255), -1);
       }
 
-      col_counter += 10;
+      col_counter += 5;
     }
 
     if (1==1) {
@@ -224,7 +228,7 @@ class ImageConverter {
   ImageConverter() : it_(nh_) {
     if (1==1) {
     //new_image = Mat(270, 480, CV_8UC(3));
-    new_image = Mat(270, 480, CV_32FC(3));
+    new_image = Mat(IMG_HEIGHT, IMG_WIDTH, CV_32FC(3));
 
     input_tensor = new tensorflow::Tensor(tensorflow::DT_FLOAT, 
         tensorflow::TensorShape({1, new_image.rows, new_image.cols, 3})); 
@@ -239,7 +243,7 @@ class ImageConverter {
     point_pub = nh_.advertise<sensor_msgs::PointCloud2>("/test_point_cloud", 1);
     }
 
-    for (int i=0; i<48; i++) {
+    for (int i=0; i<NUM_OUTPUTS; i++) {
       kf[i] = new KalmanFilter(1,1); 
 
       Mat_<float> measurement(1,1); measurement.setTo(Scalar(0));
@@ -274,7 +278,7 @@ class ImageConverter {
     }
 
     // Read in the protobuf graph we exported.
-    status = tensorflow::ReadBinaryProto(tensorflow::Env::Default(), ros::package::getPath("image_test") + "/models/output_graph.pb", &graph_def);
+    status = tensorflow::ReadBinaryProto(tensorflow::Env::Default(), ros::package::getPath("image_test") + "/models/output_graph_360.pb", &graph_def);
     if (!status.ok()) {
       std::cout << status.ToString() << "\n";
       return 1;
