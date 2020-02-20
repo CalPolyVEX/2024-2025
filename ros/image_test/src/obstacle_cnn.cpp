@@ -46,6 +46,9 @@ class ImageConverter {
   public:
 
   void run_network(const sensor_msgs::ImageConstPtr& msg) {
+    float a[IMG_WIDTH*IMG_HEIGHT*3];
+    int counter = 0;
+
     cv_bridge::CvImageConstPtr cv_ptr;
     tensorflow::Status status;
 
@@ -55,7 +58,7 @@ class ImageConverter {
       ROS_ERROR("cv_bridge exception: %s", e.what());
     }
     
-    //resize image to 480x270
+    //resize image to IMG_HEIGHT x IMG_WIDTH
     cv::resize(cv_ptr->image, new_image, cv::Size(IMG_WIDTH,IMG_HEIGHT), CV_INTER_LINEAR);
 
     auto input_tensor_mapped = input_tensor->tensor<float, 4>();
@@ -65,11 +68,42 @@ class ImageConverter {
         for (int x = 0; x < IMG_WIDTH; x++) {
             Vec3b pixel = new_image.at<Vec3b>(y, x);
 
-            input_tensor_mapped(0, y, x, 0) = ((float)pixel.val[2] / 255.0); //R
-            input_tensor_mapped(0, y, x, 1) = ((float)pixel.val[1] / 255.0); //G
-            input_tensor_mapped(0, y, x, 2) = ((float)pixel.val[0] / 255.0); //B
+            /* input_tensor_mapped(0, y, x, 0) = ((float)pixel.val[2] / 255.0); //R */
+            /* input_tensor_mapped(0, y, x, 1) = ((float)pixel.val[1] / 255.0); //G */
+            /* input_tensor_mapped(0, y, x, 2) = ((float)pixel.val[0] / 255.0); //B */
+
+            a[counter] = (float) pixel.val[2] / 255.0;
+            counter++;
+            a[counter] = (float) pixel.val[1] / 255.0;
+            counter++;
+            a[counter] = (float) pixel.val[0] / 255.0;
+            counter++;
+
+            /* pixel.val[2] = (float) pixel.val[2] / 255.0; */
+            /* pixel.val[1] = (float) pixel.val[1] / 255.0; */
+            /* pixel.val[0] = (float) pixel.val[0] / 255.0; */
         }
     }
+
+    float* imgTensorFlat = input_tensor->flat<float>().data(); 
+    int arrSize = IMG_WIDTH * IMG_HEIGHT * 3; 
+    /* cv::Mat temp; */
+    /* new_image.convertTo(temp, CV_32F); */ 
+    /* float* p2 = temp.ptr<float>(); */ 
+    std::copy(a, a + arrSize, imgTensorFlat); 
+
+    /* memcpy solution: still need to test */
+    /* float*   imgTensorFlat = inputImg.flat<float>().data(); */
+    /* int      arrSize       = imageWidth * imageHeight * imageChannels; */
+
+    /* cv::Mat temp; */
+    /* for (int z = 0; z < imagesInBatch; ++z) */
+    /* { */
+    /*    cv::Mat inputImg = cv::imread(aInputBatch[z], CV_32F); */
+    /*    inputImg.convertTo(temp, CV_32F); */
+    /*    float* p = temp.ptr<float>(); */
+    /*    std::copy(p, p + arrSize, imgTensorFlat + z * arrSize); */
+    /* } */   
 
     // The session will initialize the outputs
     std::vector<tensorflow::Tensor> outputs;
@@ -118,7 +152,7 @@ class ImageConverter {
       image_pub_.publish(pub_msg);
     }
 
-    publish_point_cloud();
+    //publish_point_cloud();
   }
 
   void publish_point_cloud() {
@@ -234,6 +268,8 @@ class ImageConverter {
         tensorflow::TensorShape({1, new_image.rows, new_image.cols, 3})); 
 
     float_t *p1 = input_tensor->flat<float_t>().data(); 
+
+    // create a "fake" cv::Mat from it
 
     image_transport::TransportHints hints("compressed");
     //image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &ImageConverter::run_network, this);
