@@ -46,9 +46,6 @@ class ImageConverter {
   public:
 
   void run_network(const sensor_msgs::ImageConstPtr& msg) {
-    float a[IMG_WIDTH*IMG_HEIGHT*3];
-    int counter = 0;
-
     cv_bridge::CvImageConstPtr cv_ptr;
     tensorflow::Status status;
 
@@ -61,49 +58,31 @@ class ImageConverter {
     //resize image to IMG_HEIGHT x IMG_WIDTH
     cv::resize(cv_ptr->image, new_image, cv::Size(IMG_WIDTH,IMG_HEIGHT), CV_INTER_LINEAR);
 
-    auto input_tensor_mapped = input_tensor->tensor<float, 4>();
+    float* imgTensorFlat = input_tensor->flat<float>().data(); 
+    float* d = (float*) new_image.data; 
 
     //fill in tensor with image data
+    /* for (int y = 0; y < IMG_HEIGHT*IMG_WIDTH; y++) { */
+    /*         *imgTensorFlat = (float) *(d+2) / 255.0; */
+    /*         imgTensorFlat++; */
+    /*         *imgTensorFlat = (float) *(d+1) / 255.0; */
+    /*         imgTensorFlat++; */
+    /*         *imgTensorFlat = (float) *d / 255.0; */
+    /*         imgTensorFlat++; */
+    /*         d += 3; */
+    /* } */
     for (int y = 0; y < IMG_HEIGHT; y++) {
         for (int x = 0; x < IMG_WIDTH; x++) {
             Vec3b pixel = new_image.at<Vec3b>(y, x);
 
-            /* input_tensor_mapped(0, y, x, 0) = ((float)pixel.val[2] / 255.0); //R */
-            /* input_tensor_mapped(0, y, x, 1) = ((float)pixel.val[1] / 255.0); //G */
-            /* input_tensor_mapped(0, y, x, 2) = ((float)pixel.val[0] / 255.0); //B */
-
-            a[counter] = (float) pixel.val[2] / 255.0;
-            counter++;
-            a[counter] = (float) pixel.val[1] / 255.0;
-            counter++;
-            a[counter] = (float) pixel.val[0] / 255.0;
-            counter++;
-
-            /* pixel.val[2] = (float) pixel.val[2] / 255.0; */
-            /* pixel.val[1] = (float) pixel.val[1] / 255.0; */
-            /* pixel.val[0] = (float) pixel.val[0] / 255.0; */
+            *imgTensorFlat = (float) pixel.val[2] / 255.0;
+            imgTensorFlat++;
+            *imgTensorFlat = (float) pixel.val[1] / 255.0;
+            imgTensorFlat++;
+            *imgTensorFlat = (float) pixel.val[0] / 255.0;
+            imgTensorFlat++;
         }
     }
-
-    float* imgTensorFlat = input_tensor->flat<float>().data(); 
-    int arrSize = IMG_WIDTH * IMG_HEIGHT * 3; 
-    /* cv::Mat temp; */
-    /* new_image.convertTo(temp, CV_32F); */ 
-    /* float* p2 = temp.ptr<float>(); */ 
-    std::copy(a, a + arrSize, imgTensorFlat); 
-
-    /* memcpy solution: still need to test */
-    /* float*   imgTensorFlat = inputImg.flat<float>().data(); */
-    /* int      arrSize       = imageWidth * imageHeight * imageChannels; */
-
-    /* cv::Mat temp; */
-    /* for (int z = 0; z < imagesInBatch; ++z) */
-    /* { */
-    /*    cv::Mat inputImg = cv::imread(aInputBatch[z], CV_32F); */
-    /*    inputImg.convertTo(temp, CV_32F); */
-    /*    float* p = temp.ptr<float>(); */
-    /*    std::copy(p, p + arrSize, imgTensorFlat + z * arrSize); */
-    /* } */   
 
     // The session will initialize the outputs
     std::vector<tensorflow::Tensor> outputs;
@@ -261,22 +240,19 @@ class ImageConverter {
 
   ImageConverter() : it_(nh_) {
     if (1==1) {
-    //new_image = Mat(270, 480, CV_8UC(3));
-    new_image = Mat(IMG_HEIGHT, IMG_WIDTH, CV_32FC(3));
+      new_image = Mat(IMG_HEIGHT, IMG_WIDTH, CV_32FC(3));
 
-    input_tensor = new tensorflow::Tensor(tensorflow::DT_FLOAT, 
-        tensorflow::TensorShape({1, new_image.rows, new_image.cols, 3})); 
+      input_tensor = new tensorflow::Tensor(tensorflow::DT_FLOAT, 
+         tensorflow::TensorShape({1, IMG_HEIGHT, IMG_WIDTH, 3})); 
 
-    float_t *p1 = input_tensor->flat<float_t>().data(); 
+      float_t *p1 = input_tensor->flat<float_t>().data(); 
 
-    // create a "fake" cv::Mat from it
-
-    image_transport::TransportHints hints("compressed");
-    //image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &ImageConverter::run_network, this);
-    image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &ImageConverter::run_network, this, hints);
-    /* image_sub_ = it_.subscribe("/zed/data_throttled_image", 1, &ImageConverter::run_network, this); */
-    image_pub_ = it_.advertise("/image_converter/output_video", 1);
-    point_pub = nh_.advertise<sensor_msgs::PointCloud2>("/test_point_cloud", 1);
+      image_transport::TransportHints hints("compressed");
+      //image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &ImageConverter::run_network, this);
+      image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &ImageConverter::run_network, this, hints);
+      /* image_sub_ = it_.subscribe("/zed/data_throttled_image", 1, &ImageConverter::run_network, this); */
+      image_pub_ = it_.advertise("/image_converter/output_video", 1);
+      point_pub = nh_.advertise<sensor_msgs::PointCloud2>("/test_point_cloud", 1);
     }
 
     for (int i=0; i<NUM_OUTPUTS; i++) {
