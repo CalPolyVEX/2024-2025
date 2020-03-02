@@ -29,16 +29,10 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(motor_control
-  src/motor_control)
-
 add_executable(pub_odometry
   src/pub_odometry.cpp
   src/encoder_odom.cpp
   src/encoder_odom.h)
-
-add_dependencies(motor_control ${PROJECT_NAME}_gencfg)
-target_link_libraries(motor_control ${catkin_LIBRARIES})
 
 add_dependencies(pub_odometry ${PROJECT_NAME}_gencfg)
 target_link_libraries(pub_odometry ${catkin_LIBRARIES})
