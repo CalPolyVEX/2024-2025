@@ -11,7 +11,7 @@
     <include file="$(find jet_launcher)/launch/basic.launch" /> 
     <include file="$(find jet_launcher)/launch/zed_camera_rtabmap_nodelet.launch" /> 
     <include file="$(find jet_launcher)/launch/robot_localization.launch" /> 
-    <!-- <include file="$(find transform_point_cloud)/launch/transform_gyro.launch"/> -->
+    <!-- <include file="$(find motor_control)/launch/transform_gyro.launch"/> -->
 
     <arg name="joystick" default="true" />
     <group if="$(arg joystick)">

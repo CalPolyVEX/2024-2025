@@ -13,7 +13,7 @@
     <arg name="base_width" default="0.363537"/>
     <arg name="run_diag" default="true"/>
 
-    <node if="$(arg run_diag)" pkg="transform_point_cloud" type="pub_odometry" name="roboclaw_node">
+    <node if="$(arg run_diag)" pkg="motor_control" type="pub_odometry" name="roboclaw_node">
         <param name="dev1" value="$(arg dev)"/>
         <param name="baud1" value="$(arg baud)"/>
         <param name="address1" value="$(arg address)"/>

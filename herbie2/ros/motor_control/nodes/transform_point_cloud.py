@@ -7,7 +7,7 @@ import tf2_py as tf2
 from geometry_msgs.msg import TransformStamped
 from sensor_msgs.msg import PointCloud2
 from tf2_sensor_msgs.tf2_sensor_msgs import do_transform_cloud
-#from transform_point_cloud.cfg import LookupTransformConfig
+#from motor_control.cfg import LookupTransformConfig
 
 class TransformPointCloud:
     def __init__(self):
@@ -47,6 +47,6 @@ class TransformPointCloud:
         self.pub.publish(cloud_out)
 
 if __name__ == '__main__':
-    rospy.init_node('transform_point_cloud')
-    transform_point_cloud = TransformPointCloud()
+    rospy.init_node('motor_control')
+    motor_control = TransformPointCloud()
     rospy.spin()

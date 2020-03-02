@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>transform_point_cloud</name>
+  <name>motor_control</name>
   <version>0.0.0</version>
-  <description>Transform a PointCloud2 with tf2</description>
+  <description>Motor control package for Herbie 2</description>
 
-  <maintainer email="wsacul@gmail.com">Lucas Walter</maintainer>
+  <maintainer email="jseng@calpoly.edu">John Seng</maintainer>
 
   <license>BSD</license>
 

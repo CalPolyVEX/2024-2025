@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <node name="transform_gyro_msgs" pkg="transform_point_cloud"
+  <node name="transform_gyro_msgs" pkg="motor_control"
       type="transform_gyro_msgs"
       output="screen" >
   </node>

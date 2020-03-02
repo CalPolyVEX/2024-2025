@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(transform_point_cloud)
+project(motor_control)
 #set(CMAKE_CXX_FLAGS "-Wall -Werror -Wextra -pedantic")
 set(CMAKE_CXX_FLAGS "")
 
@@ -29,29 +29,17 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(transform_point_cloud
-  src/transform_point_cloud)
+add_executable(motor_control
+  src/motor_control)
 
 add_executable(pub_odometry
   src/pub_odometry.cpp
   src/encoder_odom.cpp
   src/encoder_odom.h)
 
-add_executable(transform_gyro_msgs
-  src/transform_gyro_msgs.cpp)
-
-add_executable(bno055
-  src/Adafruit_BNO055.cpp
-  src/Adafruit_BNO055.h)
-
-add_dependencies(transform_point_cloud ${PROJECT_NAME}_gencfg)
-target_link_libraries(transform_point_cloud ${catkin_LIBRARIES})
+add_dependencies(motor_control ${PROJECT_NAME}_gencfg)
+target_link_libraries(motor_control ${catkin_LIBRARIES})
 
 add_dependencies(pub_odometry ${PROJECT_NAME}_gencfg)
 target_link_libraries(pub_odometry ${catkin_LIBRARIES})
 
-add_dependencies(transform_gyro_msgs ${PROJECT_NAME}_gencfg)
-target_link_libraries(transform_gyro_msgs ${catkin_LIBRARIES})
-
-add_dependencies(bno055 ${PROJECT_NAME}_gencfg)
-target_link_libraries(bno055 ${catkin_LIBRARIES})
