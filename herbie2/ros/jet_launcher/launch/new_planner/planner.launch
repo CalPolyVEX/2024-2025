@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<launch>
+   <group ns="planner">
+      <!-- <remap from="openni_points" to="/obstacles_cloud"/> -->
+      <remap from="openni_points" to="/proj_obstacles"/>
+      <!-- <remap from="map" to="/rtabmap/grid_map"/> -->
+      <remap from="map" to="/map"/>
+      <remap from="move_base_simple/goal" to="/planner_goal"/>
+        
+      <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+         <param name="base_global_planner" value="global_planner/GlobalPlanner"/>
+         <param name="base_local_planner" value="base_local_planner/TrajectoryPlannerROS"/>
+         <rosparam file="$(find jet_launcher)/launch/new_planner/costmap_common_params.yaml" command="load" ns="global_costmap" />
+         <rosparam file="$(find jet_launcher)/launch/new_planner/costmap_common_params.yaml" command="load" ns="local_costmap" />
+         <rosparam file="$(find jet_launcher)/launch/new_planner/local_costmap_params.yaml" command="load" />
+         <rosparam file="$(find jet_launcher)/launch/new_planner/global_costmap_params.yaml" command="load" />
+         <rosparam file="$(find jet_launcher)/launch/new_planner/base_local_planner_params.yaml" command="load" />
+         <rosparam file="$(find jet_launcher)/launch/new_planner/global_planner.yaml" command="load" />
+      </node>
+   </group>
+</launch>

@@ -1,0 +1,55 @@
+latch_xy_goal_tolerance: true
+
+TrajectoryPlannerROS:
+    acc_lim_x:  10.00
+    acc_lim_y:  0.0
+    acc_lim_theta: 10.00
+    max_vel_x:  0.46
+    min_vel_x:  0.16
+    max_vel_y:  0.0
+    max_rotational_vel: 1.0
+    min_in_place_vel_theta: 0.96
+    escape_vel: -0.17
+    holonomic_robot: false
+
+    sim_time: 1.2
+    sim_granularity: 0.025
+    vx_samples: 10
+    vtheta_samples: 20
+
+    xy_goal_tolerance:  0.1
+    yaw_goal_tolerance: 0.1
+    latch_xy_goal_tolerance: true
+
+    gdist_scale: 0.8
+    pdist_scale: 0.6
+    occdist_scale: 0.01
+    heading_lookahead: 0.325
+    dwa: true
+
+    oscillation_reset_dist: 0.05
+    meter_scoring: true
+
+    allow_unknown: true
+    # allow_unknown: false
+
+    recovery_behaviors: [
+        {name: conservative_clear, type: clear_costmap_recovery/ClearCostmapRecovery},
+        {name: rotate_recovery, type: rotate_recovery/RotateRecovery},
+        {name: aggressive_clear, type: clear_costmap_recovery/ClearCostmapRecovery}
+    ]
+
+    conservative_clear: 
+        reset_distance: 3.0
+    aggressive_clear:
+        reset_distance: 3.2
+        #reset_distance: .1
+
+    map_type: costmap
+    max_obstacle_height: .6
+
+    neutral_cost: 66
+    cost_factor: .55
+
+    controller_patience: 4.0
+    controller_frequency: 20

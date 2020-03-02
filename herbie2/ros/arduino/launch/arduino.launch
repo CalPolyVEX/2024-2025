@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+   <node pkg="rosserial_python" type="serial_node.py" name="arduino_node" args="/dev/arduino" cwd="node">
+   </node>
+
+
+   <!-- <node pkg="rosserial_server" type="serial_node" name="rosserial_server"> -->
+   <!--    <rosparam> -->
+   <!--       port: /dev/arduino -->
+   <!--    </rosparam> -->
+   <!-- </node> -->
+
+  <!-- <node pkg="rosserial_python" type="message_info_service.py" -->
+   <!--      name="rosserial_message_info" /> -->
+</launch>

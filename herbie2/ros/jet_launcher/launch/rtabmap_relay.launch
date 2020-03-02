@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+
+<launch>
+  <!-- <node pkg="topic_tools" type="relay" name="image_relay" args="/zed/data_throttled_image/compressed /zed/data_throttled_image_relay" /> -->
+  <!-- <node pkg="topic_tools" type="relay" name="depth_relay" args="/zed/data_throttled_image_depth/compressedDepth /zed/data_throttled_image_depth_relay" /> -->
+  <node name="republish1" pkg="image_transport" type="republish" output="screen" args="compressed in:=/zed/data_throttled_image raw out:=/zed/data_throttled_image_relay" />
+  <node name="republish2" pkg="image_transport" type="republish" output="screen" args="compressedDepth in:=/zed/data_throttled_image_depth raw out:=/zed/data_throttled_image_depth_relay" />
+</launch>
+

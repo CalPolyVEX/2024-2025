@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>transform_point_cloud</name>
+  <version>0.0.0</version>
+  <description>Transform a PointCloud2 with tf2</description>
+
+  <maintainer email="wsacul@gmail.com">Lucas Walter</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>dynamic_reconfigure</depend>
+  <depend>geometry_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>tf2_py</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_sensor_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>rtabmap_ros</depend>
+
+  <export>
+  </export>
+</package>

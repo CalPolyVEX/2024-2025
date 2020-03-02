@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<launch>
+   <arg name="planning" default="false" />
+   <arg name="mapping" default="false" />
+   <arg name="localization" default="false" />
+   <arg name="rtabmapviz" default="false" />
+
+   <include file="$(find jet_launcher)/launch/map.launch"/>
+   <!-- Start the ZED camera node -->
+   <include file="$(find jet_launcher)/launch/zed_camera_rtabmap_nodelet.launch"/>
+
+   <!-- Start the roboclaw and Arduino nodes -->
+   <include file="$(find jet_launcher)/launch/basic.launch"/>
+
+   <!-- Start the gamepad node-->
+   <include file="$(find roboclaw_node)/launch/joystick.launch"/>
+
+   <!-- Start the Adafruit LCD node-->
+   <include file="$(find roboclaw_node)/launch/lcd.launch"/>
+
+   <group if="$(arg mapping)">
+      <include file="$(find jet_launcher)/launch/zed_rtabmap.launch"/>
+   </group>
+
+   <group if="$(arg localization)">
+      <include file="$(find jet_launcher)/launch/zed_rtabmap_localization.launch"/>
+   </group>
+
+   <group if="$(arg planning)">
+      <include file="$(find jet_launcher)/launch/obstacle_detection_cnn.launch"/>
+      <include file="$(find jet_launcher)/launch/new_planner/planner_cnn.launch"/> 
+      <include file="$(find jet_launcher)/launch/robot_localization.launch"/>
+      <include file="$(find navigation_goals)/launch/navigation_goals.launch"/> 
+      <include file="$(find jet_launcher)/launch/laser_filter.launch"/> 
+
+      <!-- <include file="$(find jet_launcher)/launch/camera.launch"/> --> 
+      <include file="$(find jet_launcher)/launch/uvc_cam.launch"/> 
+      <include file="$(find image_test)/launch/obstacle_cnn.launch"/> 
+   </group>
+</launch>

@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<launch>
+   <!-- <arg name="map_file" default="$(find jet_launcher)/launch/map/map.yaml"/> -->
+   <arg name="testing_map" default="false"/> 
+
+   <group if="$(arg testing_map)">
+      <arg name="map_file" value="$(find jet_launcher)/launch/map/building14_new/map.yaml"/>
+      <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+   </group>
+   <group unless="$(arg testing_map)">
+      <arg name="map_file" value="$(find jet_launcher)/launch/map/map.yaml"/>
+      <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+   </group>
+
+  <!-- <arg name="map_file" default="$(find jet_launcher)/launch/map/dexter_lawn/dexter.yaml"/> -->
+
+  <!-- Run the map server -->
+  <!-- <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" /> -->
+</launch>

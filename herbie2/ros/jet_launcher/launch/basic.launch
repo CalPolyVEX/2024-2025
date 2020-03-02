@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+
+<!-- Launch the roboclaw node and the Arduino node -->
+
+<launch>
+   <include file="$(find roboclaw_node)/launch/roboclaw_cpp.launch"/>
+   <include file="$(find arduino)/launch/arduino.launch"/>
+</launch>

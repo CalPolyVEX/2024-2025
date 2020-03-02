@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<!-- This runs all the launch files needed when recording data to build  -->
+<!-- the rtabmap database.                                               -->
+
+<!-- To run:                                                             -->
+<!-- roslaunch pid=/mnt/temp/r.pid jet_launcher rtabmap_db_record.launch -->
+<!-- (put a double dash before 'pid' in the previous line                -->
+
+<launch>
+    <include file="$(find jet_launcher)/launch/basic.launch" /> 
+    <include file="$(find jet_launcher)/launch/zed_camera_rtabmap_nodelet.launch" /> 
+    <include file="$(find jet_launcher)/launch/robot_localization.launch" /> 
+    <!-- <include file="$(find transform_point_cloud)/launch/transform_gyro.launch"/> -->
+
+    <arg name="joystick" default="true" />
+    <group if="$(arg joystick)">
+        <include file="$(find roboclaw_node)/launch/joystick.launch"/>
+    </group>
+
+    <arg name="obstacle" default="false" />
+    <group if="$(arg obstacle)">
+        <include file="$(find jet_launcher)/launch/obstacle_detection.launch"/>
+    </group>
+</launch>

@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<launch>
+   <arg name="live" default="false" />
+   <include file="$(find image_test)/launch/infer.launch"/>
+
+   <group if="$(arg live)">
+      <node pkg="topic_tools" type="relay" name="image_relay" args="/zed_node/left/image_rect_color /see3cam_cu20/image_raw" />
+   </group>
+
+   <group unless="$(arg live)">
+      <arg name="video_file" default="/mnt/temp/output0.bag"/>
+      <node pkg="rosbag" type="play" name="player" args="-q -l $(arg video_file)"/>
+      <include file="$(find jet_launcher)/launch/uncompress_video.launch"/>
+   </group>
+</launch>

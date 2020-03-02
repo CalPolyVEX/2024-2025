@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+   <arg name="path" default="/home/jseng/" />
+   <arg name="bagfile" default="output0" />
+   <node pkg="rosbag" type="play" name="rosbag_node" args="-l -r 0.5 $(arg path)$(arg bagfile).bag">
+   </node>
+
+   <include file="$(find jet_launcher)/launch/uncompress_video.launch"/>
+
+   <node pkg="topic_tools" type="relay" name="relay_node" cwd="node" args="/see3cam_cu20/image_raw /camera/image_raw">
+   </node>
+
+</launch>

@@ -1,0 +1,8 @@
+#Arduino UNO
+#SUBSYSTEMS=="usb", ATTRS{idProduct}=="0043", ATTRS{idVendor}=="2341", SYMLINK+="arduino arduino_uno_$attr{serial}" 
+SUBSYSTEM=="tty", ATTRS{idProduct}=="0043", ATTRS{idVendor}=="2341", SYMLINK+="arduino" 
+SUBSYSTEM=="tty", ATTRS{idProduct}=="2404", ATTRS{idVendor}=="03eb", SYMLINK+="roboclaw" 
+SUBSYSTEM=="video4linux", ATTRS{idProduct}=="f582", ATTRS{idVendor}=="2b03", SYMLINK+="zed" 
+SUBSYSTEM=="video4linux", ATTRS{idProduct}=="c120", ATTRS{idVendor}=="2560", SYMLINK+="see3cam" 
+
+SUBSYSTEMS=="usb", ENV{DEVTYPE}=="usb_device", ATTRS{idVendor}=="2560", ATTRS{idProduct}=="c120", OWNER="jseng"

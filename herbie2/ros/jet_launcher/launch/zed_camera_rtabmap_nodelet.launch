@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+
+<!-- This file starts the ZED camera on the robot -->
+<!-- This file does not start rtabmap             -->
+
+<launch>
+    <include file="$(find image_test)/launch/tf_publisher.launch" /> 
+    <!-- <include file="$(find realsense2_camera)/launch/rs_t265.launch" /> --> 
+
+    <!-- <arg name="zed_namespace"		    	default="zed" /> -->
+    <arg name="zed_namespace"		    	default="" />
+
+    <arg name="svo_file"                        default="" /> <!-- <arg name="svo_file" default="path/to/svo/file.svo"> -->
+    <arg name="zed_node_name"                   default="zed_node" />
+    <arg name="camera_model"                    default="zed" /> <!-- 'zed' or 'zedm' -->
+    <arg name="publish_urdf"                    default="true" />
+
+    <arg name="verbose"              	default="true" />
+
+    <!-- Nodelet Manager -->
+    <arg name="nodelet_manager_name" default="zed_nodelet_manager" />
+    <node pkg="nodelet" type="nodelet" name="$(arg nodelet_manager_name)"  args="manager" output="screen">
+        <param name="num_worker_threads" type="int" value="8"/>
+    </node> 
+
+    <!-- ZED Wrapper Node-->
+    <include file="$(find zed_wrapper)/launch/zed_camera_nodelet.launch">
+        <arg name="svo_file"            value="$(arg svo_file)" />
+        <arg name="node_name"           value="$(arg zed_node_name)" />
+        <arg name="camera_model"        value="$(arg camera_model)" />
+        <arg name="publish_urdf"        value="$(arg publish_urdf)" />
+    </include>
+
+    <node pkg="nodelet" type="nodelet" name="data_throttle" args="load rtabmap_ros/data_throttle zed_nodelet_manager" output="screen">
+        <param name="rate" type="double" value="2.0"/>
+        <param name="approx_sync" type="bool" value="true"/>
+
+        <remap from="rgb/image_in"       to="$(arg zed_namespace)/$(arg zed_node_name)/rgb/image_rect_color"/>
+        <remap from="depth/image_in"     to="$(arg zed_namespace)/$(arg zed_node_name)/depth/depth_registered"/>
+        <remap from="rgb/camera_info_in" to="$(arg zed_namespace)/$(arg zed_node_name)/rgb/camera_info"/>
+
+        <remap from="rgb/image_out"       to="/zed/data_throttled_image"/>
+        <remap from="depth/image_out"     to="/zed/data_throttled_image_depth"/>
+        <remap from="rgb/camera_info_out" to="/zed/data_throttled_camera_info"/>
+    </node> 
+
+    <!-- Throttle the rate that the depth point clouds are published from the camera -->
+    <!-- <node pkg="topic_tools" name="throttle1" type="throttle" args="messages /zed_node/rgb/image_rect_color 2.0 /zed/data_throttled_image" /> -->  
+    <!-- <node pkg="topic_tools" name="throttle2" type="throttle" args="messages /zed_node/depth/depth_registered 2.0 /zed/data_throttled_image_depth" /> --> 
+    <!-- <node pkg="topic_tools" name="throttle3" type="throttle" args="messages /zed_node/rgb/camera_info 2.0 /zed/data_throttled_camera_info" /> --> 
+
+</launch>

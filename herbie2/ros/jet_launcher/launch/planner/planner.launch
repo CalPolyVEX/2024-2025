@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+   <group ns="planner">
+      <!-- <remap from="openni_points" to="/obstacles_cloud"/> -->
+      <remap from="openni_points" to="/proj_obstacles"/>
+      <remap from="map" to="/map"/>
+      <remap from="move_base_simple/goal" to="/planner_goal"/>
+        
+      <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+         <rosparam file="$(find jet_launcher)/launch/planner/costmap_common_params.yaml" command="load" ns="global_costmap" />
+         <rosparam file="$(find jet_launcher)/launch/planner/costmap_common_params.yaml" command="load" ns="local_costmap" />
+         <rosparam file="$(find jet_launcher)/launch/planner/local_costmap_params.yaml" command="load" />
+         <rosparam file="$(find jet_launcher)/launch/planner/global_costmap_params.yaml" command="load" />
+         <rosparam file="$(find jet_launcher)/launch/planner/base_local_planner_params.yaml" command="load" />
+      </node>
+   </group>
+</launch>
