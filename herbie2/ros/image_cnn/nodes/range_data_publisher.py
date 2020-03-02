@@ -3,12 +3,12 @@
 #and publishes the data as a point cloud
 
 import roslib, rospy
-roslib.load_manifest('image_test')
+roslib.load_manifest('image_cnn')
 import struct
 
 from std_msgs.msg import Int32
 from sensor_msgs.msg import PointCloud2, PointField
-from image_test.msg import ground_boundary
+from image_cnn.msg import ground_boundary
 from random import randint
 
 from sensor_msgs import point_cloud2

@@ -290,7 +290,7 @@ class ImageConverter {
     }
 
     // Read in the protobuf graph we exported.
-    status = tensorflow::ReadBinaryProto(tensorflow::Env::Default(), ros::package::getPath("image_test") + "/models/output_graph_360.pb", &graph_def);
+    status = tensorflow::ReadBinaryProto(tensorflow::Env::Default(), ros::package::getPath("image_cnn") + "/models/output_graph_360.pb", &graph_def);
     if (!status.ok()) {
       std::cout << status.ToString() << "\n";
       return 1;

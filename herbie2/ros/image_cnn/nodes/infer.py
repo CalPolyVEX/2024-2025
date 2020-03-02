@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 import roslib
-roslib.load_manifest('image_test')
+roslib.load_manifest('image_cnn')
 import sys, rospy, cv2, time, imp
 import numpy as np
 import tensorflow as tf
@@ -10,7 +10,7 @@ from solvepnp import camera_transform
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
-from image_test.msg import ground_boundary
+from image_cnn.msg import ground_boundary
 
 class GroundDetector:
    def __init__(self, protobuf_model, input_layer, output_layer):
@@ -72,7 +72,7 @@ class GroundDetector:
       self.graph_def1 = tf.GraphDef()
 
       #with open(self.protobuf_model, "rb") as f:
-      with open('/home/nvidia/catkin_ws/src/ros/image_test/nodes/output_graph_save.pb', "rb") as f:
+      with open('/home/nvidia/catkin_ws/src/ros/image_cnn/nodes/output_graph_save.pb', "rb") as f:
          self.graph_def1.ParseFromString(f.read())
       with self.graph1.as_default():
          tf.import_graph_def(self.graph_def1)

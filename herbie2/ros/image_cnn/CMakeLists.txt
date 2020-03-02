@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(image_test)
+project(image_cnn)
 
 #JS the following line is to compile on x86 Ubuntu 18.04
 #set(PCL_DIR "/usr/lib/x86_64-linux-gnu/cmake/pcl")
@@ -118,7 +118,7 @@ generate_messages(
 if (TRUE)
     catkin_package(
     INCLUDE_DIRS include
-    #  LIBRARIES image_test
+    #  LIBRARIES image_cnn
     CATKIN_DEPENDS roscpp rospy std_msgs message_runtime image_transport cv_bridge tf2_ros laser_geometry
     #  DEPENDS system_lib
     )
@@ -127,7 +127,7 @@ endif()
 if (FALSE)
     catkin_package(
     #  INCLUDE_DIRS include
-    #  LIBRARIES image_test
+    #  LIBRARIES image_cnn
     CATKIN_DEPENDS roscpp rospy std_msgs message_runtime image_transport cv_bridge tensorflow_ros_cpp
     #  DEPENDS system_lib
     )
@@ -153,7 +153,7 @@ link_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/image_test.cpp
+#   src/${PROJECT_NAME}/image_cnn.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -234,7 +234,7 @@ endif()
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_image_test.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_image_cnn.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

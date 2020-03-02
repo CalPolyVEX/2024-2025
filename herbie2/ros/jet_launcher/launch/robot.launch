@@ -58,6 +58,6 @@
       <include file="$(find jet_launcher)/launch/laser_filter.launch"/> 
 
       <!-- <include file="$(find jet_launcher)/launch/camera.launch"/> --> 
-      <!-- <include file="$(find image_test)/launch/obstacle_cnn.launch"/> --> 
+      <!-- <include file="$(find image_cnn)/launch/obstacle_cnn.launch"/> --> 
    </group>
 </launch>

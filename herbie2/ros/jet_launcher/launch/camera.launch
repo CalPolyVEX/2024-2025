@@ -29,7 +29,7 @@
    <!--<node pkg="topic_tools" name="throttle" type="throttle" args="messages /see3cam_cu20/image_raw 1.0" /> -->
 
    <!-- Resize the image to 480x270 -->
-   <!--<node pkg="image_test" type="resize_to_480_270.py" name="resize480_node" />-->
+   <!--<node pkg="image_cnn" type="resize_to_480_270.py" name="resize480_node" />-->
 
    <group ns="see3cam_cu20/image_raw" >
       <rosparam param="disable_pub_plugins">

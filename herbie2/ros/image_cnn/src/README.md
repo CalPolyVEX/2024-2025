@@ -11,13 +11,13 @@ Steps to compile tensorflow for use with ROS:
    * if you get a AWS linking error:  https://github.com/tensorflow/serving/issues/832
  * copy the library files to a lib directory:
    * mkdir ../my_project/lib
-   * cp bazel-bin/tensorflow/libtensorflow_cc.so /home/jseng/catkin_ws/src/ros/image_test/lib
-   * cp bazel-bin/tensorflow/libtensorflow_framework.so /home/jseng/catkin_ws/src/ros/image_test/lib
+   * cp bazel-bin/tensorflow/libtensorflow_cc.so /home/jseng/catkin_ws/src/ros/image_cnn/lib
+   * cp bazel-bin/tensorflow/libtensorflow_framework.so /home/jseng/catkin_ws/src/ros/image_cnn/lib
  * copy the include files:
-   * cp -r bazel-genfiles/* /home/jseng/catkin_ws/src/ros/image_test/include/
-   * cp -r tensorflow/cc /home/jseng/catkin_ws/src/ros/image_test/include/tensorflow
-   * cp -r tensorflow/core /home/jseng/catkin_ws/src/ros/image_test/include/tensorflow
-   * cp -r third_party /home/jseng/catkin_ws/src/ros/image_test/include/
+   * cp -r bazel-genfiles/* /home/jseng/catkin_ws/src/ros/image_cnn/include/
+   * cp -r tensorflow/cc /home/jseng/catkin_ws/src/ros/image_cnn/include/tensorflow
+   * cp -r tensorflow/core /home/jseng/catkin_ws/src/ros/image_cnn/include/tensorflow
+   * cp -r third_party /home/jseng/catkin_ws/src/ros/image_cnn/include/
  * install protobuf 3.6.0
    * git clone https://github.com/protocolbuffers/protobuf.git
    * cd protobuf
@@ -28,13 +28,13 @@ Steps to compile tensorflow for use with ROS:
    * ln -s /home/jseng/protobuf/src/google google 
  * copy all the Eigen include files
    * cd /usr/include/eigen3
-   * cp -r * /home/jseng/catkin_ws/src/ros/image_test/include
+   * cp -r * /home/jseng/catkin_ws/src/ros/image_cnn/include
  * absl header error
    * git clone absl into the tensorflow directory
      * cd /home/jseng/tensorflow
      * git clone https://github.com/abseil/abseil-cpp.git
      * ln -s abseil-cpp/absl ./absl
    * create a link from 'include/absl' to 'tensorflow/absl'
-     * cd /home/jseng/catkin_ws/src/ros/image_test/include
+     * cd /home/jseng/catkin_ws/src/ros/image_cnn/include
      * ln -s /home/jseng/tensorflow/absl absl
    * (https://github.com/tensorflow/tensorflow/issues/22007#issuecomment-424553600)

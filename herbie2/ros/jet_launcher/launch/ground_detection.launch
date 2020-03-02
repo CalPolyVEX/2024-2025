@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
    <arg name="live" default="false" />
-   <include file="$(find image_test)/launch/infer.launch"/>
+   <include file="$(find image_cnn)/launch/infer.launch"/>
 
    <group if="$(arg live)">
       <node pkg="topic_tools" type="relay" name="image_relay" args="/zed_node/left/image_rect_color /see3cam_cu20/image_raw" />

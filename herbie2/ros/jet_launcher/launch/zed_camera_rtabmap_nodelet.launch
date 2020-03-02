@@ -4,7 +4,7 @@
 <!-- This file does not start rtabmap             -->
 
 <launch>
-    <include file="$(find image_test)/launch/tf_publisher.launch" /> 
+    <include file="$(find image_cnn)/launch/tf_publisher.launch" /> 
     <!-- <include file="$(find realsense2_camera)/launch/rs_t265.launch" /> --> 
 
     <!-- <arg name="zed_namespace"		    	default="zed" /> -->
