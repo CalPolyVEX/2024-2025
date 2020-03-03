@@ -13,16 +13,17 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_sensor_msgs
   sensor_msgs
   serial
+  rtabmap_ros
 )
 
 roslint_cpp()
 
-generate_dynamic_reconfigure_options(
-  cfg/LookupTransform.cfg
-)
+#generate_dynamic_reconfigure_options(
+#  cfg/LookupTransform.cfg
+#)
 
 catkin_package(
-  CATKIN_DEPENDS roscpp tf2_ros dynamic_reconfigure
+  CATKIN_DEPENDS roscpp tf2_ros dynamic_reconfigure 
 )
 
 include_directories(
