@@ -38,7 +38,7 @@ add_subdirectory (lib)
 set (CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${V4L2_HELPER_LIB_INSTALL_PATH}")
 
 # Specify the compiler flags
-set (GCC_COMPILE_FLAGS -Wall -Wpedantic -Wextra -O3 -Wshadow -std=c++11 -g)
+set (GCC_COMPILE_FLAGS -Wall -Wpedantic -Wextra -O3 -Wshadow -std=c++11 -g -static)
 add_compile_options (${GCC_COMPILE_FLAGS})
 
 add_executable (${JS_OPENCV_V4L2_BIN} ${JS_V4L2_SOURCE})

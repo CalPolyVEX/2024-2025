@@ -1,10 +1,3 @@
-/*
- * opencv_v4l2 - opencv_v4l2.cpp file
- *
- * Copyright (c) 2017-2018, e-con Systems India Pvt. Ltd.  All rights reserved.
- *
- */
-
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include <sys/time.h>
@@ -15,20 +8,12 @@
 #include "v4l2_helper.h"
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
-
+#include <sensor_msgs/image_encodings.h>
+ 
 using namespace std;
 using namespace cv;
 
 ros::NodeHandle* nh = NULL;
-
-unsigned int GetTickCount()
-{
-   struct timeval tv;
-   if(gettimeofday(&tv, NULL) != 0)
-      return 0;
-
-   return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
-}
 
 /*
  * Other formats: To use pixel formats other than UYVY, see related comments (comments with
@@ -50,11 +35,11 @@ class CameraReader {
    * (and cuda::GpuMat gpu_frame) outside the 'while (1)' loop instead of declaring it
    * within the loop) improves the performance for higher resolutions.
    */
-  Mat yuyv_frame, preview, preview1;
+  Mat yuyv_frame, yuyv_frame_360, bgr_360;
 
   public:
   CameraReader() : it_(nh_) {
-    image_pub_ = it_.advertise("/image_converter/output_video", 1);
+    image_pub_ = it_.advertise("/see3cam_cu20/image_raw", 1);
   }
 
   int init(int argc, char **argv) {
@@ -87,8 +72,8 @@ class CameraReader {
       cout << "No arguments given. Assuming default values.\n";
       cout << "Device file path: " << default_videodev << "; Width: 640; Height: 480\n";
       videodev = default_videodev;
-      width = 640;
-      height = 480;
+      width = 1920;
+      height = 1080;
     }
 
     /*
@@ -123,10 +108,9 @@ class CameraReader {
     * [2]: https://docs.opencv.org/3.4.2/d3/d63/classcv_1_1Mat.html#a2ec3402f7d165ca34c7fd6e8498a62ca
     */
    yuyv_frame = Mat(height, width, CV_8UC2);
-   preview = Mat(height, width, CV_8UC2);
-   preview1 = Mat(height/2, width/2, CV_8UC2);
+   yuyv_frame_360 = Mat(height/3, width/3, CV_8UC2);
+   bgr_360 = Mat(height/3, width/3, CV_8UC3);
 
-   start = GetTickCount();
    return 0;
   }
 
@@ -150,8 +134,12 @@ class CameraReader {
         break;
       }
 
-      cvtColor(yuyv_frame, preview, COLOR_YUV2BGR_UYVY);
-      resize(preview, preview1, cv::Size(), 0.5, 0.5);
+      resize(yuyv_frame, yuyv_frame_360, yuyv_frame_360.size(), 0, 0);
+      cvtColor(yuyv_frame_360, bgr_360, COLOR_YUV2BGR_UYVY);
+      /* resize(preview, preview1, preview1.size(), 0, 0); */
+
+      sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_360).toImageMsg();
+      image_pub_.publish(pub_msg);
 
       /*
        * Helper function to release camera data. This must be called for every
@@ -162,13 +150,6 @@ class CameraReader {
         break;
       }
 
-      fps++;
-      end = GetTickCount();
-      if ((end - start) >= 1000) {
-        cout << "fps = " << fps << endl ;
-        fps = 0;
-        start = end;
-      }
     }
   }
 
@@ -193,6 +174,8 @@ int main(int argc, char **argv) {
   CameraReader c;
   c.init(argc,argv);
   c.frame_loop();
+
+  c.close_camera();
 
   ros::spin();
   ros::waitForShutdown();
