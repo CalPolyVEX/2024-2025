@@ -1,0 +1,200 @@
+/*
+ * opencv_v4l2 - opencv_v4l2.cpp file
+ *
+ * Copyright (c) 2017-2018, e-con Systems India Pvt. Ltd.  All rights reserved.
+ *
+ */
+
+#include <opencv2/opencv.hpp>
+#include <iostream>
+#include <sys/time.h>
+#include "ros/ros.h"
+#include <ros/console.h>
+#include <cstdlib>
+#include "unistd.h"
+#include "v4l2_helper.h"
+#include <image_transport/image_transport.h>
+#include <cv_bridge/cv_bridge.h>
+
+using namespace std;
+using namespace cv;
+
+ros::NodeHandle* nh = NULL;
+
+unsigned int GetTickCount()
+{
+   struct timeval tv;
+   if(gettimeofday(&tv, NULL) != 0)
+      return 0;
+
+   return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
+}
+
+/*
+ * Other formats: To use pixel formats other than UYVY, see related comments (comments with
+ * prefix 'Other formats') in corresponding places.
+ */
+class CameraReader {
+  unsigned int width, height;
+  const char* default_videodev = "/dev/video0";
+  const char *videodev;
+  unsigned int start, end, fps = 0;
+  unsigned char* ptr_cam_frame;
+  int bytes_used;
+  ros::NodeHandle nh_;
+  image_transport::ImageTransport it_;
+  image_transport::Publisher image_pub_;
+
+  /*
+   * Re-using the frame matrix(ces) instead of creating new ones (i.e., declaring 'Mat frame'
+   * (and cuda::GpuMat gpu_frame) outside the 'while (1)' loop instead of declaring it
+   * within the loop) improves the performance for higher resolutions.
+   */
+  Mat yuyv_frame, preview, preview1;
+
+  public:
+  CameraReader() : it_(nh_) {
+    image_pub_ = it_.advertise("/image_converter/output_video", 1);
+  }
+
+  int init(int argc, char **argv) {
+    if (argc == 4) {
+      videodev = argv[1];
+
+      string width_str = argv[2];
+      string height_str = argv[3];
+      try {
+        size_t pos;
+        width = stoi(width_str, &pos);
+        if (pos < width_str.size()) {
+          cerr << "Trailing characters after width: " << width_str << '\n';
+        }
+
+        height = stoi(height_str, &pos);
+        if (pos < height_str.size()) {
+          cerr << "Trailing characters after height: " << height_str << '\n';
+        }
+      } catch (invalid_argument const &ex) {
+        cerr << "Invalid width or height\n";
+        return EXIT_FAILURE;
+      } catch (out_of_range const &ex) {
+        cerr << "Width or Height out of range\n";
+        return EXIT_FAILURE;
+      }
+    } else {
+      cout << "Note: This program accepts (only) three arguments.\n";
+      cout << "First arg: device file path, Second arg: width, Third arg: height\n";
+      cout << "No arguments given. Assuming default values.\n";
+      cout << "Device file path: " << default_videodev << "; Width: 640; Height: 480\n";
+      videodev = default_videodev;
+      width = 640;
+      height = 480;
+    }
+
+    /*
+     * Helper function to initialize camera to a specific resolution and format
+     *
+     * 1. Using User pointer method of streaming I/O contributes to increased performance as
+    *    it avoids a spurious copy from kernel space to user space which happens in case of
+    *    the Memory mapping streaming I/O method.
+    *
+    * 2. Other formats: To use formats other that UYVY, the 4th parameter for this function
+    *    must be modified accordingly to pass a valid value for the 'pixelformat' member of
+    *    'struct v4l2_pix_format'[1].
+    *
+    * [1]: https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/pixfmt-v4l2.html#c.v4l2_pix_format
+    */
+   if (helper_init_cam(videodev, width, height, V4L2_PIX_FMT_UYVY, IO_METHOD_USERPTR) < 0) {
+      return EXIT_FAILURE;
+   }
+
+   /*
+    * 1. As we re-use the matrix across loops for increased performance in case of higher resolutions
+    *    we construct it with the common parameters: rows (height), columns (width), type of data in
+    *    matrix.
+    *
+    *    Re-using the matrix is possible as the resolution of the frame doesn't change dynamically
+    *    in the middle of obtaining frames from the camera. If resolutions change in the middle we
+    *    would have to re-construct the matrix accordingly.
+    *
+    * 2. Other formats: To use formats other than UYVY the 3rd parameter must be modified accordingly
+    *    to pass a valid OpenCV array type for the new pixelformat[2].
+    *
+    * [2]: https://docs.opencv.org/3.4.2/d3/d63/classcv_1_1Mat.html#a2ec3402f7d165ca34c7fd6e8498a62ca
+    */
+   yuyv_frame = Mat(height, width, CV_8UC2);
+   preview = Mat(height, width, CV_8UC2);
+   preview1 = Mat(height/2, width/2, CV_8UC2);
+
+   start = GetTickCount();
+   return 0;
+  }
+
+  void frame_loop() {
+    while(ros::ok()) {
+      usleep(66000);
+      /*
+       * Helper function to access camera data
+       */
+      if (helper_get_cam_frame(&ptr_cam_frame, &bytes_used) < 0) {
+        break;
+      }
+
+      /*
+       * It's easy to re-use the matrix for our case (V4L2 user pointer) by changing the
+       * member 'data' to point to the data obtained from the V4L2 helper.
+       */
+      yuyv_frame.data = ptr_cam_frame;
+      if(yuyv_frame.empty()) {
+        cout << "Img load failed" << endl;
+        break;
+      }
+
+      cvtColor(yuyv_frame, preview, COLOR_YUV2BGR_UYVY);
+      resize(preview, preview1, cv::Size(), 0.5, 0.5);
+
+      /*
+       * Helper function to release camera data. This must be called for every
+       * call to helper_get_cam_frame()
+       */
+      if (helper_release_cam_frame() < 0)
+      {
+        break;
+      }
+
+      fps++;
+      end = GetTickCount();
+      if ((end - start) >= 1000) {
+        cout << "fps = " << fps << endl ;
+        fps = 0;
+        start = end;
+      }
+    }
+  }
+
+  int close_camera() {
+    /*
+     * Helper function to free allocated resources and close the camera device.
+     */
+    if (helper_deinit_cam() < 0)
+    {
+      return EXIT_FAILURE;
+    }
+
+    return 0;
+  }
+};
+
+int main(int argc, char **argv) {
+  ros::init(argc, argv, "camerareader_node");
+  ros::NodeHandle n;
+  nh = &n;
+
+  CameraReader c;
+  c.init(argc,argv);
+  c.frame_loop();
+
+  ros::spin();
+  ros::waitForShutdown();
+  return EXIT_SUCCESS;
+}

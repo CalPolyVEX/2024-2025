@@ -1,0 +1,3 @@
+<launch>
+    <node ns="camera_reader" name="camera_reader_node" pkg="camera_reader" type="camera_reader_node" respawn="true" respawn_delay="2" />
+</launch>

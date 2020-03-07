@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-   <arg name="camera_num" default="1" />
+   <arg name="camera_num" default="0" />
    <include file="$(find video_stream_opencv)/launch/camera.launch" >
       <!-- node name and ros graph name -->
       <arg name="camera_name" value="see3cam_cu20" />
@@ -9,7 +9,7 @@
       <!-- set buffer queue size of frame capturing to -->
       <arg name="buffer_queue_size" value="1" />
       <!-- throttling the querying of frames to -->
-      <arg name="fps" value="12" />
+      <arg name="fps" value="15" />
       <!-- setting frame_id -->
       <arg name="frame_id" value="see3_camera_fixed" />
       <!-- camera info loading, take care as it needs the "file:///" at the start , e.g.:
@@ -21,8 +21,8 @@
       <arg name="flip_vertical" value="false" />
       <!-- visualize on an image_view window the stream generated -->
       <arg name="visualize" value="false" />
-      <arg name="width" value="960" />
-      <arg name="height" value="540" />
+      <arg name="width" value="1920" />
+      <arg name="height" value="1080" />
    </include>
 
    <!-- Throttle the rate that images are published from the camera to 1.0Hz-->
