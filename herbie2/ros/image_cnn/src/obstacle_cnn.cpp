@@ -60,6 +60,7 @@ class ImageConverter {
 
     float* imgTensorFlat = input_tensor->flat<float>().data(); 
     float* d = (float*) new_image.data; 
+    //float* d = (float*) cv_ptr->image.data; 
 
     //fill in tensor with image data
     /* for (int y = 0; y < IMG_HEIGHT*IMG_WIDTH; y++) { */
@@ -74,6 +75,7 @@ class ImageConverter {
     for (int y = 0; y < IMG_HEIGHT; y++) {
         for (int x = 0; x < IMG_WIDTH; x++) {
             Vec3b pixel = new_image.at<Vec3b>(y, x);
+            /* Vec3b pixel = cv_ptr->image.at<Vec3b>(y, x); */
 
             *imgTensorFlat = (float) pixel.val[2] / 255.0;
             imgTensorFlat++;

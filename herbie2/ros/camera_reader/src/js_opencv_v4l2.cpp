@@ -9,6 +9,7 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
+#include <signal.h>
  
 using namespace std;
 using namespace cv;
@@ -108,15 +109,16 @@ class CameraReader {
     * [2]: https://docs.opencv.org/3.4.2/d3/d63/classcv_1_1Mat.html#a2ec3402f7d165ca34c7fd6e8498a62ca
     */
    yuyv_frame = Mat(height, width, CV_8UC2);
-   yuyv_frame_360 = Mat(height/3, width/3, CV_8UC2);
-   bgr_360 = Mat(height/3, width/3, CV_8UC3);
+   yuyv_frame_360 = Mat(height/3, width/3, CV_8UC3);
+   bgr_360 = Mat(height, width, CV_8UC3);
 
    return 0;
   }
 
   void frame_loop() {
     while(ros::ok()) {
-      usleep(66000);
+      usleep(80000);
+      //usleep(40000);
       /*
        * Helper function to access camera data
        */
@@ -134,11 +136,11 @@ class CameraReader {
         break;
       }
 
-      resize(yuyv_frame, yuyv_frame_360, yuyv_frame_360.size(), 0, 0);
-      cvtColor(yuyv_frame_360, bgr_360, COLOR_YUV2BGR_UYVY);
+      cvtColor(yuyv_frame, bgr_360, COLOR_YUV2BGR_UYVY);
+      resize(bgr_360, yuyv_frame_360, yuyv_frame_360.size(), 0, 0);
       /* resize(preview, preview1, preview1.size(), 0, 0); */
 
-      sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_360).toImageMsg();
+      sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", yuyv_frame_360).toImageMsg();
       image_pub_.publish(pub_msg);
 
       /*
@@ -166,16 +168,29 @@ class CameraReader {
   }
 };
 
+void mySigintHandler(int sig)
+{
+  helper_release_cam_frame();
+
+  usleep(10000);
+  helper_deinit_cam();  //close the camera
+  
+  // All the default sigint handler does is call shutdown()
+  ros::shutdown();
+}
+
 int main(int argc, char **argv) {
-  ros::init(argc, argv, "camerareader_node");
+  ros::init(argc, argv, "camerareader_node", ros::init_options::NoSigintHandler);
   ros::NodeHandle n;
   nh = &n;
+
+  signal(SIGINT, mySigintHandler);
 
   CameraReader c;
   c.init(argc,argv);
   c.frame_loop();
 
-  c.close_camera();
+  //c.close_camera();
 
   ros::spin();
   ros::waitForShutdown();

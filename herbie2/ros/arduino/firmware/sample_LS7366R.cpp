@@ -21,7 +21,6 @@ void read_encoder_callback(const std_msgs::Int8 &reset_msg);
 
 //std_msgs::String str_msg;
 std_msgs::Int32MultiArray wheel_enc_msg;
-//ros::Publisher chatter("chatter", &str_msg);
 ros::Publisher encoder("encoder", &wheel_enc_msg);
 ros::Subscriber<std_msgs::Empty> reset_encoder("reset_encoder", &reset_encoder_callback);
 
@@ -137,12 +136,6 @@ void setup()
         //LFlagCnt[a] = 0;
     }
 
-    //attachInterrupt(digitalPinToInterrupt(DFLAG_pin), ISR_DFlag, FALLING );
-    //attachInterrupt(digitalPinToInterrupt(LFLAG_pin), ISR_LFlag, FALLING );
-    //JS
-    //attachInterrupt(1, ISR_DFlag, FALLING );
-    //attachInterrupt(0, ISR_LFlag, FALLING );
-
     //ROS setup
     //nh.getHardware()->setBaud(115200);
     nh.initNode();
@@ -180,12 +173,6 @@ void loop()
     uint8_t tmpStr = 0;
     static uint8_t led_toggle = 0;
 
-    for ( a = 1; a <= 6; a++)
-    {    
-        //Serial.print(getChanEncoderValue(a),DEC);
-        //Serial.print(getChanEncoderReg(READ_STR,a),BIN);
-    } 
-
     ///////////////
     if(IsrDFlag)
     {
@@ -210,17 +197,6 @@ void loop()
         IsrLFlag = 0;	
     }
     
-    //blink the LED on the encoder shield
-    /*counter++;
-    if (counter > 254) {
-      blinkActLed();
-      counter = 0;
-      led_toggle = 0;
-    } else if (counter > 220 && led_toggle == 0) {
-      blinkActLed();
-      led_toggle = 1;
-    }*/
-
     //JS
     //str_msg.data = hello;
 
@@ -228,8 +204,6 @@ void loop()
     wheel_enc_msg.data[1]=-getChanEncoderValue(LEFT_ENCODER_INPUT);
     wheel_enc_msg.data[0]=getChanEncoderValue(RIGHT_ENCODER_INPUT);
     //encoder.publish(&wheel_enc_msg);
-    
-    
     
     nh.spinOnce();
     encoder_service.publish(&wheel_enc_msg);
@@ -322,8 +296,7 @@ void setSSEncCtrlBits(int value)
 //*************************************************
 //*************************************************
 {   
-   //JS
-   
+   //set the bits to enable the correct encoder
    if (value & 0x4) {
       digitalWrite(nSS_ENC_A2_pin, HIGH); 
    } else {
@@ -341,65 +314,6 @@ void setSSEncCtrlBits(int value)
    } else {
       digitalWrite(nSS_ENC_A0_pin, LOW);
    }
-   
-   //end JS
-/*   
-   switch (value) 
-   {
-    case 0:
-      digitalWrite(nSS_ENC_A2_pin, LOW);
-      digitalWrite(nSS_ENC_A1_pin, LOW); 
-      digitalWrite(nSS_ENC_A0_pin, LOW); 
-      break;
-      
-    case 1:
-      digitalWrite(nSS_ENC_A2_pin, LOW); 
-      digitalWrite(nSS_ENC_A1_pin, LOW); 
-      digitalWrite(nSS_ENC_A0_pin, HIGH); 
-      break;
-      
-    case 2:
-      digitalWrite(nSS_ENC_A2_pin, LOW); 
-      digitalWrite(nSS_ENC_A1_pin, HIGH); 
-      digitalWrite(nSS_ENC_A0_pin, LOW); 
-      break;
-      
-    case 3:
-      digitalWrite(nSS_ENC_A2_pin, LOW); 
-      digitalWrite(nSS_ENC_A1_pin, HIGH); 
-      digitalWrite(nSS_ENC_A0_pin, HIGH); 
-      break;
-      
-    case 4:
-      digitalWrite(nSS_ENC_A2_pin, HIGH); 
-      digitalWrite(nSS_ENC_A1_pin, LOW); 
-      digitalWrite(nSS_ENC_A0_pin, LOW); 
-      break;
-      
-    case 5:
-      digitalWrite(nSS_ENC_A2_pin, HIGH); 
-      digitalWrite(nSS_ENC_A1_pin, LOW); 
-      digitalWrite(nSS_ENC_A0_pin, HIGH); 
-      break;
-	  
-    case 6:
-      digitalWrite(nSS_ENC_A2_pin, HIGH); 
-      digitalWrite(nSS_ENC_A1_pin, HIGH); 
-      digitalWrite(nSS_ENC_A0_pin, LOW); 
-      break;
-
-    case 7:
-      digitalWrite(nSS_ENC_A2_pin, HIGH); 
-      digitalWrite(nSS_ENC_A1_pin, HIGH); 
-      digitalWrite(nSS_ENC_A0_pin, HIGH); 
-      break;
-	  
-    default:
-      digitalWrite(nSS_ENC_A2_pin, HIGH); 
-      digitalWrite(nSS_ENC_A1_pin, HIGH); 
-      digitalWrite(nSS_ENC_A0_pin, HIGH); 	
-      break;
-  } */ 
 } //end func
 
 //*************************************************
