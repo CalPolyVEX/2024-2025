@@ -2,5 +2,5 @@
 <launch>
     <arg name="run_diag" default="true"/>
 
-    <node if="$(arg run_diag)" pkg="roboclaw_node" type="lcd.py" name="lcd_node"/>
+    <node if="$(arg run_diag)" pkg="jet_launcher" type="lcd.py" name="lcd_node"/>
 </launch>

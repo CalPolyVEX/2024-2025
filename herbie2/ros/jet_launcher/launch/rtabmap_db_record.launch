@@ -15,7 +15,7 @@
 
     <arg name="joystick" default="true" />
     <group if="$(arg joystick)">
-        <include file="$(find roboclaw_node)/launch/joystick.launch"/>
+        <include file="$(find jet_launcher)/launch/joystick.launch"/>
     </group>
 
     <arg name="obstacle" default="false" />

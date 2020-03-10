@@ -25,10 +25,10 @@
    <include file="$(find jet_launcher)/launch/basic.launch"/>
 
    <!-- Start the gamepad node-->
-   <include file="$(find roboclaw_node)/launch/joystick.launch"/>
+   <include file="$(find jet_launcher)/launch/joystick.launch"/>
 
    <!-- Start the Adafruit LCD node-->
-   <include file="$(find roboclaw_node)/launch/lcd.launch"/>
+   <include file="$(find jet_launcher)/launch/lcd.launch"/>
 
    <group if="$(arg mapping)">
       <include file="$(find jet_launcher)/launch/zed_rtabmap.launch"/>

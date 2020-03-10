@@ -2,5 +2,5 @@
 <launch>
     <arg name="run_diag" default="true"/>
 
-    <node if="$(arg run_diag)" pkg="roboclaw_node" type="joystick.py" name="joystick_node"/>
+    <node if="$(arg run_diag)" pkg="jet_launcher" type="joystick.py" name="joystick_node"/>
 </launch>
