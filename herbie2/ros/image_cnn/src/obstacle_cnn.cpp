@@ -1,6 +1,3 @@
-//6/1/19 This file receives gyro messages from the T265 and change the 
-//frame_id to a frame that is fixed to the base_link frame
-
 #include <ros/ros.h>
 #include <ros/package.h>
 #include <image_transport/image_transport.h>
@@ -15,19 +12,19 @@
 
 #include "tensorflow/core/public/session.h"
 #include "tensorflow/core/platform/env.h"
+#include <assert.h>
 
 #define _USE_MATH_DEFINES
 #include <cmath>
 
 using namespace cv;
 using namespace std;
-//using namespace tensorflow;
 
 #define NUM_OUTPUTS 128
 #define IMG_HEIGHT 360
 #define IMG_WIDTH 640
 
-class ImageConverter {
+class ObstacleDetection {
   ros::NodeHandle nh_;
   image_transport::ImageTransport it_;
   image_transport::Subscriber image_sub_;
@@ -42,6 +39,12 @@ class ImageConverter {
   
   tensorflow::Session* session; //tensorflow session
   tensorflow::GraphDef graph_def;
+  string input = "input_1";
+  int rows = IMG_HEIGHT;
+  int cols = IMG_WIDTH;
+  pair <string,tensorflow::Tensor> test_pair;
+  vector <std::pair<string,tensorflow::Tensor>> test_v;
+  float norm = 1.0000000 / 255.0000000;
 
   public:
 
@@ -55,47 +58,63 @@ class ImageConverter {
       ROS_ERROR("cv_bridge exception: %s", e.what());
     }
     
-    //resize image to IMG_HEIGHT x IMG_WIDTH
-    cv::resize(cv_ptr->image, new_image, cv::Size(IMG_WIDTH,IMG_HEIGHT), CV_INTER_LINEAR);
-
     float* imgTensorFlat = input_tensor->flat<float>().data(); 
-    float* d = (float*) new_image.data; 
-    //float* d = (float*) cv_ptr->image.data; 
+    /* imgTensorFlat = (test_v.data())->second.flat<float>().data(); */
+    unsigned char* p1;
 
-    //fill in tensor with image data
-    /* for (int y = 0; y < IMG_HEIGHT*IMG_WIDTH; y++) { */
-    /*         *imgTensorFlat = (float) *(d+2) / 255.0; */
-    /*         imgTensorFlat++; */
-    /*         *imgTensorFlat = (float) *(d+1) / 255.0; */
-    /*         imgTensorFlat++; */
-    /*         *imgTensorFlat = (float) *d / 255.0; */
-    /*         imgTensorFlat++; */
-    /*         d += 3; */
-    /* } */
-    for (int y = 0; y < IMG_HEIGHT; y++) {
-        for (int x = 0; x < IMG_WIDTH; x++) {
-            Vec3b pixel = new_image.at<Vec3b>(y, x);
-            /* Vec3b pixel = cv_ptr->image.at<Vec3b>(y, x); */
+    int test = 0;
+    if (test == 1) {
+      //resize image to IMG_HEIGHT x IMG_WIDTH
+      cv::resize(cv_ptr->image, new_image, cv::Size(IMG_WIDTH,IMG_HEIGHT), CV_INTER_LINEAR);
 
-            *imgTensorFlat = (float) pixel.val[2] / 255.0;
-            imgTensorFlat++;
-            *imgTensorFlat = (float) pixel.val[1] / 255.0;
-            imgTensorFlat++;
-            *imgTensorFlat = (float) pixel.val[0] / 255.0;
-            imgTensorFlat++;
+      //fill in tensor with image data
+      assert(cv_ptr->image.cols == IMG_WIDTH);
+      assert(cv_ptr->image.rows == IMG_HEIGHT);
+      assert(cv_ptr->image.isContinuous() == true);
+      for(int i = 0; i < IMG_HEIGHT; i++) {
+        p1 = (unsigned char*) cv_ptr->image.ptr<unsigned char>(i);
+        for (int j = 0; j < IMG_WIDTH; j++) {
+          unsigned char b = p1[j] ;
+          unsigned char g = p1[j + 1];
+          unsigned char r = p1[j + 2];
+
+          *imgTensorFlat = ((float) r) / 255.0;
+          imgTensorFlat++;
+          *imgTensorFlat = ((float) g) / 255.0;
+          imgTensorFlat++;
+          *imgTensorFlat = ((float) b) / 255.0;
+          imgTensorFlat++;
         }
+      }
+    } else {
+      //resize image to IMG_HEIGHT x IMG_WIDTH
+      cv::resize(cv_ptr->image, new_image, cv::Size(IMG_WIDTH,IMG_HEIGHT), CV_INTER_LINEAR);
+
+      for (int y = 0; y < IMG_HEIGHT; y++) {
+        for (int x = 0; x < IMG_WIDTH; x++) {
+          Vec3b pixel = new_image.at<Vec3b>(y, x);
+
+          *imgTensorFlat = ((float) pixel.val[2]) * norm;
+          imgTensorFlat++;
+          *imgTensorFlat = ((float) pixel.val[1]) * norm;
+          imgTensorFlat++;
+          *imgTensorFlat = ((float) pixel.val[0]) * norm;
+          imgTensorFlat++;
+        }
+      }
     }
 
     // The session will initialize the outputs
     std::vector<tensorflow::Tensor> outputs;
 
     // Run the session, evaluating our "c" operation from the graph
-    /* status = session->Run({new_image}, &outputs); */
-    string input = "input_1";
     pair <string,tensorflow::Tensor> p(input, *input_tensor);
     vector <std::pair<string,tensorflow::Tensor>> v{p};
 
+    /* vector <std::pair<string,tensorflow::Tensor>> v{test_pair}; */
+
     status = session->Run(v, {"k2tfout_0"}, {}, &outputs);
+    //status = session->Run({p}, {"k2tfout_0"}, {}, &outputs);
     if (!status.ok()) {
       std::cout << status.ToString() << "\n";
     }
@@ -127,11 +146,9 @@ class ImageConverter {
       col_counter += 5;
     }
 
-    if (1==1) {
-      //publish message
-      sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", new_image).toImageMsg();
-      image_pub_.publish(pub_msg);
-    }
+    //publish message
+    sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", new_image).toImageMsg();
+    image_pub_.publish(pub_msg);
 
     //publish_point_cloud();
   }
@@ -240,18 +257,21 @@ class ImageConverter {
     *y_object = ans.at<double>(1,0);
   }
 
-  ImageConverter() : it_(nh_) {
+  ObstacleDetection() : it_(nh_) {
     if (1==1) {
       new_image = Mat(IMG_HEIGHT, IMG_WIDTH, CV_32FC(3));
 
       input_tensor = new tensorflow::Tensor(tensorflow::DT_FLOAT, 
          tensorflow::TensorShape({1, IMG_HEIGHT, IMG_WIDTH, 3})); 
 
-      float_t *p1 = input_tensor->flat<float_t>().data(); 
+      test_pair = make_pair(input, *input_tensor);
+      test_v.push_back(test_pair);
+
+      //float_t *p1 = input_tensor->flat<float_t>().data(); 
 
       image_transport::TransportHints hints("compressed");
       //image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &ImageConverter::run_network, this);
-      image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &ImageConverter::run_network, this, hints);
+      image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &ObstacleDetection::run_network, this, hints);
       /* image_sub_ = it_.subscribe("/zed/data_throttled_image", 1, &ImageConverter::run_network, this); */
       image_pub_ = it_.advertise("/image_converter/output_video", 1);
       point_pub = nh_.advertise<sensor_msgs::PointCloud2>("/test_point_cloud", 1);
@@ -303,10 +323,9 @@ class ImageConverter {
   }
 };
 
-int main(int argc, char** argv)
-{
-  ros::init(argc, argv, "gyro_pub");
-  ImageConverter gyro_pub;
-  gyro_pub.init_tensorflow();
+int main(int argc, char** argv) {
+  ros::init(argc, argv, "image_cnn");
+  ObstacleDetection obstacle_detect;
+  obstacle_detect.init_tensorflow();
   ros::spin();
 }
