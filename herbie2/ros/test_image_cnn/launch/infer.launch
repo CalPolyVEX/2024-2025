@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+   <node pkg="image_cnn" type="infer.py" name="infer_node" args="./output_graph.pb" cwd="node">
+   </node>
+   <node pkg="image_cnn" type="range_data_publisher.py" name="range_data" cwd="node">
+   </node>
+   <!-- <include file="$(find image_cnn)/launch/tf_publisher.launch"/> -->
+</launch>
