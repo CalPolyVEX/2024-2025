@@ -1,0 +1,9 @@
+1.  disable USB autosuspend
+   -edit /boot/extlinux/extlinux.conf
+   -add 'usbcore.autosuspend=-1' to modify the line 'APPEND ${cbootargs} usbcore.autosuspend=-1 quiet'
+
+2.  add user to dialout group to enable serial port access
+   -sudo adduser jseng dialout
+
+3.  disable auto updates of packages
+   -edit /etc/apt/apt.conf.d/10periodic

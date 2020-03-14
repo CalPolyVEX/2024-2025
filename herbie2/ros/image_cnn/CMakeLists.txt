@@ -165,7 +165,7 @@ link_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node src/obstacle_cnn.cpp)
-add_executable(laser_hallway_node src/laser_hallway.cpp)
+#add_executable(laser_hallway_node src/laser_hallway.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -173,12 +173,12 @@ add_executable(laser_hallway_node src/laser_hallway.cpp)
 ## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
 #set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
 set_target_properties(${PROJECT_NAME}_node PROPERTIES LINKER_LANGUAGE CXX)
-set_target_properties(laser_hallway_node PROPERTIES LINKER_LANGUAGE CXX)
+#set_target_properties(laser_hallway_node PROPERTIES LINKER_LANGUAGE CXX)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(laser_hallway_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+#add_dependencies(laser_hallway_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
@@ -186,11 +186,11 @@ target_link_libraries(${PROJECT_NAME}_node
    ${catkin_LIBRARIES}
    ${OpenCV_LIBS}
 )
-target_link_libraries(laser_hallway_node
-   ${PCL_LIBRARY_DIRS}
-   ${catkin_LIBRARIES}
-   ${OpenCV_LIBS}
-)
+# target_link_libraries(laser_hallway_node
+#    ${PCL_LIBRARY_DIRS}
+#    ${catkin_LIBRARIES}
+#    ${OpenCV_LIBS}
+# )
 
 endif()
 

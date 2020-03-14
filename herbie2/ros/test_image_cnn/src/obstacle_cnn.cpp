@@ -8,29 +8,27 @@ void ObstacleDetection::run_network(Mat* m) {
   tensorflow::Status status;
 
   float* imgTensorFlat = input_tensor->flat<float>().data(); 
+  //imgTensorFlat = ((test_v.data())->second).flat<float>().data(); 
   unsigned char* p1;
 
-  int test = 0;
+  int test = 1;
   if (test == 1) {
     //resize image to IMG_HEIGHT x IMG_WIDTH
-    cv::resize(cv_ptr->image, new_image, cv::Size(IMG_WIDTH,IMG_HEIGHT), CV_INTER_LINEAR);
+    cv::resize(*m, new_image, cv::Size(IMG_WIDTH,IMG_HEIGHT), CV_INTER_LINEAR);
 
     //fill in tensor with image data
-    assert(cv_ptr->image.cols == IMG_WIDTH);
-    assert(cv_ptr->image.rows == IMG_HEIGHT);
-    assert(cv_ptr->image.isContinuous() == true);
     for(int i = 0; i < IMG_HEIGHT; i++) {
-      p1 = (unsigned char*) cv_ptr->image.ptr<unsigned char>(i);
-      for (int j = 0; j < IMG_WIDTH; j++) {
+      p1 = (unsigned char*) m->ptr<unsigned char>(i);
+      for (int j = 0; j < (3*IMG_WIDTH); j=j+3) {
         unsigned char b = p1[j] ;
         unsigned char g = p1[j + 1];
         unsigned char r = p1[j + 2];
 
-        *imgTensorFlat = ((float) r) / 255.0;
+        *imgTensorFlat = ((float) r) * norm;
         imgTensorFlat++;
-        *imgTensorFlat = ((float) g) / 255.0;
+        *imgTensorFlat = ((float) g) * norm;
         imgTensorFlat++;
-        *imgTensorFlat = ((float) b) / 255.0;
+        *imgTensorFlat = ((float) b) * norm;
         imgTensorFlat++;
       }
     }
@@ -60,6 +58,7 @@ void ObstacleDetection::run_network(Mat* m) {
   vector <std::pair<string,tensorflow::Tensor>> v{p};
 
   status = session->Run(v, {"k2tfout_0"}, {}, &outputs);
+  //status = session->Run(test_v, {"k2tfout_0"}, {}, &outputs);
   if (!status.ok()) {
     std::cout << status.ToString() << "\n";
   }

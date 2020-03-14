@@ -36,7 +36,7 @@ class CameraReader {
    * (and cuda::GpuMat gpu_frame) outside the 'while (1)' loop instead of declaring it
    * within the loop) improves the performance for higher resolutions.
    */
-  Mat yuyv_frame, yuyv_frame_360, bgr_360;
+  Mat yuyv_frame, bgr_frame, bgr_frame_360;
 
   public:
   CameraReader() : it_(nh_) {
@@ -109,15 +109,15 @@ class CameraReader {
     * [2]: https://docs.opencv.org/3.4.2/d3/d63/classcv_1_1Mat.html#a2ec3402f7d165ca34c7fd6e8498a62ca
     */
    yuyv_frame = Mat(height, width, CV_8UC2);
-   yuyv_frame_360 = Mat(height/3, width/3, CV_8UC3);
-   bgr_360 = Mat(height, width, CV_8UC3);
+   bgr_frame = Mat(height, width, CV_8UC3);
+   bgr_frame_360 = Mat(height/3, width/3, CV_8UC3);
 
    return 0;
   }
 
   void frame_loop() {
     while(ros::ok()) {
-      usleep(80000);
+      usleep(88000);
       //usleep(40000);
       /*
        * Helper function to access camera data
@@ -136,11 +136,11 @@ class CameraReader {
         break;
       }
 
-      cvtColor(yuyv_frame, bgr_360, COLOR_YUV2BGR_UYVY);
-      resize(bgr_360, yuyv_frame_360, yuyv_frame_360.size(), 0, 0);
+      cvtColor(yuyv_frame, bgr_frame, COLOR_YUV2BGR_UYVY);
+      resize(bgr_frame, bgr_frame_360, bgr_frame_360.size(), 0, 0);
       /* resize(preview, preview1, preview1.size(), 0, 0); */
 
-      sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", yuyv_frame_360).toImageMsg();
+      sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_frame_360).toImageMsg();
       image_pub_.publish(pub_msg);
 
       /*
@@ -180,7 +180,7 @@ void mySigintHandler(int sig)
 }
 
 int main(int argc, char **argv) {
-  ros::init(argc, argv, "camerareader_node", ros::init_options::NoSigintHandler);
+  ros::init(argc, argv, "camera_reader_node", ros::init_options::NoSigintHandler);
   ros::NodeHandle n;
   nh = &n;
 

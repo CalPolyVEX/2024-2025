@@ -1,3 +1,0 @@
-<launch>
-    <node ns="image_cnn" name="image_cnn_node" pkg="image_cnn" type="image_cnn_node" respawn="true" respawn_delay="2" args="/dev/see3cam 1920 1080"/>
-</launch>

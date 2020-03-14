@@ -62,27 +62,27 @@ class ObstacleDetection {
     /* imgTensorFlat = (test_v.data())->second.flat<float>().data(); */
     unsigned char* p1;
 
-    int test = 0;
+    int test = 1;
     if (test == 1) {
       //resize image to IMG_HEIGHT x IMG_WIDTH
       cv::resize(cv_ptr->image, new_image, cv::Size(IMG_WIDTH,IMG_HEIGHT), CV_INTER_LINEAR);
 
       //fill in tensor with image data
-      assert(cv_ptr->image.cols == IMG_WIDTH);
-      assert(cv_ptr->image.rows == IMG_HEIGHT);
-      assert(cv_ptr->image.isContinuous() == true);
+      /* assert(cv_ptr->image.cols == IMG_WIDTH); */
+      /* assert(cv_ptr->image.rows == IMG_HEIGHT); */
+      /* assert(cv_ptr->image.isContinuous() == true); */
       for(int i = 0; i < IMG_HEIGHT; i++) {
         p1 = (unsigned char*) cv_ptr->image.ptr<unsigned char>(i);
-        for (int j = 0; j < IMG_WIDTH; j++) {
+        for (int j = 0; j < (3*IMG_WIDTH); j=j+3) {
           unsigned char b = p1[j] ;
           unsigned char g = p1[j + 1];
           unsigned char r = p1[j + 2];
 
-          *imgTensorFlat = ((float) r) / 255.0;
+          *imgTensorFlat = ((float) b) * norm;
           imgTensorFlat++;
-          *imgTensorFlat = ((float) g) / 255.0;
+          *imgTensorFlat = ((float) g) * norm;
           imgTensorFlat++;
-          *imgTensorFlat = ((float) b) / 255.0;
+          *imgTensorFlat = ((float) r) * norm;
           imgTensorFlat++;
         }
       }
@@ -90,6 +90,7 @@ class ObstacleDetection {
       //resize image to IMG_HEIGHT x IMG_WIDTH
       cv::resize(cv_ptr->image, new_image, cv::Size(IMG_WIDTH,IMG_HEIGHT), CV_INTER_LINEAR);
 
+      //assert(new_image.isContinuous() == true);
       for (int y = 0; y < IMG_HEIGHT; y++) {
         for (int x = 0; x < IMG_WIDTH; x++) {
           Vec3b pixel = new_image.at<Vec3b>(y, x);
@@ -114,13 +115,9 @@ class ObstacleDetection {
     /* vector <std::pair<string,tensorflow::Tensor>> v{test_pair}; */
 
     status = session->Run(v, {"k2tfout_0"}, {}, &outputs);
-    //status = session->Run({p}, {"k2tfout_0"}, {}, &outputs);
-    if (!status.ok()) {
-      std::cout << status.ToString() << "\n";
-    }
-
-    //print out the dimension of the tensor
-    //cout << outputs[0].shape().dim_size(0);
+    /* if (!status.ok()) { */
+    /*   std::cout << status.ToString() << "\n"; */
+    /* } */
 
     // Grab the first output (we only evaluated one graph node: "c")
     // and convert the node to a scalar representation.
@@ -143,7 +140,7 @@ class ObstacleDetection {
         circle(new_image, Point(col_counter, (int)x), 2, Scalar(0,0,255), -1);
       }
 
-      col_counter += 5;
+      col_counter += (IMG_WIDTH / NUM_OUTPUTS);
     }
 
     //publish message

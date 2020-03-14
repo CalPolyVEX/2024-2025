@@ -236,6 +236,7 @@ void OdometryPublisher::run_pid() {
   }
 
   //limit motor acceleration/deceleration
+  //without this, the starts/stops are abrupt
   if (abs(cur_left_motor - last_left_motor_cmd) > 400) {
     cur_left_motor = cur_left_motor * .08 + last_left_motor_cmd * .92;
   }
@@ -245,15 +246,9 @@ void OdometryPublisher::run_pid() {
   }
 
   //set the motor speeds
-  /* if (stop == 0) { */
-    setmotor_mutex.lock();
-    setmotor(-cur_left_motor, -cur_right_motor);
-    setmotor_mutex.unlock();
-  /* } else { */
-  /*   setmotor_mutex.lock(); */
-  /*   setmotor(0,0); */
-  /*   setmotor_mutex.unlock(); */
-  /* } */
+  setmotor_mutex.lock();
+  setmotor(-cur_left_motor, -cur_right_motor);
+  setmotor_mutex.unlock();
 }
 
 void OdometryPublisher::compute_pid(double left_desired, double left_actual, double right_desired, double right_actual) {

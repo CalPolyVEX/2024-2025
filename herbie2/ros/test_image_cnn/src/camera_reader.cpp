@@ -37,7 +37,7 @@ class CameraReader {
    * (and cuda::GpuMat gpu_frame) outside the 'while (1)' loop instead of declaring it
    * within the loop) improves the performance for higher resolutions.
    */
-  Mat yuyv_frame, bgr_frame_360, bgr_frame;
+  Mat yuyv_frame, bgr_frame, bgr_frame_360;
 
   public:
   CameraReader() : it_(nh_) {
