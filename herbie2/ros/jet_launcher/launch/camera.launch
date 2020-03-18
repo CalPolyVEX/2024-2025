@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-   <arg name="camera_num" default="0" />
+   <arg name="camera_num" default="1" />
    <include file="$(find video_stream_opencv)/launch/camera.launch" >
       <!-- node name and ros graph name -->
       <arg name="camera_name" value="see3cam_cu20" />

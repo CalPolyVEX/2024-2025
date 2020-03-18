@@ -1,8 +1,12 @@
+<?xml version="1.0"?>
 <launch>
-    <node ns="camera_reader" name="camera_reader_node" pkg="camera_reader" type="camera_reader_node" respawn="true" respawn_delay="2" args="/dev/see3cam 1920 1080"/>
+    <node ns="camera_reader" name="camera_reader_node" pkg="camera_reader" type="camera_reader_node" respawn="false" respawn_delay="2" args="/dev/see3cam 1920 1080"/>
     <node ns="image_cnn" name="image_cnn_node" pkg="image_cnn" type="image_cnn_node" respawn="true" respawn_delay="2" />
 
     <!-- Start the roboclaw and Arduino nodes -->
+    <!-- <include file="$(find jet_launcher)/launch/camera.launch"/> -->
     <include file="$(find jet_launcher)/launch/basic.launch"/>
     <include file="$(find jet_launcher)/launch/robot_localization.launch"/>
+    <include file="$(find jet_launcher)/launch/zed_rtabmap_localization.launch"/>
+    <include file="$(find zed_wrapper)/launch/zed2.launch"/>
 </launch>

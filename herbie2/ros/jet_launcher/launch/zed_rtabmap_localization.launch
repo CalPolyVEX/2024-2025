@@ -15,7 +15,7 @@
     <!-- <param name="/rtabmap/rtabmap/DbSqlite3//InMemory" value="true" /> -->
     <arg name="rtabmap_flags" default="" />
 
-    <arg name="zed_namespace"             default="zed" />
+    <arg name="zed_namespace"             default="zed2" />
 
     <arg name="svo_file"                  default="" /> 
     <arg name="loc"                       default="false" /> 

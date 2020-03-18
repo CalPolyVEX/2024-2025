@@ -4,19 +4,19 @@
 
 <launch>
     <include file="$(find image_cnn)/launch/tf_publisher.launch" /> 
-    <include file="$(find realsense2_camera)/launch/rs_t265.launch" /> 
+    <!-- <include file="$(find realsense2_camera)/launch/rs_t265.launch" /> --> 
 
-    <arg name="zed_namespace"		    	default="zed" />
+    <arg name="zed_namespace"		    	default="zed2" />
 
     <arg name="svo_file"                        default="" /> <!-- <arg name="svo_file" default="path/to/svo/file.svo"> -->
     <arg name="zed_node_name"                   default="zed_node" />
-    <arg name="camera_model"                    default="zed" /> <!-- 'zed' or 'zedm' -->
-    <arg name="publish_urdf"                    default="true" />
+    <arg name="camera_model"                    default="zed2" /> <!-- 'zed' or 'zedm' -->
+    <arg name="publish_urdf"                    default="false" />
 
     <arg name="verbose"              	default="true" />
 
     <!-- ZED Wrapper Node-->
-    <include file="$(find zed_wrapper)/launch/zed.launch">
+    <include file="$(find zed_wrapper)/launch/zed2.launch">
         <arg name="svo_file"            value="$(arg svo_file)" />
         <arg name="node_name"           value="$(arg zed_node_name)" />
         <arg name="camera_model"        value="$(arg camera_model)" />

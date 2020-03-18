@@ -78,11 +78,11 @@ class ObstacleDetection {
           unsigned char g = p1[j + 1];
           unsigned char r = p1[j + 2];
 
-          *imgTensorFlat = ((float) b) * norm;
+          *imgTensorFlat = ((float) r) * norm;
           imgTensorFlat++;
           *imgTensorFlat = ((float) g) * norm;
           imgTensorFlat++;
-          *imgTensorFlat = ((float) r) * norm;
+          *imgTensorFlat = ((float) b) * norm;
           imgTensorFlat++;
         }
       }

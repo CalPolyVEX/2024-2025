@@ -8,12 +8,12 @@
     <!-- <include file="$(find realsense2_camera)/launch/rs_t265.launch" /> --> 
 
     <!-- <arg name="zed_namespace"		    	default="zed" /> -->
-    <arg name="zed_namespace"		    	default="" />
+    <arg name="zed_namespace"		    	default="zed2" />
 
     <arg name="svo_file"                        default="" /> <!-- <arg name="svo_file" default="path/to/svo/file.svo"> -->
     <arg name="zed_node_name"                   default="zed_node" />
-    <arg name="camera_model"                    default="zed" /> <!-- 'zed' or 'zedm' -->
-    <arg name="publish_urdf"                    default="true" />
+    <arg name="camera_model"                    default="zed2" /> <!-- 'zed' or 'zedm' -->
+    <arg name="publish_urdf"                    default="false" />
 
     <arg name="verbose"              	default="true" />
 
