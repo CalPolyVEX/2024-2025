@@ -79,7 +79,6 @@ static int set_io_method(enum io_method io_meth)
 static int stop_capturing(void)
 {
 	enum v4l2_buf_type type;
-	struct v4l2_requestbuffers req;
 
 	switch (io) {
 		case IO_METHOD_READ:
@@ -95,23 +94,6 @@ static int stop_capturing(void)
 				return ERR;
 			}
 			break;
-	}
-
-	CLEAR(req);
-
-	/*
-	 * Request to clear the buffers. This helps with changing resolution.
-	 */
-	req.count = 0;
-	req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-	req.memory = V4L2_MEMORY_MMAP;
-
-	if (-1 == xioctl(fd, VIDIOC_REQBUFS, &req)) {
-		if (EINVAL == errno) {
-			fprintf(stderr, "The device does not support "
-					"memory mapping\n");
-		}
-		return ERR;
 	}
 
 	return 0;
@@ -181,6 +163,7 @@ static int start_capturing(void)
 
 static int uninit_device(void)
 {
+	struct v4l2_requestbuffers req;
 	unsigned int i;
 	int ret = 0;
 
@@ -202,6 +185,24 @@ static int uninit_device(void)
 	}
 
 	free(buffers);
+
+	CLEAR(req);
+
+	/*
+	 * Request to clear the buffers. This helps with changing resolution.
+	 */
+	req.count = 0;
+	req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	req.memory = V4L2_MEMORY_MMAP;
+
+	if (-1 == xioctl(fd, VIDIOC_REQBUFS, &req)) {
+		if (EINVAL == errno) {
+			fprintf(stderr, "The device does not support "
+					"memory mapping\n");
+		}
+		return ERR;
+	}
+
 	return ret;
 }
 
