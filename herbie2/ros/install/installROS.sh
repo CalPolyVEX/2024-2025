@@ -29,7 +29,7 @@ mkdir -p ~/catkin_ws/src
 cd ~/catkin_ws/src
 git init
 git config core.sparseCheckout true
-echo 'ros/' > .git/info/sparse-checkout
+echo 'herbie2/' > .git/info/sparse-checkout
 git remote add -f origin https://github.com/jsseng/ue4.git
 git pull origin master
 git clone https://github.com/ros-perception/image_transport_plugins.git
