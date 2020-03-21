@@ -43,7 +43,6 @@ git clone https://github.com/ros-perception/vision_opencv.git
 git clone https://github.com/ros-drivers/video_stream_opencv.git
 #git clone https://github.com/IntelRealSense/realsense-ros.git
 git clone https://github.com/introlab/rtabmap_ros.git
-git clone https://github.com/stereolabs/zed-ros-wrapper.git
 git clone https://github.com/ros-drivers/libuvc_ros.git
 
 #install dependencies
@@ -73,15 +72,20 @@ git config --global user.name "John Seng"
 #sudo apt-get install cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
 #sudo apt-get install python-dev python-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev
 
-#disable graphical boot
-systemctl set-default multi-user.target
-
 #install g2o for rtabmap
 sudo apt install ros-melodic-libg2o
 
-#disable services
-systemctl disable ModemManager.service
-systemctl disable containerd.service
-sudo systemctl disable docker.service
-sudo systemctl disable docker.socket
+if [ $1 -gt 100 ]  #if running on a Jetson board
+then
+   git clone https://github.com/stereolabs/zed-ros-wrapper.git
 
+   #disable graphical boot
+   systemctl set-default multi-user.target
+
+
+   #disable services
+   systemctl disable ModemManager.service
+   systemctl disable containerd.service
+   sudo systemctl disable docker.service
+   sudo systemctl disable docker.socket
+fi
