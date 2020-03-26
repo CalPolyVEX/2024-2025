@@ -21,11 +21,11 @@ void read_encoder_callback(const std_msgs::Int8 &reset_msg);
 
 //std_msgs::String str_msg;
 std_msgs::Int32MultiArray wheel_enc_msg;
-ros::Publisher encoder("encoder", &wheel_enc_msg);
-ros::Subscriber<std_msgs::Empty> reset_encoder("reset_encoder", &reset_encoder_callback);
+//ros::Publisher encoder("encoder", &wheel_enc_msg);
+//ros::Subscriber<std_msgs::Empty> reset_encoder("reset_encoder", &reset_encoder_callback);
 
 //topics to handle the read encoder request
-ros::Subscriber<std_msgs::Int8> read_encoder_cmd("read_encoder_cmd", &read_encoder_callback);
+//ros::Subscriber<std_msgs::Int8> read_encoder_cmd("read_encoder_cmd", &read_encoder_callback);
 ros::Publisher encoder_service("encoder_service", &wheel_enc_msg);
 //char hello[13] = "hello world!";
 char dim0_label[8] = "encoder";
@@ -139,14 +139,14 @@ void setup()
     //ROS setup
     //nh.getHardware()->setBaud(115200);
     nh.initNode();
-    //nh.advertise(chatter);
-    nh.advertise(encoder);
-    nh.subscribe(reset_encoder);
+
+    //nh.advertise(encoder);
+    //nh.subscribe(reset_encoder);
     //nh.advertiseService(test_server);
 
     //read encoder command
     nh.advertise(encoder_service);
-    nh.subscribe(read_encoder_cmd);
+    //nh.subscribe(read_encoder_cmd);
 
     mad[0].label = (char*) &dim0_label;
     mad[0].size = 2;
@@ -205,8 +205,8 @@ void loop()
     wheel_enc_msg.data[0]=getChanEncoderValue(RIGHT_ENCODER_INPUT);
     //encoder.publish(&wheel_enc_msg);
     
-    nh.spinOnce();
     encoder_service.publish(&wheel_enc_msg);
+    nh.spinOnce();
     delay(32);
     //end JS
 } //end loop

@@ -4,14 +4,13 @@
 
 <launch>
     <include file="$(find image_cnn)/launch/tf_publisher.launch" /> 
-    <!-- <include file="$(find realsense2_camera)/launch/rs_t265.launch" /> --> 
 
     <arg name="zed_namespace"		    	default="zed2" />
 
     <arg name="svo_file"                        default="" /> <!-- <arg name="svo_file" default="path/to/svo/file.svo"> -->
     <arg name="zed_node_name"                   default="zed_node" />
     <arg name="camera_model"                    default="zed2" /> <!-- 'zed' or 'zedm' -->
-    <arg name="publish_urdf"                    default="false" />
+    <arg name="publish_urdf"                    default="true" />
 
     <arg name="verbose"              	default="true" />
 
@@ -41,37 +40,4 @@
         <remap from="rgb/camera_info_out" to="$(arg zed_namespace)/data_throttled_camera_info"/>
     </node> 
 
-    <!-- Throttle the rate that the depth point clouds are published from the camera -->
-    <!-- <node pkg="topic_tools" name="throttle" type="throttle" args="messages /zed/zed_node/point_cloud/cloud_registered 4.0 /zed/throttled_point_cloud" />  -->
-    <!-- <node pkg="topic_tools" name="throttle1" type="throttle" args="messages /zed/zed_node/rgb/image_rect_color 2.0 /zed/data_throttled_image" />  
-    <node pkg="topic_tools" name="throttle2" type="throttle" args="messages /zed/zed_node/depth/depth_registered 2.0 /zed/data_throttled_image_depth" /> 
-    <node pkg="topic_tools" name="throttle3" type="throttle" args="messages /zed/zed_node/rgb/camera_info 2.0 /zed/data_throttled_camera_info" /> -->
-
-    <!-- old launch file items -->   
-    <!--<arg name="rgb_topic"               	default="rgb/image_rect_color" />
-    <arg name="depth_topic"             	default="depth/depth_registered" />
-    <arg name="camera_info_topic"       	default="rgb/camera_info" />
-    <arg name="depth_camera_info_topic" 	default="depth/camera_info" />
-    <arg name="camera_frame"              default="zed_camera_center" />
-    <arg name="quality"  value="4" />
-
-    <group ns="$(arg zed_namespace)">
-        <include file="$(find zed_wrapper)/launch/zed.launch">
-            <arg name="svo_file"            	value="$(arg svo_file)" />
-            <arg name="camera_model"        	value="$(arg camera_model)" />
-            <arg name="serial_number"       	value="$(arg serial_number)" />
-            <arg name="resolution"          	value="$(arg resolution)" />
-            <arg name="frame_rate"          	value="$(arg frame_rate)" />
-            <arg name="verbose"             	value="$(arg verbose)" />
-
-            <arg name="rgb_topic"                 value="$(arg rgb_topic)" />
-            <arg name="depth_topic"               value="$(arg depth_topic)" />
-            <arg name="rgb_info_topic"       	value="$(arg camera_info_topic)" />
-            <arg name="depth_cam_info_topic" 	value="$(arg depth_camera_info_topic)" />
-            <arg name="base_frame"                value="$(arg camera_frame)" />
-
-            <arg name="publish_map_tf"            value="false" />
-        </include>
-
-    </group> -->
 </launch>

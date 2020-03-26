@@ -28,6 +28,7 @@ class CameraReader {
   unsigned char* ptr_cam_frame;
   int bytes_used;
   ros::NodeHandle nh_;
+  ros::NodeHandle* n;
   image_transport::ImageTransport it_;
   image_transport::Publisher image_pub_;
 
@@ -43,7 +44,8 @@ class CameraReader {
     image_pub_ = it_.advertise("/see3cam_cu20/image_raw", 1);
   }
 
-  int init(int argc, char **argv) {
+  int init(int argc, char **argv, ros::NodeHandle* nh) {
+    n = nh;
     if (argc == 4) {
       videodev = argv[1];
 
@@ -118,41 +120,43 @@ class CameraReader {
 
   void frame_loop() {
     while(ros::ok()) {
-      usleep(88000);
-      //usleep(40000);
-      /*
-       * Helper function to access camera data
-       */
-      if (helper_get_cam_frame(&ptr_cam_frame, &bytes_used) < 0) {
-        break;
-      }
+        usleep(88000);
+        bool read_cam;
+        n->getParam("/read_see3cam", read_cam);
+        if (read_cam == true) { 
+          //usleep(40000);
+          /*
+           * Helper function to access camera data
+           */
+          if (helper_get_cam_frame(&ptr_cam_frame, &bytes_used) < 0) {
+            break;
+          }
 
-      /*
-       * It's easy to re-use the matrix for our case (V4L2 user pointer) by changing the
-       * member 'data' to point to the data obtained from the V4L2 helper.
-       */
-      yuyv_frame.data = ptr_cam_frame;
-      if(yuyv_frame.empty()) {
-        cout << "Img load failed" << endl;
-        break;
-      }
+          /*
+           * It's easy to re-use the matrix for our case (V4L2 user pointer) by changing the
+           * member 'data' to point to the data obtained from the V4L2 helper.
+           */
+          yuyv_frame.data = ptr_cam_frame;
+          if(yuyv_frame.empty()) {
+            cout << "Img load failed" << endl;
+            break;
+          }
 
-      cvtColor(yuyv_frame, bgr_frame, COLOR_YUV2BGR_UYVY);
-      resize(bgr_frame, bgr_frame_360, bgr_frame_360.size(), 0, 0);
-      /* resize(preview, preview1, preview1.size(), 0, 0); */
+          cvtColor(yuyv_frame, bgr_frame, COLOR_YUV2BGR_UYVY);
+          resize(bgr_frame, bgr_frame_360, bgr_frame_360.size(), 0, 0);
+          /* resize(preview, preview1, preview1.size(), 0, 0); */
 
-      sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_frame_360).toImageMsg();
-      image_pub_.publish(pub_msg);
+          sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_frame_360).toImageMsg();
+          image_pub_.publish(pub_msg);
 
-      /*
-       * Helper function to release camera data. This must be called for every
-       * call to helper_get_cam_frame()
-       */
-      if (helper_release_cam_frame() < 0)
-      {
-        break;
-      }
-
+          /*
+           * Helper function to release camera data. This must be called for every
+           * call to helper_get_cam_frame()
+           */
+          if (helper_release_cam_frame() < 0) {
+            break;
+          }
+        }
     }
   }
 
@@ -184,11 +188,12 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "camera_reader_node", ros::init_options::NoSigintHandler);
   ros::NodeHandle n;
   nh = &n;
+  nh->setParam("/read_see3cam", false);
 
   signal(SIGINT, mySigintHandler);
 
   CameraReader c;
-  c.init(argc,argv);
+  c.init(argc,argv,nh);
   c.frame_loop();
 
   //c.close_camera();

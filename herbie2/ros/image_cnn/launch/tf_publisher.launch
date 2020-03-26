@@ -3,6 +3,7 @@
 <launch>
 
    <node pkg="tf2_ros" type="static_transform_publisher" name="see3cam_broadcaster" args=".13 0 .22 0 0 0 1 base_link see3_cam" />
+   <node pkg="tf2_ros" type="static_transform_publisher" name="zed2_broadcaster" args=".13 0 .22 0 0 0 1 base_link zed2_camera_center" />
 
    <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="t265_broadcaster" args=".1016 0 -.5842 0 0 0 1 camera_link base_link" /> -->
 

@@ -8,7 +8,7 @@ footprint_padding: 0.10
 transform_tolerance: 1
 
 obstacle_layer:
-    enabled: true
+    enabled: false
     origin_z: 0.4
     #origin_z: 0.2 #for CNN
     z_resolution: .1
