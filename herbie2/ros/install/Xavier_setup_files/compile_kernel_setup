@@ -1,0 +1,18 @@
+#Source this file to set the environment variables for 
+#compiling the kernel on a Ubuntu host
+#
+#Once the modules are built, you can copy the new ones to the Xavier
+#
+
+export TEGRA_KERNEL_OUT=/home/jseng/kernel
+export CROSS_COMPILE=/home/jseng/l4t-gcc/gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-
+export LOCALVERSION=-tegra
+
+#generate .config
+#make ARCH=arm64 O=$TEGRA_KERNEL_OUT tegra_defconfig
+
+#compile kernel
+#make ARCH=arm64 O=$TEGRA_KERNEL_OUT -j4
+
+#build modules
+#make ARCH=arm64 O=$TEGRA_KERNEL_OUT modules_install INSTALL_MOD_PATH=/home/jseng/Linux_for_Tegra/rootfs/
