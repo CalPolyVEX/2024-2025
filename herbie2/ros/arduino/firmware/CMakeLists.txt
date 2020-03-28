@@ -6,9 +6,12 @@ include_directories(${ROS_LIB_DIR})
 add_definitions(-DUSB_CON)
 
 generate_arduino_firmware(jet_binary
-  #SRCS chatter.cpp ${ROS_LIB_DIR}/time.cpp
-  #SRCS test.cpp ${ROS_LIB_DIR}/time.cpp
-  SRCS sample_LS7366R.cpp ${ROS_LIB_DIR}/time.cpp
+  #uncomment the following line to use rosserial
+  #SRCS sample_LS7366R.cpp ${ROS_LIB_DIR}/time.cpp
+
+  #do not use the rosserial library, send the encoder values directly
+  SRCS test_LS7366R.cpp 
   BOARD uno
   PORT /dev/arduino
 )
+

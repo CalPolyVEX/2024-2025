@@ -577,7 +577,7 @@ double Navigation::get_distance_from_goal() {
   double x_dest = goals[current_goal_index].x;
   double y_dest = goals[current_goal_index].y;
 
-  ROS_INFO("xdisp: %f xdest: %f y_disp: %f y_dest: %f", x_disp, x_dest, y_disp, y_dest);
+  /* ROS_INFO("xdisp: %f xdest: %f y_disp: %f y_dest: %f", x_disp, x_dest, y_disp, y_dest); */
   double dist = pow((pow(x_dest - x_disp, 2) + pow(y_dest - y_disp, 2)), .5);
   return dist;
 }

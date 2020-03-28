@@ -1,11 +1,4 @@
 #include <SPI.h>
-#include <ros.h>
-#include <std_msgs/Empty.h>
-#include <std_msgs/String.h>
-#include <std_msgs/Int32MultiArray.h>
-#include <std_msgs/Int8.h>
-#include <rosserial_arduino/Test.h>
-#include <std_srvs/Empty.h>
 
 #include <Arduino.h>
 #include "LS7366R.h"
@@ -14,30 +7,7 @@
 #define RIGHT_ENCODER_INPUT 6
 
 //JS
-ros::NodeHandle nh;
-using std_srvs::Empty;
-void reset_encoder_callback(const std_msgs::Empty& reset_msg);
-void read_encoder_callback(const std_msgs::Int8 &reset_msg);
-
-//std_msgs::String str_msg;
-std_msgs::Int32MultiArray wheel_enc_msg;
-//ros::Publisher encoder("encoder", &wheel_enc_msg);
-//ros::Subscriber<std_msgs::Empty> reset_encoder("reset_encoder", &reset_encoder_callback);
-
-//topics to handle the read encoder request
-//ros::Subscriber<std_msgs::Int8> read_encoder_cmd("read_encoder_cmd", &read_encoder_callback);
-ros::Publisher encoder_service("encoder_service", &wheel_enc_msg);
-//char hello[13] = "hello world!";
-char dim0_label[8] = "encoder";
-std_msgs::MultiArrayLayout mal;
-std_msgs::MultiArrayDimension mad[1];
 long int encoder_values[2] = {0,0};
-uint8_t counter = 0;
-
-//testing service code
-//void service_cb(const Empty::Request &req, Empty::Response &res);
-//ros::ServiceServer<Empty::Request, Empty::Response> test_server("test_service", &service_cb);
-//end JS
 
 //function prototypes
 void blinkActLed(uint8_t state);
@@ -56,44 +26,7 @@ void writeSingleByte(unsigned char op_code, unsigned char data);
 unsigned char readSingleByte(unsigned char op_code);
 
 //Global Variables
-uint8_t IsrDFlag;
 uint8_t DFlagCh;
-uint8_t IsrLFlag;
-//int LFlagCnt[6];
-
-//when a message is received on /read_encoder_cmd, then publish a message
-//with the encoder readings
-void read_encoder_callback(const std_msgs::Int8 &reset_msg){
-   uint8_t state = reset_msg.data;
-   //encoder_service.publish(&wheel_enc_msg);
-   blinkActLed(state);
-}
-
-//*************************************************
-//*****************************************************  
-void ISR_DFlag()
-//*****************************************************
-{
-    IsrDFlag = 1;	
-}
-//*************************************************
-//*****************************************************  
-void ISR_LFlag()
-//*****************************************************
-{
-    IsrLFlag = 1;
-}
-
-void reset_encoder_callback(const std_msgs::Empty &reset_msg){
-   //send an Empty message to the /reset_encoder topic to reset
-   //'rostopic pub /reset_encoder std_msgs/Empty --once' to test
-   
-   //digitalWrite(13, HIGH-digitalRead(13));   // blink the led
-   encoder_values[0] = 0;
-   encoder_values[1] = 0;
-   rstEncCnt(LEFT_ENCODER_INPUT); //reset the left encoder
-   rstEncCnt(RIGHT_ENCODER_INPUT); //reset the right encoder
-}
 
 //*************************************************
 //*****************************************************
@@ -127,41 +60,63 @@ void setup()
     Init_LS7366Rs();
 
     //set Ch1 DFLAG to INT1
-    IsrDFlag = 0;
     DFlagCh = 1;
     setDFlagChMux(DFlagCh);
 
-    IsrLFlag = 0;
-    for (a = 0; a< 6; a++){   
-        //LFlagCnt[a] = 0;
-    }
-
-    //ROS setup
-    //nh.getHardware()->setBaud(115200);
-    nh.initNode();
-
-    //nh.advertise(encoder);
-    //nh.subscribe(reset_encoder);
-    //nh.advertiseService(test_server);
-
-    //read encoder command
-    nh.advertise(encoder_service);
-    //nh.subscribe(read_encoder_cmd);
-
-    mad[0].label = (char*) &dim0_label;
-    mad[0].size = 2;
-    mad[0].stride = 1*2;
-
-    mal.dim = mad;
-    mal.data_offset = 0;
-    mal.dim_length = 1;
-    wheel_enc_msg.data_length = 2;
-    wheel_enc_msg.layout = mal;
-    wheel_enc_msg.data = (long int*) &encoder_values;
-
+    Serial.begin(115200);
     //end JS
-
 } //end func
+
+void compute_crc(uint8_t* data, uint8_t len) {
+  uint16_t crc=0;
+
+  //Calculates CRC16 of nBytes of data in byte array message
+  for (int byte = 0; byte < (len-2); byte++) {
+    crc = crc ^ ((uint16_t)data[byte] << 8);
+    for (unsigned char bit = 0; bit < 8; bit++) {
+      if (crc & 0x8000) {
+        crc = (crc << 1) ^ 0x1021;
+      } else {
+        crc = crc << 1;
+      }
+    }
+  }
+
+  data[len-2] = (crc >> 8) & 0xFF; //send the high byte of the crc
+  data[len-1] = crc & 0xFF; //send the low byte of the crc
+}
+
+void read_values_and_send() {
+  uint8_t i;
+  uint8_t data_array[12];
+  uint8_t counter = 0;
+
+  data_array[0] = 0xff;
+  data_array[1] = 0xfe;
+
+  encoder_values[0] = getChanEncoderValue(LEFT_ENCODER_INPUT);
+  counter = 2;
+  for(i=0;i<4;i++) {
+    /* Serial.write(encoder_values[0] & 0xff); */
+    data_array[counter] = encoder_values[0] & 0xff;
+    counter++;
+    encoder_values[0] = encoder_values[0] >> 8;
+  }
+
+  encoder_values[1] = getChanEncoderValue(RIGHT_ENCODER_INPUT);
+  for(i=0;i<4;i++) {
+    /* Serial.write(encoder_values[1] & 0xff); */
+    data_array[counter] = encoder_values[1] & 0xff;
+    counter++;
+    encoder_values[1] = encoder_values[1] >> 8;
+  }
+
+  compute_crc(data_array,12);
+
+  for(i=0;i<12;i++) {
+    Serial.write(data_array[i]);
+  }
+}
 
 //*************************************************
 //main loop
@@ -173,47 +128,13 @@ void loop()
     uint8_t tmpStr = 0;
     static uint8_t led_toggle = 0;
     uint16_t i;
+    long left, right;
 
-    ///////////////
-    if(IsrDFlag)
-    {
-        DFlagCh++;
-        if(DFlagCh > 6){
-            DFlagCh = 1;
-        }
-        setDFlagChMux(DFlagCh);//check next encoder
-        IsrDFlag = 0;
-    }
-    ///////////////
-    if(IsrLFlag)
-    {
-        for(uint8_t a=1;a<=6;a++){
-            tmpStr = getChanEncoderReg(READ_STR,a); 
-            tmpStr &= 0b00100000;//test CMP
-            if(tmpStr){
-                //LFlagCnt[a-1]++;
-                clearStrReg(a); 
-            }
-        }
-        IsrLFlag = 0;	
-    }
+    read_values_and_send();
     
-    //JS
-    //str_msg.data = hello;
-
-    //get the encoder values
-    wheel_enc_msg.data[1]=-getChanEncoderValue(LEFT_ENCODER_INPUT);
-    wheel_enc_msg.data[0]=getChanEncoderValue(RIGHT_ENCODER_INPUT);
-    //encoder.publish(&wheel_enc_msg);
-    
-    encoder_service.publish(&wheel_enc_msg);
-
-    for (i=0; i<31; i++) {
-      nh.spinOnce();
+    for (i=0; i<32; i++) {
       delay(1);
     }
-
-    //end JS
 } //end loop
 
 //*************************************************

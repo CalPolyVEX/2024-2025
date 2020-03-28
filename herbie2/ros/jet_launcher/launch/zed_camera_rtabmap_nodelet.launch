@@ -5,12 +5,10 @@
 
 <launch>
     <include file="$(find image_cnn)/launch/tf_publisher.launch" /> 
-    <!-- <include file="$(find realsense2_camera)/launch/rs_t265.launch" /> --> 
 
-    <!-- <arg name="zed_namespace"		    	default="zed" /> -->
     <arg name="zed_namespace"		    	default="zed2" />
 
-    <arg name="svo_file"                        default="" /> <!-- <arg name="svo_file" default="path/to/svo/file.svo"> -->
+    <arg name="svo_file"                        default="" /> 
     <arg name="zed_node_name"                   default="zed_node" />
     <arg name="camera_model"                    default="zed2" /> <!-- 'zed' or 'zedm' -->
     <arg name="publish_urdf"                    default="true" />
@@ -44,10 +42,5 @@
         <remap from="depth/image_out"     to="$(arg zed_namespace)/data_throttled_image_depth"/>
         <remap from="rgb/camera_info_out" to="$(arg zed_namespace)/data_throttled_camera_info"/>
     </node> 
-
-    <!-- Throttle the rate that the depth point clouds are published from the camera -->
-    <!-- <node pkg="topic_tools" name="throttle1" type="throttle" args="messages /zed_node/rgb/image_rect_color 2.0 /zed/data_throttled_image" /> -->  
-    <!-- <node pkg="topic_tools" name="throttle2" type="throttle" args="messages /zed_node/depth/depth_registered 2.0 /zed/data_throttled_image_depth" /> --> 
-    <!-- <node pkg="topic_tools" name="throttle3" type="throttle" args="messages /zed_node/rgb/camera_info 2.0 /zed/data_throttled_camera_info" /> --> 
 
 </launch>

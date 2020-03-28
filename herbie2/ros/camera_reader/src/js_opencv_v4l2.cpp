@@ -188,11 +188,11 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "camera_reader_node", ros::init_options::NoSigintHandler);
   ros::NodeHandle n;
   nh = &n;
-  nh->setParam("/read_see3cam", false);
 
   signal(SIGINT, mySigintHandler);
 
   CameraReader c;
+  nh->setParam("/read_see3cam", false);
   c.init(argc,argv,nh);
   c.frame_loop();
 

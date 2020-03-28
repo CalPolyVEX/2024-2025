@@ -17,6 +17,7 @@
   <depend>tf2_ros</depend>
   <depend>tf2_sensor_msgs</depend>
   <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
   <build_depend>rtabmap_ros</build_depend>
 
   <export>
