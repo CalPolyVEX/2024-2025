@@ -5,6 +5,7 @@
 
 #define LEFT_ENCODER_INPUT 4
 #define RIGHT_ENCODER_INPUT 6
+#define S_PACKET_SIZE 14
 
 //JS
 long int encoder_values[2] = {0,0};
@@ -33,8 +34,6 @@ uint8_t DFlagCh;
 void setup()
 //*****************************************************
 {
-    uint8_t a=0;
-
     pinMode(LED_ACT_pin, OUTPUT);
 
     pinMode(CLK_SEL_DFAG_pin, OUTPUT);
@@ -88,32 +87,36 @@ void compute_crc(uint8_t* data, uint8_t len) {
 
 void read_values_and_send() {
   uint8_t i;
-  uint8_t data_array[12];
+  uint8_t data_array[S_PACKET_SIZE];
   uint8_t counter = 0;
 
   data_array[0] = 0xff;
   data_array[1] = 0xfe;
 
-  encoder_values[0] = getChanEncoderValue(LEFT_ENCODER_INPUT);
+  encoder_values[0] = getChanEncoderValue(LEFT_ENCODER_INPUT); //read left encoder
+
   counter = 2;
   for(i=0;i<4;i++) {
-    /* Serial.write(encoder_values[0] & 0xff); */
     data_array[counter] = encoder_values[0] & 0xff;
     counter++;
     encoder_values[0] = encoder_values[0] >> 8;
   }
 
-  encoder_values[1] = getChanEncoderValue(RIGHT_ENCODER_INPUT);
+  encoder_values[1] = getChanEncoderValue(RIGHT_ENCODER_INPUT); //read right encoder
+
   for(i=0;i<4;i++) {
-    /* Serial.write(encoder_values[1] & 0xff); */
     data_array[counter] = encoder_values[1] & 0xff;
     counter++;
     encoder_values[1] = encoder_values[1] >> 8;
   }
 
-  compute_crc(data_array,12);
+  data_array[counter] = 0; //leave 2 extra bytes for future use
+  counter++;
+  data_array[counter] = 0;
 
-  for(i=0;i<12;i++) {
+  compute_crc(data_array,S_PACKET_SIZE);
+
+  for(i=0;i<S_PACKET_SIZE;i++) {
     Serial.write(data_array[i]);
   }
 }
@@ -124,11 +127,8 @@ void read_values_and_send() {
 void loop()
 //*****************************************************
 { 
-    uint8_t a = 0;
-    uint8_t tmpStr = 0;
     static uint8_t led_toggle = 0;
     uint16_t i;
-    long left, right;
 
     read_values_and_send();
     

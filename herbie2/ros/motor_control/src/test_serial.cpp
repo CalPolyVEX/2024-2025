@@ -1,5 +1,4 @@
-//6/16/19 This is used to publish odometry messages when
-//each encoder message arrives
+//3/27/20 This node is used to read/write serial data with the Arduino
 
 #include <tf2_ros/transform_listener.h>
 #include <tf2_sensor_msgs/tf2_sensor_msgs.h>
@@ -10,6 +9,8 @@
 #include <iostream>
 #include <boost/thread.hpp>
 #include <rtabmap_ros/Info.h>
+
+#define R_PACKET_SIZE 14
 
 using namespace std;
 
@@ -22,7 +23,6 @@ class TestSerial {
 
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
-  boost::mutex planner_mutex;
   serial::Serial *my_serial;
 
   public:
@@ -34,7 +34,7 @@ class TestSerial {
 };
 
 TestSerial::TestSerial() : tf_listener_(tf_buffer_) {
-  pub_ = nh->advertise<std_msgs::Int32MultiArray>("/enc", 1);
+  pub_ = nh->advertise<std_msgs::Int32MultiArray>("/encoder_service", 1);
 
   ROS_INFO("Connecting to arduino");
   nh->param<std::string>("dev1", dev_name, "/dev/arduino");
@@ -47,38 +47,49 @@ TestSerial::TestSerial() : tf_listener_(tf_buffer_) {
     cout << "Successfully opened serial port." << endl;
   else {
     cout << "Could not open serial port." << endl;
-    ROS_FATAL("Could not connect to Roboclaw");
+    ROS_FATAL("Could not connect to Arduino");
   }
-  
 }
 
 void TestSerial::test_read() {
-  unsigned char data[12];
-  int x;
+  unsigned char data[R_PACKET_SIZE];
+  int i,x;
+  int left_encoder, right_encoder;
+  int mask,counter;
+  unsigned char extra_byte[2];
   std_msgs::Int32MultiArray wheel_enc_msg;
-  std_msgs::MultiArrayLayout mal;
-  std_msgs::MultiArrayDimension mad[1];
-  char dim0_label[8] = "encoder";
-  long int encoder_values[2] = {0,0};
-
-  /* mad[0].label = (char*) &dim0_label; */
-  /* mad[0].size = 2; */
-  /* mad[0].stride = 1*2; */
-
-  /* mal.dim = mad; */
-  /* mal.data_offset = 0; */
-  /* mal.dim_length = 1; */
-  /* wheel_enc_msg.data_length = 2; */
-  /* wheel_enc_msg.layout = mal; */
-  /* wheel_enc_msg.data = (long int*) &encoder_values; */
 
   my_serial->flushOutput();
   my_serial->flushInput();
 
   while (ros::ok()) {
-    x = my_serial->read(data,12);
-    if (check_crc(data,12) == 1) {
-      cout << x << endl;
+    x = my_serial->read(data,R_PACKET_SIZE);
+    if (check_crc(data,R_PACKET_SIZE) == 1) {
+      /* cout << x << endl; */
+      wheel_enc_msg.data.clear();
+      left_encoder = 0;
+      right_encoder = 0;
+
+      //encoder data sent least significant byte first
+      counter = 0;
+      for(i=2;i<6;i++) {
+        mask = data[i] << (8*counter);
+        left_encoder |= mask;
+        counter++;
+      }
+      wheel_enc_msg.data.push_back(left_encoder);
+
+      counter = 0;
+      for(i=6;i<10;i++) {
+        mask = data[i] << (8*counter);
+        right_encoder |= mask;
+        counter++;
+      }
+      wheel_enc_msg.data.push_back(right_encoder);
+
+      extra_byte[0] = data[R_PACKET_SIZE-4]; //these are 2 extra bytes of data for future use
+      extra_byte[1] = data[R_PACKET_SIZE-3];
+
       pub_.publish(wheel_enc_msg);
     }
   }
@@ -103,7 +114,7 @@ int TestSerial::check_crc(unsigned char* data, int len) {
   received_crc = (data[len-2] << 8) & 0xFF00;
   received_crc = received_crc | data[len-1]; 
 
-  if (received_crc == crc)
+  if (received_crc == crc) //return 1 if the CRC is correct
      return 1;
   else
      return 0;
