@@ -5,10 +5,12 @@
 
 #define LEFT_ENCODER_INPUT 4
 #define RIGHT_ENCODER_INPUT 6
-#define S_PACKET_SIZE 14
+#define SEND_PACKET_SIZE 13
+#define RECEIVE_PACKET_SIZE 4
 
 //JS
 long int encoder_values[2] = {0,0};
+unsigned char data_in[4];
 
 //function prototypes
 void blinkActLed(uint8_t state);
@@ -66,7 +68,32 @@ void setup()
     //end JS
 } //end func
 
-void compute_crc(uint8_t* data, uint8_t len) {
+int compute_receive_crc(uint8_t* data, uint8_t len) {
+  uint16_t crc=0;
+  uint16_t received_crc=0;
+
+  //Calculates CRC16 of nBytes of data in byte array message
+  for (int byte = 0; byte < (len-2); byte++) {
+    crc = crc ^ ((uint16_t)data[byte] << 8);
+    for (unsigned char bit = 0; bit < 8; bit++) {
+      if (crc & 0x8000) {
+        crc = (crc << 1) ^ 0x1021;
+      } else {
+        crc = crc << 1;
+      }
+    }
+  }
+
+  received_crc = (data[len-2] << 8) & 0xFF;
+  received_crc = received_crc | data[len-1];
+
+  if (received_crc == crc)
+    return 1;
+  else 
+    return 0;
+}
+
+void compute_transmit_crc(uint8_t* data, uint8_t len) {
   uint16_t crc=0;
 
   //Calculates CRC16 of nBytes of data in byte array message
@@ -85,26 +112,27 @@ void compute_crc(uint8_t* data, uint8_t len) {
   data[len-1] = crc & 0xFF; //send the low byte of the crc
 }
 
-void read_values_and_send() {
+void read_encoders_and_send() {
   uint8_t i;
-  uint8_t data_array[S_PACKET_SIZE];
+  uint8_t data_array[SEND_PACKET_SIZE];
   uint8_t counter = 0;
 
   data_array[0] = 0xff;
-  data_array[1] = 0xfe;
 
   encoder_values[0] = getChanEncoderValue(LEFT_ENCODER_INPUT); //read left encoder
+  encoder_values[0] = 100; //read left encoder
 
-  counter = 2;
-  for(i=0;i<4;i++) {
+  counter = 1;
+  for(i=0;i<4;i++) { //sending lowest byte first
     data_array[counter] = encoder_values[0] & 0xff;
     counter++;
     encoder_values[0] = encoder_values[0] >> 8;
   }
 
   encoder_values[1] = getChanEncoderValue(RIGHT_ENCODER_INPUT); //read right encoder
+  encoder_values[1] = 101; //read left encoder
 
-  for(i=0;i<4;i++) {
+  for(i=0;i<4;i++) { //sending lowest byte first
     data_array[counter] = encoder_values[1] & 0xff;
     counter++;
     encoder_values[1] = encoder_values[1] >> 8;
@@ -114,9 +142,9 @@ void read_values_and_send() {
   counter++;
   data_array[counter] = 0;
 
-  compute_crc(data_array,S_PACKET_SIZE);
+  compute_transmit_crc(data_array,SEND_PACKET_SIZE);
 
-  for(i=0;i<S_PACKET_SIZE;i++) {
+  for(i=0;i<SEND_PACKET_SIZE;i++) {
     Serial.write(data_array[i]);
   }
 }
@@ -128,12 +156,21 @@ void loop()
 //*****************************************************
 { 
     static uint8_t led_toggle = 0;
-    uint16_t i;
+    uint8_t i,j;
 
-    read_values_and_send();
+    read_encoders_and_send();
     
     for (i=0; i<32; i++) {
       delay(1);
+
+      //check incoming serial buffer
+      if (Serial.available() >= RECEIVE_PACKET_SIZE) {
+        Serial.readBytes((char*)data_in,4);
+
+        if (compute_receive_crc(data_in,RECEIVE_PACKET_SIZE) == 1) {
+          //CRC is good
+        }
+      }
     }
 } //end loop
 

@@ -10,14 +10,14 @@
 #include <boost/thread.hpp>
 #include <rtabmap_ros/Info.h>
 
-#define R_PACKET_SIZE 14
+#define RECEIVE_PACKET_SIZE 13
 
 using namespace std;
 
 ros::NodeHandle *nh;
 ros::Publisher pub_;
 
-class TestSerial {
+class ArduinoNode {
   std::string dev_name;
   int baud_rate, address;
 
@@ -26,19 +26,20 @@ class TestSerial {
   serial::Serial *my_serial;
 
   public:
-    TestSerial(); 
+    ArduinoNode(); 
 
     void read_status(unsigned short* status);
     void test_read();
-    int check_crc(unsigned char* data, int len);
+    int check_receive_crc(unsigned char* data, int len);
+    void compute_transmit_crc(unsigned char* data, int len);
 };
 
-TestSerial::TestSerial() : tf_listener_(tf_buffer_) {
+ArduinoNode::ArduinoNode() : tf_listener_(tf_buffer_) {
   pub_ = nh->advertise<std_msgs::Int32MultiArray>("/encoder_service", 1);
 
   ROS_INFO("Connecting to arduino");
-  nh->param<std::string>("dev1", dev_name, "/dev/arduino");
-  nh->param<int>("baud1", baud_rate, 115200);
+  nh->param<std::string>("dev", dev_name, "/dev/arduino");
+  nh->param<int>("baud", baud_rate, 115200);
 
   // Open the serial port
   my_serial = new serial::Serial(dev_name, baud_rate, serial::Timeout::simpleTimeout(1000));
@@ -51,8 +52,8 @@ TestSerial::TestSerial() : tf_listener_(tf_buffer_) {
   }
 }
 
-void TestSerial::test_read() {
-  unsigned char data[R_PACKET_SIZE];
+void ArduinoNode::test_read() {
+  unsigned char data[RECEIVE_PACKET_SIZE];
   int i,x;
   int left_encoder, right_encoder;
   int mask,counter;
@@ -63,39 +64,57 @@ void TestSerial::test_read() {
   my_serial->flushInput();
 
   while (ros::ok()) {
-    x = my_serial->read(data,R_PACKET_SIZE);
-    if (check_crc(data,R_PACKET_SIZE) == 1) {
+    x = my_serial->read(data,RECEIVE_PACKET_SIZE);
+    if ((check_receive_crc(data,RECEIVE_PACKET_SIZE) == 1) && (data[0] == 0xFF)) {
       /* cout << x << endl; */
       wheel_enc_msg.data.clear();
       left_encoder = 0;
       right_encoder = 0;
 
       //encoder data sent least significant byte first
-      counter = 0;
-      for(i=2;i<6;i++) {
-        mask = data[i] << (8*counter);
+      counter = 1;
+      for(i=0;i<4;i++) {
+        mask = data[counter] << (8*i);
         left_encoder |= mask;
         counter++;
       }
       wheel_enc_msg.data.push_back(left_encoder);
 
-      counter = 0;
-      for(i=6;i<10;i++) {
-        mask = data[i] << (8*counter);
+      for(i=0;i<4;i++) {
+        mask = data[counter] << (8*i);
         right_encoder |= mask;
         counter++;
       }
       wheel_enc_msg.data.push_back(right_encoder);
 
-      extra_byte[0] = data[R_PACKET_SIZE-4]; //these are 2 extra bytes of data for future use
-      extra_byte[1] = data[R_PACKET_SIZE-3];
+      extra_byte[0] = data[RECEIVE_PACKET_SIZE-4]; //these are 2 extra bytes of data for future use
+      extra_byte[1] = data[RECEIVE_PACKET_SIZE-3];
 
       pub_.publish(wheel_enc_msg);
     }
   }
 }
 
-int TestSerial::check_crc(unsigned char* data, int len) {
+void ArduinoNode::compute_transmit_crc(unsigned char* data, int len) {
+  unsigned short crc=0;
+
+  //Calculates CRC16 of nBytes of data in byte array message
+  for (int byte = 0; byte < (len-2); byte++) {
+    crc = crc ^ ((unsigned short)data[byte] << 8);
+    for (unsigned char bit = 0; bit < 8; bit++) {
+      if (crc & 0x8000) {
+        crc = (crc << 1) ^ 0x1021;
+      } else {
+        crc = crc << 1;
+      }
+    }
+  }
+
+  data[len-2] = (crc >> 8) & 0xFF; //send the high byte of the crc
+  data[len-1] = crc & 0xFF; //send the low byte of the crc
+}
+
+int ArduinoNode::check_receive_crc(unsigned char* data, int len) {
   unsigned short crc=0;
   unsigned short received_crc=0;
 
@@ -120,7 +139,7 @@ int TestSerial::check_crc(unsigned char* data, int len) {
      return 0;
 }
 
-void TestSerial::read_status(unsigned short* status) {
+void ArduinoNode::read_status(unsigned short* status) {
   unsigned char data[8];
 
   my_serial->flushOutput();
@@ -140,7 +159,7 @@ int main(int argc, char** argv) {
   ros::NodeHandle n;
   nh = &n;
 
-  TestSerial ts;
+  ArduinoNode ts;
 
   ROS_INFO("Starting test serial");
   ts.test_read();

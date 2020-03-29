@@ -36,11 +36,11 @@ add_executable(pub_odometry
   src/encoder_odom.cpp
   src/encoder_odom.h)
 
-add_executable(test_serial
-  src/test_serial.cpp)
+add_executable(arduino_node
+  src/arduino_node.cpp)
 
 add_dependencies(pub_odometry ${PROJECT_NAME}_gencfg)
 target_link_libraries(pub_odometry ${catkin_LIBRARIES})
 
-add_dependencies(test_serial ${PROJECT_NAME}_gencfg)
-target_link_libraries(test_serial ${catkin_LIBRARIES})
+add_dependencies(arduino_node ${PROJECT_NAME}_gencfg)
+target_link_libraries(arduino_node ${catkin_LIBRARIES})
