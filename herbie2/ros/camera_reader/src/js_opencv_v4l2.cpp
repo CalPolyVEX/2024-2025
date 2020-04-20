@@ -196,8 +196,6 @@ int main(int argc, char **argv) {
   c.init(argc,argv,nh);
   c.frame_loop();
 
-  //c.close_camera();
-
   ros::spin();
   ros::waitForShutdown();
   return EXIT_SUCCESS;

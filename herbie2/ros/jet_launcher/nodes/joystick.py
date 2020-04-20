@@ -48,6 +48,7 @@ class JoystickNode:
       button1 = 0
       pygame.event.pump()
       while pygame.joystick.Joystick(0).get_button(0) == 1:
+         print ("stuck")
          pygame.event.pump()
          if button1 == 0:
             l = Lcd()

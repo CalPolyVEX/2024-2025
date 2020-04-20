@@ -1,6 +1,6 @@
 #include "encoder_odom.h"
 
-#define MAX_MOTOR_SPEED 13000
+#define MAX_MOTOR_SPEED 14000
 
 using namespace std;
 
@@ -238,11 +238,11 @@ void OdometryPublisher::run_pid() {
   //limit motor acceleration/deceleration
   //without this, the starts/stops are abrupt
   if (abs(cur_left_motor - last_left_motor_cmd) > 400) {
-    cur_left_motor = cur_left_motor * .08 + last_left_motor_cmd * .92;
+    cur_left_motor = cur_left_motor * .10 + last_left_motor_cmd * .90;
   }
 
   if (abs(cur_right_motor - last_right_motor_cmd) > 400) {
-    cur_right_motor = cur_right_motor * .08 + last_right_motor_cmd * .92;
+    cur_right_motor = cur_right_motor * .10 + last_right_motor_cmd * .90;
   }
 
   //set the motor speeds

@@ -8,9 +8,10 @@
     <arg name="max_abs_angular_speed" default=".170"/>
 <!-- Wheels max acceleration m/s^2 (TODO: split in angular and linear acceleration) -->
     <arg name="acc_lim" default="1"/>
-<!-- 1957 ticks/rev ; 0.2 cm diam ; 0.6283186 m/rev -->
-    <arg name="ticks_per_meter" default="6800"/>
-    <arg name="base_width" default="0.363537"/>
+
+    <!-- Herbie 2:  1425.2*2 = 2850.4 ticks/rev ; 8 inch wheel * 3.14 = 25.12 inch/rev -->
+    <arg name="ticks_per_meter" default="4467.37491"/>
+    <arg name="base_width" default="0.280988"/>
     <arg name="run_diag" default="true"/>
 
     <node if="$(arg run_diag)" pkg="motor_control" type="pub_odometry" name="roboclaw_node">

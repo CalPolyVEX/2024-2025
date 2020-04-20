@@ -119,8 +119,8 @@ void read_encoders_and_send() {
 
   data_array[0] = 0xff;
 
-  encoder_values[0] = getChanEncoderValue(LEFT_ENCODER_INPUT); //read left encoder
-  encoder_values[0] = 100; //read left encoder
+  encoder_values[0] = -getChanEncoderValue(LEFT_ENCODER_INPUT); //read left encoder
+  //encoder_values[0] = 100; //read left encoder
 
   counter = 1;
   for(i=0;i<4;i++) { //sending lowest byte first
@@ -129,8 +129,8 @@ void read_encoders_and_send() {
     encoder_values[0] = encoder_values[0] >> 8;
   }
 
-  encoder_values[1] = getChanEncoderValue(RIGHT_ENCODER_INPUT); //read right encoder
-  encoder_values[1] = 101; //read left encoder
+  encoder_values[1] = -getChanEncoderValue(RIGHT_ENCODER_INPUT); //read right encoder
+  //encoder_values[1] = 101; //read left encoder
 
   for(i=0;i<4;i++) { //sending lowest byte first
     data_array[counter] = encoder_values[1] & 0xff;
