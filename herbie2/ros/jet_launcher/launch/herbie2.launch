@@ -6,6 +6,7 @@
    <arg name="rtabmapviz" default="false" />
    <arg name="rtabmap_debug" default="false" />
    <arg name="testing_map" default="false" />
+   <arg name="laser" default="false" />
 
    <group if="$(arg testing_map)">
       <include file="$(find jet_launcher)/launch/map.launch">
@@ -29,6 +30,11 @@
 
    <!-- Start the Adafruit LCD node-->
    <!-- <include file="$(find jet_launcher)/launch/lcd.launch"/> -->
+
+   <!-- Start the laser scanner node-->
+   <group if="$(arg laser)">
+      <include file="$(find rplidar_ros)/launch/rplidar_s1.launch"/>
+   </group>
 
    <group if="$(arg mapping)">
       <include file="$(find jet_launcher)/launch/zed_rtabmap.launch"/>
