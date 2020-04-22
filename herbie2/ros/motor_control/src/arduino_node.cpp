@@ -16,6 +16,7 @@ using namespace std;
 
 ros::NodeHandle *nh;
 ros::Publisher pub_;
+ros::Publisher e_stop_pub;
 
 class ArduinoNode {
   std::string dev_name;
@@ -36,6 +37,7 @@ class ArduinoNode {
 
 ArduinoNode::ArduinoNode() : tf_listener_(tf_buffer_) {
   pub_ = nh->advertise<std_msgs::Int32MultiArray>("/encoder_service", 1);
+  e_stop_pub = nh->advertise<std_msgs::Empty>("/e_stop", 1);
 
   ROS_INFO("Connecting to arduino");
   nh->param<std::string>("dev", dev_name, "/dev/arduino");
@@ -89,6 +91,11 @@ void ArduinoNode::test_read() {
 
       extra_byte[0] = data[RECEIVE_PACKET_SIZE-4]; //these are 2 extra bytes of data for future use
       extra_byte[1] = data[RECEIVE_PACKET_SIZE-3];
+      if ((extra_byte[1] & 0x1) == 0) {
+        //if analog pin 0 is grounded on the Arduino, then activate the e_stop
+        std_msgs::Empty e;
+        e_stop_pub.publish(e);
+      }
 
       pub_.publish(wheel_enc_msg);
     }

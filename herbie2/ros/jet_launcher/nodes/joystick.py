@@ -59,15 +59,17 @@ class JoystickNode:
             button1 = 1
 
    def record_bag(self):
-      l = Lcd()
-      l.init_serial_port()
-      l.clear_screen()
-      l.print_string('Recording...')
-      l.close()
-      rec_topics = "rosbag record /zed/data_throttled_image_depth \
-         /zed/data_throttled_image /zed/data_throttled_camera_info \
-         /tf /tf_static /ekf_node/odom /camera/fisheye1/image_raw/compressed \
-         /roboclaw_twist /encoder_service /cmd_vel /gps/fix \
+      #l = Lcd()
+      #l.init_serial_port()
+      #l.clear_screen()
+      #l.print_string('Recording...')
+      #l.close()
+      # rec_topics = "rosbag record /zed/data_throttled_image_depth \
+      #    /zed/data_throttled_image /zed/data_throttled_camera_info \
+      rec_topics = "rosbag record /zed2/zed_node/rgb/image_rect_color \
+         /zed2/zed_node/depth/depth_registered /zed2/zed_node/rgb/camera_info \
+         /tf /tf_static /ekf_node/odom \
+         /roboclaw_twist /cmd_vel /scan \
          __name:=my_bag_recorder"
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
 
@@ -103,11 +105,11 @@ class JoystickNode:
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
 
    def stop_record_bag(self):
-      l = Lcd()
-      l.init_serial_port()
-      l.clear_screen()
-      l.print_string('Stop Recording.')
-      l.close()
+      #l = Lcd()
+      #l.init_serial_port()
+      #l.clear_screen()
+      #l.print_string('Stop Recording.')
+      #l.close()
       proc1 = subprocess.Popen('cd /mnt/temp;rosnode kill /my_bag_recorder', shell=True)
 
    def toggle_led(self):
@@ -127,6 +129,7 @@ class JoystickNode:
       button1_hold = 0
       button2_hold = 0
       button4_hold = 0
+      current_recording = 0
 
       # Prints the joystick's name
       JoyName = pygame.joystick.Joystick(0).get_name()
@@ -145,9 +148,6 @@ class JoystickNode:
       #do not print SDL messages
       # sys.stdout = os.devnull
       # sys.stderr = os.devnull
-
-      t=threading.Timer(61,self.toggle_led)
-      t.cancel()
 
       #while not rospy.is_shutdown():
       while True:
@@ -201,7 +201,6 @@ class JoystickNode:
                if recording_start == 0:
                   recording_start = 1
                   rospy.loginfo('Starting recording')
-                  self.toggle_led()
 
                   topics = rospy.get_published_topics()
                   print topics
@@ -219,17 +218,13 @@ class JoystickNode:
                   else:
                      self.record_bag()
 
-                  #start a new timer to toggle the led when recording complete
-                  #t = threading.Timer(122,self.toggle_led) #run after 4 minutes
-                  # t.start()
                else:
                   recording_start = 0
                   rospy.loginfo('Stopping recording')
-                  self.toggle_led()
                   self.stop_record_bag()
-               button2_hold = 0
          else:
-            button2_hold = 0
+            if button2_hold != 0:
+                button2_hold = 0
 
          #press button 3 to stop robot
          button3 = pygame.joystick.Joystick(0).get_button(2)

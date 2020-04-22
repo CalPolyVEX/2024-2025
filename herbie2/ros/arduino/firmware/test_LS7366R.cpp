@@ -5,8 +5,8 @@
 
 #define LEFT_ENCODER_INPUT 4
 #define RIGHT_ENCODER_INPUT 6
-#define SEND_PACKET_SIZE 13
-#define RECEIVE_PACKET_SIZE 4
+#define SEND_PACKET_SIZE 13 //13 = 1 header byte (0xff) + 4-byte left + 4-byte right + 2 extra bytes + 2-byte CRC 
+#define RECEIVE_PACKET_SIZE 4 //4 = 2 bytes of data + 2 byte CRC
 
 //JS
 long int encoder_values[2] = {0,0};
@@ -56,6 +56,10 @@ void setup()
 
     pinMode(DFLAG_pin, INPUT);
     pinMode(LFLAG_pin, INPUT_PULLUP);
+
+    //enable pullup for pins A0 and A1
+    pinMode(A0, INPUT_PULLUP);
+    pinMode(A1, INPUT_PULLUP);
 
     //initialize the register in all of the 6 chips
     Init_LS7366Rs();
@@ -140,7 +144,7 @@ void read_encoders_and_send() {
 
   data_array[counter] = 0; //leave 2 extra bytes for future use
   counter++;
-  data_array[counter] = 0;
+  data_array[counter] = (digitalRead(A1) << 1) | digitalRead(A0);
 
   compute_transmit_crc(data_array,SEND_PACKET_SIZE);
 
@@ -165,7 +169,7 @@ void loop()
 
       //check incoming serial buffer
       if (Serial.available() >= RECEIVE_PACKET_SIZE) {
-        Serial.readBytes((char*)data_in,4);
+        Serial.readBytes((char*)data_in,4); 
 
         if (compute_receive_crc(data_in,RECEIVE_PACKET_SIZE) == 1) {
           //CRC is good
