@@ -2,8 +2,11 @@ cmake_minimum_required(VERSION 2.8.3)
 project(image_cnn)
 
 #JS the following line is to compile on x86 Ubuntu 18.04
-#set(PCL_DIR "/usr/lib/x86_64-linux-gnu/cmake/pcl")
-set(PCL_DIR "/usr/lib/aarch64-linux-gnu/cmake/pcl")
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
+   set(PCL_DIR "/usr/lib/x86_64-linux-gnu/cmake/pcl")
+else ()
+   set(PCL_DIR "/usr/lib/aarch64-linux-gnu/cmake/pcl")
+endif ()
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
