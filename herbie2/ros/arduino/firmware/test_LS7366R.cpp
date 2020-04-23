@@ -180,10 +180,14 @@ void loop()
             blinkActLed(0);
           }
         } else { //bad CRC
-          blinkActLed(1);
-          delay(200);
-          blinkActLed(0);
-          delay(200);
+          //if bad CRC blink 3 times
+          for (j=0;j<3;j++) {
+            blinkActLed(1);
+            delay(200);
+            blinkActLed(0);
+            delay(200);
+          }
+          delay(1000);
         }
 
       }

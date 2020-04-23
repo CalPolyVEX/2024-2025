@@ -21,6 +21,7 @@ ros::NodeHandle *nh;
 ros::Publisher pub_;
 ros::Publisher e_stop_pub;
 ros::Subscriber arduino_cmd_sub;
+boost::lockfree::queue<int> q(128);
 
 class ArduinoNode {
   std::string dev_name;
@@ -29,8 +30,6 @@ class ArduinoNode {
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener tf_listener_;
   serial::Serial *my_serial;
-
-  boost::lockfree::queue<int> q{128};
 
   public:
     ArduinoNode(); 
@@ -64,8 +63,8 @@ ArduinoNode::ArduinoNode() : tf_listener_(tf_buffer_) {
 
 void ArduinoNode::command_received_callback(const std_msgs::Int16::ConstPtr& m) {
   int temp = m->data;
-  q.push(256);
-  q.push(256);
+  q.push(temp);
+  q.push(temp);
 }
 
 void ArduinoNode::test_read() {
@@ -116,22 +115,16 @@ void ArduinoNode::test_read() {
 
     //send data to the Arduino
     int output_data;
-    output_data=256;
-    unsigned char send_data[SEND_PACKET_SIZE];
-    my_serial->flushOutput();
-    send_data[0] = (output_data >> 8) & 0xFF; 
-    send_data[1] = output_data & 0xFF; 
-    compute_transmit_crc(send_data, SEND_PACKET_SIZE);
-    my_serial->write(send_data,SEND_PACKET_SIZE);
-
     if (q.pop(output_data)) {
-      /* unsigned char send_data[SEND_PACKET_SIZE]; */
-      /* my_serial->flushOutput(); */
-      /* send_data[0] = (output_data >> 8) & 0xFF; */ 
-      /* send_data[1] = output_data & 0xFF; */ 
-      /* compute_transmit_crc(send_data, SEND_PACKET_SIZE); */
-      /* my_serial->write(send_data,SEND_PACKET_SIZE); */
+      unsigned char send_data[SEND_PACKET_SIZE];
+      my_serial->flushOutput();
+      send_data[0] = (output_data >> 8) & 0xFF; 
+      send_data[1] = output_data & 0xFF; 
+      compute_transmit_crc(send_data, SEND_PACKET_SIZE);
+      my_serial->write(send_data,SEND_PACKET_SIZE);
     }
+
+    ros::spinOnce();
   }
 }
 

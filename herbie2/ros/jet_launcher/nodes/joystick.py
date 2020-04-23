@@ -5,6 +5,7 @@ import rospy, sys, os
 from geometry_msgs.msg import Quaternion, Twist
 from std_msgs.msg import Empty
 from std_msgs.msg import Int8
+from std_msgs.msg import Int16
 import subprocess, threading
 from lcd import Lcd
 
@@ -41,6 +42,7 @@ class JoystickNode:
       self.robot_stop_pub = rospy.Publisher('/robot_stop', Empty, queue_size=1)
       self.autonomous_pub = rospy.Publisher('/autonomous', Int8, queue_size=1)
       self.autonomous_led_pub = rospy.Publisher('/read_encoder_cmd', Int8, queue_size=1)
+      self.arduino_cmd_pub = rospy.Publisher('/arduino_cmd', Int16, queue_size=1)
 
       rospy.sleep(1)
 
@@ -64,12 +66,9 @@ class JoystickNode:
       #l.clear_screen()
       #l.print_string('Recording...')
       #l.close()
-      # rec_topics = "rosbag record /zed/data_throttled_image_depth \
-      #    /zed/data_throttled_image /zed/data_throttled_camera_info \
       rec_topics = "rosbag record /zed2/zed_node/rgb/image_rect_color \
          /zed2/zed_node/depth/depth_registered /zed2/zed_node/rgb/camera_info \
-         /tf /tf_static /ekf_node/odom \
-         /roboclaw_twist /cmd_vel /scan \
+         /tf /tf_static /ekf_node/odom /roboclaw_twist /cmd_vel /scan \
          __name:=my_bag_recorder"
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
 
@@ -86,8 +85,6 @@ class JoystickNode:
          /planner/move_base/local_planner/local_costmap \
          /planner/move_base/local_planner/local_costmap_updates /autonomous /map \
          __name:=my_bag_recorder"
-         #/planner/move_base/local_planner/local_costmap \
-         #/planner/move_base/local_planner/local_costmap_updates /autonomous /map \
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
 
    def record_bag_debugging_cnn(self):
@@ -144,6 +141,7 @@ class JoystickNode:
 
       r_time = rospy.Rate(10)
       vel_msg = Twist()
+      arduino_val = Int16()
 
       #do not print SDL messages
       # sys.stdout = os.devnull
@@ -202,14 +200,18 @@ class JoystickNode:
                   recording_start = 1
                   rospy.loginfo('Starting recording')
 
+                  #turn on the LED send a command to the Arduino
+                  arduino_val.data = 256
+                  self.arduino_cmd_pub.publish(arduino_val)
+
                   topics = rospy.get_published_topics()
                   print topics
                   planning_mode = 0
                   for x in topics:
                      if "passthrough" in x[0]:
                         planning_mode = 1
-                     elif "output_video" in x[0]:
-                        planning_mode = 2
+                     #elif "output_video" in x[0]:
+                     #   planning_mode = 2
 
                   if planning_mode == 1:
                      self.record_bag_debugging()
@@ -222,6 +224,10 @@ class JoystickNode:
                   recording_start = 0
                   rospy.loginfo('Stopping recording')
                   self.stop_record_bag()
+
+                  #turn off the LED send a command to the Arduino
+                  arduino_val.data = 0
+                  self.arduino_cmd_pub.publish(arduino_val)
          else:
             if button2_hold != 0:
                 button2_hold = 0
