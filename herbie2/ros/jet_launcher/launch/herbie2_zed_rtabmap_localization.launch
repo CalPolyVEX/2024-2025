@@ -50,10 +50,9 @@
 
       <arg name="frame_id"                value="base_link" /> 
       <arg name="approx_sync"             value="true" />
-      <arg name="approx_rgbd_sync"             value="true" />
-      <arg name="queue_size"             value="20" />
+      <arg name="approx_rgbd_sync"        value="true" />
+      <arg name="queue_size"              value="17" />
       <arg name="visual_odometry"         value="false" />
-      <arg name="compressed"              value="false" />
       <arg name="wait_for_transform"      value=".8" />
       <arg name="database_path"           value="/tmp/ramdisk/rtabmap.db" />
       <arg name="localization"            value="true" />

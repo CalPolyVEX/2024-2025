@@ -4,19 +4,23 @@
 #include <tf2_sensor_msgs/tf2_sensor_msgs.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <std_msgs/Int32MultiArray.h>
+#include <std_msgs/Int16.h>
 #include <ros/console.h>
 #include <serial/serial.h>
 #include <iostream>
 #include <boost/thread.hpp>
+#include <boost/lockfree/queue.hpp>
 #include <rtabmap_ros/Info.h>
 
 #define RECEIVE_PACKET_SIZE 13
+#define SEND_PACKET_SIZE 4
 
 using namespace std;
 
 ros::NodeHandle *nh;
 ros::Publisher pub_;
 ros::Publisher e_stop_pub;
+ros::Subscriber arduino_cmd_sub;
 
 class ArduinoNode {
   std::string dev_name;
@@ -26,6 +30,8 @@ class ArduinoNode {
   tf2_ros::TransformListener tf_listener_;
   serial::Serial *my_serial;
 
+  boost::lockfree::queue<int> q{128};
+
   public:
     ArduinoNode(); 
 
@@ -33,11 +39,13 @@ class ArduinoNode {
     void test_read();
     int check_receive_crc(unsigned char* data, int len);
     void compute_transmit_crc(unsigned char* data, int len);
+    void command_received_callback(const std_msgs::Int16::ConstPtr& m);
 };
 
 ArduinoNode::ArduinoNode() : tf_listener_(tf_buffer_) {
   pub_ = nh->advertise<std_msgs::Int32MultiArray>("/encoder_service", 1);
   e_stop_pub = nh->advertise<std_msgs::Empty>("/e_stop", 1);
+  arduino_cmd_sub = nh->subscribe("/arduino_cmd", 1, &ArduinoNode::command_received_callback, this);
 
   ROS_INFO("Connecting to arduino");
   nh->param<std::string>("dev", dev_name, "/dev/arduino");
@@ -52,6 +60,12 @@ ArduinoNode::ArduinoNode() : tf_listener_(tf_buffer_) {
     cout << "Could not open serial port." << endl;
     ROS_FATAL("Could not connect to Arduino");
   }
+}
+
+void ArduinoNode::command_received_callback(const std_msgs::Int16::ConstPtr& m) {
+  int temp = m->data;
+  q.push(256);
+  q.push(256);
 }
 
 void ArduinoNode::test_read() {
@@ -98,6 +112,25 @@ void ArduinoNode::test_read() {
       }
 
       pub_.publish(wheel_enc_msg);
+    }
+
+    //send data to the Arduino
+    int output_data;
+    output_data=256;
+    unsigned char send_data[SEND_PACKET_SIZE];
+    my_serial->flushOutput();
+    send_data[0] = (output_data >> 8) & 0xFF; 
+    send_data[1] = output_data & 0xFF; 
+    compute_transmit_crc(send_data, SEND_PACKET_SIZE);
+    my_serial->write(send_data,SEND_PACKET_SIZE);
+
+    if (q.pop(output_data)) {
+      /* unsigned char send_data[SEND_PACKET_SIZE]; */
+      /* my_serial->flushOutput(); */
+      /* send_data[0] = (output_data >> 8) & 0xFF; */ 
+      /* send_data[1] = output_data & 0xFF; */ 
+      /* compute_transmit_crc(send_data, SEND_PACKET_SIZE); */
+      /* my_serial->write(send_data,SEND_PACKET_SIZE); */
     }
   }
 }

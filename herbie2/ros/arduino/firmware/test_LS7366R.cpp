@@ -88,7 +88,7 @@ int compute_receive_crc(uint8_t* data, uint8_t len) {
     }
   }
 
-  received_crc = (data[len-2] << 8) & 0xFF;
+  received_crc = (data[len-2] << 8) & 0xFF00;
   received_crc = received_crc | data[len-1];
 
   if (received_crc == crc)
@@ -173,7 +173,19 @@ void loop()
 
         if (compute_receive_crc(data_in,RECEIVE_PACKET_SIZE) == 1) {
           //CRC is good
+          if (data_in[0]==1 && data_in[1]==0) {
+            //turn on the led
+            blinkActLed(1);
+          } else {
+            blinkActLed(0);
+          }
+        } else { //bad CRC
+          blinkActLed(1);
+          delay(200);
+          blinkActLed(0);
+          delay(200);
         }
+
       }
     }
 } //end loop

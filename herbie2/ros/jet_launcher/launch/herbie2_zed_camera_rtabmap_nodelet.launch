@@ -30,6 +30,17 @@
         <arg name="publish_urdf"         value="$(arg publish_urdf)" />
     </include>
 
+    <!-- <node pkg="nodelet" type="nodelet" name="rgbd_sync_test" args="load rtabmap_ros/rgbd_sync $(arg nodelet_manager_name)" output="screen"> -->
+    <!--    <remap from="rgb/image"       to="/zed2/zed_node/rgb/image_rect_color"/> -->
+    <!--    <remap from="depth/image"     to="/zed2/zed_node/depth/depth_registered"/> -->
+    <!--    <remap from="rgb/camera_info" to="/zed2/zed_node/rgb/camera_info"/> -->
+    <!--    <remap from="rgbd_image"      to="rgbd_image"/> -->
+    <!--    <param name="approx_sync"     type="bool"   value="true"/> -->
+    <!--    <param name="queue_size"      type="int"    value="17"/> -->
+    <!--    <param name="depth_scale"     type="double" value="1.0"/> -->
+    <!-- </node> -->
+
+
     <!-- <node pkg="nodelet" type="nodelet" name="data_throttle" args="load rtabmap_ros/data_throttle zed_nodelet_manager" output="screen"> -->
     <!--     <param name="rate" type="double" value="2.0"/> -->
     <!--     <param name="approx_sync" type="bool" value="true"/> -->
