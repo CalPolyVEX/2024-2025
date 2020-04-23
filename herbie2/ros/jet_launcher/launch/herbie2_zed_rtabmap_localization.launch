@@ -1,13 +1,16 @@
 <?xml version="1.0"?>
 
-<!-- This file is run after recording the bag files to build a map. -->
+<!-- Start rtabmap in localization mode and do not add to the map. -->
 
 <launch>
     <arg name="testing_map" default="false" />
-
     <include file="$(find jet_launcher)/launch/rtabmap_parameters.xml"> 
        <arg name="testing_map" value="$(arg testing_map)" />
     </include>
+
+    <param name="/rtabmap/rtabmap/RGBD/SavedLocalizationIgnored" value="true" />
+    <param name="/rtabmap/rtabmap/Mem/IncrementalMemory" value="false" />
+    <param name="/rtabmap/rtabmap/RGBD/CreateOccupancyGrid" value="false" />
 
     <!-- RTAB-Map's parameters -->
     <param name="/rtabmap/rtabmap/RGBD/NeighborLinkRefining" type="string" value="true"/>
@@ -22,9 +25,16 @@
     <!-- ICP parameters -->
     <param name="Icp/VoxelSize"                 type="string" value="0.05"/>
     <param name="Icp/MaxCorrespondenceDistance" type="string" value="0.1"/>
-    <arg name="rt_args"          default="--delete_db_on_start" />
+          
+    <arg name="rtabmap_flags" default="" />
 
-    <!-- <param name="/use_sim_time"  value="true" /> --> 
+    <arg name="zed_namespace"             default="zed2" />
+
+    <arg name="sim"                       default="false" />
+    <group if="$(arg sim)">
+        <param name="/use_sim_time" value="true" />
+        <!-- <include file="$(find image_cnn)/launch/tf_publisher.launch" /> --> 
+    </group>
 
     <!-- RTAB-map Node-->
     <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
@@ -40,10 +50,13 @@
 
       <arg name="frame_id"                value="base_link" /> 
       <arg name="approx_sync"             value="true" />
+      <arg name="approx_rgbd_sync"             value="true" />
+      <arg name="queue_size"             value="20" />
       <arg name="visual_odometry"         value="false" />
       <arg name="compressed"              value="false" />
       <arg name="wait_for_transform"      value=".8" />
-      <!-- <arg name="database_path"           value="/tmp/ramdisk/rtabmap.db" /> -->
-      <arg name="localization"            value="false" />
+      <arg name="database_path"           value="/tmp/ramdisk/rtabmap.db" />
+      <arg name="localization"            value="true" />
+      <arg name="rtabmapviz"              value="false" />
     </include>
 </launch>

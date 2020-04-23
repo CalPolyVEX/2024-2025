@@ -20,7 +20,7 @@
    </group>
 
    <!-- Start the ZED camera node -->
-   <include file="$(find jet_launcher)/launch/zed_camera_rtabmap_nodelet.launch"/>
+   <include file="$(find jet_launcher)/launch/herbie2_zed_camera_rtabmap_nodelet.launch"/>
 
    <!-- Start the roboclaw and Arduino nodes -->
    <include file="$(find jet_launcher)/launch/basic.launch"/>
@@ -37,18 +37,18 @@
    </group>
 
    <group if="$(arg mapping)">
-      <include file="$(find jet_launcher)/launch/zed_rtabmap.launch"/>
+      <include file="$(find jet_launcher)/launch/herbie2_zed_rtabmap.launch"/>
    </group>
 
    <group if="$(arg localization)">
       <group if="$(arg rtabmap_debug)">
-         <include file="$(find jet_launcher)/launch/zed_rtabmap_localization.launch">
+         <include file="$(find jet_launcher)/launch/herbie2_zed_rtabmap_localization.launch">
                <arg name="rtabmap_flags" value="--udebug" />
                <arg name="testing_map" value="$(arg testing_map)" />
          </include> 
       </group>
       <group unless="$(arg rtabmap_debug)">
-         <include file="$(find jet_launcher)/launch/zed_rtabmap_localization.launch">
+         <include file="$(find jet_launcher)/launch/herbie2_zed_rtabmap_localization.launch">
                <arg name="rtabmap_flags" value="" />
                <arg name="testing_map" value="$(arg testing_map)" />
          </include> 
