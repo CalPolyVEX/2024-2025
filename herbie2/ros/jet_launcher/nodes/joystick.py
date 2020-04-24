@@ -2,7 +2,7 @@
 import pygame
 from time import sleep
 import rospy, sys, os
-from geometry_msgs.msg import Quaternion, Twist
+from geometry_msgs.msg import Twist
 from std_msgs.msg import Empty
 from std_msgs.msg import Int8
 from std_msgs.msg import Int16
@@ -28,7 +28,7 @@ class JoystickNode:
       #check the number of joysticks
       num_joystick = pygame.joystick.get_count()
       if num_joystick==0:
-         print "No joysticks found."
+         print ("No joysticks found.")
          exit(0)
 
       pygame.display.init()
@@ -47,18 +47,34 @@ class JoystickNode:
       rospy.sleep(1)
 
       #workaround for joystick bug
+      arduino_val = Int16()
+      ready=0
       button1 = 0
-      pygame.event.pump()
-      while pygame.joystick.Joystick(0).get_button(0) == 1:
-         print ("stuck")
+      # pygame.event.pump()
+      # while pygame.joystick.Joystick(0).get_button(0) == 1:
+      #    print ("stuck")
+      #    pygame.event.pump()
+      #    if button1 == 0:
+      #       l = Lcd()
+      #       l.init_serial_port()
+      #       l.clear_screen()
+      #       l.print_string('Press button 1.')
+      #       l.close()
+      #       button1 = 1
+      while ready==0:
          pygame.event.pump()
-         if button1 == 0:
-            l = Lcd()
-            l.init_serial_port()
-            l.clear_screen()
-            l.print_string('Press button 1.')
-            l.close()
-            button1 = 1
+         button2 = pygame.joystick.Joystick(0).get_button(2)
+         button3 = pygame.joystick.Joystick(0).get_button(3)
+         if button2==1 and button3==1:
+            ready = 1
+            for i in range(3):
+               arduino_val.data = 1
+               self.arduino_cmd_pub.publish(arduino_val)
+               sleep(.2)
+               arduino_val.data = 0
+               self.arduino_cmd_pub.publish(arduino_val)
+               sleep(.2)
+            sleep(2)
 
    def record_bag(self):
       #l = Lcd()
@@ -109,9 +125,6 @@ class JoystickNode:
       #l.close()
       proc1 = subprocess.Popen('cd /mnt/temp;rosnode kill /my_bag_recorder', shell=True)
 
-   def toggle_led(self):
-      proc = subprocess.Popen('rosservice call /zed_node/toggle_led', shell=True)
-
    def run(self):
       old_linear = 0
       old_angular = 0
@@ -122,11 +135,9 @@ class JoystickNode:
       robot_stop = 0
       autonomous = 0
       autonomous_led_state = 0
-      button9 = 0
       button1_hold = 0
       button2_hold = 0
       button4_hold = 0
-      current_recording = 0
 
       # Prints the joystick's name
       JoyName = pygame.joystick.Joystick(0).get_name()
@@ -144,6 +155,8 @@ class JoystickNode:
       arduino_val = Int16()
 
       #do not print SDL messages
+      sys.stdout = open(os.devnull, "w")
+      sys.stderr = open(os.devnull, "w")
       # sys.stdout = os.devnull
       # sys.stderr = os.devnull
 
@@ -160,14 +173,26 @@ class JoystickNode:
             #hold down
             button1_hold += 1
             if button1_hold == 25: #button1 held for 3 seconds
-               print "Button1 hold"
-               l = Lcd()
-               l.init_serial_port()
-               l.clear_screen()
-               l.print_string('Exiting...')
-               l.close()
-               command = 'kill -INT `cat /mnt/temp/r.pid`'
-               os.system(command)
+               #ending program and all nodes
+               print ("Button1 hold")
+               # l = Lcd()
+               # l.init_serial_port()
+               # l.clear_screen()
+               # l.print_string('Exiting...')
+               # l.close()
+               # command = 'kill -INT `cat /tmp/ramdisk/r.pid`'
+               # os.system(command)
+
+               #blink LED 3 times
+               for i in range(3):
+                  arduino_val.data = 1
+                  self.arduino_cmd_pub.publish(arduino_val)
+                  sleep(.2)
+                  arduino_val.data = 0
+                  self.arduino_cmd_pub.publish(arduino_val)
+                  sleep(.2)
+               sleep(1)
+               sys.exit()
          elif start == 1 and button1 == 0:
             start = 0
             button1_hold = 0
@@ -182,8 +207,6 @@ class JoystickNode:
 
             vel_msg.linear.x = -.5 * axis1
             vel_msg.angular.z = -1.3 * axis0
-            # vel_msg.linear.x = .5*old_linear + .5* -.3 * axis1
-            # vel_msg.angular.z = .5*old_angular + .5* -0.7 * axis0
             old_linear = vel_msg.linear.x
             old_angular = vel_msg.angular.z
 
@@ -201,11 +224,12 @@ class JoystickNode:
                   rospy.loginfo('Starting recording')
 
                   #turn on the LED send a command to the Arduino
-                  arduino_val.data = 256
+                  arduino_val.data = 1 #turn on blue LED
+                  self.arduino_cmd_pub.publish(arduino_val)
                   self.arduino_cmd_pub.publish(arduino_val)
 
                   topics = rospy.get_published_topics()
-                  print topics
+                  print (topics)
                   planning_mode = 0
                   for x in topics:
                      if "passthrough" in x[0]:
@@ -226,7 +250,8 @@ class JoystickNode:
                   self.stop_record_bag()
 
                   #turn off the LED send a command to the Arduino
-                  arduino_val.data = 0
+                  arduino_val.data = 0 #turn off blue LED
+                  self.arduino_cmd_pub.publish(arduino_val)
                   self.arduino_cmd_pub.publish(arduino_val)
          else:
             if button2_hold != 0:
@@ -267,14 +292,6 @@ class JoystickNode:
          else:
             autonomous = 0
             button4_hold = 0
-
-         #check for shutdown button
-         button10 = pygame.joystick.Joystick(0).get_button(9)
-         if button10 == 1:
-            #p = subprocess.Popen("ps", "a | grep \"roslaunch jet\"")
-            #    out = p.communicate()
-            out = "test"
-            print out
 
          r_time.sleep()
 

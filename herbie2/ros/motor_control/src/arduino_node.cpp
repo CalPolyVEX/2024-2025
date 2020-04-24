@@ -44,7 +44,7 @@ class ArduinoNode {
 ArduinoNode::ArduinoNode() : tf_listener_(tf_buffer_) {
   pub_ = nh->advertise<std_msgs::Int32MultiArray>("/encoder_service", 1);
   e_stop_pub = nh->advertise<std_msgs::Empty>("/e_stop", 1);
-  arduino_cmd_sub = nh->subscribe("/arduino_cmd", 1, &ArduinoNode::command_received_callback, this);
+  arduino_cmd_sub = nh->subscribe("/arduino_cmd", 2, &ArduinoNode::command_received_callback, this);
 
   ROS_INFO("Connecting to arduino");
   nh->param<std::string>("dev", dev_name, "/dev/arduino");
@@ -62,6 +62,7 @@ ArduinoNode::ArduinoNode() : tf_listener_(tf_buffer_) {
 }
 
 void ArduinoNode::command_received_callback(const std_msgs::Int16::ConstPtr& m) {
+  //callback for /arduino_cmd
   int temp = m->data;
   q.push(temp);
   q.push(temp);
@@ -118,7 +119,7 @@ void ArduinoNode::test_read() {
     if (q.pop(output_data)) {
       unsigned char send_data[SEND_PACKET_SIZE];
       my_serial->flushOutput();
-      send_data[0] = (output_data >> 8) & 0xFF; 
+      send_data[0] = (output_data >> 8) & 0xFF; //send high byte first
       send_data[1] = output_data & 0xFF; 
       compute_transmit_crc(send_data, SEND_PACKET_SIZE);
       my_serial->write(send_data,SEND_PACKET_SIZE);
@@ -170,21 +171,6 @@ int ArduinoNode::check_receive_crc(unsigned char* data, int len) {
      return 1;
   else
      return 0;
-}
-
-void ArduinoNode::read_status(unsigned short* status) {
-  unsigned char data[8];
-
-  my_serial->flushOutput();
-  my_serial->flushInput();
-
-  data[0] = address;
-  data[1] = 90; //read status
-  my_serial->write(data,2);
-
-  my_serial->read(data,4);
-  *status = data[0] << 8;
-  *status += data[1];
 }
 
 int main(int argc, char** argv) {

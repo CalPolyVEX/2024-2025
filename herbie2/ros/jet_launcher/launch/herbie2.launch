@@ -26,7 +26,8 @@
    <include file="$(find jet_launcher)/launch/basic.launch"/>
 
    <!-- Start the gamepad node-->
-   <include file="$(find jet_launcher)/launch/joystick.launch"/>
+   <!-- <include file="$(find jet_launcher)/launch/joystick.launch"/> -->
+   <node pkg="jet_launcher" type="joystick.py" name="joystick_node" required="true"/>
 
    <!-- Start the Adafruit LCD node-->
    <!-- <include file="$(find jet_launcher)/launch/lcd.launch"/> -->

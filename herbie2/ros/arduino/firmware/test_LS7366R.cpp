@@ -173,10 +173,11 @@ void loop()
 
         if (compute_receive_crc(data_in,RECEIVE_PACKET_SIZE) == 1) {
           //CRC is good
-          if (data_in[0]==1 && data_in[1]==0) {
-            //turn on the led
+          if (data_in[0]==0 && data_in[1]==1) {
+            //turn on the blue led on the encoder shield
             blinkActLed(1);
-          } else {
+          } else if (data_in[0]==0 && data_in[1]==0) {
+            //turn off the blue led on the encoder shield
             blinkActLed(0);
           }
         } else { //bad CRC
