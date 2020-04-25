@@ -31,7 +31,7 @@
       <arg name="rtabmap_args"	          value="$(arg rtabmap_flags)" />  
       <arg name="rgbd_sync"               value="true"/>         <!-- pre-sync rgb_topic, depth_topic, camera_info_topic -->
       <arg name="subscribe_scan"          value="true"/>
-      <arg name="scan_topic"              value="/scan"/>
+      <arg name="scan_topic"              value="/scan_filtered"/>
 
       <arg name="rgb_topic"               value="/$(arg zed_namespace)/zed_node/rgb/image_rect_color" />
       <arg name="depth_topic"             value="/$(arg zed_namespace)/zed_node/depth/depth_registered" />

@@ -9,7 +9,7 @@
 
    <node pkg="tf2_ros" type="static_transform_publisher" name="laser_link_broadcaster" args=".13 0 0.12 0 0 1 0 base_link laser" />
 
-   <node pkg="tf2_ros" type="static_transform_publisher" name="roboclaw_link_broadcaster" args=".13 0 0.12 0 0 1 0 base_link roboclaw_center" />
+   <node pkg="tf2_ros" type="static_transform_publisher" name="roboclaw_link_broadcaster" args=".13 0 0 0 0 1 0 base_link roboclaw_center" />
 
 
    <!-- old -->

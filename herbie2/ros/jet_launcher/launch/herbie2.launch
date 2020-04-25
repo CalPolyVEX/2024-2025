@@ -35,6 +35,7 @@
    <!-- Start the laser scanner node-->
    <group if="$(arg laser)">
       <include file="$(find rplidar_ros)/launch/rplidar_s1.launch"/>
+      <include file="$(find jet_launcher)/launch/herbie2_laser_filter.launch"/>
    </group>
 
    <group if="$(arg mapping)">

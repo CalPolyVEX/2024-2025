@@ -62,6 +62,7 @@ class JoystickNode:
       #       l.close()
       #       button1 = 1
       while ready==0:
+         sleep(.1)
          pygame.event.pump()
          button2 = pygame.joystick.Joystick(0).get_button(2)
          button3 = pygame.joystick.Joystick(0).get_button(3)
@@ -84,7 +85,7 @@ class JoystickNode:
       #l.close()
       rec_topics = "rosbag record /zed2/zed_node/rgb/image_rect_color \
          /zed2/zed_node/depth/depth_registered /zed2/zed_node/rgb/camera_info \
-         /tf /tf_static /ekf_node/odom /roboclaw_twist /cmd_vel /scan \
+         /tf /tf_static /ekf_node/odom /roboclaw_twist /cmd_vel /scan_filtered \
          __name:=my_bag_recorder"
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
 
