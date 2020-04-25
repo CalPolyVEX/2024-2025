@@ -23,12 +23,13 @@
     <param name="Icp/VoxelSize"                 type="string" value="0.05"/>
     <param name="Icp/MaxCorrespondenceDistance" type="string" value="0.1"/>
     <arg name="rt_args"          default="--delete_db_on_start" />
+    <arg name="zed_namespace"    default="zed2" />
 
     <!-- <param name="/use_sim_time"  value="true" /> --> 
 
     <!-- RTAB-map Node-->
     <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
-      <arg name="rtabmap_args"	          value="$(arg rtabmap_flags)" />  
+      <arg name="rtabmap_args"	          value="$(arg rt_args)" />  
       <arg name="rgbd_sync"               value="true"/>         <!-- pre-sync rgb_topic, depth_topic, camera_info_topic -->
       <arg name="subscribe_scan"          value="true"/>
       <arg name="scan_topic"              value="/scan_filtered"/>
@@ -40,6 +41,8 @@
 
       <arg name="frame_id"                value="base_link" /> 
       <arg name="approx_sync"             value="true" />
+      <arg name="approx_rgbd_sync"        value="true" />
+      <arg name="queue_size"              value="17" />
       <arg name="visual_odometry"         value="false" />
       <arg name="compressed"              value="false" />
       <arg name="wait_for_transform"      value=".8" />
