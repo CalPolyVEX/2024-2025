@@ -4,7 +4,7 @@
 #!/bin/bash
 
 #this is the directory where tensorflow was compiled
-tf_dir=/mnt/temp/tensorflow
+tf_dir=/home/jseng/tensorflow
 echo $tf_dir
 
 #copy the tensorflow library

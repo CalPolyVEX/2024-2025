@@ -30,28 +30,28 @@ if sys.argv[1] == "vacuum":
     #remove RGB images from database
     # command += 'cd /home/jseng/.ros; sqlite3 output.db \"UPDATE Data SET image = NULL; \
     #           \" ; sqlite3 output.db \"VACUUM;\" '
-    print command
+    print (command)
     os.system(command)
     sys.exit()
 else:
     if len(sys.argv) > 1:
         #has command line arguments
         l = sys.argv[1:]
-        print l
+        print (l)
         db_files = []
         for i in range(len(l)):
             name = str(i+1) + '.db'
             db_files.append(name)
-        print db_files
+        print (db_files)
 
 s = "\""
 for i in range(len(l)):
    s = s + str(i+1) + '.db;'
 s = s[:-1]
 s = s + '\"'
-print s
+print (s)
 
 command = 'cd /home/jseng/.ros; rtabmap-reprocess ' + s + ' \"output.db\"'
-print command
+print (command)
 
 os.system(command)

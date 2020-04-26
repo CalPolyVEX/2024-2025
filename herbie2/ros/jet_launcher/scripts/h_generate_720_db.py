@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #This script automates running roslaunch and rtabmap to build the
 #database files
@@ -23,30 +23,29 @@ db_files = ['1.db',
 if len(sys.argv) > 1:
     #has command line arguments
     l = sys.argv[1:]
-    print l
+    print (l)
     db_files = []
     for i in range(len(l)):
         name = str(i+1) + '.db'
         db_files.append(name)
-    print db_files
+    print (db_files)
 
-print "test"
 my_env = os.environ.copy()
 my_env["PATH"] = "/opt/ros/melodic/bin:/home/jseng/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
 
 for i in range(len(l)):
    process = subprocess.Popen(["roslaunch", "jet_launcher", "herbie2_zed_rtabmap.launch", "rt_args:=--delete_db_on_start"], env=my_env, close_fds=True)
-   print process
+   print (process)
    time.sleep(15)
-   print process.pid
+   print (process.pid)
    command = 'cd /home/jseng/.ros; rosbag play --clock -d 2 ' + l[i] + ';'
    os.system(command)
-   print command + ',' + db_files[i]
+   print (command + ',' + db_files[i])
    time.sleep(5)
    process.terminate()
    time.sleep(10)
    copy_command = 'cd /home/jseng/.ros; cp rtabmap.db ' + db_files[i]
    os.system(copy_command)
-   print copy_command
+   print (copy_command)
 
    time.sleep(10)

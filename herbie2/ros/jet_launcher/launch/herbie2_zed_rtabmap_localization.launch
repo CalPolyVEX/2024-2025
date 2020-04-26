@@ -12,20 +12,6 @@
     <param name="/rtabmap/rtabmap/Mem/IncrementalMemory" value="false" />
     <param name="/rtabmap/rtabmap/RGBD/CreateOccupancyGrid" value="false" />
 
-    <!-- RTAB-Map's parameters -->
-    <param name="/rtabmap/rtabmap/RGBD/NeighborLinkRefining" type="string" value="true"/>
-    <param name="/rtabmap/rtabmap/RGBD/ProximityBySpace"     type="string" value="true"/>
-    <param name="/rtabmap/rtabmap/RGBD/AngularUpdate"        type="string" value="0.01"/>
-    <param name="/rtabmap/rtabmap/RGBD/LinearUpdate"         type="string" value="0.01"/>
-    <param name="/rtabmap/rtabmap/RGBD/OptimizeFromGraphEnd" type="string" value="false"/>
-    <param name="/rtabmap/rtabmap/Grid/FromDepth"            type="string" value="false"/> <!-- occupancy grid from lidar -->
-    <param name="/rtabmap/rtabmap/Reg/Force3DoF"             type="string" value="true"/>
-    <param name="/rtabmap/rtabmap/Reg/Strategy"              type="string" value="1"/> <!-- 1=ICP -->
-    
-    <!-- ICP parameters -->
-    <param name="Icp/VoxelSize"                 type="string" value="0.05"/>
-    <param name="Icp/MaxCorrespondenceDistance" type="string" value="0.1"/>
-          
     <arg name="rtabmap_flags" default="" />
 
     <arg name="zed_namespace"             default="zed2" />
@@ -33,13 +19,12 @@
     <arg name="sim"                       default="false" />
     <group if="$(arg sim)">
         <param name="/use_sim_time" value="true" />
-        <!-- <include file="$(find image_cnn)/launch/tf_publisher.launch" /> --> 
     </group>
 
     <!-- RTAB-map Node-->
     <include file="$(find rtabmap_ros)/launch/rtabmap.launch">
       <arg name="rtabmap_args"	          value="$(arg rtabmap_flags)" />  
-      <arg name="rgbd_sync"               value="true"/>         <!-- pre-sync rgb_topic, depth_topic, camera_info_topic -->
+      <arg name="rgbd_sync"               value="true"/>
       <arg name="subscribe_scan"          value="true"/>
       <arg name="scan_topic"              value="/scan_filtered"/>
 

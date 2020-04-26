@@ -9,19 +9,6 @@
        <arg name="testing_map" value="$(arg testing_map)" />
     </include>
 
-    <!-- RTAB-Map's parameters -->
-    <param name="/rtabmap/rtabmap/RGBD/NeighborLinkRefining" type="string" value="true"/>
-    <param name="/rtabmap/rtabmap/RGBD/ProximityBySpace"     type="string" value="true"/>
-    <param name="/rtabmap/rtabmap/RGBD/AngularUpdate"        type="string" value="0.01"/>
-    <param name="/rtabmap/rtabmap/RGBD/LinearUpdate"         type="string" value="0.01"/>
-    <param name="/rtabmap/rtabmap/RGBD/OptimizeFromGraphEnd" type="string" value="false"/>
-    <param name="/rtabmap/rtabmap/Grid/FromDepth"            type="string" value="false"/> <!-- occupancy grid from lidar -->
-    <param name="/rtabmap/rtabmap/Reg/Force3DoF"             type="string" value="true"/>
-    <param name="/rtabmap/rtabmap/Reg/Strategy"              type="string" value="1"/> <!-- 1=ICP -->
-    
-    <!-- ICP parameters -->
-    <param name="Icp/VoxelSize"                 type="string" value="0.05"/>
-    <param name="Icp/MaxCorrespondenceDistance" type="string" value="0.1"/>
     <arg name="rt_args"          default="--delete_db_on_start" />
     <arg name="zed_namespace"    default="zed2" />
 
