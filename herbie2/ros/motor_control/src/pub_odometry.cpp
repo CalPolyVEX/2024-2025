@@ -68,9 +68,9 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   nh->param<int>("address1", address, 128);
   nh->param<double>("max_abs_linear_speed1", MAX_ABS_LINEAR_SPEED, 1.0);
   nh->param<double>("max_abs_angular_speed1", MAX_ABS_ANGULAR_SPEED, 2.0);
-  nh->param<double>("ticks_per_meter1", TICKS_PER_METER, 6800);
+  nh->param<double>("ticks_per_meter1", TICKS_PER_METER, 4467);
   //nh->param<double>("base_width1", BASE_WIDTH, 0.371475);
-  nh->param<double>("base_width1", BASE_WIDTH, .346075);
+  nh->param<double>("base_width1", BASE_WIDTH, 0.280988);
   nh->param<double>("acc_lim1", ACC_LIM, 0.1);
 
   nh->setParam("/autonomous_mode", false);

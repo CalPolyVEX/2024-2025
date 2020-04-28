@@ -1,6 +1,6 @@
 #include "encoder_odom.h"
 
-#define MAX_MOTOR_SPEED 14000
+#define MAX_MOTOR_SPEED 17000
 
 using namespace std;
 
