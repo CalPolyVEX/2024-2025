@@ -12,21 +12,18 @@ extern ros::Publisher twist_pub;
 
 void OdometryPublisher::rtabmap_info_callback(const rtabmap_ros::Info::ConstPtr& info) {
   //this function is called when a message is published to /rtabmap/info
-  std_msgs::Empty e;
-  if (info->loopClosureId != 0) {
-    loop_closure = info->loopClosureId;
-    loop_closure_pub.publish(e);
-  }
+  std_msgs::Int32MultiArray a;
 
-  if (info->proximityDetectionId != 0) {
-    proximity = info->proximityDetectionId;
-    loop_closure_pub.publish(e);
-  }
+  a.data.clear();
+
+  a.data.push_back(info->loopClosureId);
+  a.data.push_back(info->proximityDetectionId);
 
   if (rtabmap_started == 0) {
     rtabmap_started = 1;
-    loop_closure_pub.publish(e);
   }
+
+  loop_closure_pub.publish(a);
 }
 
 void OdometryPublisher::publish_odometry_message(double vx, double vth) {

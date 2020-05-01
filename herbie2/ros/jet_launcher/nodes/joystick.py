@@ -61,6 +61,12 @@ class JoystickNode:
       #       l.print_string('Press button 1.')
       #       l.close()
       #       button1 = 1
+      l = Lcd()
+      if l.init_serial_port() == True:
+         l.clear_screen()
+         l.print_string('Ready to start.')
+         l.close()
+
       while ready==0:
          sleep(.1)
          pygame.event.pump()
@@ -77,12 +83,18 @@ class JoystickNode:
                sleep(.2)
             sleep(2)
 
+      l = Lcd()
+      if l.init_serial_port() == True:
+         l.clear_screen()
+         l.close()
+
    def record_bag(self):
-      #l = Lcd()
-      #l.init_serial_port()
-      #l.clear_screen()
-      #l.print_string('Recording...')
-      #l.close()
+      l = Lcd()
+      if l.init_serial_port() == True:
+         l.clear_screen()
+         l.print_string('Recording...')
+         l.close()
+
       rec_topics = "rosbag record /zed2/zed_node/rgb/image_rect_color \
          /zed2/zed_node/depth/depth_registered /zed2/zed_node/rgb/camera_info \
          /tf /tf_static /ekf_node/odom /roboclaw_twist /cmd_vel /scan_filtered \
@@ -91,10 +103,11 @@ class JoystickNode:
 
    def record_bag_debugging(self):
       l = Lcd()
-      l.init_serial_port()
-      l.clear_screen()
-      l.print_string('Recording...')
-      l.close()
+      if l.init_serial_port() == True:
+         l.clear_screen()
+         l.print_string('Recording...')
+         l.close()
+
       rec_topics = "rosbag record \
          /zed/data_throttled_image /zed/data_throttled_camera_info /laser_scan_filtered \
          /tf /tf_static /ekf_node/odom /obstacles_cloud \
@@ -106,10 +119,11 @@ class JoystickNode:
 
    def record_bag_debugging_cnn(self):
       l = Lcd()
-      l.init_serial_port()
-      l.clear_screen()
-      l.print_string('Recording...')
-      l.close()
+      if l.init_serial_port() == True:
+         l.clear_screen()
+         l.print_string('Recording...')
+         l.close()
+
       rec_topics = "rosbag record /image_converter/output_video /planner/move_base/status \
          /zed/data_throttled_image /zed/data_throttled_camera_info /laser_scan_filtered \
          /tf /tf_static /ekf_node/odom \
@@ -119,11 +133,11 @@ class JoystickNode:
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
 
    def stop_record_bag(self):
-      #l = Lcd()
-      #l.init_serial_port()
-      #l.clear_screen()
-      #l.print_string('Stop Recording.')
-      #l.close()
+      l = Lcd()
+      if l.init_serial_port() == True:
+         l.clear_screen()
+         l.print_string('Stop Recording.')
+         l.close()
       proc1 = subprocess.Popen('cd /mnt/temp;rosnode kill /my_bag_recorder', shell=True)
 
    def run(self):
@@ -176,6 +190,7 @@ class JoystickNode:
             if button1_hold == 25: #button1 held for 3 seconds
                #ending program and all nodes
                print ("Button1 hold")
+
                # l = Lcd()
                # l.init_serial_port()
                # l.clear_screen()
@@ -183,6 +198,11 @@ class JoystickNode:
                # l.close()
                # command = 'kill -INT `cat /tmp/ramdisk/r.pid`'
                # os.system(command)
+               l = Lcd()
+               if l.init_serial_port() == True:
+                   l.clear_screen()
+                   l.print_string('Exiting...')
+                   l.close()
 
                #blink LED 3 times
                for i in range(3):

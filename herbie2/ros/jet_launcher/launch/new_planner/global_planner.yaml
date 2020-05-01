@@ -6,10 +6,6 @@ GlobalPlanner:
     map_type: costmap
     max_obstacle_height: .6
 
-    # xy_goal_tolerance:  0.1
-    # yaw_goal_tolerance: 0.5
-    # latch_xy_goal_tolerance: true
-
     neutral_cost: 66
     cost_factor: .55
 

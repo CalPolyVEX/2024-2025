@@ -48,7 +48,7 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   twist_pub = nh->advertise<geometry_msgs::TwistWithCovarianceStamped>("/roboclaw_twist", 1);
 
   //publish Odometry messages to this topic
-  loop_closure_pub = nh->advertise<std_msgs::Empty>("/loop_closure", 1);
+  loop_closure_pub = nh->advertise<std_msgs::Int32MultiArray>("/update_loop_closure_lcd", 1);
 
   //listen for Twist messages on /cmd_vel
   sub_cmd_vel = nh->subscribe("/cmd_vel", 1, &OdometryPublisher::cmd_vel_callback, this);

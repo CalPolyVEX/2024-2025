@@ -30,7 +30,7 @@
    <node pkg="jet_launcher" type="joystick.py" name="joystick_node" required="true"/>
 
    <!-- Start the Adafruit LCD node-->
-   <!-- <include file="$(find jet_launcher)/launch/lcd.launch"/> -->
+   <include file="$(find jet_launcher)/launch/lcd.launch"/>
 
    <!-- Start the laser scanner node-->
    <group if="$(arg laser)">
