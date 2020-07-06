@@ -21,9 +21,9 @@
       <arg name="subscribe_scan"          value="true"/>
       <arg name="scan_topic"              value="/scan_filtered"/>
 
-      <arg name="rgb_topic"               value="/$(arg zed_namespace)/zed_node/rgb/image_rect_color" />
-      <arg name="depth_topic"             value="/$(arg zed_namespace)/zed_node/depth/depth_registered" />
-      <arg name="camera_info_topic"       value="/$(arg zed_namespace)/zed_node/rgb/camera_info" />
+      <arg name="rgb_topic"               value="/zed_node/rgb/image_rect_color" />
+      <arg name="depth_topic"             value="/zed_node/depth/depth_registered" />
+      <arg name="camera_info_topic"       value="/zed_node/rgb/camera_info" />
       <arg name="odom_topic"              value="/ekf_node/odom" />
 
       <arg name="frame_id"                value="base_link" /> 

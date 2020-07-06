@@ -56,10 +56,10 @@ class Lcd:
                 self.pd += 1
 
             self.set_cursor_position(1,1)
-            self.print_string("LC: {0:3d} PD: {1:3d}".format(self.lc, self.pd))
+            self.print_string("LC:{0:3d} PD:{1:3d}".format(self.lc, self.pd))
             time.sleep(2)
             self.set_cursor_position(1,1)
-            self.print_string("          ")
+            self.print_string("            ")
 
     def set_cursor_position(self, col, row):
         values = bytearray([254, 0x47, col, row])

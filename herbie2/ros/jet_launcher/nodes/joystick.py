@@ -68,6 +68,7 @@ class JoystickNode:
          l.close()
 
       while ready==0:
+         #wait for buttons 3 and 4 to be pressed simultaneously
          sleep(.1)
          pygame.event.pump()
          button2 = pygame.joystick.Joystick(0).get_button(2)
@@ -75,6 +76,7 @@ class JoystickNode:
          if button2==1 and button3==1:
             ready = 1
             for i in range(3):
+               #blink the blue LED on the encoder shield 3 times
                arduino_val.data = 1
                self.arduino_cmd_pub.publish(arduino_val)
                sleep(.2)
@@ -95,8 +97,8 @@ class JoystickNode:
          l.print_string('Recording...')
          l.close()
 
-      rec_topics = "rosbag record /zed2/zed_node/rgb/image_rect_color \
-         /zed2/zed_node/depth/depth_registered /zed2/zed_node/rgb/camera_info \
+      rec_topics = "rosbag record /zed_node/rgb/image_rect_color \
+         /zed_node/depth/depth_registered /zed_node/rgb/camera_info \
          /tf /tf_static /ekf_node/odom /roboclaw_twist /cmd_vel /scan_filtered \
          __name:=my_bag_recorder"
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
