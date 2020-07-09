@@ -63,6 +63,7 @@ class JoystickNode:
       #       button1 = 1
       l = Lcd()
       if l.init_serial_port() == True:
+         l.backlight_off()
          l.clear_screen()
          l.print_string('Ready to start.')
          l.close()
@@ -83,7 +84,7 @@ class JoystickNode:
                arduino_val.data = 0
                self.arduino_cmd_pub.publish(arduino_val)
                sleep(.2)
-            sleep(2)
+            sleep(.2)
 
       l = Lcd()
       if l.init_serial_port() == True:
@@ -97,10 +98,17 @@ class JoystickNode:
          l.print_string('Recording...')
          l.close()
 
-      rec_topics = "rosbag record /zed_node/rgb/image_rect_color \
+      rec_topics = "rosbag record \
+         /zed_node/rgb/image_rect_color \
          /zed_node/depth/depth_registered /zed_node/rgb/camera_info \
          /tf /tf_static /ekf_node/odom /roboclaw_twist /cmd_vel /scan_filtered \
          __name:=my_bag_recorder"
+      # the following block is for stereo mapping
+      # rec_topics = "rosbag record \
+      #    /zed_node/right/image_rect_color /zed_node/left/image_rect_color \
+      #    /zed_node/right/camera_info /zed_node/left/camera_info \
+      #    /tf /tf_static /ekf_node/odom /roboclaw_twist /cmd_vel /scan_filtered \
+      #    __name:=my_bag_recorder"
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
 
    def record_bag_debugging(self):
@@ -193,13 +201,6 @@ class JoystickNode:
                #ending program and all nodes
                print ("Button1 hold")
 
-               # l = Lcd()
-               # l.init_serial_port()
-               # l.clear_screen()
-               # l.print_string('Exiting...')
-               # l.close()
-               # command = 'kill -INT `cat /tmp/ramdisk/r.pid`'
-               # os.system(command)
                l = Lcd()
                if l.init_serial_port() == True:
                    l.clear_screen()
@@ -228,7 +229,7 @@ class JoystickNode:
             # rospy.logdebug("axis 1: %f", axis1)
             # rospy.logdebug("button 0: %d", pygame.joystick.Joystick(0).get_button(0))
 
-            vel_msg.linear.x = -.5 * axis1
+            vel_msg.linear.x = -.6 * axis1
             vel_msg.angular.z = -1.3 * axis0
             old_linear = vel_msg.linear.x
             old_angular = vel_msg.angular.z

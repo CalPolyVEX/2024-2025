@@ -11,8 +11,8 @@
 
 <param name="/rtabmap/rtabmap/Kp/DetectorStrategy"   value="8"     /> <!-- use GFTT/ORB -->  
 
-<param name="/rtabmap/rtabmap/Kp/DetectorStrategy"   value="10"    /> <!-- use ORB Octree -->  
-<param name="/rtabmap/rtabmap/Vis/FeatureType"       value="10"    /> <!-- use ORB Octree -->  
+<!-- <param name="/rtabmap/rtabmap/Kp/DetectorStrategy"   value="10"    /> <!-1- use ORB Octree -1-> -->  
+<!-- <param name="/rtabmap/rtabmap/Vis/FeatureType"       value="10"    /> <!-1- use ORB Octree -1-> -->  
 
 <group if="$(arg testing_map)">
     <param name="/rtabmap/rtabmap/GFTT/BlockSize"        value="10"     />  
@@ -20,8 +20,8 @@
     <param name="/rtabmap/rtabmap/GFTT/QualityLevel"     value=".0005"  />  
 </group>
 <group unless="$(arg testing_map)">
-    <param name="/rtabmap/rtabmap/GFTT/BlockSize"        value="5"     />  
-    <param name="/rtabmap/rtabmap/GFTT/MinDistance"      value="6"     />  
+    <param name="/rtabmap/rtabmap/GFTT/BlockSize"        value="7"     />  
+    <param name="/rtabmap/rtabmap/GFTT/MinDistance"      value="7"     />  
     <param name="/rtabmap/rtabmap/GFTT/QualityLevel"     value=".0007"  />  
 </group>
 

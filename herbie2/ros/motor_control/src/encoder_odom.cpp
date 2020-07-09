@@ -1,6 +1,6 @@
 #include "encoder_odom.h"
 
-#define MAX_MOTOR_SPEED 17000
+#define MAX_MOTOR_SPEED 28000
 
 using namespace std;
 
@@ -249,7 +249,7 @@ void OdometryPublisher::run_pid() {
 }
 
 void OdometryPublisher::compute_pid(double left_desired, double left_actual, double right_desired, double right_actual) {
-  double kp = 3.7;
+  double kp = 4.8;
   double ki = .5;
   double kd = 0.30;
   int i;

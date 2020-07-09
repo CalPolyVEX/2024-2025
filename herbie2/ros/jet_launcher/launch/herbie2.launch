@@ -58,8 +58,8 @@
    </group>
 
    <group if="$(arg planning)">
-      <include file="$(find camera_reader)/launch/camera_reader.launch"/> --> 
-      <include file="$(find image_cnn)/launch/image_cnn.launch"/> --> 
+      <!-- <include file="$(find camera_reader)/launch/camera_reader.launch"/> -1-> --> 
+      <!-- <include file="$(find image_cnn)/launch/image_cnn.launch"/> -1-> --> 
 
       <include file="$(find jet_launcher)/launch/new_planner/planner.launch"/> 
       <include file="$(find jet_launcher)/launch/robot_localization.launch"/>

@@ -444,7 +444,7 @@ void Navigation::check_distance_thread() {
     /* nh->getParam("/planner/move_base/TrajectoryPlannerROS/sim_time", s_time); */
     /* ROS_INFO("sim_time: %f", s_time); */
     /* ROS_INFO("distance from goal: %f", get_distance_from_goal()); */
-    boost::this_thread::sleep_for(boost::chrono::milliseconds(5000));
+    boost::this_thread::sleep_for(boost::chrono::milliseconds(3000));
   }
 }
 

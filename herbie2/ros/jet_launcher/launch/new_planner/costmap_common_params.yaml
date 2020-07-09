@@ -1,13 +1,13 @@
 latch_xy_goal_tolerance: true
-obstacle_range: 3.0
-raytrace_range: 4.0
+obstacle_range: 5.0
+raytrace_range: 6.0
 footprint: [[ 0.19,  0.19], [-0.19,  0.19], [-0.19, -0.19], [ 0.19, -0.19]]
 footprint_padding: 0.10
 transform_tolerance: 1
 
 obstacle_layer:
-    enabled: false
-    origin_z: 0.4
+    enabled: true
+    origin_z: 0.3048
     #origin_z: 0.2 #for CNN
     z_resolution: .1
     z_voxels: 1
@@ -24,8 +24,8 @@ obstacle_layer:
         marking: true 
         clearing: true
         inf_is_valid: true
-        min_obstacle_height: .4
-        max_obstacle_height: .45
+        min_obstacle_height: .30
+        max_obstacle_height: .31
         
 inflation_layer:
     enabled:              true
