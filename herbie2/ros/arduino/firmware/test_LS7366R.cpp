@@ -6,11 +6,14 @@
 #define LEFT_ENCODER_INPUT 4
 #define RIGHT_ENCODER_INPUT 6
 #define SEND_PACKET_SIZE 13 //13 = 1 header byte (0xff) + 4-byte left + 4-byte right + 2 extra bytes + 2-byte CRC 
-#define RECEIVE_PACKET_SIZE 4 //4 = 2 bytes of data + 2 byte CRC
+#define RECEIVE_PACKET_SIZE 6 //6 = 4 bytes of data + 2 byte CRC
 
 //JS
 long int encoder_values[2] = {0,0};
-unsigned char data_in[4];
+unsigned char data_in[RECEIVE_PACKET_SIZE];
+unsigned char servo_position[2];
+unsigned char active_servo = 0;
+uint16_t new_position;
 
 //function prototypes
 void blinkActLed(uint8_t state);
@@ -30,6 +33,34 @@ unsigned char readSingleByte(unsigned char op_code);
 
 //Global Variables
 uint8_t DFlagCh;
+
+//servo interrupt handler
+ISR(TIMER1_COMPA_vect) {
+  if (active_servo == 0) {
+    new_position = servo_position[0] * 16;
+    OCR1A += (1000 + new_position);
+    //set servo0 pin high
+    PORTC |= (1 << 2);
+    active_servo++;
+  } else if (active_servo == 1) {
+    OCR1A += (9000 - new_position); //5ms - on time
+    //set servo0 pin low
+    PORTC &= ~(1 << 2);
+    active_servo++;
+  } else if (active_servo == 2) {
+    new_position = servo_position[1] * 16;
+    OCR1A += (1000 + new_position);
+    //set servo1 pin high
+    active_servo++;
+  } else if (active_servo == 3) {
+    OCR1A += (9000 - new_position); //5ms - on_time
+    //set servo1 pin low
+    active_servo++;
+  } else {
+    OCR1A += 20000; //remaining 10ms
+    active_servo = 0;
+  }
+}
 
 //*************************************************
 //*****************************************************
@@ -61,6 +92,10 @@ void setup()
     pinMode(A0, INPUT_PULLUP);
     pinMode(A1, INPUT_PULLUP);
 
+    //set servo pins to be outputs
+    DDRC |= (1 << 2); //pin A2
+    DDRC |= (1 << 3); //pin A3
+
     //initialize the register in all of the 6 chips
     Init_LS7366Rs();
 
@@ -70,6 +105,14 @@ void setup()
 
     Serial.begin(115200);
     //end JS
+
+    //start timer 1
+    servo_position[0] = 127;
+    servo_position[1] = 127;
+    OCR1A = 10;
+    TIMSK1 |= (1 << OCIE1A); //enable output compare int. enable 1A
+    TCCR1B |= (1 << CS11); //divide by 8 prescalar
+    sei();
 } //end func
 
 int compute_receive_crc(uint8_t* data, uint8_t len) {
@@ -169,7 +212,7 @@ void loop()
 
       //check incoming serial buffer
       if (Serial.available() >= RECEIVE_PACKET_SIZE) {
-        Serial.readBytes((char*)data_in,4); 
+        Serial.readBytes((char*)data_in,RECEIVE_PACKET_SIZE); 
 
         if (compute_receive_crc(data_in,RECEIVE_PACKET_SIZE) == 1) {
           //CRC is good

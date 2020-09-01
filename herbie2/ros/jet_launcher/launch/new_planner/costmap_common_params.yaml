@@ -1,8 +1,8 @@
 latch_xy_goal_tolerance: true
 obstacle_range: 5.0
 raytrace_range: 6.0
-footprint: [[ 0.19,  0.19], [-0.19,  0.19], [-0.19, -0.19], [ 0.19, -0.19]]
-footprint_padding: 0.10
+footprint: [[ 0.19,  0.18], [-0.20,  0.18], [-0.20, -0.18], [ 0.19, -0.18]]
+footprint_padding: 0.05
 transform_tolerance: 1
 
 obstacle_layer:
@@ -30,12 +30,12 @@ obstacle_layer:
 inflation_layer:
     enabled:              true
     cost_scaling_factor:  3.8  # exponential rate at which the obstacle cost drops off (default: 10)
-    inflation_radius:     1.0  # max. distance from an obstacle at which costs are incurred for planning paths.
+    inflation_radius:     0.6  # max. distance from an obstacle at which costs are incurred for planning paths.
 
 local_inflation_layer:
     enabled:              true
-    cost_scaling_factor:  4.0  # exponential rate at which the obstacle cost drops off (default: 10)
-    inflation_radius:     0.8  # max. distance from an obstacle at which costs are incurred for planning paths.
+    cost_scaling_factor:  9.0  # exponential rate at which the obstacle cost drops off (default: 10)
+    inflation_radius:     0.6  # max. distance from an obstacle at which costs are incurred for planning paths.
 
 static_layer:
     map_topic: /map

@@ -13,7 +13,7 @@
 #include <rtabmap_ros/Info.h>
 
 #define RECEIVE_PACKET_SIZE 13
-#define SEND_PACKET_SIZE 4
+#define SEND_PACKET_SIZE 6
 
 using namespace std;
 
@@ -119,8 +119,11 @@ void ArduinoNode::test_read() {
     if (q.pop(output_data)) {
       unsigned char send_data[SEND_PACKET_SIZE];
       my_serial->flushOutput();
+      //a packet sent to the Arduino is SEND_PACKET_SIZE-2 bytes of data and 2 CRC bytes
       send_data[0] = (output_data >> 8) & 0xFF; //send high byte first
       send_data[1] = output_data & 0xFF; 
+      send_data[2] = 0;
+      send_data[3] = 0;
       compute_transmit_crc(send_data, SEND_PACKET_SIZE);
       my_serial->write(send_data,SEND_PACKET_SIZE);
     }

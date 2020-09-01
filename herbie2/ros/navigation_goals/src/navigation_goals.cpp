@@ -82,11 +82,14 @@ Navigation::Navigation() {
   //subscribe to the planner velocity messages
   sub_planner_cmd = nh->subscribe("/planner/cmd_vel", 1, &Navigation::planner_cmd_vel_callback, this);
 
-  goals[0].x = .5;       //x of id#1 (Seng office)
-  goals[0].y = 0;        //y of id#1
+  goals[0].x = 0;       //x of id#1 (Seng office)
+  goals[0].y = 0.5;        //y of id#1
 
   goals[1].x = 14.4542;  //x of id#65 (men's bathroom)
   goals[1].y = 6.03422;  //y of id#65
+
+  goals[1].x = 0;   //testing x
+  goals[1].y = 1.5; //testing y
 
   goals[2].x = 15.2227;  //x of id#369 (women's bathroom)
   goals[2].y = -11.9279; //y of id#369
@@ -330,7 +333,14 @@ Navigation::Navigation() {
   routes[8].heading[8] = 180;
   routes[8].length = 9;
 
-  current_route = 5;  //old building 14
+  //house testing route
+  routes[9].waypoints[0] = 0; //office
+  routes[9].heading[0] = 0;
+  routes[9].waypoints[1] = 1; //Kurfess
+  routes[9].heading[1] = 0;
+  routes[9].length = 2;
+
+  current_route = 9;  //house testing
   //current_route = 7; //Dexter lawn
   //current_route = 8;  //new building 14
 }
