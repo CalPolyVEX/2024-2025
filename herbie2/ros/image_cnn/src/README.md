@@ -5,7 +5,7 @@ Steps to compile tensorflow for use with ROS:
    * env EXTRA_BAZEL_ARGS="--host_javabase=@local_jdk//:jdk" bash ./compile.sh
  * compile libnccl
    * git clone https://github.com/NVIDIA/nccl.git
-   * git checkout v2.7.8-1
+   * git checkout v2.6.4
    * make
    * make install
  * git clone https://github.com/tensorflow/tensorflow.git
