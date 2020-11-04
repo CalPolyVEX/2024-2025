@@ -41,9 +41,9 @@ git clone https://github.com/ros-perception/vision_opencv.git
 #git checkout 8e01b44c5c1c0003dc91273076f8ca7feb9a8025
 
 git clone https://github.com/ros-drivers/video_stream_opencv.git
-#git clone https://github.com/IntelRealSense/realsense-ros.git
 git clone https://github.com/introlab/rtabmap_ros.git
 git clone https://github.com/ros-drivers/libuvc_ros.git
+git clone https://github.com/Slamtec/rplidar_ros.git
 
 #install dependencies
 sudo apt install python-pygame gfortran libogg-dev libtheora-dev
@@ -53,7 +53,7 @@ sudo apt install ros-melodic-roslint ros-melodic-image-transport ros-melodic-dia
 sudo apt install python-pip ros-melodic-pcl-conversions ros-melodic-pcl-ros ros-melodic-dynamic-robot-state-publisher ros-melodic-robot-localization
 sudo apt install python3-pip ros-melodic-move-base-msgs ros-melodic-costmap-2d ros-melodic-octomap-msgs ros-melodic-find-object-2d ros-melodic-camera-info-manager
 sudo apt install ros-melodic-rviz ros-melodic-serial libuvc-dev ros-melodic-rqt-common-plugins
-sudo apt install ros-melodic-compressed-image-transport ros-melodic-move-base
+sudo apt install ros-melodic-move-base
 
 #install Tensorflow for python3 (Jetpack 4.2)
 #pip3 install --extra-index-url https://developer.download.nvidia.com/compute/redist/jp/v42 tensorflow-gpu==1.13.1+nv19.4 --user
@@ -82,7 +82,6 @@ then
 
    #disable graphical boot
    systemctl set-default multi-user.target
-
 
    #disable services
    systemctl disable ModemManager.service
