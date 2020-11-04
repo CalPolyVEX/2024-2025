@@ -3,6 +3,11 @@ Steps to compile tensorflow for use with ROS:
    https://github.com/bazelbuild/bazel/releases/download/0.15.0/bazel-0.15.0-dist.zip
    * sudo apt-get install build-essential openjdk-8-jdk python zip unzip
    * env EXTRA_BAZEL_ARGS="--host_javabase=@local_jdk//:jdk" bash ./compile.sh
+ * compile libnccl
+   * git clone https://github.com/NVIDIA/nccl.git
+   * git checkout v2.6.4
+   * make
+   * make install
  * git clone https://github.com/tensorflow/tensorflow.git
  * cd tensorflow
  * git checkout v1.12.0
