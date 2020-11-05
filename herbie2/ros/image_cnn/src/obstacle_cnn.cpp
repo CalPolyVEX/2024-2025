@@ -62,7 +62,7 @@ class ObstacleDetection {
     /* imgTensorFlat = (test_v.data())->second.flat<float>().data(); */
     unsigned char* p1;
 
-    int test = 1;
+    int test = 0;
     if (test == 1) {
       //resize image to IMG_HEIGHT x IMG_WIDTH
       cv::resize(cv_ptr->image, new_image, cv::Size(IMG_WIDTH,IMG_HEIGHT), CV_INTER_LINEAR);
@@ -267,9 +267,8 @@ class ObstacleDetection {
       //float_t *p1 = input_tensor->flat<float_t>().data(); 
 
       image_transport::TransportHints hints("compressed");
-      //image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &ImageConverter::run_network, this);
       image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &ObstacleDetection::run_network, this, hints);
-      /* image_sub_ = it_.subscribe("/zed/data_throttled_image", 1, &ImageConverter::run_network, this); */
+      /* image_sub_ = it_.subscribe("/zed_node/rgb/image_rect_color", 1, &ObstacleDetection::run_network, this); */
       image_pub_ = it_.advertise("/image_converter/output_video", 1);
       point_pub = nh_.advertise<sensor_msgs::PointCloud2>("/test_point_cloud", 1);
     }
