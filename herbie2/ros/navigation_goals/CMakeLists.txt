@@ -8,7 +8,13 @@ find_package(catkin REQUIRED COMPONENTS
   move_base_msgs
   actionlib
   tf2_ros
+  std_msgs
+  geometry_msgs
+  tf2_sensor_msgs
+  message_generation
 )
+
+find_package(Boost REQUIRED COMPONENTS system thread chrono)
 
 roslint_cpp()
 
@@ -17,7 +23,7 @@ roslint_cpp()
 # )
 
 catkin_package(
-  CATKIN_DEPENDS roscpp tf2_ros move_base_msgs actionlib 
+  CATKIN_DEPENDS roscpp tf2_ros move_base_msgs actionlib geometry_msgs std_msgs tf2_sensor_msgs message_generation
 )
 
 include_directories(

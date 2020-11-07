@@ -45,7 +45,7 @@ class Navigation {
   MoveBaseClient* ac;
   int cur_goal_in_route = 0; //the current goal index in the route
   int current_route;
-  int current_goal_index;
+  int current_goal_index = 0;
   int start_route = 0;
   boost::thread *workerThread;
   boost::thread *check_thread;
@@ -71,17 +71,6 @@ class Navigation {
 
 /* Navigation::Navigation() : tfListener(tfBuffer) { */
 Navigation::Navigation() {
-  /* planner_cmd_vel_mutex.unlock(); */
-  workerThread = new boost::thread(boost::bind(&Navigation::route_thread, this));
-  check_thread = new boost::thread(boost::bind(&Navigation::check_distance_thread, this));
-  check_movement_ptr = new boost::thread(boost::bind(&Navigation::check_movement_thread, this));
-
-  //the /autonomous topic send a message if a goal is requested
-  goal_sub = nh->subscribe("/autonomous",1,&Navigation::send_goal_callback,this); 
-
-  //subscribe to the planner velocity messages
-  sub_planner_cmd = nh->subscribe("/planner/cmd_vel", 1, &Navigation::planner_cmd_vel_callback, this);
-
   goals[0].x = 0;       //x of id#1 (Seng office)
   goals[0].y = 0.5;        //y of id#1
 
@@ -343,6 +332,17 @@ Navigation::Navigation() {
   current_route = 9;  //house testing
   //current_route = 7; //Dexter lawn
   //current_route = 8;  //new building 14
+
+  /* planner_cmd_vel_mutex.unlock(); */
+  workerThread = new boost::thread(boost::bind(&Navigation::route_thread, this));
+  check_thread = new boost::thread(boost::bind(&Navigation::check_distance_thread, this));
+  check_movement_ptr = new boost::thread(boost::bind(&Navigation::check_movement_thread, this));
+
+  //the /autonomous topic send a message if a goal is requested
+  goal_sub = nh->subscribe("/autonomous",1,&Navigation::send_goal_callback,this); 
+
+  //subscribe to the planner velocity messages
+  sub_planner_cmd = nh->subscribe("/planner/cmd_vel", 1, &Navigation::planner_cmd_vel_callback, this);
 }
 
 void Navigation::route_thread() {
@@ -587,9 +587,9 @@ double Navigation::get_distance_from_goal() {
   double x_dest = goals[current_goal_index].x;
   double y_dest = goals[current_goal_index].y;
 
-  /* ROS_INFO("xdisp: %f xdest: %f y_disp: %f y_dest: %f", x_disp, x_dest, y_disp, y_dest); */
   double dist = pow((pow(x_dest - x_disp, 2) + pow(y_dest - y_disp, 2)), .5);
   return dist;
+   //return 3;
 }
 
 void Navigation::send_goal_callback(const std_msgs::Int8::ConstPtr& mesg) {
