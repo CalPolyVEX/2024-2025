@@ -1,8 +1,9 @@
 #!/bin/bash
 
 OPENCV=4.4.0
+INSTALL_PREFIX=/home/jseng
 
-cd /mnt/temp/test_opencv
+cd $INSTALL_PREFIX/test_opencv
 wget -O opencv.zip https://github.com/opencv/opencv/archive/$OPENCV.zip
 wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/$OPENCV.zip
 unzip opencv.zip
@@ -19,7 +20,7 @@ cmake -D WITH_CUDA=ON -D CUDA_ARCH_BIN="7.2" -D CUDA_ARCH_PTX="" \
         -D ENABLE_NEON=ON -D WITH_LIBV4L=ON -D CMAKE_BUILD_TYPE=RELEASE \
         -D CMAKE_INSTALL_PREFIX=/usr/local -D INSTALL_PYTHON_EXAMPLES=ON -D INSTALL_C_EXAMPLES=OFF \
         -D OPENCV_ENABLE_NONFREE=ON \
-        -D OPENCV_EXTRA_MODULES_PATH=/mnt/temp/test_opencv/opencv_contrib/modules \
+        -D OPENCV_EXTRA_MODULES_PATH=$INSTALL_PREFIX/test_opencv/opencv_contrib/modules \
         -D PYTHON2_EXECUTABLE=/usr/bin/python -D PYTHON3_EXECUTABLE=/usr/bin/python3 \
         -D BUILD_EXAMPLES=OFF ..
 
