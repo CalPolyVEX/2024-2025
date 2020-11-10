@@ -254,7 +254,7 @@ class ObstacleDetection {
     *y_object = ans.at<double>(1,0);
   }
 
-  ObstacleDetection() : it_(nh_) {
+  ObstacleDetection(int zed) : it_(nh_) {
     if (1==1) {
       new_image = Mat(IMG_HEIGHT, IMG_WIDTH, CV_32FC(3));
 
@@ -267,8 +267,10 @@ class ObstacleDetection {
       //float_t *p1 = input_tensor->flat<float_t>().data(); 
 
       image_transport::TransportHints hints("compressed");
-      image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &ObstacleDetection::run_network, this, hints);
-      /* image_sub_ = it_.subscribe("/zed_node/rgb/image_rect_color", 1, &ObstacleDetection::run_network, this); */
+      if (zed == 0)
+         image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &ObstacleDetection::run_network, this, hints);
+      else
+         image_sub_ = it_.subscribe("/zed_node/rgb/image_rect_color", 1, &ObstacleDetection::run_network, this);
       image_pub_ = it_.advertise("/image_converter/output_video", 1);
       point_pub = nh_.advertise<sensor_msgs::PointCloud2>("/test_point_cloud", 1);
     }
@@ -320,8 +322,15 @@ class ObstacleDetection {
 };
 
 int main(int argc, char** argv) {
+  int zed = 0;
   ros::init(argc, argv, "image_cnn");
-  ObstacleDetection obstacle_detect;
+
+  if (argc == 2) //if there is command line argument, then use the zed topic
+    zed = 1;
+  else 
+    zed = 0;
+
+  ObstacleDetection obstacle_detect(zed);
   obstacle_detect.init_tensorflow();
   ros::spin();
 }
