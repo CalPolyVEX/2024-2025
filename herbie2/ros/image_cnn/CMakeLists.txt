@@ -107,8 +107,8 @@ set (TENSORFLOW_BUILD TRUE) #if building the nodes that use tensorflow
 
 if (TENSORFLOW_BUILD)
     catkin_package(
-    INCLUDE_DIRS /mnt/temp/test_tensorflow/tensorflow/bazel-bin
-    INCLUDE_DIRS /mnt/temp/test_tensorflow/tensorflow
+    INCLUDE_DIRS /mnt/temp/tensorflow/bazel-bin
+    INCLUDE_DIRS /mnt/temp/tensorflow
     CATKIN_DEPENDS roscpp rospy std_msgs message_runtime image_transport cv_bridge tf2_ros laser_geometry
     #  DEPENDS system_lib
     )
@@ -126,8 +126,8 @@ if (TENSORFLOW_BUILD)
    ## Specify additional locations of header files
    ## Your package locations should be listed before other locations
    include_directories(
-      /mnt/temp/test_tensorflow/tensorflow/bazel-bin
-      /mnt/temp/test_tensorflow/tensorflow
+      /mnt/temp/tensorflow/bazel-bin
+      /mnt/temp/tensorflow
       ./include
       ${catkin_INCLUDE_DIRS} 
       ${PCL_INCLUDE_DIRS} 
