@@ -8,7 +8,7 @@
 from __future__ import print_function
 
 import roslib
-roslib.load_manifest('image_test')
+roslib.load_manifest('image_cnn')
 import sys
 import rospy
 import cv2
@@ -25,7 +25,7 @@ class image_converter:
       self.image_pub = rospy.Publisher("/see3cam_cu20/test_image_topic_2",Image,queue_size=1)
 
       self.bridge = CvBridge()
-      self.image_sub = rospy.Subscriber("/see3cam_cu20/raw",Image,self.callback)
+      self.image_sub = rospy.Subscriber("/zed_node/rgb/image_rect_color",Image,self.callback)
       self.last_time = time.time()
 
    def callback(self,data):
@@ -37,7 +37,7 @@ class image_converter:
       #save the file
       now = time.time()
       print(now)
-      if (now - self.last_time) > 1.0:
+      if (now - self.last_time) > 5.0:
          milliseconds = '%03d' % int((now - int(now)) * 1000)
          #timestamp = time.strftime('%H-%M-%S-%m-%d-%Y-', now) + milliseconds
          filename = str(datetime.datetime.now().replace(microsecond=0).isoformat())+'.jpg'
