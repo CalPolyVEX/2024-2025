@@ -4,10 +4,27 @@
 #
 #Run this file on a x86 Ubuntu host, then copy over the kernel and necessary modules
 #
+
+
 ##########################################################################
 #1.  Download the GCC toolchain 
 export BUILD_PREFIX=/home/jseng/test_build
 export TOOLCHAIN_PREFIX=gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu
+
+#check command line arguments
+if [ $# != 2 ]; then #not enough arguments
+   echo "Usage:  compile_kernel_setup build /path/to/public_sources"
+   exit
+elif [ $1 != "build" ]; then
+   echo "Error"
+   exit
+fi
+
+if [ ! -f "$2" ]; then #check if public_sources exists
+   echo "$2 does not exist."
+   exit
+fi
+
 mkdir -p $BUILD_PREFIX
 cd $BUILD_PREFIX
 wget http://releases.linaro.org/components/toolchain/binaries/7.3-2018.05/aarch64-linux-gnu/$TOOLCHAIN_PREFIX.tar.xz
@@ -21,10 +38,16 @@ export LOCALVERSION=-tegra
 echo $CROSS_COMPILE
 
 #######################################################################
-#2.  Download and extract the Linux4Tegra sources
-#comment out the next 'exit' command once that has been completed
-#wget https://developer.nvidia.com/embedded/L4T/r32_Release_v4.4/r32_Release_v4.4-GMC3/Sources/T186/public_sources.tbz2
-#exit
+#2.  Download and extract the Linux4Tegra sources (L4T Sources)
+#example: https://developer.nvidia.com/embedded/L4T/r32_Release_v4.4/r32_Release_v4.4-GMC3/Sources/T186/public_sources.tbz2
+
+cp $2 $BUILD_PREFIX
+cd $BUILD_PREFIX
+SOURCES_BZIP2=`echo "$2" | sed 's/.*\///'`;  #remove leading path from bzip2 filename
+bunzip2 $SOURCES_BZIP2
+TAR_SOURCES=`echo "$2" | sed 's/.*\///' | sed 's/.tbz2/.tar/g'`; #change extension to .tar
+echo $TAR_SOURCES
+tar -xf $TAR_SOURCES
 
 ####################################################################
 #3. Extract the kernel source
