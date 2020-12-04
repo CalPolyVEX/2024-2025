@@ -3,6 +3,7 @@ import pygame
 from time import sleep
 import rospy, sys, os
 from geometry_msgs.msg import Twist
+from geometry_msgs.msg import PoseWithCovarianceStamped
 from std_msgs.msg import Empty
 from std_msgs.msg import Int8
 from std_msgs.msg import Int16
@@ -43,6 +44,7 @@ class JoystickNode:
       self.autonomous_pub = rospy.Publisher('/autonomous', Int8, queue_size=1)
       self.autonomous_led_pub = rospy.Publisher('/read_encoder_cmd', Int8, queue_size=1)
       self.arduino_cmd_pub = rospy.Publisher('/arduino_cmd', Int16, queue_size=1)
+      self.initial_pose_pub = rospy.Publisher('/rtabmap/initialpose', PoseWithCovarianceStamped, queue_size=1)
 
       rospy.sleep(1)
 
@@ -316,6 +318,22 @@ class JoystickNode:
          else:
             autonomous = 0
             button4_hold = 0
+
+         #hold button 6 to reset initial pose
+         button6 = pygame.joystick.Joystick(0).get_button(5)
+         if button6 == 1:
+            print "--test--"
+
+            button6_hold += 1
+
+            #start recording if button2 held down
+            if button6_hold == 20:
+                init = PoseWithCovarianceStamped()
+                self.initial_pose_pub.publish(init)
+                print "------test---------"
+                button6_hold = 0
+         else:
+            button6_hold = 0
 
          r_time.sleep()
 
