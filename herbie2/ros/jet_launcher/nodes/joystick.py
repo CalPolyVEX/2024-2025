@@ -165,6 +165,7 @@ class JoystickNode:
       button1_hold = 0
       button2_hold = 0
       button4_hold = 0
+      servo_toggle = 0
 
       # Prints the joystick's name
       JoyName = pygame.joystick.Joystick(0).get_name()
@@ -326,14 +327,35 @@ class JoystickNode:
 
             button6_hold += 1
 
-            #start recording if button2 held down
+            #if button 6 is held down, send an initial pose to rtabmap
             if button6_hold == 20:
                 init = PoseWithCovarianceStamped()
                 self.initial_pose_pub.publish(init)
-                print "------test---------"
+                print "------sending initial pose---------"
                 button6_hold = 0
          else:
             button6_hold = 0
+
+         #press button 8 to toggle servo position
+         button8 = pygame.joystick.Joystick(0).get_button(7)
+         if button8 == 1:
+            print "--change servo position--"
+
+            button8_hold += 1
+
+            if button8_hold == 5:
+                if servo_toggle == 0:
+                    arduino_val.data = (0x1 << 8) | (0) #set servo0 to 0 degrees
+                    self.arduino_cmd_pub.publish(arduino_val)
+                    servo_toggle = 1
+                else:
+                    arduino_val.data = (0x1 << 8) | (180) #set servo0 to 180 degrees
+                    self.arduino_cmd_pub.publish(arduino_val)
+                    servo_toggle = 0
+
+                button8_hold = 0
+         else:
+            button8_hold = 0
 
          r_time.sleep()
 
