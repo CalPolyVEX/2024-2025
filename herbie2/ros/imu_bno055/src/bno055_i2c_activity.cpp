@@ -160,57 +160,58 @@ bool BNO055I2CActivity::spinOnce() {
         return false;
     }
 
-    sensor_msgs::Imu msg_raw;
-    msg_raw.header.stamp = time;
-    msg_raw.header.frame_id = param_frame_id;
-    msg_raw.header.seq = seq;
-    msg_raw.linear_acceleration.x = (double)record.raw_linear_acceleration_x / 100.0;
-    msg_raw.linear_acceleration.y = (double)record.raw_linear_acceleration_y / 100.0;
-    msg_raw.linear_acceleration.z = (double)record.raw_linear_acceleration_z / 100.0;
-    msg_raw.angular_velocity.x = (double)record.raw_angular_velocity_x / 900.0;
-    msg_raw.angular_velocity.y = (double)record.raw_angular_velocity_y / 900.0;
-    msg_raw.angular_velocity.z = (double)record.raw_angular_velocity_z / 900.0;
+    /* sensor_msgs::Imu msg_raw; */
+    /* msg_raw.header.stamp = time; */
+    /* msg_raw.header.frame_id = param_frame_id; */
+    /* msg_raw.header.seq = seq; */
+    /* msg_raw.linear_acceleration.x = (double)record.raw_linear_acceleration_x / 100.0; */
+    /* msg_raw.linear_acceleration.y = (double)record.raw_linear_acceleration_y / 100.0; */
+    /* msg_raw.linear_acceleration.z = (double)record.raw_linear_acceleration_z / 100.0; */
+    /* msg_raw.angular_velocity.x = (double)record.raw_angular_velocity_x / 900.0; */
+    /* msg_raw.angular_velocity.y = (double)record.raw_angular_velocity_y / 900.0; */
+    /* msg_raw.angular_velocity.z = (double)record.raw_angular_velocity_z / 900.0; */
 
-    sensor_msgs::MagneticField msg_mag;
-    msg_mag.header.stamp = time;
-    msg_mag.header.frame_id = param_frame_id;
-    msg_mag.header.seq = seq;
-    msg_mag.magnetic_field.x = (double)record.raw_magnetic_field_x / 16.0;
-    msg_mag.magnetic_field.y = (double)record.raw_magnetic_field_y / 16.0;
-    msg_mag.magnetic_field.z = (double)record.raw_magnetic_field_z / 16.0;
+    /* sensor_msgs::MagneticField msg_mag; */
+    /* msg_mag.header.stamp = time; */
+    /* msg_mag.header.frame_id = param_frame_id; */
+    /* msg_mag.header.seq = seq; */
+    /* msg_mag.magnetic_field.x = (double)record.raw_magnetic_field_x / 16.0; */
+    /* msg_mag.magnetic_field.y = (double)record.raw_magnetic_field_y / 16.0; */
+    /* msg_mag.magnetic_field.z = (double)record.raw_magnetic_field_z / 16.0; */
 
     //create Imu message
-    sensor_msgs::Imu msg_data;
-    msg_data.header.stamp = time;
-    msg_data.header.frame_id = param_frame_id;
-    msg_data.header.seq = seq;
+    /* sensor_msgs::Imu msg_data; */
+    /* msg_data.header.stamp = time; */
+    /* msg_data.header.frame_id = param_frame_id; */
+    /* msg_data.header.seq = seq; */
 
-    double fused_orientation_norm = std::pow(
-      std::pow(record.fused_orientation_w, 2) +
-      std::pow(record.fused_orientation_x, 2) +
-      std::pow(record.fused_orientation_y, 2) +
-      std::pow(record.fused_orientation_z, 2), 0.5);
+    /* double fused_orientation_norm = std::pow( */
+    /*   std::pow(record.fused_orientation_w, 2) + */
+    /*   std::pow(record.fused_orientation_x, 2) + */
+    /*   std::pow(record.fused_orientation_y, 2) + */
+    /*   std::pow(record.fused_orientation_z, 2), 0.5); */
 
-    msg_data.orientation.w = (double)record.fused_orientation_w / fused_orientation_norm;
-    msg_data.orientation.x = (double)record.fused_orientation_x / fused_orientation_norm;
-    msg_data.orientation.y = (double)record.fused_orientation_y / fused_orientation_norm;
-    msg_data.orientation.z = (double)record.fused_orientation_z / fused_orientation_norm;
-    msg_data.linear_acceleration.x = (double)record.fused_linear_acceleration_x / 100.0;
-    msg_data.linear_acceleration.y = (double)record.fused_linear_acceleration_y / 100.0;
-    msg_data.linear_acceleration.z = (double)record.fused_linear_acceleration_z / 100.0;
-    msg_data.angular_velocity.x = (double)record.raw_angular_velocity_x / 900.0;
-    msg_data.angular_velocity.y = (double)record.raw_angular_velocity_y / 900.0;
-    msg_data.angular_velocity.z = (double)record.raw_angular_velocity_z / 900.0;
+    /* msg_data.orientation.w = (double)record.fused_orientation_w / fused_orientation_norm; */
+    /* msg_data.orientation.x = (double)record.fused_orientation_x / fused_orientation_norm; */
+    /* msg_data.orientation.y = (double)record.fused_orientation_y / fused_orientation_norm; */
+    /* msg_data.orientation.z = (double)record.fused_orientation_z / fused_orientation_norm; */
+    /* msg_data.linear_acceleration.x = (double)record.fused_linear_acceleration_x / 100.0; */
+    /* msg_data.linear_acceleration.y = (double)record.fused_linear_acceleration_y / 100.0; */
+    /* msg_data.linear_acceleration.z = (double)record.fused_linear_acceleration_z / 100.0; */
+    /* msg_data.angular_velocity.x = (double)record.raw_angular_velocity_x / 900.0; */
+    /* msg_data.angular_velocity.y = (double)record.raw_angular_velocity_y / 900.0; */
+    /* msg_data.angular_velocity.z = (double)record.raw_angular_velocity_z / 900.0; */
+
     //JS
-    msg_data.orientation_covariance[0] = .0001;
-    msg_data.orientation_covariance[4] = .0001;
-    msg_data.orientation_covariance[8] = .0001;
-    msg_data.angular_velocity_covariance[0] = .01;
-    msg_data.angular_velocity_covariance[4] = .01;
-    msg_data.angular_velocity_covariance[8] = .001;
-    msg_data.linear_acceleration_covariance[0] = .01;
-    msg_data.linear_acceleration_covariance[4] = .01;
-    msg_data.linear_acceleration_covariance[8] = .01;
+    /* msg_data.orientation_covariance[0] = .0001; */
+    /* msg_data.orientation_covariance[4] = .0001; */
+    /* msg_data.orientation_covariance[8] = .0001; */
+    /* msg_data.angular_velocity_covariance[0] = .01; */
+    /* msg_data.angular_velocity_covariance[4] = .01; */
+    /* msg_data.angular_velocity_covariance[8] = .001; */
+    /* msg_data.linear_acceleration_covariance[0] = .01; */
+    /* msg_data.linear_acceleration_covariance[4] = .01; */
+    /* msg_data.linear_acceleration_covariance[8] = .01; */
 
     ////////////////////////////////////////////////////////////////////////
     //create Pose message
@@ -230,22 +231,10 @@ bool BNO055I2CActivity::spinOnce() {
             record.fused_orientation_w);
     //quat.normalize();
 
-    /* msg_pose.pose.pose.orientation.w = (double)record.fused_orientation_w ; */
-    /* msg_pose.pose.pose.orientation.x = (double)record.fused_orientation_x ; */
-    /* msg_pose.pose.pose.orientation.y = (double)record.fused_orientation_y ; */
-    /* msg_pose.pose.pose.orientation.z = (double)record.fused_orientation_z ; */
-
     msg_pose.pose.pose.orientation.w = (double)quat.w();
     msg_pose.pose.pose.orientation.x = (double)quat.x();
     msg_pose.pose.pose.orientation.y = (double)quat.y();
     msg_pose.pose.pose.orientation.z = (double)quat.z();
-
-    //rotate pose to correct orientation
-    //tf2::Quaternion new_quat;
-    //new_quat.setRPY(0,0,1);
-    //double roll, pitch, yaw;
-    //tf2::Matrix3x3(quat).getRPY(roll,pitch,yaw);
-    //ROS_INFO("yaw: %f", yaw);
 
     int i;
     for (i=0;i<36;i++) {
@@ -259,27 +248,29 @@ bool BNO055I2CActivity::spinOnce() {
     msg_pose.pose.covariance[35] = (double).001;
     //end JS
 
-    sensor_msgs::Temperature msg_temp;
-    msg_temp.header.stamp = time;
-    msg_temp.header.frame_id = param_frame_id;
-    msg_temp.header.seq = seq;
-    msg_temp.temperature = (double)record.temperature;
-
     pub_pose.publish(msg_pose);
-    pub_data.publish(msg_data);
-    pub_raw.publish(msg_raw);
-    pub_mag.publish(msg_mag);
-    pub_temp.publish(msg_temp);
 
-    if(seq % 50 == 0) {
-        current_status.values[DIAG_CALIB_STAT].value = std::to_string(record.calibration_status);
-        current_status.values[DIAG_SELFTEST_RESULT].value = std::to_string(record.self_test_result);
-        current_status.values[DIAG_INTR_STAT].value = std::to_string(record.interrupt_status);
-        current_status.values[DIAG_SYS_CLK_STAT].value = std::to_string(record.system_clock_status);
-        current_status.values[DIAG_SYS_STAT].value = std::to_string(record.system_status);
-        current_status.values[DIAG_SYS_ERR].value = std::to_string(record.system_error_code);
-        pub_status.publish(current_status);
-    }
+    //only publish the pose message
+    /* sensor_msgs::Temperature msg_temp; */
+    /* msg_temp.header.stamp = time; */
+    /* msg_temp.header.frame_id = param_frame_id; */
+    /* msg_temp.header.seq = seq; */
+    /* msg_temp.temperature = (double)record.temperature; */
+
+    /* pub_data.publish(msg_data); */
+    /* pub_raw.publish(msg_raw); */
+    /* pub_mag.publish(msg_mag); */
+    /* pub_temp.publish(msg_temp); */
+
+    /* if(seq % 50 == 0) { */
+    /*     current_status.values[DIAG_CALIB_STAT].value = std::to_string(record.calibration_status); */
+    /*     current_status.values[DIAG_SELFTEST_RESULT].value = std::to_string(record.self_test_result); */
+    /*     current_status.values[DIAG_INTR_STAT].value = std::to_string(record.interrupt_status); */
+    /*     current_status.values[DIAG_SYS_CLK_STAT].value = std::to_string(record.system_clock_status); */
+    /*     current_status.values[DIAG_SYS_STAT].value = std::to_string(record.system_status); */
+    /*     current_status.values[DIAG_SYS_ERR].value = std::to_string(record.system_error_code); */
+    /*     pub_status.publish(current_status); */
+    /* } */
 
     return true;    
 }

@@ -108,7 +108,7 @@ void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
   signed short dl = duty_cyclel;
   signed short dr = duty_cycler;
   unsigned char data[8];
-  unsigned int crc = 0;
+  unsigned short crc = 0;
 
   my_serial->flushOutput();
   my_serial->flushInput();
@@ -124,15 +124,8 @@ void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
 
   //Calculates CRC16 of nBytes of data in byte array message
   for (int byte = 0; byte < 6; byte++) {        
-    crc = crc ^ ((unsigned int)data[byte] << 8);        
-    for (unsigned char bit = 0; bit < 8; bit++) {            
-      if (crc & 0x8000) {                
-        crc = (crc << 1) ^ 0x1021;            
-      } else {                
-        crc = crc << 1;   
-      } 
-    } 
-  } 
+     crc = (crc << 8) ^ crctable[((crc >> 8) ^ data[byte])];
+  }
 
   data[6] = (crc >> 8) & 0xFF; //send the high byte of the crc
   data[7] = crc & 0xFF; //send the low byte of the crc
