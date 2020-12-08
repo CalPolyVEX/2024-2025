@@ -1,0 +1,72 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L Mechanical:MountingHole H1
+U 1 1 5FD13F94
+P 700 800
+F 0 "H1" H 800 846 50  0000 L CNN
+F 1 "MountingHole" H 800 755 50  0000 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_ISO7380" H 700 800 50  0001 C CNN
+F 3 "~" H 700 800 50  0001 C CNN
+	1    700  800 
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H2
+U 1 1 5FD15B6C
+P 700 1000
+F 0 "H2" H 800 1046 50  0000 L CNN
+F 1 "MountingHole" H 800 955 50  0000 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_ISO7380" H 700 1000 50  0001 C CNN
+F 3 "~" H 700 1000 50  0001 C CNN
+	1    700  1000
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H3
+U 1 1 5FD15F32
+P 700 1200
+F 0 "H3" H 800 1246 50  0000 L CNN
+F 1 "MountingHole" H 800 1155 50  0000 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_ISO7380" H 700 1200 50  0001 C CNN
+F 3 "~" H 700 1200 50  0001 C CNN
+	1    700  1200
+	1    0    0    -1  
+$EndComp
+$Comp
+L Mechanical:MountingHole H4
+U 1 1 5FD16272
+P 700 1400
+F 0 "H4" H 800 1446 50  0000 L CNN
+F 1 "MountingHole" H 800 1355 50  0000 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_ISO7380" H 700 1400 50  0001 C CNN
+F 3 "~" H 700 1400 50  0001 C CNN
+	1    700  1400
+	1    0    0    -1  
+$EndComp
+$Comp
+L Sparkfun_boards:ARDUINO_UNO_R3_SHIELD_ICSP-NO_LABELS B1
+U 1 1 5FCFE8CF
+P 3900 4200
+F 0 "B1" H 3900 5660 45  0000 C CNN
+F 1 "ARDUINO_UNO_R3_SHIELD_ICSP-NO_LABELS" H 3900 5576 45  0000 C CNN
+F 2 "Sparkfun_boards:UNO_R3_SHIELD_ICSP_NOLABELS" H 3900 5600 20  0001 C CNN
+F 3 "" H 3900 4200 50  0001 C CNN
+F 4 "XXX-00000" H 3900 5481 60  0000 C CNN "Field4"
+	1    3900 4200
+	1    0    0    -1  
+$EndComp
+$EndSCHEMATC
