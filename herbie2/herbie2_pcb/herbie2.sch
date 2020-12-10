@@ -70,96 +70,11 @@ F 4 "XXX-00000" H 6850 4331 60  0000 C CNN "Field4"
 	1    0    0    -1  
 $EndComp
 $Comp
-L dk_PMIC-OR-Controllers-Ideal-Diodes:LTC4412ES6_TRMPBF Q1
-U 1 1 5FCFE60E
-P 2400 1650
-F 0 "Q1" H 2844 1303 60  0000 L CNN
-F 1 "LTC4412ES6_TRMPBF" H 2844 1197 60  0000 L CNN
-F 2 "digikey-footprints:SOT-23-6" H 2600 1850 60  0001 L CNN
-F 3 "http://www.linear.com/docs/1527" H 2600 1950 60  0001 L CNN
-F 4 "LTC4412ES6#TRMPBFCT-ND" H 2600 2050 60  0001 L CNN "Digi-Key_PN"
-F 5 "LTC4412ES6#TRMPBF" H 2600 2150 60  0001 L CNN "MPN"
-F 6 "Integrated Circuits (ICs)" H 2600 2250 60  0001 L CNN "Category"
-F 7 "PMIC - OR Controllers, Ideal Diodes" H 2600 2350 60  0001 L CNN "Family"
-F 8 "http://www.linear.com/docs/1527" H 2600 2450 60  0001 L CNN "DK_Datasheet_Link"
-F 9 "/product-detail/en/linear-technology-analog-devices/LTC4412ES6-TRMPBF/LTC4412ES6-TRMPBFCT-ND/890097" H 2600 2550 60  0001 L CNN "DK_Detail_Page"
-F 10 "IC OR CTRLR SRC SELECT TSOT23-6" H 2600 2650 60  0001 L CNN "Description"
-F 11 "Linear Technology/Analog Devices" H 2600 2750 60  0001 L CNN "Manufacturer"
-F 12 "Active" H 2600 2850 60  0001 L CNN "Status"
-	1    2400 1650
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:R R1
-U 1 1 5FD08DD3
-P 1100 1900
-F 0 "R1" H 1170 1946 50  0000 L CNN
-F 1 "470K" H 1170 1855 50  0000 L CNN
-F 2 "Resistor_SMD:R_1206_3216Metric" V 1030 1900 50  0001 C CNN
-F 3 "~" H 1100 1900 50  0001 C CNN
-	1    1100 1900
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	2800 1950 2800 1600
-Wire Wire Line
-	2800 1600 1100 1600
-Wire Wire Line
-	1100 1600 1100 1750
-$Comp
-L power:GND #PWR0101
-U 1 1 5FD1108B
-P 2500 2550
-F 0 "#PWR0101" H 2500 2300 50  0001 C CNN
-F 1 "GND" H 2505 2377 50  0000 C CNN
-F 2 "" H 2500 2550 50  0001 C CNN
-F 3 "" H 2500 2550 50  0001 C CNN
-	1    2500 2550
-	1    0    0    -1  
-$EndComp
-$Comp
-L dk_PMIC-OR-Controllers-Ideal-Diodes:LTC4412ES6_TRMPBF Q2
-U 1 1 5FD126F8
-P 1500 2300
-F 0 "Q2" H 1944 1953 60  0000 L CNN
-F 1 "LTC4412ES6_TRMPBF" H 1944 1847 60  0000 L CNN
-F 2 "digikey-footprints:SOT-23-6" H 1700 2500 60  0001 L CNN
-F 3 "http://www.linear.com/docs/1527" H 1700 2600 60  0001 L CNN
-F 4 "LTC4412ES6#TRMPBFCT-ND" H 1700 2700 60  0001 L CNN "Digi-Key_PN"
-F 5 "LTC4412ES6#TRMPBF" H 1700 2800 60  0001 L CNN "MPN"
-F 6 "Integrated Circuits (ICs)" H 1700 2900 60  0001 L CNN "Category"
-F 7 "PMIC - OR Controllers, Ideal Diodes" H 1700 3000 60  0001 L CNN "Family"
-F 8 "http://www.linear.com/docs/1527" H 1700 3100 60  0001 L CNN "DK_Datasheet_Link"
-F 9 "/product-detail/en/linear-technology-analog-devices/LTC4412ES6-TRMPBF/LTC4412ES6-TRMPBFCT-ND/890097" H 1700 3200 60  0001 L CNN "DK_Detail_Page"
-F 10 "IC OR CTRLR SRC SELECT TSOT23-6" H 1700 3300 60  0001 L CNN "Description"
-F 11 "Linear Technology/Analog Devices" H 1700 3400 60  0001 L CNN "Manufacturer"
-F 12 "Active" H 1700 3500 60  0001 L CNN "Status"
-	1    1500 2300
-	1    0    0    -1  
-$EndComp
-$Comp
-L Device:R R2
-U 1 1 5FD1360C
-P 850 2600
-F 0 "R2" H 920 2646 50  0000 L CNN
-F 1 "470K" H 920 2555 50  0000 L CNN
-F 2 "Resistor_SMD:R_1206_3216Metric" V 780 2600 50  0001 C CNN
-F 3 "~" H 850 2600 50  0001 C CNN
-	1    850  2600
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	1900 2600 1900 2250
-Wire Wire Line
-	1900 2250 850  2250
-Wire Wire Line
-	850  2250 850  2450
-$Comp
 L Connector:Screw_Terminal_01x04 J1
 U 1 1 5FD1499A
 P 1000 3200
 F 0 "J1" H 1080 3192 50  0000 L CNN
-F 1 "Screw_Terminal_01x04" H 1080 3101 50  0000 L CNN
+F 1 "GND" H 1080 3101 50  0000 L CNN
 F 2 "TerminalBlock:TerminalBlock_bornier-4_P5.08mm" H 1000 3200 50  0001 C CNN
 F 3 "~" H 1000 3200 50  0001 C CNN
 	1    1000 3200
@@ -170,7 +85,7 @@ L Connector:Screw_Terminal_01x04 J2
 U 1 1 5FD16B10
 P 1000 3650
 F 0 "J2" H 1080 3642 50  0000 L CNN
-F 1 "Screw_Terminal_01x04" H 1080 3551 50  0000 L CNN
+F 1 "5V" H 1080 3551 50  0000 L CNN
 F 2 "TerminalBlock:TerminalBlock_bornier-4_P5.08mm" H 1000 3650 50  0001 C CNN
 F 3 "~" H 1000 3650 50  0001 C CNN
 	1    1000 3650
@@ -188,23 +103,8 @@ F 4 "CONN-13729" H 1058 5081 60  0000 C CNN "Field4"
 	1    1100 4650
 	1    0    0    -1  
 $EndComp
-Text GLabel 1500 4650 2    50   Input ~ 0
+Text GLabel 1350 4650 2    50   Input ~ 0
 GND
-Text GLabel 2400 2450 0    50   Input ~ 0
-GND
-Wire Wire Line
-	2500 2350 2500 2450
-Connection ~ 2500 2450
-Wire Wire Line
-	2500 2450 2500 2550
-Wire Wire Line
-	2400 2450 2500 2450
-Text GLabel 1550 3050 0    50   Input ~ 0
-GND
-Wire Wire Line
-	1600 3000 1600 3050
-Wire Wire Line
-	1600 3050 1550 3050
 $Comp
 L Connector:Conn_01x03_Male J4
 U 1 1 5FD26BD4
@@ -311,12 +211,8 @@ F 4 "CONN-13729" H 1058 5831 60  0000 C CNN "Field4"
 	1    1100 5400
 	1    0    0    -1  
 $EndComp
-Text GLabel 1350 5400 2    50   Input ~ 0
+Text GLabel 1300 5400 2    50   Input ~ 0
 GND
-Wire Wire Line
-	1200 5400 1350 5400
-Wire Wire Line
-	1500 4650 1200 4650
 $Comp
 L Device:LED D1
 U 1 1 5FD49452
@@ -416,12 +312,12 @@ Wire Wire Line
 $Comp
 L Device:Fuse F1
 U 1 1 5FD09C9A
-P 2450 5100
-F 0 "F1" H 2510 5146 50  0000 L CNN
-F 1 "Fuse" H 2510 5055 50  0000 L CNN
-F 2 "Fuse:Fuseholder_Blade_Mini_Keystone_3568" V 2380 5100 50  0001 C CNN
-F 3 "~" H 2450 5100 50  0001 C CNN
-	1    2450 5100
+P 700 1900
+F 0 "F1" H 760 1946 50  0000 L CNN
+F 1 "Fuse" H 760 1855 50  0000 L CNN
+F 2 "Fuse:Fuseholder_Blade_Mini_Keystone_3568" V 630 1900 50  0001 C CNN
+F 3 "~" H 700 1900 50  0001 C CNN
+	1    700  1900
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -436,10 +332,8 @@ F 4 "CONN-13729" H 1058 6581 60  0000 C CNN "Field4"
 	1    1100 6150
 	1    0    0    -1  
 $EndComp
-Text GLabel 1350 6150 2    50   Input ~ 0
+Text GLabel 1300 6150 2    50   Input ~ 0
 GND
-Wire Wire Line
-	1200 6150 1350 6150
 $Comp
 L SparkFun-Displays:LCD-16X2SILK LCD1
 U 1 1 5FD2536C
@@ -461,17 +355,6 @@ F 1 "74164" H 8850 1625 50  0000 C CNN
 F 2 "Package_SO:TSSOP-14_4.4x5mm_P0.65mm" H 8850 1150 50  0001 C CNN
 F 3 "" H 8850 1150 50  0001 C CNN
 	1    8850 1150
-	1    0    0    -1  
-$EndComp
-$Comp
-L 74xx_IEEE:74164 U1
-U 1 1 5FD18905
-P 9200 4550
-F 0 "U1" H 9200 5116 50  0000 C CNN
-F 1 "74164" H 9200 5025 50  0000 C CNN
-F 2 "Package_SO:TSSOP-14_4.4x5mm_P0.65mm" H 9200 4550 50  0001 C CNN
-F 3 "" H 9200 4550 50  0001 C CNN
-	1    9200 4550
 	1    0    0    -1  
 $EndComp
 Text GLabel 9500 1200 2    50   Input ~ 0
@@ -518,107 +401,58 @@ Text GLabel 10050 1850 0    50   Input ~ 0
 GND
 Wire Wire Line
 	10050 1850 10150 1850
-Text GLabel 9400 3950 1    50   Input ~ 0
+Text GLabel 9150 5500 0    50   Input ~ 0
 GND
 Wire Wire Line
-	9400 3950 9400 4050
-Wire Wire Line
-	9400 4050 9200 4050
-Wire Wire Line
-	9200 4050 9200 4200
-Text GLabel 6050 2950 0    50   Input ~ 0
-5V
-Wire Wire Line
-	6050 2950 6350 2950
-Text GLabel 6050 3650 0    50   Input ~ 0
-5V
-Wire Wire Line
-	6050 3650 6350 3650
-Text GLabel 6050 4150 0    50   Input ~ 0
-GND
-Text GLabel 6050 3450 0    50   Input ~ 0
-GND
-Text GLabel 6050 3350 0    50   Input ~ 0
-GND
-Text GLabel 6050 3250 0    50   Input ~ 0
-GND
-Wire Wire Line
-	6050 3250 6350 3250
-Wire Wire Line
-	6050 3350 6350 3350
-Wire Wire Line
-	6050 3450 6350 3450
-Wire Wire Line
-	6050 4150 6350 4150
+	9150 5500 9250 5500
 Text GLabel 8100 1250 0    50   Input ~ 0
 DATA_LCD
 Wire Wire Line
 	8100 1250 8200 1250
 Wire Wire Line
 	8200 1150 8200 1250
-Text GLabel 9550 3900 1    50   Input ~ 0
-5V
-Wire Wire Line
-	9550 3900 9550 4100
-Wire Wire Line
-	9550 4100 9400 4100
+Text GLabel 9450 4100 2    50   Input ~ 0
+3.3V
 Wire Wire Line
 	9400 4100 9400 4200
 Wire Wire Line
-	9750 4600 9950 4600
+	9650 4400 9950 4400
 Wire Wire Line
-	9950 4600 9950 4300
+	9950 4400 9950 4300
 Wire Wire Line
 	9950 4300 10300 4300
 Wire Wire Line
-	9750 4750 10050 4750
+	9650 4500 10050 4500
 Wire Wire Line
-	10050 4750 10050 4600
+	10050 4500 10050 4600
 Wire Wire Line
 	10050 4600 10300 4600
 Wire Wire Line
-	9750 4850 10050 4850
+	9650 4600 9950 4600
 Wire Wire Line
-	10050 4850 10050 4900
+	9950 4600 9950 4900
 Wire Wire Line
-	10050 4900 10300 4900
+	9950 4900 10300 4900
 Wire Wire Line
-	9750 4950 10000 4950
+	9900 4700 9900 5200
 Wire Wire Line
-	10000 4950 10000 5200
-Wire Wire Line
-	10000 5200 10300 5200
-Text GLabel 8400 4650 0    50   Input ~ 0
+	9900 5200 10300 5200
+Text GLabel 8750 4400 0    50   Input ~ 0
 DATA_SERVO
-Text GLabel 8400 4400 0    50   Input ~ 0
+Text GLabel 8750 4600 0    50   Input ~ 0
 CLK_SERVO
-Wire Wire Line
-	8650 4400 8400 4400
-Wire Wire Line
-	8400 4650 8500 4650
-Wire Wire Line
-	8650 4550 8500 4550
-Wire Wire Line
-	8500 4550 8500 4650
-Connection ~ 8500 4650
-Wire Wire Line
-	8500 4650 8650 4650
-Text GLabel 7650 3250 2    50   Input ~ 0
+Text GLabel 7550 3050 2    50   Input ~ 0
 CLK_SERVO
-Text GLabel 7650 3350 2    50   Input ~ 0
+Text GLabel 7550 3150 2    50   Input ~ 0
 DATA_SERVO
+Text GLabel 7550 3250 2    50   Input ~ 0
+ENC1_SS
+Text GLabel 7550 3350 2    50   Input ~ 0
+ENC2_SS
 Wire Wire Line
-	7350 3250 7650 3250
+	7550 3250 7350 3250
 Wire Wire Line
-	7350 3350 7650 3350
-Text GLabel 7650 3050 2    50   Input ~ 0
-ENC1_CS
-Text GLabel 7650 3150 2    50   Input ~ 0
-ENC2_CS
-Wire Wire Line
-	7650 3050 7350 3050
-Wire Wire Line
-	7650 3150 7350 3150
+	7550 3350 7350 3350
 Text GLabel 10050 2250 0    50   Input ~ 0
 GND
 Wire Wire Line
@@ -640,37 +474,10 @@ Text GLabel 8100 1000 0    50   Input ~ 0
 CLK_LCD
 Wire Wire Line
 	8100 1000 8300 1000
-Text GLabel 7700 2550 2    50   Input ~ 0
+Text GLabel 7550 2250 2    50   Input ~ 0
 CLK_LCD
-Text GLabel 7700 2650 2    50   Input ~ 0
+Text GLabel 7550 2350 2    50   Input ~ 0
 DATA_LCD
-Wire Wire Line
-	7350 2550 7700 2550
-Wire Wire Line
-	7350 2650 7700 2650
-Text GLabel 6050 3750 0    50   Input ~ 0
-ENC_MISO
-Text GLabel 6050 3850 0    50   Input ~ 0
-ENC_MOSI
-Text GLabel 6050 3950 0    50   Input ~ 0
-ENC_SCK
-Wire Wire Line
-	6050 3750 6350 3750
-Wire Wire Line
-	6050 3850 6350 3850
-Wire Wire Line
-	6050 3950 6350 3950
-$Comp
-L 74xx:74HC595 U3
-U 1 1 5FE11987
-P 6700 5450
-F 0 "U3" H 6700 6231 50  0000 C CNN
-F 1 "74HC595" H 6700 6140 50  0000 C CNN
-F 2 "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm" H 6700 5450 50  0001 C CNN
-F 3 "http://www.ti.com/lit/ds/symlink/sn74hc595.pdf" H 6700 5450 50  0001 C CNN
-	1    6700 5450
-	1    0    0    -1  
-$EndComp
 Text GLabel 8250 5450 2    50   Input ~ 0
 GND
 Wire Wire Line
@@ -711,4 +518,592 @@ Wire Wire Line
 	7200 5350 7200 6100
 Wire Wire Line
 	7200 6100 7300 6100
+$Comp
+L js:LS7366R U4
+U 1 1 5FD20328
+P 4100 5650
+F 0 "U4" H 4075 5775 50  0000 C CNN
+F 1 "LS7366R" H 4075 5684 50  0000 C CNN
+F 2 "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm" H 4100 5650 50  0001 C CNN
+F 3 "" H 4100 5650 50  0001 C CNN
+	1    4100 5650
+	1    0    0    -1  
+$EndComp
+$Comp
+L js:LS7366R U5
+U 1 1 5FD218E0
+P 4050 6650
+F 0 "U5" H 4025 6775 50  0000 C CNN
+F 1 "LS7366R" H 4025 6684 50  0000 C CNN
+F 2 "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm" H 4050 6650 50  0001 C CNN
+F 3 "" H 4050 6650 50  0001 C CNN
+	1    4050 6650
+	1    0    0    -1  
+$EndComp
+Text GLabel 3600 5950 0    50   Input ~ 0
+GND
+Text GLabel 3550 6950 0    50   Input ~ 0
+GND
+Wire Wire Line
+	3600 5950 3750 5950
+Wire Wire Line
+	3550 6950 3700 6950
+Text GLabel 4600 5750 2    50   Input ~ 0
+3.3V
+Text GLabel 4550 6750 2    50   Input ~ 0
+3.3V
+Wire Wire Line
+	4400 5750 4600 5750
+Wire Wire Line
+	4350 6750 4550 6750
+$Comp
+L SparkFun-Connectors:CONN_04JST-PTH J10
+U 1 1 5FD7F7CC
+P 5500 6600
+F 0 "J10" H 5458 7210 45  0000 C CNN
+F 1 "CONN_04JST-PTH" H 5458 7126 45  0000 C CNN
+F 2 "Connectors:JST-4-PTH" H 5500 7100 20  0001 C CNN
+F 3 "" H 5500 6600 50  0001 C CNN
+F 4 "WIRE-13531" H 5458 7031 60  0000 C CNN "Field4"
+	1    5500 6600
+	-1   0    0    1   
+$EndComp
+$Comp
+L SparkFun-Connectors:CONN_04JST-PTH J11
+U 1 1 5FD8034B
+P 5500 5850
+F 0 "J11" H 5458 6460 45  0000 C CNN
+F 1 "CONN_04JST-PTH" H 5458 6376 45  0000 C CNN
+F 2 "Connectors:JST-4-PTH" H 5500 6350 20  0001 C CNN
+F 3 "" H 5500 5850 50  0001 C CNN
+F 4 "WIRE-13531" H 5458 6281 60  0000 C CNN "Field4"
+	1    5500 5850
+	-1   0    0    1   
+$EndComp
+Text GLabel 5250 5850 0    50   Input ~ 0
+GND
+Text GLabel 5250 6600 0    50   Input ~ 0
+GND
+Wire Wire Line
+	5250 5850 5400 5850
+Wire Wire Line
+	5250 6600 5400 6600
+Text GLabel 5250 5950 0    50   Input ~ 0
+3.3V
+Text GLabel 5250 6700 0    50   Input ~ 0
+3.3V
+Wire Wire Line
+	5250 6700 5400 6700
+Wire Wire Line
+	5250 5950 5400 5950
+Wire Wire Line
+	4400 5950 4950 5950
+Wire Wire Line
+	4950 5950 4950 6050
+Wire Wire Line
+	4950 6050 5400 6050
+Wire Wire Line
+	5400 6150 4800 6150
+Wire Wire Line
+	4800 6150 4800 6050
+Wire Wire Line
+	4800 6050 4400 6050
+Wire Wire Line
+	4350 6950 4950 6950
+Wire Wire Line
+	4950 6950 4950 6800
+Wire Wire Line
+	4950 6800 5400 6800
+Wire Wire Line
+	5400 6900 5050 6900
+Wire Wire Line
+	5050 6900 5050 7050
+Wire Wire Line
+	5050 7050 4350 7050
+Text GLabel 3600 6050 0    50   Input ~ 0
+ENC1_SS
+Text GLabel 3550 7050 0    50   Input ~ 0
+ENC2_SS
+Wire Wire Line
+	3600 6050 3750 6050
+Wire Wire Line
+	3550 7050 3700 7050
+Text GLabel 3600 6150 0    50   Input ~ 0
+ENC_SCK
+Text GLabel 3550 7150 0    50   Input ~ 0
+ENC_SCK
+Text GLabel 3600 6250 0    50   Input ~ 0
+ENC_MISO
+Text GLabel 3550 7250 0    50   Input ~ 0
+ENC_MISO
+Text GLabel 3600 6350 0    50   Input ~ 0
+ENC_MOSI
+Text GLabel 3550 7350 0    50   Input ~ 0
+ENC_MOSI
+Wire Wire Line
+	3600 6350 3750 6350
+Wire Wire Line
+	3600 6250 3750 6250
+Wire Wire Line
+	3600 6150 3750 6150
+Wire Wire Line
+	3550 7150 3700 7150
+Wire Wire Line
+	3550 7250 3700 7250
+Wire Wire Line
+	3550 7350 3700 7350
+Text GLabel 7550 2150 2    50   Input ~ 0
+LCD_E
+Text GLabel 8100 900  0    50   Input ~ 0
+3.3V
+Wire Wire Line
+	8100 900  8300 900 
+Wire Wire Line
+	3300 2800 3300 2900
+Wire Wire Line
+	3700 2950 3700 3100
+Text GLabel 3300 2800 1    50   Input ~ 0
+BATT1
+Wire Wire Line
+	3400 3550 3350 3550
+Wire Wire Line
+	3400 3500 3400 3550
+Text GLabel 3350 3550 0    50   Input ~ 0
+GND
+$Comp
+L Device:R R2
+U 1 1 5FD1360C
+P 3700 2800
+F 0 "R2" H 3770 2846 50  0000 L CNN
+F 1 "470K" H 3770 2755 50  0000 L CNN
+F 2 "Resistor_SMD:R_1206_3216Metric" V 3630 2800 50  0001 C CNN
+F 3 "~" H 3700 2800 50  0001 C CNN
+	1    3700 2800
+	-1   0    0    1   
+$EndComp
+$Comp
+L herbie2-rescue:LTC4412ES6_TRMPBF-dk_PMIC-OR-Controllers-Ideal-Diodes Q2
+U 1 1 5FD126F8
+P 3300 2800
+F 0 "Q2" H 3744 2453 60  0000 L CNN
+F 1 "LTC4412" H 3744 2347 60  0000 L CNN
+F 2 "digikey-footprints:SOT-23-6" H 3500 3000 60  0001 L CNN
+F 3 "http://www.linear.com/docs/1527" H 3500 3100 60  0001 L CNN
+F 4 "LTC4412ES6#TRMPBFCT-ND" H 3500 3200 60  0001 L CNN "Digi-Key_PN"
+F 5 "LTC4412ES6#TRMPBF" H 3500 3300 60  0001 L CNN "MPN"
+F 6 "Integrated Circuits (ICs)" H 3500 3400 60  0001 L CNN "Category"
+F 7 "PMIC - OR Controllers, Ideal Diodes" H 3500 3500 60  0001 L CNN "Family"
+F 8 "http://www.linear.com/docs/1527" H 3500 3600 60  0001 L CNN "DK_Datasheet_Link"
+F 9 "/product-detail/en/linear-technology-analog-devices/LTC4412ES6-TRMPBF/LTC4412ES6-TRMPBFCT-ND/890097" H 3500 3700 60  0001 L CNN "DK_Detail_Page"
+F 10 "IC OR CTRLR SRC SELECT TSOT23-6" H 3500 3800 60  0001 L CNN "Description"
+F 11 "Linear Technology/Analog Devices" H 3500 3900 60  0001 L CNN "Manufacturer"
+F 12 "Active" H 3500 4000 60  0001 L CNN "Status"
+	1    3300 2800
+	1    0    0    -1  
+$EndComp
+Text GLabel 6600 6050 0    50   Input ~ 0
+GND
+Wire Wire Line
+	6600 6050 6700 6050
+Text GLabel 6550 4750 0    50   Input ~ 0
+3.3V
+Wire Wire Line
+	9400 4100 9450 4100
+Text GLabel 7550 3450 2    50   Input ~ 0
+SDA
+Text GLabel 7550 3550 2    50   Input ~ 0
+SCL
+Wire Wire Line
+	7550 3550 7350 3550
+Text GLabel 1350 4450 2    50   Input ~ 0
+SDA
+Text GLabel 1300 5200 2    50   Input ~ 0
+SDA
+Text GLabel 1300 5950 2    50   Input ~ 0
+SDA
+Text GLabel 1300 5850 2    50   Input ~ 0
+SCL
+Text GLabel 1300 5100 2    50   Input ~ 0
+SCL
+Text GLabel 1350 4350 2    50   Input ~ 0
+SCL
+Wire Wire Line
+	1350 4350 1200 4350
+Wire Wire Line
+	1200 4450 1350 4450
+Wire Wire Line
+	1300 5100 1200 5100
+Wire Wire Line
+	1300 5200 1200 5200
+Wire Wire Line
+	1300 5850 1200 5850
+Wire Wire Line
+	1300 5950 1200 5950
+Text GLabel 1300 5300 2    50   Input ~ 0
+3.3V
+Text GLabel 1300 6050 2    50   Input ~ 0
+3.3V
+Text GLabel 1350 4550 2    50   Input ~ 0
+3.3V
+Wire Wire Line
+	1200 4550 1350 4550
+Wire Wire Line
+	1200 4650 1350 4650
+Wire Wire Line
+	1200 6150 1300 6150
+Wire Wire Line
+	1200 6050 1300 6050
+Wire Wire Line
+	1200 5400 1300 5400
+Wire Wire Line
+	1200 5300 1300 5300
+Text GLabel 7550 2450 2    50   Input ~ 0
+MOTOR1_DIR
+Text GLabel 7550 2650 2    50   Input ~ 0
+MOTOR2_DIR
+Text GLabel 7550 2550 2    50   Input ~ 0
+MOTOR1_PWM
+Text GLabel 7550 2850 2    50   Input ~ 0
+MOTOR2_PWM
+Wire Wire Line
+	7350 3050 7550 3050
+Wire Wire Line
+	7350 3150 7550 3150
+Wire Wire Line
+	7350 3450 7550 3450
+Wire Wire Line
+	7350 2150 7550 2150
+Wire Wire Line
+	7550 2250 7350 2250
+Wire Wire Line
+	7350 2350 7550 2350
+Wire Wire Line
+	7550 2450 7350 2450
+Wire Wire Line
+	7350 2550 7550 2550
+Wire Wire Line
+	7550 2650 7350 2650
+Wire Wire Line
+	7350 2850 7550 2850
+$Comp
+L 74xx:74HC595 U1
+U 1 1 601F8C90
+P 9250 4800
+F 0 "U1" H 9250 5581 50  0000 C CNN
+F 1 "74HC595" H 9250 5490 50  0000 C CNN
+F 2 "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm" H 9250 4800 50  0001 C CNN
+F 3 "http://www.ti.com/lit/ds/symlink/sn74hc595.pdf" H 9250 4800 50  0001 C CNN
+	1    9250 4800
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9650 4700 9900 4700
+Wire Wire Line
+	9400 4200 9250 4200
+Text GLabel 8750 5000 0    50   Input ~ 0
+GND
+Wire Wire Line
+	8750 5000 8850 5000
+Wire Wire Line
+	8750 4400 8850 4400
+Wire Wire Line
+	8750 4600 8850 4600
+Text GLabel 8750 4700 0    50   Input ~ 0
+3.3V
+Wire Wire Line
+	8750 4700 8850 4700
+Text GLabel 8750 4900 0    50   Input ~ 0
+RCLK_SERVO
+Wire Wire Line
+	8750 4900 8850 4900
+Text GLabel 7550 2950 2    50   Input ~ 0
+RCLK_SERVO
+Wire Wire Line
+	7550 2950 7350 2950
+Text GLabel 6150 2350 0    50   Input ~ 0
+MOT_CURRENT1
+Text GLabel 6150 2450 0    50   Input ~ 0
+MOT_CURRENT2
+Wire Wire Line
+	6150 2350 6350 2350
+Wire Wire Line
+	6150 2450 6350 2450
+Wire Wire Line
+	6150 3950 6350 3950
+Wire Wire Line
+	6150 3850 6350 3850
+Wire Wire Line
+	6150 3750 6350 3750
+Text GLabel 6150 3950 0    50   Input ~ 0
+ENC_SCK
+Text GLabel 6150 3850 0    50   Input ~ 0
+ENC_MOSI
+Text GLabel 6150 3750 0    50   Input ~ 0
+ENC_MISO
+Wire Wire Line
+	6150 4150 6350 4150
+Wire Wire Line
+	6150 3450 6350 3450
+Wire Wire Line
+	6150 3350 6350 3350
+Wire Wire Line
+	6150 3250 6350 3250
+Text GLabel 6150 3250 0    50   Input ~ 0
+GND
+Text GLabel 6150 3350 0    50   Input ~ 0
+GND
+Text GLabel 6150 3450 0    50   Input ~ 0
+GND
+Text GLabel 6150 4150 0    50   Input ~ 0
+GND
+Wire Wire Line
+	6150 3650 6350 3650
+Text GLabel 6150 3650 0    50   Input ~ 0
+5V
+Wire Wire Line
+	6150 2950 6350 2950
+Text GLabel 6150 2950 0    50   Input ~ 0
+5V
+Text GLabel 6150 2250 0    50   Input ~ 0
+VIN_MEASURE
+Wire Wire Line
+	6150 2250 6350 2250
+$Comp
+L Interface_Expansion:TCA9534 U6
+U 1 1 5FD26865
+P 6700 5350
+F 0 "U6" H 6700 6131 50  0000 C CNN
+F 1 "TCA9534" H 6700 6040 50  0000 C CNN
+F 2 "Package_SO:SOIC-16_4.55x10.3mm_P1.27mm" H 7650 4800 50  0001 C CNN
+F 3 "http://www.ti.com/lit/ds/symlink/tca9534.pdf" H 6800 5250 50  0001 C CNN
+	1    6700 5350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6550 4750 6700 4750
+Text GLabel 6200 5050 0    50   Input ~ 0
+SCL
+Text GLabel 6200 5150 0    50   Input ~ 0
+SDA
+Wire Wire Line
+	6200 5150 6300 5150
+Wire Wire Line
+	6200 5050 6300 5050
+$Comp
+L Device:Fuse F2
+U 1 1 5FD48E80
+P 1000 1900
+F 0 "F2" H 1060 1946 50  0000 L CNN
+F 1 "Fuse" H 1060 1855 50  0000 L CNN
+F 2 "Fuse:Fuseholder_Blade_Mini_Keystone_3568" V 930 1900 50  0001 C CNN
+F 3 "~" H 1000 1900 50  0001 C CNN
+	1    1000 1900
+	1    0    0    -1  
+$EndComp
+$Comp
+L js:Si4427 Q3
+U 1 1 5FD5676E
+P 2350 2900
+F 0 "Q3" H 2458 2953 60  0000 L CNN
+F 1 "Si4427" H 2458 2847 60  0000 L CNN
+F 2 "js:SO-8_3.9x4.9mm_P1.27mm_Si4427" H 2450 3200 60  0001 L CNN
+F 3 "" H 2450 3300 60  0001 L CNN
+F 4 "Si4427" H 2450 3500 60  0001 L CNN "MPN"
+	1    2350 2900
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	2450 3200 2900 3200
+Text GLabel 2850 3100 0    50   Input ~ 0
+GND
+Wire Wire Line
+	2850 3100 2900 3100
+Wire Wire Line
+	2850 4350 2900 4350
+Text GLabel 2850 4350 0    50   Input ~ 0
+GND
+$Comp
+L js:Si4427 Q4
+U 1 1 5FD6E853
+P 2300 4150
+F 0 "Q4" H 2408 4203 60  0000 L CNN
+F 1 "Si4427" H 2408 4097 60  0000 L CNN
+F 2 "js:SO-8_3.9x4.9mm_P1.27mm_Si4427" H 2400 4450 60  0001 L CNN
+F 3 "" H 2400 4550 60  0001 L CNN
+F 4 "Si4427" H 2400 4750 60  0001 L CNN "MPN"
+	1    2300 4150
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	3300 4050 3300 4150
+Text GLabel 3300 4050 1    50   Input ~ 0
+BATT2
+Wire Wire Line
+	3300 4850 3400 4850
+Wire Wire Line
+	3400 4850 3400 4950
+Connection ~ 3400 4850
+Wire Wire Line
+	3400 4750 3400 4850
+Text GLabel 3300 4850 0    50   Input ~ 0
+GND
+$Comp
+L power:GND #PWR0101
+U 1 1 5FD1108B
+P 3400 4950
+F 0 "#PWR0101" H 3400 4700 50  0001 C CNN
+F 1 "GND" H 3405 4777 50  0000 C CNN
+F 2 "" H 3400 4950 50  0001 C CNN
+F 3 "" H 3400 4950 50  0001 C CNN
+	1    3400 4950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3700 4350 3700 4200
+$Comp
+L Device:R R1
+U 1 1 5FD08DD3
+P 3700 4050
+F 0 "R1" H 3770 4096 50  0000 L CNN
+F 1 "470K" H 3770 4005 50  0000 L CNN
+F 2 "Resistor_SMD:R_1206_3216Metric" V 3630 4050 50  0001 C CNN
+F 3 "~" H 3700 4050 50  0001 C CNN
+	1    3700 4050
+	-1   0    0    1   
+$EndComp
+$Comp
+L herbie2-rescue:LTC4412ES6_TRMPBF-dk_PMIC-OR-Controllers-Ideal-Diodes Q1
+U 1 1 5FCFE60E
+P 3300 4050
+F 0 "Q1" H 3744 3703 60  0000 L CNN
+F 1 "LTC4412" H 3744 3597 60  0000 L CNN
+F 2 "digikey-footprints:SOT-23-6" H 3500 4250 60  0001 L CNN
+F 3 "http://www.linear.com/docs/1527" H 3500 4350 60  0001 L CNN
+F 4 "LTC4412ES6#TRMPBFCT-ND" H 3500 4450 60  0001 L CNN "Digi-Key_PN"
+F 5 "LTC4412ES6#TRMPBF" H 3500 4550 60  0001 L CNN "MPN"
+F 6 "Integrated Circuits (ICs)" H 3500 4650 60  0001 L CNN "Category"
+F 7 "PMIC - OR Controllers, Ideal Diodes" H 3500 4750 60  0001 L CNN "Family"
+F 8 "http://www.linear.com/docs/1527" H 3500 4850 60  0001 L CNN "DK_Datasheet_Link"
+F 9 "/product-detail/en/linear-technology-analog-devices/LTC4412ES6-TRMPBF/LTC4412ES6-TRMPBFCT-ND/890097" H 3500 4950 60  0001 L CNN "DK_Detail_Page"
+F 10 "IC OR CTRLR SRC SELECT TSOT23-6" H 3500 5050 60  0001 L CNN "Description"
+F 11 "Linear Technology/Analog Devices" H 3500 5150 60  0001 L CNN "Manufacturer"
+F 12 "Active" H 3500 5250 60  0001 L CNN "Status"
+	1    3300 4050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2400 4450 2900 4450
+Text GLabel 2650 2900 2    50   Input ~ 0
+VIN_SW
+Text GLabel 2600 4150 2    50   Input ~ 0
+VIN_SW
+Text GLabel 2850 3300 0    50   Input ~ 0
+VIN_SW
+Text GLabel 2850 4550 0    50   Input ~ 0
+VIN_SW
+Wire Wire Line
+	2850 4550 2900 4550
+Wire Wire Line
+	2600 4150 2500 4150
+Wire Wire Line
+	2850 3300 2900 3300
+Wire Wire Line
+	2650 2900 2550 2900
+Text GLabel 2100 2900 0    50   Input ~ 0
+BATT1
+Text GLabel 2050 4150 0    50   Input ~ 0
+BATT2
+Wire Wire Line
+	2100 2900 2150 2900
+Wire Wire Line
+	2050 4150 2100 4150
+Text GLabel 3750 2650 2    50   Input ~ 0
+VIN_SW
+Text GLabel 3750 3900 2    50   Input ~ 0
+VIN_SW
+Wire Wire Line
+	3750 3900 3700 3900
+Wire Wire Line
+	3750 2650 3700 2650
+Text GLabel 6200 5550 0    50   Input ~ 0
+GND
+Wire Wire Line
+	6200 5550 6250 5550
+Wire Wire Line
+	6250 5550 6250 5650
+Wire Wire Line
+	6250 5650 6300 5650
+Connection ~ 6250 5550
+Wire Wire Line
+	6250 5550 6300 5550
+Wire Wire Line
+	6250 5650 6250 5750
+Wire Wire Line
+	6250 5750 6300 5750
+Connection ~ 6250 5650
+$Comp
+L Diode:CVFD20065A D5
+U 1 1 5FD2AD77
+P 2250 2150
+F 0 "D5" H 2250 1933 50  0000 C CNN
+F 1 "CVFD20065A" H 2250 2024 50  0000 C CNN
+F 2 "Package_TO_SOT_THT:TO-220-2_Vertical" H 2250 1975 50  0001 C CNN
+F 3 "https://www.wolfspeed.com/media/downloads/89/CVFD20065A.pdf" H 2250 2150 50  0001 C CNN
+	1    2250 2150
+	-1   0    0    1   
+$EndComp
+Text GLabel 2000 2150 0    50   Input ~ 0
+AC_PWR
+Wire Wire Line
+	2000 2150 2100 2150
+Text GLabel 2550 2150 2    50   Input ~ 0
+VIN_SW
+Wire Wire Line
+	2550 2150 2400 2150
+$Comp
+L js:24v13_Pololu U3
+U 1 1 5FD90770
+P 3800 850
+F 0 "U3" H 3800 1265 50  0000 C CNN
+F 1 "24v13_Pololu" H 3800 1174 50  0000 C CNN
+F 2 "js:24v13_Pololu" H 3700 950 50  0001 C CNN
+F 3 "" H 3700 950 50  0001 C CNN
+	1    3800 850 
+	1    0    0    -1  
+$EndComp
+$Comp
+L js:24v13_Pololu U7
+U 1 1 5FD913BF
+P 3800 1550
+F 0 "U7" H 3800 1965 50  0000 C CNN
+F 1 "24v13_Pololu" H 3800 1874 50  0000 C CNN
+F 2 "js:24v13_Pololu" H 3700 1650 50  0001 C CNN
+F 3 "" H 3700 1650 50  0001 C CNN
+	1    3800 1550
+	1    0    0    -1  
+$EndComp
+Text GLabel 3400 1400 0    50   Input ~ 0
+GND
+Text GLabel 3400 700  0    50   Input ~ 0
+GND
+Wire Wire Line
+	3400 700  3450 700 
+Wire Wire Line
+	3400 1400 3450 1400
+Text GLabel 3400 800  0    50   Input ~ 0
+MOTOR1_DIR
+Text GLabel 3400 900  0    50   Input ~ 0
+MOTOR1_PWM
+Text GLabel 3400 1500 0    50   Input ~ 0
+MOTOR2_DIR
+Text GLabel 3400 1600 0    50   Input ~ 0
+MOTOR2_PWM
+Wire Wire Line
+	3400 800  3450 800 
+Wire Wire Line
+	3400 900  3450 900 
+Wire Wire Line
+	3400 1500 3450 1500
+Wire Wire Line
+	3400 1600 3450 1600
 $EndSCHEMATC
