@@ -310,12 +310,12 @@ Wire Wire Line
 $Comp
 L Device:Fuse F1
 U 1 1 5FD09C9A
-P 700 1900
-F 0 "F1" H 760 1946 50  0000 L CNN
-F 1 "Fuse" H 760 1855 50  0000 L CNN
-F 2 "Fuse:Fuseholder_Blade_Mini_Keystone_3568" V 630 1900 50  0001 C CNN
-F 3 "~" H 700 1900 50  0001 C CNN
-	1    700  1900
+P 2000 2750
+F 0 "F1" H 2060 2796 50  0000 L CNN
+F 1 "Fuse" H 2060 2705 50  0000 L CNN
+F 2 "Fuse:Fuseholder_Blade_Mini_Keystone_3568" V 1930 2750 50  0001 C CNN
+F 3 "~" H 2000 2750 50  0001 C CNN
+	1    2000 2750
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -600,8 +600,6 @@ Wire Wire Line
 	3300 2800 3300 2900
 Wire Wire Line
 	3700 2950 3700 3100
-Text GLabel 3300 2800 1    50   Input ~ 0
-BATT1
 Wire Wire Line
 	3400 3550 3350 3550
 Wire Wire Line
@@ -918,14 +916,12 @@ F 12 "Active" H 3500 5250 60  0001 L CNN "Status"
 $EndComp
 Wire Wire Line
 	2400 4450 2900 4450
-Text GLabel 2650 2900 2    50   Input ~ 0
-VIN_SW
 Text GLabel 2600 4150 2    50   Input ~ 0
-VIN_SW
+VIN_FUSE
 Text GLabel 2850 3300 0    50   Input ~ 0
-VIN_SW
+VIN_FUSE
 Text GLabel 2850 4550 0    50   Input ~ 0
-VIN_SW
+VIN_FUSE
 Wire Wire Line
 	2850 4550 2900 4550
 Wire Wire Line
@@ -934,18 +930,16 @@ Wire Wire Line
 	2850 3300 2900 3300
 Wire Wire Line
 	2650 2900 2550 2900
-Text GLabel 2100 2900 0    50   Input ~ 0
+Text GLabel 2000 2550 0    50   Input ~ 0
 BATT1
 Text GLabel 2050 4150 0    50   Input ~ 0
 BATT2
 Wire Wire Line
-	2100 2900 2150 2900
-Wire Wire Line
 	2050 4150 2100 4150
 Text GLabel 3750 2650 2    50   Input ~ 0
-VIN_SW
+VIN_FUSE
 Text GLabel 3750 3900 2    50   Input ~ 0
-VIN_SW
+VIN_FUSE
 Wire Wire Line
 	3750 3900 3700 3900
 Wire Wire Line
@@ -982,7 +976,7 @@ AC_PWR
 Wire Wire Line
 	3350 2100 3450 2100
 Text GLabel 3900 2100 2    50   Input ~ 0
-VIN_SW
+VIN_FUSE
 Wire Wire Line
 	3900 2100 3750 2100
 $Comp
@@ -1122,7 +1116,7 @@ $EndComp
 Text GLabel 5050 1000 0    50   Input ~ 0
 GND
 Text GLabel 5050 1100 0    50   Input ~ 0
-VIN_SW
+VIN
 Text GLabel 5050 900  0    50   Input ~ 0
 5V
 Wire Wire Line
@@ -1212,7 +1206,7 @@ $EndComp
 Text GLabel 4700 3250 0    50   Input ~ 0
 GND
 Text GLabel 4750 2400 0    50   Input ~ 0
-VIN_SW
+VIN
 Wire Wire Line
 	4750 2400 4800 2400
 Wire Wire Line
@@ -1249,7 +1243,7 @@ Wire Wire Line
 	9550 3200 9550 3250
 Wire Wire Line
 	9550 3250 10150 3250
-Text GLabel 9750 3350 0    50   Input ~ 0
+Text GLabel 9700 3800 0    50   Input ~ 0
 GND
 Wire Wire Line
 	9750 3350 10150 3350
@@ -1432,7 +1426,7 @@ Text GLabel 1000 3450 0    50   Input ~ 0
 Text GLabel 1000 3000 0    50   Input ~ 0
 GND
 Text GLabel 1000 2500 0    50   Input ~ 0
-VIN_SW
+VIN
 Wire Wire Line
 	1000 2500 1100 2500
 Wire Wire Line
@@ -1745,7 +1739,7 @@ DI1
 Text GLabel 6800 5650 2    50   Input ~ 0
 DI2
 Text GLabel 6800 5750 2    50   Input ~ 0
-DI3
+LCD_BL
 Wire Wire Line
 	6550 5450 6800 5450
 Wire Wire Line
@@ -1754,44 +1748,166 @@ Wire Wire Line
 	6550 5650 6800 5650
 Wire Wire Line
 	6550 5750 6800 5750
-$Comp
-L Connector_Generic:Conn_02x04_Odd_Even J16
-U 1 1 60CDD4DB
-P 4750 5050
-F 0 "J16" H 4800 5367 50  0000 C CNN
-F 1 "Conn_02x04_Odd_Even" H 4800 5276 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_2x04_P2.54mm_Vertical" H 4750 5050 50  0001 C CNN
-F 3 "~" H 4750 5050 50  0001 C CNN
-	1    4750 5050
-	1    0    0    -1  
-$EndComp
 Text GLabel 5150 4950 2    50   Input ~ 0
 GND
 Wire Wire Line
 	5150 4950 5050 4950
-Wire Wire Line
-	5050 5050 5050 4950
-Connection ~ 5050 4950
-Wire Wire Line
-	5050 5150 5050 5050
-Connection ~ 5050 5050
-Wire Wire Line
-	5050 5250 5050 5150
-Connection ~ 5050 5150
 Text GLabel 4400 4950 0    50   Input ~ 0
 DI0
 Text GLabel 4400 5050 0    50   Input ~ 0
 DI1
 Text GLabel 4400 5150 0    50   Input ~ 0
 DI2
-Text GLabel 4400 5250 0    50   Input ~ 0
-DI3
 Wire Wire Line
 	4400 4950 4550 4950
 Wire Wire Line
 	4400 5050 4550 5050
 Wire Wire Line
 	4400 5150 4550 5150
+Text GLabel 9100 700  2    50   Input ~ 0
+3.3V
 Wire Wire Line
-	4400 5250 4550 5250
+	9100 700  9050 700 
+Wire Wire Line
+	9050 700  9050 800 
+Text GLabel 8550 750  0    50   Input ~ 0
+GND
+Wire Wire Line
+	8550 750  8850 750 
+Wire Wire Line
+	8850 750  8850 800 
+$Comp
+L dk_Transistors-FETs-MOSFETs-Single:2N7002 Q5
+U 1 1 5FDB34D9
+P 9750 3550
+F 0 "Q5" H 9858 3603 60  0000 L CNN
+F 1 "2N7002" H 9858 3497 60  0000 L CNN
+F 2 "digikey-footprints:SOT-23-3" H 9950 3750 60  0001 L CNN
+F 3 "https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF" H 9950 3850 60  0001 L CNN
+F 4 "2N7002NCT-ND" H 9950 3950 60  0001 L CNN "Digi-Key_PN"
+F 5 "2N7002" H 9950 4050 60  0001 L CNN "MPN"
+F 6 "Discrete Semiconductor Products" H 9950 4150 60  0001 L CNN "Category"
+F 7 "Transistors - FETs, MOSFETs - Single" H 9950 4250 60  0001 L CNN "Family"
+F 8 "https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF" H 9950 4350 60  0001 L CNN "DK_Datasheet_Link"
+F 9 "/product-detail/en/on-semiconductor/2N7002/2N7002NCT-ND/244664" H 9950 4450 60  0001 L CNN "DK_Detail_Page"
+F 10 "MOSFET N-CH 60V 115MA SOT-23" H 9950 4550 60  0001 L CNN "Description"
+F 11 "ON Semiconductor" H 9950 4650 60  0001 L CNN "Manufacturer"
+F 12 "Active" H 9950 4750 60  0001 L CNN "Status"
+	1    9750 3550
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9700 3800 9750 3800
+Wire Wire Line
+	9750 3800 9750 3750
+$Comp
+L Device:R R20
+U 1 1 5FED41B4
+P 9250 3650
+F 0 "R20" H 9320 3696 50  0000 L CNN
+F 1 "1K" H 9320 3605 50  0000 L CNN
+F 2 "Resistor_SMD:R_1206_3216Metric" V 9180 3650 50  0001 C CNN
+F 3 "~" H 9250 3650 50  0001 C CNN
+	1    9250 3650
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	9400 3650 9450 3650
+Text GLabel 9000 3650 0    50   Input ~ 0
+LCD_BL
+Wire Wire Line
+	9000 3650 9100 3650
+$Comp
+L Connector_Generic:Conn_02x03_Odd_Even J16
+U 1 1 5FF45C1B
+P 4750 5050
+F 0 "J16" H 4800 5367 50  0000 C CNN
+F 1 "Conn_02x03_Odd_Even" H 4800 5276 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical" H 4750 5050 50  0001 C CNN
+F 3 "~" H 4750 5050 50  0001 C CNN
+	1    4750 5050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5050 5150 5050 5050
+Wire Wire Line
+	5050 5050 5050 4950
+Connection ~ 5050 5050
+Connection ~ 5050 4950
+Text GLabel 900  1750 0    50   Input ~ 0
+VIN
+Text GLabel 900  2050 0    50   Input ~ 0
+VIN_FUSE
+Wire Wire Line
+	900  1750 1000 1750
+Wire Wire Line
+	900  2050 1000 2050
+Text GLabel 2650 2800 2    50   Input ~ 0
+VIN_FUSE
+Wire Wire Line
+	2650 2800 2650 2900
+Text GLabel 1950 2200 2    50   Input ~ 0
+AC_PWR
+Text GLabel 1950 1900 2    50   Input ~ 0
+GND
+Text GLabel 1950 1650 2    50   Input ~ 0
+BATT2
+Text GLabel 1950 1400 2    50   Input ~ 0
+GND
+Text GLabel 1950 1100 2    50   Input ~ 0
+BATT1
+Text GLabel 1950 850  2    50   Input ~ 0
+GND
+Wire Wire Line
+	1550 850  1950 850 
+Wire Wire Line
+	1550 1100 1950 1100
+Wire Wire Line
+	1550 1400 1950 1400
+Wire Wire Line
+	1550 1650 1950 1650
+Wire Wire Line
+	1550 1900 1950 1900
+Wire Wire Line
+	1550 2200 1950 2200
+$Comp
+L Device:R_POT RV1
+U 1 1 602D06E5
+P 9250 2400
+F 0 "RV1" H 9180 2446 50  0000 R CNN
+F 1 "1K" H 9180 2355 50  0000 R CNN
+F 2 "Potentiometer_THT:Potentiometer_Bourns_3266Y_Vertical" H 9250 2400 50  0001 C CNN
+F 3 "~" H 9250 2400 50  0001 C CNN
+	1    9250 2400
+	1    0    0    -1  
+$EndComp
+Text GLabel 9150 2250 0    50   Input ~ 0
+5V
+Text GLabel 9150 2550 0    50   Input ~ 0
+GND
+Wire Wire Line
+	9150 2250 9250 2250
+Wire Wire Line
+	9150 2550 9250 2550
+Wire Wire Line
+	9400 2400 9400 2050
+Wire Wire Line
+	9400 2050 10150 2050
+Wire Wire Line
+	2000 2900 2050 2900
+Text GLabel 2050 3000 0    50   Input ~ 0
+BATT1_F
+Wire Wire Line
+	2050 3000 2050 2900
+Connection ~ 2050 2900
+Wire Wire Line
+	2050 2900 2150 2900
+Text GLabel 3300 2800 1    50   Input ~ 0
+BATT1_F
+Wire Wire Line
+	2000 2550 2000 2600
+Text GLabel 6150 3050 0    50   Input ~ 0
+3.3V
+Wire Wire Line
+	6150 3050 6350 3050
 $EndSCHEMATC
