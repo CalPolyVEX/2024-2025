@@ -689,14 +689,10 @@ Wire Wire Line
 	1200 5400 1300 5400
 Wire Wire Line
 	1200 5300 1300 5300
-Text GLabel 7550 2850 2    50   Input ~ 0
+Text GLabel 7550 3050 2    50   Input ~ 0
 MOTOR1_DIR
 Text GLabel 7550 3150 2    50   Input ~ 0
 MOTOR2_DIR
-Text GLabel 7550 2950 2    50   Input ~ 0
-MOTOR1_PWM
-Text GLabel 7550 3050 2    50   Input ~ 0
-MOTOR2_PWM
 Wire Wire Line
 	7350 2550 7550 2550
 Wire Wire Line
@@ -2135,4 +2131,59 @@ Wire Wire Line
 	6600 1300 6700 1300
 Wire Wire Line
 	6600 1100 6700 1100
+$Comp
+L Device:C C11
+U 1 1 5FD6E330
+P 5850 6600
+F 0 "C11" H 5965 6646 50  0000 L CNN
+F 1 "10uF" H 5965 6555 50  0000 L CNN
+F 2 "Capacitor_SMD:C_1206_3216Metric" H 5888 6450 50  0001 C CNN
+F 3 "~" H 5850 6600 50  0001 C CNN
+	1    5850 6600
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C10
+U 1 1 5FD6E6D3
+P 5550 6600
+F 0 "C10" H 5665 6646 50  0000 L CNN
+F 1 "1uF" H 5665 6555 50  0000 L CNN
+F 2 "Capacitor_SMD:C_1206_3216Metric" H 5588 6450 50  0001 C CNN
+F 3 "~" H 5550 6600 50  0001 C CNN
+	1    5550 6600
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C9
+U 1 1 5FD6EB16
+P 5300 6600
+F 0 "C9" H 5415 6646 50  0000 L CNN
+F 1 ".1uF" H 5415 6555 50  0000 L CNN
+F 2 "Capacitor_SMD:C_1206_3216Metric" H 5338 6450 50  0001 C CNN
+F 3 "~" H 5300 6600 50  0001 C CNN
+	1    5300 6600
+	1    0    0    -1  
+$EndComp
+Text GLabel 5550 6900 3    50   Input ~ 0
+GND
+Wire Wire Line
+	5550 6900 5550 6750
+Wire Wire Line
+	5550 6750 5850 6750
+Connection ~ 5550 6750
+Wire Wire Line
+	5550 6750 5300 6750
+Wire Wire Line
+	5300 6450 5550 6450
+Wire Wire Line
+	5850 6450 5550 6450
+Connection ~ 5550 6450
+Text GLabel 5550 6350 1    50   Input ~ 0
+VIN_FUSE
+Wire Wire Line
+	5550 6350 5550 6450
+Text GLabel 7550 2950 2    50   Input ~ 0
+MOTOR2_PWM
+Text GLabel 7550 2850 2    50   Input ~ 0
+MOTOR1_PWM
 $EndSCHEMATC
