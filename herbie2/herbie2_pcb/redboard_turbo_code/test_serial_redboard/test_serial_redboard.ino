@@ -1,13 +1,20 @@
 #include <Servo.h>
 #include <Wire.h>
-#include "SparkFun_TCA9534.h"
+#include <TCA9534.h>
+
+TCA9534 ioex;
+const uint8_t IOEX_ADDR = 0x38; // A0 = A1 = A2 = 0
+
+//#include "SparkFun_TCA9534.h"
+// #include <SAMD21turboPWM.h>
 
 Servo myservo;
-TCA9534 myGPIO;
+//TCA9534 myGPIO;
+// TurboPWM pwm; //FIXME:  the turboPWM library uses GCLK4 which is used by Servo.h
 
 void setup_interrupt() 
 {
-  myservo.attach(9);  //the servo library already initialize TC5 to use the 48MHz clock
+  myservo.attach(9);  //the servo library already initializes TC5 to use the 48MHz clock
 
   // Set up the generic clock (GCLK4) used to clock timers
   // GCLK->GENDIV.reg = GCLK_GENDIV_DIV(3) |          // Divide the 48MHz clock source by divisor 3: 48MHz/3=16MHz
@@ -48,25 +55,28 @@ void setup_interrupt()
 unsigned long c = 0;
 int f = 0;
 
+void setup_i2c() 
+{
+  Wire.begin();
+  ioex.attach(Wire);
+  ioex.setDeviceAddress(IOEX_ADDR); // A0 = A1 = A2 = 0
+  ioex.config(TCA9534::Config::IN); // set all port to input
+}
+
 void setup() 
 {
   delay(4000); //wait 4 seconds
 
+  setup_i2c();
   setup_interrupt();
-  init_encoders();
+  // init_encoders();
 
   SerialUSB.begin(115200); // Initialize Serial Monitor USB
 
-  while (!SerialUSB); // Wait for Serial monitor to open
+  //while (!SerialUSB); // Wait for Serial monitor to open
 
   SerialUSB.println("Send character(s) to relay it over Serial1");
 
-  //setup TCA9534
-  Wire.begin();
-  if (myGPIO.begin() == false) {
-    SerialUSB.println("Check Connections. No Qwiic GPIO detected.");
-    f = 1;
-  }
 
   // initialize digital pin LED_BUILTIN as an output.
   pinMode(LED_BUILTIN, OUTPUT);
@@ -89,6 +99,9 @@ void loop()
     SerialUSB.print(" ");
     SerialUSB.print(f);
     SerialUSB.println(" ");
+
+    // uint8_t raw = ioex.input();
+    // SerialUSB.println(raw, BIN);
   }
 
   while(SerialUSB.available()){SerialUSB.read();}  //clear out the serial input buffer

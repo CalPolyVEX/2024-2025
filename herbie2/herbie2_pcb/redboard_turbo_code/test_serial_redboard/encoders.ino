@@ -1,4 +1,9 @@
 #include <SPI.h>
+#include "LS7366R.h"
+
+#define ENC1_SS 12 //ss
+#define ENC2_SS 13 //ss
+#define SPI_CLK 14000000
 
 const unsigned short crctable[256] =
 {
@@ -63,7 +68,135 @@ void compute_crc()
     data[7] = crc & 0xFF;        //send the low byte of the crc
 }
 
+//*************************************************
+//Channel Encoder Slave Select Control
+//*************************************************
+void setSSEnc(bool enable, int encoder)
+//*************************************************
+{
+   if(encoder == 1) {
+       if (enable)
+           digitalWrite(ENC1_SS, LOW);
+       else
+           digitalWrite(ENC1_SS, HIGH);
+   } else { //encoder 2
+       if (enable)
+           digitalWrite(ENC2_SS, LOW);
+       else
+           digitalWrite(ENC2_SS, HIGH);
+   }
+} //end func
+
+void clearStrReg(int encoder)
+//*************************************************
+{
+   setSSEnc(ENABLE, encoder);
+   SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
+   SPI.transfer(CLR_STR);// Select STR || CLEAR register
+   setSSEnc(DISABLE, 0);
+   SPI.endTransaction();
+} //end func
+
+void rstEncCnt(int encoder)
+{
+   setSSEnc(ENABLE, encoder);
+   SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
+   SPI.transfer(CLR_CNTR);
+   setSSEnc(DISABLE, 0);
+   SPI.endTransaction();
+} //end func
+
 void init_encoders() 
 {
     SPI.begin();
+    SPI.setClockDivider(SPI_CLOCK_DIV128); // SPI at 125Khz (on 16Mhz clock)
+
+    //set SS to high
+    // pinMode(ENC1_SS,OUTPUT);
+    // pinMode(ENC2_SS,OUTPUT);
+
+    //LS7366 notes
+    //1.  data transferred MSB first
+    //2.  data is latched from MOSI (into the LS7366) on the rising clock edge 
+    //3.  SAMD21 SPI Mode 0 data transfer clocking
+    //4.  choose software controlled slave select
+
+    //on the Redboard Turbo
+    //SCK - PB11 (SERCOM4/PAD3)
+    //MOSI - PB10 (SERCOM4/PAD2)
+    //MISO - PA12 (SERCOM4/PAD0 - ALT)
+
+    //initialize the 2 encoders
+    for (int num = 1; num <= 0; num++)
+    {
+        //Set MDR0
+        setSSEnc(ENABLE, num);
+        SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
+        SPI.transfer(WRITE_MDR0);                                   // Select MDR0 | WR register
+        SPI.transfer(FILTER_2 | DISABLE_INDX | FREE_RUN | QUADRX4); // Filter clock division factor = 1 || Asynchronous Index ||
+        // disable index || free-running count mode || x4 quadrature count mode
+        setSSEnc(DISABLE, 0);
+        SPI.endTransaction();
+
+        //Set MDR1
+        setSSEnc(ENABLE, num);
+        SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
+        SPI.transfer(WRITE_MDR0);                                   // Select MDR0 | WR register
+        SPI.transfer(WRITE_MDR1);                  // Select MDR1 | WR register
+        SPI.transfer(CMP_FLAG | BYTE_4 | EN_CNTR); //4-byte counter mode || Enable counting || FLAG on CMP (B5 of STR)
+        setSSEnc(DISABLE, 0);
+        SPI.endTransaction();
+
+        //Set DTR
+        setSSEnc(ENABLE, num);
+        SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
+        SPI.transfer(WRITE_MDR0);                                   // Select MDR0 | WR register
+        SPI.transfer(WRITE_DTR); // Select DTR | WR register
+        SPI.transfer(0x00);      // DTR MSB
+        SPI.transfer(0x00);      // DTR
+        SPI.transfer(0x00);      // DTR
+        SPI.transfer(0x0A);      // DTR LSB
+        setSSEnc(DISABLE, 0);
+        SPI.endTransaction();
+
+        setSSEnc(ENABLE, num);
+        SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
+        SPI.transfer(LOAD_CNTR);
+        setSSEnc(DISABLE, 0);
+        SPI.endTransaction();
+
+        setSSEnc(ENABLE, num);
+        SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
+        SPI.transfer(CLR_CNTR); // Select CNTR || CLEAR register
+        setSSEnc(DISABLE, 0);
+        SPI.endTransaction();
+
+        clearStrReg(num); //reseting the counter value inside the encoder chips to 0
+        rstEncCnt(num);
+    }
+}
+
+//*************************************************
+//*****************************************************
+long getChanEncoderValue(int encoder)
+//*****************************************************
+{
+    unsigned int cnt1Value, cnt2Value, cnt3Value, cnt4Value;
+    long result;
+
+    setSSEnc(ENABLE, encoder);
+    SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
+
+    SPI.transfer(READ_CNTR);        // Request count
+    cnt1Value = SPI.transfer(0x00); // Read highest order byte
+    cnt2Value = SPI.transfer(0x00);
+    cnt3Value = SPI.transfer(0x00);
+    cnt4Value = SPI.transfer(0x00); // Read lowest order byte
+
+    setSSEnc(DISABLE, 0);
+    SPI.endTransaction();
+
+    result = ((long)cnt1Value << 24) + ((long)cnt2Value << 16) + ((long)cnt3Value << 8) + (long)cnt4Value;
+
+    return result;
 }
