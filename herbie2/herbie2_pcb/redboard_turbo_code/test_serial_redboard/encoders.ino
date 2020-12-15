@@ -3,7 +3,7 @@
 
 #define ENC1_SS 12 //ss
 #define ENC2_SS 13 //ss
-#define SPI_CLK 14000000
+#define SPI_CLK 3000000
 
 const unsigned short crctable[256] =
 {
@@ -41,6 +41,111 @@ const unsigned short crctable[256] =
   0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
 };
 
+//////////////////////////////////////////////////
+//check_crc - check the crc of the incoming packet
+int check_crc(char* data, int len) 
+{
+    unsigned short crc = 0;
+    unsigned short received_crc;
+
+    received_crc = data[len-2] << 8; //the crc is the last 2 bytes of the packet
+    received_crc |= data[len-1];
+
+    //Calculates CRC16 of the (n-2) bytes of data in the packet
+    for (int byte = 0; byte < (len-2); byte++)
+    {
+        crc = (crc << 8) ^ crctable[((crc >> 8) ^ data[byte])];
+    }
+
+    if (crc == received_crc) 
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+//////////////////////////////////////////////////
+//init_motors
+void init_motors() {
+    // Set GCLK5's prescaler
+    REG_GCLK_GENDIV = GCLK_GENDIV_DIV(1) | GCLK_GENDIV_ID(5); //set the clock divider to 1 for GCLK5
+    while (GCLK->STATUS.bit.SYNCBUSY);
+
+    // Configure GCLK5 to use DFLL48M
+    REG_GCLK_GENCTRL = GCLK_GENCTRL_IDC | GCLK_GENCTRL_GENEN | GCLK_GENCTRL_SRC_DFLL48M | GCLK_GENCTRL_ID(5);
+    while (GCLK->STATUS.bit.SYNCBUSY);
+
+    // Connect GCLK5 to TCC0, TCC1
+    REG_GCLK_CLKCTRL = GCLK_CLKCTRL_CLKEN | GCLK_CLKCTRL_GEN_GCLK5 | GCLK_CLKCTRL_ID_TCC0_TCC1;
+    while (GCLK->STATUS.bit.SYNCBUSY);
+
+    // Set prescaler TCCDiv for TCC1
+    TCC1->CTRLA.reg |= TCC_CTRLA_PRESCALER(TCC_CTRLA_PRESCALER_DIV1024_Val);
+
+    //Use Normal PWM
+    TCC1->WAVE.reg = TCC_WAVE_WAVEGEN_NPWM;
+    while (TCC1->SYNCBUSY.bit.WAVE) {};
+
+    //    Configure the frequency for the PWM by setting the PER register.
+    //    The value of the PER register determines the frequency in the following
+    //    way:
+
+    //     frequency = GLCK frequency / (TCC prescaler * (1 + PER))
+
+    //    So in this example frequency = 8Mhz / (16 * (1 + 512)) so the frequency
+    //    is 947Hz.
+    uint32_t period = 281250;
+
+    TCC1->PER.reg = period;
+    while (TCC1->SYNCBUSY.bit.PER) {};
+
+    ///////////////////////////////
+    //Left Motor
+
+    //Set the duty cycle to 50%
+    TCC1->CC[1].reg = period / 2; //this set the on time of the PWM cycle
+    while (TCC1->SYNCBUSY.bit.CC1) {};
+
+    //set PA07 to output
+    PORT->Group[0].DIRSET.reg = PORT_PA07; //set the direction to output
+    PORT->Group[0].OUTCLR.reg = PORT_PA07; //set the value to output LOW
+
+    /* Enable the peripheral multiplexer for the pins. */
+    PORT->Group[0].PINCFG[7].reg |= PORT_PINCFG_PMUXEN;
+
+    // Set PA07's function to function E. Function E is TCC1/WO[1] for PA07.
+    // Because this is an odd numbered pin the PMUX is O (odd) and the PMUX
+    // index is pin number - 1 / 2, so 3.
+    PORT->Group[0].PMUX[3].reg = PORT_PMUX_PMUXO_E;
+
+    ///////////////////////////////
+    //Right Motor
+    //Set the duty cycle to 25%
+    TCC1->CC[0].reg = period / 4; //this sets the on time of the PWM cycle
+    while (TCC1->SYNCBUSY.bit.CC0) {};
+
+    //set PA06 to output
+    PORT->Group[0].DIRSET.reg = PORT_PA06; //set the direction to output
+    PORT->Group[0].OUTCLR.reg = PORT_PA06; //set the value to output LOW
+
+    /* Enable the peripheral multiplexer for the pins. */
+    PORT->Group[0].PINCFG[6].reg |= PORT_PINCFG_PMUXEN;
+
+    // Set PA06's function to function E. Function E is TCC1/WO[0] for PA06.
+    // Because this is an even numbered pin the PMUX is E (even) and the PMUX
+    // index is pin number / 2, so 3.
+    PORT->Group[0].PMUX[3].reg |= PORT_PMUX_PMUXE_E;
+
+    //Enable TCC1
+    TCC1->CTRLA.reg |= (TCC_CTRLA_ENABLE);
+    while (TCC1->SYNCBUSY.bit.ENABLE) {};
+}
+
+//////////////////////////////////////////////////
+//compute_crc - compute a new crc for sending out the encoder packet
 void compute_crc() 
 {
     signed short dl = 50; //left duty cycle
@@ -76,33 +181,33 @@ void setSSEnc(bool enable, int encoder)
 {
    if(encoder == 1) {
        if (enable)
-           digitalWrite(ENC1_SS, LOW);
+           REG_PORT_OUTCLR0 = PORT_PA19;   //PA19
        else
-           digitalWrite(ENC1_SS, HIGH);
+           REG_PORT_OUTSET0 = PORT_PA19;   //PA19
    } else { //encoder 2
        if (enable)
-           digitalWrite(ENC2_SS, LOW);
+           REG_PORT_OUTCLR0 = PORT_PA17;   //PA17
        else
-           digitalWrite(ENC2_SS, HIGH);
+           REG_PORT_OUTSET0 = PORT_PA17;   //PA17
    }
 } //end func
 
 void clearStrReg(int encoder)
 //*************************************************
 {
-   setSSEnc(ENABLE, encoder);
    SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
+   setSSEnc(SPI_ENABLE, encoder);
    SPI.transfer(CLR_STR);// Select STR || CLEAR register
-   setSSEnc(DISABLE, 0);
+   setSSEnc(SPI_DISABLE, 0);
    SPI.endTransaction();
 } //end func
 
 void rstEncCnt(int encoder)
 {
-   setSSEnc(ENABLE, encoder);
    SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
+   setSSEnc(SPI_ENABLE, encoder);
    SPI.transfer(CLR_CNTR);
-   setSSEnc(DISABLE, 0);
+   setSSEnc(SPI_DISABLE, 0);
    SPI.endTransaction();
 } //end func
 
@@ -110,10 +215,13 @@ void init_encoders()
 {
     SPI.begin();
     SPI.setClockDivider(SPI_CLOCK_DIV128); // SPI at 125Khz (on 16Mhz clock)
+    SPI.usingInterrupt(20);  //SPI will be access during Timer 5 interrupts
 
-    //set SS to high
-    // pinMode(ENC1_SS,OUTPUT);
-    // pinMode(ENC2_SS,OUTPUT);
+    //set SS pins to high
+    pinMode(ENC1_SS,OUTPUT);
+    pinMode(ENC2_SS,OUTPUT);
+    REG_PORT_OUTSET0 = PORT_PA19; //PA19
+    REG_PORT_OUTSET0 = PORT_PA17; //PA17
 
     //LS7366 notes
     //1.  data transferred MSB first
@@ -130,49 +238,47 @@ void init_encoders()
     for (int num = 1; num <= 0; num++)
     {
         //Set MDR0
-        setSSEnc(ENABLE, num);
         SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
+        setSSEnc(SPI_ENABLE, num);
         SPI.transfer(WRITE_MDR0);                                   // Select MDR0 | WR register
         SPI.transfer(FILTER_2 | DISABLE_INDX | FREE_RUN | QUADRX4); // Filter clock division factor = 1 || Asynchronous Index ||
         // disable index || free-running count mode || x4 quadrature count mode
-        setSSEnc(DISABLE, 0);
-        SPI.endTransaction();
+        setSSEnc(SPI_DISABLE, 0);
+        delay(1);
 
         //Set MDR1
-        setSSEnc(ENABLE, num);
-        SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
+        setSSEnc(SPI_ENABLE, num);
         SPI.transfer(WRITE_MDR0);                                   // Select MDR0 | WR register
         SPI.transfer(WRITE_MDR1);                  // Select MDR1 | WR register
         SPI.transfer(CMP_FLAG | BYTE_4 | EN_CNTR); //4-byte counter mode || Enable counting || FLAG on CMP (B5 of STR)
-        setSSEnc(DISABLE, 0);
-        SPI.endTransaction();
+        setSSEnc(SPI_DISABLE, 0);
+        delay(1);
 
         //Set DTR
-        setSSEnc(ENABLE, num);
-        SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
+        setSSEnc(SPI_ENABLE, num);
         SPI.transfer(WRITE_MDR0);                                   // Select MDR0 | WR register
         SPI.transfer(WRITE_DTR); // Select DTR | WR register
         SPI.transfer(0x00);      // DTR MSB
         SPI.transfer(0x00);      // DTR
         SPI.transfer(0x00);      // DTR
         SPI.transfer(0x0A);      // DTR LSB
-        setSSEnc(DISABLE, 0);
-        SPI.endTransaction();
+        setSSEnc(SPI_DISABLE, 0);
+        delay(1);
 
-        setSSEnc(ENABLE, num);
-        SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
+        setSSEnc(SPI_ENABLE, num);
         SPI.transfer(LOAD_CNTR);
-        setSSEnc(DISABLE, 0);
-        SPI.endTransaction();
+        setSSEnc(SPI_DISABLE, 0);
+        delay(1);
 
-        setSSEnc(ENABLE, num);
-        SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
+        setSSEnc(SPI_ENABLE, num);
         SPI.transfer(CLR_CNTR); // Select CNTR || CLEAR register
-        setSSEnc(DISABLE, 0);
-        SPI.endTransaction();
+        setSSEnc(SPI_DISABLE, 0);
+        delay(1);
 
         clearStrReg(num); //reseting the counter value inside the encoder chips to 0
+        delay(1);
         rstEncCnt(num);
+        SPI.endTransaction();
     }
 }
 
@@ -184,7 +290,7 @@ long getChanEncoderValue(int encoder)
     unsigned int cnt1Value, cnt2Value, cnt3Value, cnt4Value;
     long result;
 
-    setSSEnc(ENABLE, encoder);
+    setSSEnc(SPI_ENABLE, encoder);
     SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
 
     SPI.transfer(READ_CNTR);        // Request count
@@ -193,7 +299,7 @@ long getChanEncoderValue(int encoder)
     cnt3Value = SPI.transfer(0x00);
     cnt4Value = SPI.transfer(0x00); // Read lowest order byte
 
-    setSSEnc(DISABLE, 0);
+    setSSEnc(SPI_DISABLE, 0);
     SPI.endTransaction();
 
     result = ((long)cnt1Value << 24) + ((long)cnt2Value << 16) + ((long)cnt3Value << 8) + (long)cnt4Value;

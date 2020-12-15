@@ -1,6 +1,6 @@
 
-#define ENABLE    1
-#define DISABLE   0
+#define SPI_ENABLE    1
+#define SPI_DISABLE   0
 
 /***MDR0 configuration data - the configuration byte is formed with***
 ***single segMents taken from each group and ORing all together.***/
