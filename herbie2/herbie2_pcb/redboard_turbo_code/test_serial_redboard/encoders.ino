@@ -220,7 +220,7 @@ void init_encoders()
     REG_PORT_OUTSET0 = PORT_PA17; //PA17
 
     SPI.begin();
-    // SPI.setClockDivider(SPI_CLOCK_DIV128); // SPI at 125Khz (on 16Mhz clock)
+    delay(10);
     //SPI.usingInterrupt(20);  //SPI will be access during Timer 5 interrupts
 
     //LS7366 notes
@@ -235,46 +235,47 @@ void init_encoders()
     //MISO - PA12 (SERCOM4/PAD0 - ALT)
 
     //initialize the 2 encoders
-    for (int num = 1; num <= 1; num++)
+    for (int num = 1; num <= 2; num++)
     {
         //Set MDR0
         SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
+        delay(1);
         setSSEnc(SPI_ENABLE, num);
         SPI.transfer(WRITE_MDR0);                                   // Select MDR0 | WR register
-        SPI.transfer(FILTER_2 | DISABLE_INDX | FREE_RUN | QUADRX4); // Filter clock division factor = 1 || Asynchronous Index ||
+        // Filter clock division factor = 2 || Asynchronous Index ||
         // disable index || free-running count mode || x4 quadrature count mode
+        SPI.transfer(FILTER_2 | DISABLE_INDX | FREE_RUN | QUADRX4); 
         setSSEnc(SPI_DISABLE, num);
         delay(1);
 
         //Set MDR1
         setSSEnc(SPI_ENABLE, num);
-        SPI.transfer(WRITE_MDR0);                  // Select MDR0 | WR register
-        SPI.transfer(WRITE_MDR1);                  // Select MDR1 | WR register
-        SPI.transfer(CMP_FLAG | BYTE_4 | EN_CNTR); //4-byte counter mode || Enable counting || FLAG on CMP (B5 of STR)
+        SPI.transfer(WRITE_MDR1);       // Select MDR1 | WR register
+        SPI.transfer(BYTE_4 | EN_CNTR); //4-byte counter mode || Enable counting
         setSSEnc(SPI_DISABLE, num);
         delay(1);
 
         //Set DTR
-        setSSEnc(SPI_ENABLE, num);
-        SPI.transfer(WRITE_MDR0);                                   // Select MDR0 | WR register
-        SPI.transfer(WRITE_DTR); // Select DTR | WR register
-        SPI.transfer(0x00);      // DTR MSB
-        SPI.transfer(0x00);      // DTR
-        SPI.transfer(0x00);      // DTR
-        SPI.transfer(0x0A);      // DTR LSB
-        setSSEnc(SPI_DISABLE, num);
-        delay(1);
+        // setSSEnc(SPI_ENABLE, num);
+        // SPI.transfer(WRITE_DTR); // Select DTR | WR register
+        // SPI.transfer(0x00);      // DTR MSB
+        // SPI.transfer(0x00);      // DTR
+        // SPI.transfer(0x00);      // DTR
+        // SPI.transfer(0x0A);      // DTR LSB
+        // setSSEnc(SPI_DISABLE, num);
+        // delay(1);
 
-        setSSEnc(SPI_ENABLE, num);
-        SPI.transfer(LOAD_CNTR);
-        setSSEnc(SPI_DISABLE, num);
-        delay(1);
+        // setSSEnc(SPI_ENABLE, num);
+        // SPI.transfer(LOAD_CNTR);
+        // setSSEnc(SPI_DISABLE, num);
+        // delay(1);
 
         setSSEnc(SPI_ENABLE, num);
         SPI.transfer(CLR_CNTR); // Select CNTR || CLEAR register
         setSSEnc(SPI_DISABLE, num);
         delay(1);
 
+        // SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
         clearStrReg(num); //reseting the counter value inside the encoder chips to 0
         delay(1);
         rstEncCnt(num);
@@ -282,13 +283,13 @@ void init_encoders()
     }
 }
 
-unsigned int readMDR1(int encoder) 
+unsigned char readMDR1(int encoder) 
 {
-    unsigned int mdr1;
+    unsigned char mdr1;
 
     SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
     setSSEnc(SPI_ENABLE, encoder);
-    SPI.transfer(READ_MDR1);    // Select MDR1
+    SPI.transfer(READ_MDR0);    // Select MDR1
     mdr1 = SPI.transfer(0x00);  // read MDR1
     setSSEnc(SPI_DISABLE, encoder);
     SPI.endTransaction();

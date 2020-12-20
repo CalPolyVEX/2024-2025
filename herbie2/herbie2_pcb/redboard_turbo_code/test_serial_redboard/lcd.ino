@@ -67,14 +67,14 @@ void lcdWrite4Bits(uint8_t data, bool is_control)
     if (data & mask)
     {
       REG_PORT_OUTSET0 = PIN_DATA_LCD; //set data pin high
-      REG_PORT_OUTSET0 = PIN_DATA_LCD; //set data pin high
-      REG_PORT_OUTSET0 = PIN_DATA_LCD; //set data pin high
+      // REG_PORT_OUTSET0 = PIN_DATA_LCD; //set data pin high
+      // REG_PORT_OUTSET0 = PIN_DATA_LCD; //set data pin high
     }
     else
     {
       REG_PORT_OUTCLR0 = PIN_DATA_LCD; //set data pin low
-      REG_PORT_OUTCLR0 = PIN_DATA_LCD; //set data pin low
-      REG_PORT_OUTCLR0 = PIN_DATA_LCD; //set data pin low
+      // REG_PORT_OUTCLR0 = PIN_DATA_LCD; //set data pin low
+      // REG_PORT_OUTCLR0 = PIN_DATA_LCD; //set data pin low
     }
 
     //toggle the clock
@@ -97,14 +97,14 @@ void lcdWrite4Bits(uint8_t data, bool is_control)
   if (is_control)
   {
     REG_PORT_OUTCLR0 = PIN_DATA_LCD; //set data pin low
-    REG_PORT_OUTCLR0 = PIN_DATA_LCD; //set data pin low
-    REG_PORT_OUTCLR0 = PIN_DATA_LCD; //set data pin low
+    // REG_PORT_OUTCLR0 = PIN_DATA_LCD; //set data pin low
+    // REG_PORT_OUTCLR0 = PIN_DATA_LCD; //set data pin low
   }
   else
   {
     REG_PORT_OUTSET0 = PIN_DATA_LCD; //set data pin high
-    REG_PORT_OUTSET0 = PIN_DATA_LCD; //set data pin high
-    REG_PORT_OUTSET0 = PIN_DATA_LCD; //set data pin high
+    // REG_PORT_OUTSET0 = PIN_DATA_LCD; //set data pin high
+    // REG_PORT_OUTSET0 = PIN_DATA_LCD; //set data pin high
   }
   //toggle the clock
   REG_PORT_OUTSET0 = PIN_CLK_LCD; //set data pin high

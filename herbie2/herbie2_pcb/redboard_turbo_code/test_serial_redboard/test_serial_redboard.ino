@@ -112,6 +112,9 @@ void setup_i2c()
   ioex.config(TCA9534::Config::IN); // set all port to input
   ioex.config(1, TCA9534::Config::OUT); // change port P1 to output
   ioex.output(1, TCA9534::Level::H); // turn off LED3
+
+  ioex.config(7, TCA9534::Config::OUT); // set backlight control pin
+  ioex.output(7, TCA9534::Level::H); // turn off backlight
 }
 
 void setup() 
@@ -130,6 +133,9 @@ void setup()
 
   // initialize digital pin LED_BUILTIN as an output.
   pinMode(LED_BUILTIN, OUTPUT);
+
+  lcdClear();
+  lcdPrintf("test");
 }
 
 void loop()
@@ -150,8 +156,11 @@ void loop()
     SerialUSB.print(f);
     SerialUSB.print(" ");
     // SerialUSB.print(getChanEncoderValue(1));
-    SerialUSB.print(readMDR1(1));
+    SerialUSB.print(readMDR1(2));
     SerialUSB.println(" ");
+
+    lcdSetCursor(0,0);
+    lcdPrintf("%d", c);
 
     if (buf[0] == 'a') {
       ser_write = 1;
@@ -239,4 +248,12 @@ void TC4_Handler()  // Servo ISR for timer TC4
   else
   {
   }
+}
+
+void backlight_on() {
+  ioex.output(7, TCA9534::Level::H);
+}
+
+void backlight_off() {
+  ioex.output(7, TCA9534::Level::L);
 }
