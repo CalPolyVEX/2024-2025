@@ -89,14 +89,14 @@ void init_motors() {
     while (GCLK->STATUS.bit.SYNCBUSY);
 
     // Set prescaler TCCDiv for TCC1
-    TCC1->CTRLA.reg |= TCC_CTRLA_PRESCALER(TCC_CTRLA_PRESCALER_DIV1024_Val);
+    TCC1->CTRLA.reg |= TCC_CTRLA_PRESCALER(TCC_CTRLA_PRESCALER_DIV1_Val); //set prescalar to divide by 1
 
     //Use Normal PWM
     TCC1->WAVE.reg = TCC_WAVE_WAVEGEN_NPWM;
     while (TCC1->SYNCBUSY.bit.WAVE) {};
 
     //The PER register determines the period of the PWM
-    uint32_t period = 281250;
+    uint32_t period = 2400; //48000000/2400 = 20KHz
 
     TCC1->PER.reg = period;  //this is a 24-bit register
     while (TCC1->SYNCBUSY.bit.PER) {};
@@ -120,6 +120,10 @@ void init_motors() {
     // index is pin number - 1 / 2, so 3.
     PORT->Group[0].PMUX[3].reg = PORT_PMUX_PMUXO_E;
 
+    //set motor dir PA16 to output
+    PORT->Group[0].DIRSET.reg = PORT_PA16; //set the direction to output
+    PORT->Group[0].OUTCLR.reg = PORT_PA16; //set the value to output LOW
+
     ///////////////////////////////
     //Right Motor
     //Set the duty cycle to 25%
@@ -138,10 +142,69 @@ void init_motors() {
     // index is pin number / 2, so 3.
     PORT->Group[0].PMUX[3].reg |= PORT_PMUX_PMUXE_E;
 
+    //set motor dir PA18 to output
+    PORT->Group[0].DIRSET.reg = PORT_PA18; //set the direction to output
+    PORT->Group[0].OUTCLR.reg = PORT_PA18; //set the value to output LOW
+
     ///////////////////////////////
     //Enable TCC1
     TCC1->CTRLA.reg |= (TCC_CTRLA_ENABLE);
     while (TCC1->SYNCBUSY.bit.ENABLE) {};
+}
+
+void set_motor_speed(int motor_num, int speed) 
+{
+    int val;
+    int dir = 1; //set the default direction
+
+    if (speed > 100) //check input speed for out of bounds
+    {
+        speed = 100;
+    }
+    else if (speed < -100) 
+    {
+        speed = -100;
+    }
+
+    if (speed < 0) 
+    {
+        dir = 0;
+        val = 24 * -speed; //max timer value is 2400, so take the speed and multiply by 24
+    }
+    else 
+    {
+        val = 24 * speed;
+    }
+
+    
+    if (motor_num == 0) //left
+    {
+        if (dir == 1) 
+        {
+            PORT->Group[0].OUTSET.reg = PORT_PA16; //set the value to output HIGH
+        }
+        else 
+        {
+            PORT->Group[0].OUTCLR.reg = PORT_PA16; //set the value to output LOW
+        }
+
+        TCC1->CC[1].reg = val; //this set the on time of the PWM cycle
+        while (TCC1->SYNCBUSY.bit.CC1) {};
+    }
+    else if (motor_num == 1) //right
+    {
+        if (dir == 1) //set the direction
+        {
+            PORT->Group[0].OUTSET.reg = PORT_PA18; //set the value to output HIGH
+        }
+        else 
+        {
+            PORT->Group[0].OUTCLR.reg = PORT_PA18; //set the value to output LOW
+        }
+
+        TCC1->CC[0].reg = val; //this sets the on time of the PWM cycle
+        while (TCC1->SYNCBUSY.bit.CC0) {};
+    }
 }
 
 //////////////////////////////////////////////////

@@ -135,7 +135,6 @@ void lcdWrite(uint8_t data, bool is_control) {
   lcdWrite4Bits(data, is_control);
 }
 
-
 void lcdSetCursor(uint8_t col, uint8_t row) {
   if (col >= 16 || row >= 2) {
     return;

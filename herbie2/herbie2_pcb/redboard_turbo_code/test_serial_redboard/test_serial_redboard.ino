@@ -109,23 +109,28 @@ void setup_i2c()
   Wire.setClock(400000); //set clock to 400KHz
   ioex.attach(Wire);
   ioex.setDeviceAddress(IOEX_ADDR); // A0 = A1 = A2 = 0
-  ioex.config(TCA9534::Config::IN); // set all port to input
+  ioex.config(TCA9534::Config::IN); // set all pins to input
+
   ioex.config(1, TCA9534::Config::OUT); // change port P1 to output
   ioex.output(1, TCA9534::Level::H); // turn off LED3
 
+  ioex.config(0, TCA9534::Config::OUT); // change port P1 to output
+  ioex.output(0, TCA9534::Level::H); // turn off LED3
+
   ioex.config(7, TCA9534::Config::OUT); // set backlight control pin
-  ioex.output(7, TCA9534::Level::H); // turn off backlight
 }
 
 void setup() 
 {
-  delay(4000); //wait 4 seconds
-  SerialUSB.begin(115200); // Initialize Serial Monitor USB
-
   setup_interrupt();
   lcdInit();
   init_motors();
   setup_i2c();
+
+  backlight_on();
+
+  delay(4000); //wait 4 seconds
+  SerialUSB.begin(115200); // Initialize Serial Monitor USB
 
   //while (!SerialUSB); // Wait for Serial monitor to open
 
@@ -136,6 +141,9 @@ void setup()
 
   lcdClear();
   lcdPrintf("test");
+
+  set_motor_speed(0,-50);
+  set_motor_speed(1,20);
 }
 
 void loop()
@@ -164,13 +172,12 @@ void loop()
 
     if (buf[0] == 'a') {
       ser_write = 1;
-      ioex.output(1, TCA9534::Level::L);
+      led_on(2);
     } else {
       ser_write = 0;
-      ioex.output(1, TCA9534::Level::H);
+      led_off(2);
     }
-    // uint8_t raw = ioex.input();
-    // SerialUSB.println(raw, BIN);
+
     while (SerialUSB.available())
     {
       SerialUSB.read();
@@ -195,15 +202,6 @@ void TC5_Handler()  // Encoder (ISR) for timer TC5
 
   REG_TC5_INTFLAG = TC_INTFLAG_MC0; // Clear the MC0 interrupt flag
   TC5->COUNT16.COUNT.reg = 0;
-
-  if (c % 50 == 0)
-  {
-    //digitalWrite(LED_BUILTIN, HIGH); // turn the LED on (HIGH is the voltage level)
-  }
-  else
-  {
-    digitalWrite(LED_BUILTIN, LOW); // turn the LED off by making the voltage LOW
-  }
 }
 
 void clear_servo_register() 
@@ -256,4 +254,18 @@ void backlight_on() {
 
 void backlight_off() {
   ioex.output(7, TCA9534::Level::L);
+}
+
+void led_on(int num) {
+  if (num == 2)
+    ioex.output(0, TCA9534::Level::L);
+  else if (num == 3)
+    ioex.output(1, TCA9534::Level::L);
+}
+
+void led_off(int num) {
+  if (num == 2)
+    ioex.output(0, TCA9534::Level::H);
+  else if (num == 3)
+    ioex.output(1, TCA9534::Level::H);
 }
