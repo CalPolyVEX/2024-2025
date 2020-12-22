@@ -11,6 +11,7 @@
 
 TCA9534 ioex;
 const uint8_t IOEX_ADDR = 0x20; // A0 = A1 = A2 = 0
+extern const unsigned short crctable[256];
 
 #define NUM_SERVOS 4
 unsigned short servo_on[NUM_SERVOS];
@@ -92,13 +93,14 @@ void setup_interrupt()
   NVIC_EnableIRQ(TC5_IRQn);                         // Connect TC5 to Nested Vector Interrupt Controller (NVIC)
 
   REG_TC5_INTFLAG |= TC_INTFLAG_MC0;                // Clear the match compare interrupt flag
-  TC5->COUNT16.INTENSET.reg = TC_INTENSET_MC0;      // Enable TC5 match compare interrupt
  
   init_servo();
   init_encoders();
+
+  //enable the encoders interrupt
+  TC5->COUNT16.INTENSET.reg = TC_INTENSET_MC0;      // Enable TC5 match compare interrupt
 }
 
-unsigned long c = 0;
 unsigned long d = 0;
 int f = 0;
 int ser_write = 0;
@@ -127,81 +129,143 @@ void setup()
   init_motors();
   setup_i2c();
 
+  set_motor_speed(0,0);
+  set_motor_speed(1,0);
+
   backlight_on();
 
   delay(4000); //wait 4 seconds
   SerialUSB.begin(115200); // Initialize Serial Monitor USB
 
-  //while (!SerialUSB); // Wait for Serial monitor to open
-
   SerialUSB.println("Send character(s) to relay it over Serial1");
 
   // initialize digital pin LED_BUILTIN as an output.
   pinMode(LED_BUILTIN, OUTPUT);
-
-  lcdClear();
-  lcdPrintf("test");
-
-  set_motor_speed(0,-50);
-  set_motor_speed(1,20);
 }
+
+int motor_stop_timeout = 0;
 
 void loop()
 {
   char buf[64];
   int packet_length;
 
-  packet_length = SerialUSB.available();
-  if (packet_length >= 5) {
-    SerialUSB.readBytes(buf, packet_length);
+  while(1) 
+  {
+    motor_stop_timeout++;
+    packet_length = SerialUSB.available();
+    if (packet_length >= 8)
+      break;
 
-    // Print a message stating what we're sending:
-    SerialUSB.print("Remaining bytes: ");
-    SerialUSB.print(SerialUSB.available());
-    SerialUSB.print(" ");
-    SerialUSB.print(c);
-    SerialUSB.print(" ");
-    SerialUSB.print(f);
-    SerialUSB.print(" ");
-    // SerialUSB.print(getChanEncoderValue(1));
-    SerialUSB.print(readMDR1(2));
-    SerialUSB.println(" ");
+    if (motor_stop_timeout > 1000) { //if no command received in 1 second, then stop motors
+      set_motor_speed(0, 0);
+      set_motor_speed(1, 0);
 
-    lcdSetCursor(0,0);
-    lcdPrintf("%d", c);
-
-    if (buf[0] == 'a') {
-      ser_write = 1;
-      led_on(2);
-    } else {
-      ser_write = 0;
-      led_off(2);
+      if (motor_stop_timeout == 1001) {
+        lcdClear();
+        lcdPrintf("timeout");
+      }
     }
 
-    while (SerialUSB.available())
-    {
-      SerialUSB.read();
-    } //clear out the serial input buffer
+    delay(1);
   }
-  // SerialUSB.println(packet_length);
-  while (SerialUSB.available())
+
+  if (packet_length >= 8) 
+  {
+    SerialUSB.readBytes(buf, packet_length);
+    motor_stop_timeout = 0;
+
+    if (buf[1] == 34) //received motor command
+    {
+      lcdSetCursor(0, 0);
+      led_off(2);
+
+      if (check_crc(buf, 8) == 1) //CRC is correct
+      {
+        short left_speed = (buf[2] << 8) | buf[3];
+        short right_speed = (buf[4] << 8) | buf[5];
+
+        set_motor_speed(0, left_speed);
+        set_motor_speed(1, right_speed);
+
+        lcdPrintf("%d %d", left_speed, right_speed);
+      }
+      else
+      { //bad CRC
+        lcdClear();
+        lcdSetCursor(0, 0);
+        lcdPrintf("bad CRC");
+        led_on(2);
+      }
+    }
+    else if (buf[1] == 0)
+    {
+      //clear screen
+    }
+    else if (buf[1] == 1)
+    {
+      //set cursor
+    }
+    else if (buf[1] == 2)
+    {
+      //print string
+    }
+    else if (buf[1] == 3)
+    {
+      //set servo position
+    }
+  }
+
+  while (SerialUSB.available())  //clear out the serial input buffer
   {
     SerialUSB.read();
-  } //clear out the serial input buffer
+  } 
 
-  delay(1); //wait 1ms, otherwise the serial USB port will lock up
-  // delayMicroseconds(250); //wait 1ms, otherwise the serial USB port will lock up
+  // delay(1); //wait 1ms, otherwise the serial USB port will lock up
+  delayMicroseconds(250); //wait 1ms, otherwise the serial USB port will lock up
 }
 
 void TC5_Handler()  // Encoder (ISR) for timer TC5
 {
-  // Read the encoders here
-  // ...
-
-  c++;
-
   REG_TC5_INTFLAG = TC_INTFLAG_MC0; // Clear the MC0 interrupt flag
   TC5->COUNT16.COUNT.reg = 0;
+
+  unsigned char buf[13];
+  unsigned int counter = 1;
+  unsigned short crc = 0;
+  unsigned long left_enc_count = getChanEncoderValue(1); 
+  unsigned long right_enc_count = getChanEncoderValue(2);
+
+  buf[0] = 0xff;
+
+  buf[1] = left_enc_count & 0xff;  //send least significant byte first
+  left_enc_count = left_enc_count >> 8;
+  buf[2] = left_enc_count & 0xff;
+  left_enc_count = left_enc_count >> 8;
+  buf[3] = left_enc_count & 0xff;
+  left_enc_count = left_enc_count >> 8;
+  buf[4] = left_enc_count & 0xff;
+
+  buf[5] = right_enc_count & 0xff;
+  right_enc_count = right_enc_count >> 8;
+  buf[6] = right_enc_count & 0xff;
+  right_enc_count = right_enc_count >> 8;
+  buf[7] = right_enc_count & 0xff;
+  right_enc_count = right_enc_count >> 8;
+  buf[8] = right_enc_count & 0xff;
+
+  buf[9] = 0xff; //send 2 extra bytes for future use
+  buf[10] = 0xff;
+
+  for (int byte = 0; byte < 11; byte++) //compute the CRC
+  {
+    crc = (crc << 8) ^ crctable[((crc >> 8) ^ buf[byte])];
+  }
+
+  buf[11] = (crc >> 8) & 0xFF; //send the high byte of the crc
+  buf[12] = crc & 0xFF;        //send the low byte of the crc
+
+  SerialUSB.write(buf,13);  //send the data
 }
 
 void clear_servo_register() 

@@ -119,7 +119,8 @@ void lcdWrite4Bits(uint8_t data, bool is_control)
   REG_PORT_OUTSET0 = PIN_LCD_E; //set LCD_E pin high
   delayMicroseconds(1);
   REG_PORT_OUTCLR0 = PIN_LCD_E; //set LCD_E pin low
-  delayMicroseconds(100);
+  // delayMicroseconds(100);
+  delayMicroseconds(50);
 }
 
 void lcdWrite(uint8_t data, bool is_control) {

@@ -176,7 +176,6 @@ void set_motor_speed(int motor_num, int speed)
         val = 24 * speed;
     }
 
-    
     if (motor_num == 0) //left
     {
         if (dir == 1) 
@@ -209,31 +208,17 @@ void set_motor_speed(int motor_num, int speed)
 
 //////////////////////////////////////////////////
 //compute_crc - compute a new crc for sending out the encoder packet
-void compute_crc() 
+unsigned short compute_crc(unsigned char *buf, int len) 
 {
-    signed short dl = 50; //left duty cycle
-    signed short dr = 50; //right duty cycle
-    unsigned char data[8];
     unsigned short crc = 0;
-    unsigned char address = 128;
-
-    data[0] = address;
-    data[1] = 34; // set left/right motors command
-
-    data[2] = (dl >> 8) & 0xFF; //send the high byte of the duty cycle
-    data[3] = dl & 0xFF;        //send the low byte of the duty cycle
-
-    data[4] = (dr >> 8) & 0xFF; //send the high byte of the duty cycle
-    data[5] = dr & 0xFF;        //send the low byte of the duty cycle
 
     //Calculates CRC16 of nBytes of data in byte array message
-    for (int byte = 0; byte < 6; byte++)
+    for (int byte = 0; byte < len; byte++)
     {
-        crc = (crc << 8) ^ crctable[((crc >> 8) ^ data[byte])];
+        crc = (crc << 8) ^ crctable[((crc >> 8) ^ buf[byte])];
     }
 
-    data[6] = (crc >> 8) & 0xFF; //send the high byte of the crc
-    data[7] = crc & 0xFF;        //send the low byte of the crc
+    return crc;
 }
 
 //*************************************************
@@ -283,7 +268,7 @@ void init_encoders()
     REG_PORT_OUTSET0 = PORT_PA17; //PA17
 
     SPI.begin();
-    delay(10);
+    delay(100);
     //SPI.usingInterrupt(20);  //SPI will be access during Timer 5 interrupts
 
     //LS7366 notes
@@ -304,7 +289,7 @@ void init_encoders()
         SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
         delay(1);
         setSSEnc(SPI_ENABLE, num);
-        SPI.transfer(WRITE_MDR0);                                   // Select MDR0 | WR register
+        SPI.transfer(WRITE_MDR0);  // Select MDR0 | WR register
         // Filter clock division factor = 2 || Asynchronous Index ||
         // disable index || free-running count mode || x4 quadrature count mode
         SPI.transfer(FILTER_2 | DISABLE_INDX | FREE_RUN | QUADRX4); 
@@ -318,27 +303,11 @@ void init_encoders()
         setSSEnc(SPI_DISABLE, num);
         delay(1);
 
-        //Set DTR
-        // setSSEnc(SPI_ENABLE, num);
-        // SPI.transfer(WRITE_DTR); // Select DTR | WR register
-        // SPI.transfer(0x00);      // DTR MSB
-        // SPI.transfer(0x00);      // DTR
-        // SPI.transfer(0x00);      // DTR
-        // SPI.transfer(0x0A);      // DTR LSB
-        // setSSEnc(SPI_DISABLE, num);
-        // delay(1);
-
-        // setSSEnc(SPI_ENABLE, num);
-        // SPI.transfer(LOAD_CNTR);
-        // setSSEnc(SPI_DISABLE, num);
-        // delay(1);
-
         setSSEnc(SPI_ENABLE, num);
         SPI.transfer(CLR_CNTR); // Select CNTR || CLEAR register
         setSSEnc(SPI_DISABLE, num);
         delay(1);
 
-        // SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
         clearStrReg(num); //reseting the counter value inside the encoder chips to 0
         delay(1);
         rstEncCnt(num);
@@ -367,18 +336,21 @@ long getChanEncoderValue(int encoder)
 {
     unsigned int cnt1Value, cnt2Value, cnt3Value, cnt4Value;
     long result;
+    unsigned char buf[5];
 
     SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
     setSSEnc(SPI_ENABLE, encoder);
 
-    SPI.transfer(READ_CNTR);        // Request count
-    cnt1Value = SPI.transfer(0x00); // Read highest order byte
-    cnt2Value = SPI.transfer(0x00);
-    cnt3Value = SPI.transfer(0x00);
-    cnt4Value = SPI.transfer(0x00); // Read lowest order byte
+    buf[0] = READ_CNTR;
+    SPI.transfer(buf,5);
 
     setSSEnc(SPI_DISABLE, encoder);
     SPI.endTransaction();
+
+    cnt1Value = buf[1];
+    cnt2Value = buf[2];
+    cnt3Value = buf[3];
+    cnt4Value = buf[4];
 
     result = ((long)cnt1Value << 24) + ((long)cnt2Value << 16) + ((long)cnt3Value << 8) + (long)cnt4Value;
 
