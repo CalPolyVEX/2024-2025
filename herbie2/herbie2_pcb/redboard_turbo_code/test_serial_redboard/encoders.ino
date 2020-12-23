@@ -43,7 +43,7 @@ const unsigned short crctable[256] =
 
 //////////////////////////////////////////////////
 //check_crc - check the crc of the incoming packet
-int check_crc(char* data, int len) 
+int check_crc(char* data, int len) //len is the length including the CRC 
 {
     unsigned short crc = 0;
     unsigned short received_crc;
@@ -157,23 +157,23 @@ void set_motor_speed(int motor_num, int speed)
     int val;
     int dir = 1; //set the default direction
 
-    if (speed > 100) //check input speed for out of bounds
+    if (speed > 2400) //check input speed for out of bounds
     {
-        speed = 100;
+        speed = 2400;
     }
-    else if (speed < -100) 
+    else if (speed < -2400) 
     {
-        speed = -100;
+        speed = -2400;
     }
 
     if (speed < 0) 
     {
         dir = 0;
-        val = 24 * -speed; //max timer value is 2400, so take the speed and multiply by 24
+        val = -speed; //max timer value is 2400, but must be positive
     }
     else 
     {
-        val = 24 * speed;
+        val = speed;
     }
 
     if (motor_num == 0) //left
@@ -342,7 +342,7 @@ long getChanEncoderValue(int encoder)
     setSSEnc(SPI_ENABLE, encoder);
 
     buf[0] = READ_CNTR;
-    SPI.transfer(buf,5);
+    SPI.transfer(buf,5); //transfer 5 bytes with the first byte being the command READ_CNTR
 
     setSSEnc(SPI_DISABLE, encoder);
     SPI.endTransaction();

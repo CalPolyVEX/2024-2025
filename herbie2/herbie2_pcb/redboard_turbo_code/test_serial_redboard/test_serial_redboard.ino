@@ -97,13 +97,9 @@ void setup_interrupt()
   init_servo();
   init_encoders();
 
-  //enable the encoders interrupt
+  //enable the encoder interrupt after initializing the 7366 chips
   TC5->COUNT16.INTENSET.reg = TC_INTENSET_MC0;      // Enable TC5 match compare interrupt
 }
-
-unsigned long d = 0;
-int f = 0;
-int ser_write = 0;
 
 void setup_i2c() 
 {
@@ -144,17 +140,17 @@ void setup()
 }
 
 int motor_stop_timeout = 0;
+char buf[64];
 
 void loop()
 {
-  char buf[64];
   int packet_length;
 
   while(1) 
   {
     motor_stop_timeout++;
     packet_length = SerialUSB.available();
-    if (packet_length >= 8)
+    if (packet_length >= 8) //the minimum packet length is 8 bytes
       break;
 
     if (motor_stop_timeout > 1000) { //if no command received in 1 second, then stop motors
@@ -167,7 +163,7 @@ void loop()
       }
     }
 
-    delay(1);
+    delay(1); //delay 1 ms
   }
 
   if (packet_length >= 8) 
@@ -175,17 +171,16 @@ void loop()
     SerialUSB.readBytes(buf, packet_length);
     motor_stop_timeout = 0;
 
-    if (buf[1] == 34) //received motor command
+    if (buf[1] == 34) //motor command
     {
       lcdSetCursor(0, 0);
-      led_off(2);
 
       if (check_crc(buf, 8) == 1) //CRC is correct
       {
-        short left_speed = (buf[2] << 8) | buf[3];
+        short left_speed = (buf[2] << 8) | buf[3];  //speed is sent high byte first
         short right_speed = (buf[4] << 8) | buf[5];
 
-        set_motor_speed(0, left_speed);
+        set_motor_speed(0, left_speed); //the speed should be between -2400 and +2400
         set_motor_speed(1, right_speed);
 
         lcdPrintf("%d %d", left_speed, right_speed);
@@ -201,18 +196,80 @@ void loop()
     else if (buf[1] == 0)
     {
       //clear screen
+      if (check_crc(buf, 8) == 1) //CRC is correct
+        lcdClear();
     }
     else if (buf[1] == 1)
     {
       //set cursor
+      //buf[2] = col (0-15)
+      //buf[3] = row (0-1)
+      if (check_crc(buf, 8) == 1) //CRC is correct
+        lcdSetCursor(buf[2], buf[3]);
     }
     else if (buf[1] == 2)
     {
       //print string
+      //buf[2] = the length of the string in bytes
+      //buf[3-x] = the string data
+      if (check_crc(buf, packet_length) == 1)
+      { //CRC is correct
+        char str[32];
+
+        for (int i = 0; i < buf[2]; i++)
+        {
+          str[i] = buf[3 + i];
+        }
+        str[buf[2]] = 0; //set the end of the string to NULL
+
+        lcdSetCursor(0, 1);
+        lcdPrintf("%s", str);
+      }
     }
     else if (buf[1] == 3)
     {
+      //print int
+      //buf[2-5] = the 4 bytes of the int, sent least significant byte first
+      if (check_crc(buf, 8) == 1)  //CRC is correct
+      { 
+        int num = ((int)buf[5] << 24) | ((int)buf[4] << 16) | ((int)buf[3] << 8) | ((int)buf[2]);
+        lcdSetCursor(0, 1);
+        lcdPrintf("%d", num);
+      }
+    }
+    else if (buf[1] == 4)
+    {
+      //backlight off
+      if (check_crc(buf, 8) == 1)  //CRC is correct
+        backlight_off();
+    }
+    else if (buf[1] == 5)
+    {
+      //backlight on
+      if (check_crc(buf, 8) == 1)  //CRC is correct
+        backlight_on();
+    }
+    else if (buf[1] == 6)
+    {
       //set servo position
+      //buf[2] = servo number (0-5)
+      //buf[3] = position (0-255)
+    }
+    else if (buf[1] == 7)
+    {
+      //LED on
+      //buf[2] = led number 
+      if (check_crc(buf, 8) == 1) {  //CRC is correct
+        led_on(buf[2]);
+      }
+    }
+    else if (buf[1] == 8)
+    {
+      //LED off
+      //buf[2] = led number 
+      if (check_crc(buf, 8) == 1) {  //CRC is correct
+        led_off(buf[2]);
+      }
     }
   }
 
@@ -231,10 +288,9 @@ void TC5_Handler()  // Encoder (ISR) for timer TC5
   TC5->COUNT16.COUNT.reg = 0;
 
   unsigned char buf[13];
-  unsigned int counter = 1;
   unsigned short crc = 0;
-  unsigned long left_enc_count = getChanEncoderValue(1); 
-  unsigned long right_enc_count = getChanEncoderValue(2);
+  unsigned long left_enc_count = getChanEncoderValue(2); 
+  unsigned long right_enc_count = getChanEncoderValue(1);
 
   buf[0] = 0xff;
 
@@ -288,8 +344,6 @@ void TC4_Handler()  // Servo ISR for timer TC4
   // Adjust servos here
   // ...
 
-  d++;
-
   char data = 0;
   char mask = 0;
 
@@ -299,17 +353,6 @@ void TC4_Handler()  // Servo ISR for timer TC4
 
   REG_TC4_INTFLAG = TC_INTFLAG_MC0; // Clear the MC0 interrupt flag
   TC4->COUNT16.COUNT.reg = 0;
-
-  if (d % 50 == 0)
-  {
-    if (ser_write == 1)
-    {
-      SerialUSB.println(d);
-    }
-  }
-  else
-  {
-  }
 }
 
 void backlight_on() {

@@ -44,23 +44,6 @@ void lcdInit(void) {
 
 void lcdWrite4Bits(uint8_t data, bool is_control)
 {
-  //   const uint8_t oV = PORTB & ~(0x60);
-  //   const uint8_t dV = oV | 0x40;
-  //   const uint8_t cV = oV | 0x20;
-
-  //   if (data & _BV(3)) PORTB = dV;
-  //     PORTB = cV; //clock high
-  //     PORTB = oV; //clock low
-  //   if (data & _BV(2)) PORTB = dV;
-  //     PORTB = cV;
-  //     PORTB = oV;
-  //   if (data & _BV(1)) PORTB = dV;
-  //     PORTB = cV;
-  //     PORTB = oV;
-  //   if (data & _BV(0)) PORTB = dV;
-  //     PORTB = cV;
-  //     PORTB = oV;
-
   char mask = 1 << 3;
   for (int count=3; count>=0; count--) 
   {
@@ -86,14 +69,6 @@ void lcdWrite4Bits(uint8_t data, bool is_control)
     mask = mask >> 1;
   }
 
-  //   // set the LCD_RS pin
-  //   if (is_control) {
-  //   } else {
-  //     PORTB = dV;
-  //   }
-  //   PORTB = cV;
-  //   PORTB = oV;
-
   if (is_control)
   {
     REG_PORT_OUTCLR0 = PIN_DATA_LCD; //set data pin low
@@ -106,16 +81,14 @@ void lcdWrite4Bits(uint8_t data, bool is_control)
     // REG_PORT_OUTSET0 = PIN_DATA_LCD; //set data pin high
     // REG_PORT_OUTSET0 = PIN_DATA_LCD; //set data pin high
   }
+
   //toggle the clock
   REG_PORT_OUTSET0 = PIN_CLK_LCD; //set data pin high
   delayMicroseconds(1);
   REG_PORT_OUTCLR0 = PIN_CLK_LCD; //set data pin low
   delayMicroseconds(1);
 
-  //   // toggle the LCD_E pin
-  //   PORTE |= _BV(PE3);
-  //   PORTE &= ~_BV(PE3);
-  //   delayMicroseconds(100);
+  // toggle the LCD_E pin
   REG_PORT_OUTSET0 = PIN_LCD_E; //set LCD_E pin high
   delayMicroseconds(1);
   REG_PORT_OUTCLR0 = PIN_LCD_E; //set LCD_E pin low
@@ -147,7 +120,8 @@ void lcdSetCursor(uint8_t col, uint8_t row) {
 void lcdClear(void) {
   // clear the display
   lcdWrite(0x01, true);
-  delayMicroseconds(3300);
+  // delayMicroseconds(3300);
+  delayMicroseconds(2000);
   s_lcd_line = 0;
 }
 
