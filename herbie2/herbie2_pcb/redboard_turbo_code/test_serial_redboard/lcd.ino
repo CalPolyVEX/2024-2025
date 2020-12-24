@@ -44,27 +44,22 @@ void lcdInit(void) {
 
 void lcdWrite4Bits(uint8_t data, bool is_control)
 {
-  char mask = 1 << 3;
+  char mask = 0x8;
   for (int count=3; count>=0; count--) 
   {
     if (data & mask)
     {
       REG_PORT_OUTSET0 = PIN_DATA_LCD; //set data pin high
-      // REG_PORT_OUTSET0 = PIN_DATA_LCD; //set data pin high
-      // REG_PORT_OUTSET0 = PIN_DATA_LCD; //set data pin high
     }
     else
     {
       REG_PORT_OUTCLR0 = PIN_DATA_LCD; //set data pin low
-      // REG_PORT_OUTCLR0 = PIN_DATA_LCD; //set data pin low
-      // REG_PORT_OUTCLR0 = PIN_DATA_LCD; //set data pin low
     }
 
     //toggle the clock
-    REG_PORT_OUTSET0 = PIN_CLK_LCD; //set data pin high
-    delayMicroseconds(1);
+    REG_PORT_OUTSET0 = PIN_CLK_LCD; //set data pin high twice for the 74HC164 pulse duration
+    REG_PORT_OUTSET0 = PIN_CLK_LCD; 
     REG_PORT_OUTCLR0 = PIN_CLK_LCD; //set data pin low
-    delayMicroseconds(1);
 
     mask = mask >> 1;
   }
@@ -72,19 +67,15 @@ void lcdWrite4Bits(uint8_t data, bool is_control)
   if (is_control)
   {
     REG_PORT_OUTCLR0 = PIN_DATA_LCD; //set data pin low
-    // REG_PORT_OUTCLR0 = PIN_DATA_LCD; //set data pin low
-    // REG_PORT_OUTCLR0 = PIN_DATA_LCD; //set data pin low
   }
   else
   {
     REG_PORT_OUTSET0 = PIN_DATA_LCD; //set data pin high
-    // REG_PORT_OUTSET0 = PIN_DATA_LCD; //set data pin high
-    // REG_PORT_OUTSET0 = PIN_DATA_LCD; //set data pin high
   }
 
   //toggle the clock
-  REG_PORT_OUTSET0 = PIN_CLK_LCD; //set data pin high
-  delayMicroseconds(1);
+  REG_PORT_OUTSET0 = PIN_CLK_LCD; //set data pin high twice for the 74HC164 pulse duration
+  REG_PORT_OUTSET0 = PIN_CLK_LCD; 
   REG_PORT_OUTCLR0 = PIN_CLK_LCD; //set data pin low
   delayMicroseconds(1);
 
@@ -132,8 +123,10 @@ void lcdPrintf(const char *format, ...) {
   vsnprintf(buf, sizeof(buf), format, ap);
   for (char *p = &buf[0]; *p; p++) { // emulate cooked mode for newlines
     if (*p == '\n')
-      write('\r');
-    write(*p);
+      // write('\r');
+      lcdWrite('\r', false);
+    // write(*p);
+    lcdWrite(*p, false);
   }
   va_end(ap);
 }

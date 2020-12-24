@@ -3,7 +3,7 @@
 
 #define ENC1_SS 12 //ss
 #define ENC2_SS 13 //ss
-#define SPI_CLK 3000000
+#define SPI_CLK 3500000
 
 const unsigned short crctable[256] =
 {
@@ -355,4 +355,66 @@ long getChanEncoderValue(int encoder)
     result = ((long)cnt1Value << 24) + ((long)cnt2Value << 16) + ((long)cnt3Value << 8) + (long)cnt4Value;
 
     return result;
+}
+
+//////////////////////////////////////////////////
+//init_servo_test()
+//call this after calling init_motors since
+//this function assume the GCLK is setup for 
+//TCC0
+void init_servo_test() {
+    // Set prescaler TCCDiv for TCC0
+    TCC0->CTRLA.reg |= TCC_CTRLA_PRESCALER(TCC_CTRLA_PRESCALER_DIV1_Val); //set prescalar to divide by 1 = 48MHz clock
+
+    //Use Normal PWM
+    TCC0->WAVE.reg = TCC_WAVE_WAVEGEN_NPWM;
+    while (TCC0->SYNCBUSY.bit.WAVE) {};
+
+    //The PER register determines the period of the PWM
+    uint32_t period = 960000; //48000000/960000 = 20ms,  48000 ticks equals 1ms,  48 ticks is 1us
+
+    TCC0->PER.reg = period;  //this is a 24-bit register
+    while (TCC0->SYNCBUSY.bit.PER) {};
+
+    ///////////////////////////////
+    //Servo0
+
+    //Set the duty cycle 
+    //CC[3] for WO[7]
+    TCC0->CC[3].reg = 72000; //this set initial on time to 1.5ms = 48000 ticks * 1.5
+    while (TCC0->SYNCBUSY.bit.CC1) {};
+
+    //set PA21 to output, Group[0] refers to PORTA
+    PORT->Group[0].DIRSET.reg = PORT_PA21; //set the direction to output
+    PORT->Group[0].OUTCLR.reg = PORT_PA21; //set the value to output LOW
+
+    /* Enable the peripheral multiplexer for the pins. */
+    PORT->Group[0].PINCFG[21].reg |= PORT_PINCFG_PMUXEN;
+
+    // Set PA21's function to function F. Function F is TCC0/WO[7] for PA21.
+    // Because this is an odd numbered pin the PMUX is O (odd) and the PMUX
+    // index is pin number - 1 / 2, so 10.
+    PORT->Group[0].PMUX[10].reg = PORT_PMUX_PMUXO_F;
+
+    ///////////////////////////////
+    //Servo1
+    TCC0->CC[1].reg = 72000; //this sets the initial on time of the PWM cycle (1.5ms), CC1 for WO[5]
+    while (TCC0->SYNCBUSY.bit.CC0) {};
+
+    //set PA15 to output, Group[0] refers to PORTA
+    PORT->Group[0].DIRSET.reg = PORT_PA15; //set the direction to output
+    PORT->Group[0].OUTCLR.reg = PORT_PA15; //set the value to output LOW
+
+    /* Enable the peripheral multiplexer for the pins. */
+    PORT->Group[0].PINCFG[15].reg |= PORT_PINCFG_PMUXEN;
+
+    // Set PA15's function to function F. Function F is TCC0/WO[5] for PA15.
+    // Because this is an odd numbered pin the PMUX is O (odd) and the PMUX
+    // index is pin number - 1 / 2, so 7.
+    PORT->Group[0].PMUX[7].reg |= PORT_PMUX_PMUXO_F;
+
+    ///////////////////////////////
+    //Enable TCC0
+    TCC0->CTRLA.reg |= (TCC_CTRLA_ENABLE);
+    while (TCC0->SYNCBUSY.bit.ENABLE) {};
 }
