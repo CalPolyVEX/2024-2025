@@ -10,10 +10,12 @@
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/TwistWithCovarianceStamped.h>
 #include <std_msgs/Int32MultiArray.h>
+#include <std_msgs/ByteMultiArray.h>
 #include <ros/console.h>
 #include <serial/serial.h>
 #include <iostream>
 #include <boost/thread.hpp>
+#include <boost/lockfree/queue.hpp>
 #include "encoder_odom.h"
 #include <rtabmap_ros/Info.h>
 
@@ -23,6 +25,7 @@ ros::NodeHandle *nh;
 ros::Subscriber sub_, sub_cmd_vel, sub_planner_cmd_vel;
 ros::Subscriber sub_stop;
 ros::Subscriber rtabmap_info_sub;
+ros::Subscriber control_board_sub;
 ros::Publisher pub_, loop_closure_pub;
 ros::Publisher twist_pub;
 
@@ -61,6 +64,9 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
 
   //listen for Empty messages on /rtabmap/info
   rtabmap_info_sub = nh->subscribe("/rtabmap/info", 1, &OdometryPublisher::rtabmap_info_callback, this);
+  
+  //listen for messages to send to the control board
+  control_board_sub = nh->subscribe("/control_board", 5, &OdometryPublisher::control_board_callback, this);
 
   ROS_INFO("Connecting to roboclaw");
   nh->param<std::string>("dev1", dev_name, "/dev/roboclaw");
@@ -102,6 +108,8 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
 
   left_counter = 0;
   right_counter = 0;
+
+  board_queue.reserve(64);
 }
 
 void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
@@ -109,6 +117,7 @@ void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
   signed short dr = duty_cycler;
   unsigned char data[8];
   unsigned short crc = 0;
+  int sent_board_packets = 0;
 
   my_serial->flushOutput();
   my_serial->flushInput();
@@ -123,6 +132,18 @@ void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
   data[5] = dr & 0xFF; //send the low byte of the duty cycle
 
   //Calculates CRC16 of nBytes of data in byte array message
+  /* for (int byte = 0; byte < 6; byte++) { */        
+  /*   crc = crc ^ ((unsigned int)data[byte] << 8); */        
+  /*   for (unsigned char bit = 0; bit < 8; bit++) { */            
+  /*     if (crc & 0x8000) { */                
+  /*       crc = (crc << 1) ^ 0x1021; */            
+  /*     } else { */                
+  /*       crc = crc << 1; */   
+  /*     } */ 
+  /*   } */ 
+  /* } */ 
+  
+  //Calculates CRC16 of nBytes of data in byte array message
   for (int byte = 0; byte < 6; byte++) {        
      crc = (crc << 8) ^ crctable[((crc >> 8) ^ data[byte])];
   }
@@ -131,6 +152,31 @@ void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
   data[7] = crc & 0xFF; //send the low byte of the crc
 
   my_serial->write(data,8);
+
+  //handle the packets to be sent to the Herbie control board
+  while ( (board_queue.empty() != false) && (sent_board_packets < 3)) {
+     usleep(3000);
+     struct packet p;
+
+     board_queue.pop(p);
+     my_serial->write(p.data,p.size);
+     sent_board_packets++;
+  }
+}
+
+void OdometryPublisher::control_board_callback(const std_msgs::ByteMultiArray::ConstPtr& board_msg) {
+   //this function handles command that are sent to the Herbie control board
+   //the packets are stored in a queue and the function setmotor() will send 
+   //out the packets to the board
+   
+   struct packet p;
+   
+   p.size = board_msg->data[0];
+   for (int i=0; i<p.size; i++) {
+      p.data[i] = board_msg->data[i+1];
+   }
+
+   board_queue.push(p);
 }
 
 void OdometryPublisher::safety_callback(const ros::TimerEvent& ev) {

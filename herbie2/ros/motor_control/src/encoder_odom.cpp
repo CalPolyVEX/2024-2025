@@ -242,8 +242,19 @@ void OdometryPublisher::run_pid() {
     cur_right_motor = cur_right_motor * .10 + last_right_motor_cmd * .90;
   }
 
+  //adjust for Herbie control board limits (-2400 to +2400)
+  //round towards 0 = (x + ((x >> 31) & ((1 << n) + ~0))) >> n
+  int applied_left_motor = cur_left_motor;
+  int applied_right_motor = cur_right_motor;
+
+  applied_left_motor = applied_left_motor * 2400; //multiply by 2400 and divide by 32768
+  applied_left_motor = (applied_left_motor + ((applied_left_motor >> 31) & ((1 << 15) + ~0))) >> 15; //divide by 32768 with rounding towards 0
+  applied_right_motor = applied_right_motor * 2400; //multiply by 2400 and divide by 32768
+  applied_right_motor = (applied_right_motor + ((cur_right_motor >> 31) & ((1 << 15) + ~0))) >> 15; //divide by 32768 with rounding towards 0
+
   //set the motor speeds
   setmotor_mutex.lock();
+  /* setmotor(-applied_left_motor, -applied_right_motor); */
   setmotor(-cur_left_motor, -cur_right_motor);
   setmotor_mutex.unlock();
 }
