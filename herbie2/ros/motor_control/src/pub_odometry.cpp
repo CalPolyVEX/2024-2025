@@ -217,26 +217,6 @@ void OdometryPublisher::safety_callback(const ros::TimerEvent& ev) {
     right_tick_vel = 0;
   }
 
-  //check for overcurrent situation with motors
-  setmotor_mutex.lock();
-  read_motor_currents(&left_current, &right_current);
-  setmotor_mutex.unlock();
-  left_current *= 10; //convert the current values to mA
-  right_current *= 10;
-  ROS_INFO("Motor current: %d %d", left_current, right_current);
-
-  if ((left_current > 3000) || (right_current > 3000)) { //3000mA
-    current_counter++;
-  } else {
-    current_counter = 0;
-  }
-
-  if (current_counter > 1) {
-    //overcurrent for motors
-    //stop = 1;
-    ROS_INFO("Overcurrent for motors");
-  }
-
   //check for stalled motors
 
   //check for tilted robot
@@ -245,56 +225,9 @@ void OdometryPublisher::safety_callback(const ros::TimerEvent& ev) {
   //ROS_INFO("Voltage: %f", (float) voltage / 10.0);
 }
 
-void OdometryPublisher::read_voltage(unsigned short* voltage) {
-  unsigned char data[8];
-
-  my_serial->flushOutput();
-  my_serial->flushInput();
-
-  data[0] = address;
-  data[1] = 24; //read main battery voltage command
-  my_serial->write(data,2);
-
-  my_serial->read(data,4);
-  *voltage = data[0] << 8; //voltage units are 0.1V
-  *voltage += data[1];
-}
-
-void OdometryPublisher::read_motor_currents(unsigned short* left_current, unsigned short* right_current) {
-  unsigned char data[8];
-
-  my_serial->flushOutput();
-  my_serial->flushInput();
-
-  data[0] = address;
-  data[1] = 49; //read motor current command
-  my_serial->write(data,2);
-
-  my_serial->read(data,6);
-  *left_current = data[0] << 8;
-  *left_current += data[1];
-  *right_current = data[2] << 8;
-  *right_current += data[3];
-}
-
-void OdometryPublisher::read_status(unsigned short* status) {
-  unsigned char data[8];
-
-  my_serial->flushOutput();
-  my_serial->flushInput();
-
-  data[0] = address;
-  data[1] = 90; //read status
-  my_serial->write(data,2);
-
-  my_serial->read(data,4);
-  *status = data[0] << 8;
-  *status += data[1];
-}
-
 void OdometryPublisher::test_read() {
   unsigned char data[RECEIVE_PACKET_SIZE];
-  int i,x;
+  int x;
   int left_encoder, right_encoder;
   int mask,counter;
   unsigned char extra_byte[2];
@@ -306,31 +239,29 @@ void OdometryPublisher::test_read() {
   while (ros::ok()) {
     x = my_serial->read(data,RECEIVE_PACKET_SIZE);
     if ((check_receive_crc(data,RECEIVE_PACKET_SIZE) == 1) && (data[0] == 0xFF)) {
-      /* cout << x << endl; */
-      /* wheel_enc_msg.data.clear(); */
       left_encoder = 0;
       right_encoder = 0;
 
       //encoder data sent least significant byte first
       counter = 1;
-      for(i=0;i<4;i++) {
+      for(int i=0;i<4;i++) {
         mask = data[counter] << (8*i);
         left_encoder |= mask;
         counter++;
       }
-      /* wheel_enc_msg.data.push_back(left_encoder); */
+      wheel_enc_msg.data.push_back(left_encoder);
 
-      for(i=0;i<4;i++) {
+      for(int i=0;i<4;i++) {
         mask = data[counter] << (8*i);
         right_encoder |= mask;
         counter++;
       }
-      /* wheel_enc_msg.data.push_back(right_encoder); */
+      wheel_enc_msg.data.push_back(right_encoder);
 
       extra_byte[0] = data[RECEIVE_PACKET_SIZE-4]; //these are 2 extra bytes of data for future use
       extra_byte[1] = data[RECEIVE_PACKET_SIZE-3];
 
-      pub_.publish(wheel_enc_msg);
+      encoder_message_callback((const std_msgs::Int32MultiArray::ConstPtr&) wheel_enc_msg); 
     }
 
     ros::spinOnce();
@@ -342,16 +273,20 @@ int OdometryPublisher::check_receive_crc(unsigned char* data, int len) {
   unsigned short received_crc=0;
 
   //Calculates CRC16 of nBytes of data in byte array message
-  for (int byte = 0; byte < (len-2); byte++) {        
-    crc = crc ^ ((unsigned short)data[byte] << 8);        
-    for (unsigned char bit = 0; bit < 8; bit++) {            
-      if (crc & 0x8000) {                
-        crc = (crc << 1) ^ 0x1021;            
-      } else {                
-        crc = crc << 1;   
-      } 
-    } 
-  } 
+  /* for (int byte = 0; byte < (len-2); byte++) { */        
+  /*   crc = crc ^ ((unsigned short)data[byte] << 8); */        
+  /*   for (unsigned char bit = 0; bit < 8; bit++) { */            
+  /*     if (crc & 0x8000) { */                
+  /*       crc = (crc << 1) ^ 0x1021; */            
+  /*     } else { */                
+  /*       crc = crc << 1; */   
+  /*     } */ 
+  /*   } */ 
+  /* } */ 
+  for (int byte = 0; byte < (len-2); byte++)
+  {
+     crc = (crc << 8) ^ crctable[((crc >> 8) ^ data[byte])];
+  }
 
   received_crc = (data[len-2] << 8) & 0xFF00;
   received_crc = received_crc | data[len-1]; 
