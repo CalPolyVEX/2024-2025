@@ -38,9 +38,6 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   setmotor_mutex.unlock();
   update_encoder_mutex.unlock();
   
-  //read_encoder_cmd is used to send messages to the Arduino to request an encoder update
-  //odom_req = nh->advertise<std_msgs::Empty>("/read_encoder_cmd", 1);
-  
   //encoder Int32MultiArray messages are received from the Arduino on this topic
   sub_ = nh->subscribe("/encoder_service", 1, &OdometryPublisher::encoder_message_callback, this);
 
@@ -293,6 +290,76 @@ void OdometryPublisher::read_status(unsigned short* status) {
   my_serial->read(data,4);
   *status = data[0] << 8;
   *status += data[1];
+}
+
+void OdometryPublisher::test_read() {
+  unsigned char data[RECEIVE_PACKET_SIZE];
+  int i,x;
+  int left_encoder, right_encoder;
+  int mask,counter;
+  unsigned char extra_byte[2];
+  std_msgs::Int32MultiArray wheel_enc_msg;
+
+  my_serial->flushOutput();
+  my_serial->flushInput();
+
+  while (ros::ok()) {
+    x = my_serial->read(data,RECEIVE_PACKET_SIZE);
+    if ((check_receive_crc(data,RECEIVE_PACKET_SIZE) == 1) && (data[0] == 0xFF)) {
+      /* cout << x << endl; */
+      /* wheel_enc_msg.data.clear(); */
+      left_encoder = 0;
+      right_encoder = 0;
+
+      //encoder data sent least significant byte first
+      counter = 1;
+      for(i=0;i<4;i++) {
+        mask = data[counter] << (8*i);
+        left_encoder |= mask;
+        counter++;
+      }
+      /* wheel_enc_msg.data.push_back(left_encoder); */
+
+      for(i=0;i<4;i++) {
+        mask = data[counter] << (8*i);
+        right_encoder |= mask;
+        counter++;
+      }
+      /* wheel_enc_msg.data.push_back(right_encoder); */
+
+      extra_byte[0] = data[RECEIVE_PACKET_SIZE-4]; //these are 2 extra bytes of data for future use
+      extra_byte[1] = data[RECEIVE_PACKET_SIZE-3];
+
+      pub_.publish(wheel_enc_msg);
+    }
+
+    ros::spinOnce();
+  }
+}
+
+int OdometryPublisher::check_receive_crc(unsigned char* data, int len) {
+  unsigned short crc=0;
+  unsigned short received_crc=0;
+
+  //Calculates CRC16 of nBytes of data in byte array message
+  for (int byte = 0; byte < (len-2); byte++) {        
+    crc = crc ^ ((unsigned short)data[byte] << 8);        
+    for (unsigned char bit = 0; bit < 8; bit++) {            
+      if (crc & 0x8000) {                
+        crc = (crc << 1) ^ 0x1021;            
+      } else {                
+        crc = crc << 1;   
+      } 
+    } 
+  } 
+
+  received_crc = (data[len-2] << 8) & 0xFF00;
+  received_crc = received_crc | data[len-1]; 
+
+  if (received_crc == crc) //return 1 if the CRC is correct
+     return 1;
+  else
+     return 0;
 }
 
 int main(int argc, char** argv) {
