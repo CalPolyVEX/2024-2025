@@ -120,10 +120,6 @@ class OdometryPublisher {
 
     //Roboclaw functions
     void setmotor(int duty_cyclel, int dutycycler);
-    void read_version();
-    void read_voltage(unsigned short* voltage);
-    void read_motor_currents(unsigned short* left_current, unsigned short* right_current);
-    void read_status(unsigned short* status);
     void test_read();
     int check_receive_crc(unsigned char* data, int len);
 };
