@@ -1,66 +1,20 @@
 #include <Wire.h>
 #include <TCA9534.h>
 
-#define RCLK_SERVO 5
-#define CLK_SERVO 6
-#define DATA_SERVO 7
-
-#define PIN_RCLK_SERVO PORT_PA15
-#define PIN_CLK_SERVO PORT_PA20
-#define PIN_DATA_SERVO PORT_PA21
 
 TCA9534 ioex;
 const uint8_t IOEX_ADDR = 0x20; // A0 = A1 = A2 = 0
 extern const unsigned short crctable[256];
 
-#define NUM_SERVOS 2
-unsigned short servo_on[NUM_SERVOS];
-
 ///////////////////////////////
 //Timer usage:
 //
-//TC4 - servos
 //TC5 - encoder reading (30Hz)
+//TCC0 - servos
 //TCC1 - motors
 //
-//GCLK5 - motors
-//GCLK6 - servos and encoders
-
-void init_servo() {
-  //The servo system uses Timer 4
-  /////////////////////////////////Timer 4
-  TC4->COUNT16.CTRLA.reg |= TC_CTRLA_MODE_COUNT16;     // Set the counter to 16-bit mode
-  while (TC4->COUNT16.STATUS.bit.SYNCBUSY);            // Wait for synchronization
-
-  REG_TC4_COUNT16_CC0 = 500;                           // Each timer tick is 1uS, set to 500uS
-  while (TC4->COUNT16.STATUS.bit.SYNCBUSY);            // Wait for synchronization
-
-  //NVIC_DisableIRQ(TC4_IRQn);
-  //NVIC_ClearPendingIRQ(TC4_IRQn);
-  NVIC_SetPriority(TC4_IRQn, 0);                       // Set the Nested Vector Interrupt Controller (NVIC) priority for TC4 to 0 (highest)
-  NVIC_EnableIRQ(TC4_IRQn);                            // Connect TC4 to Nested Vector Interrupt Controller (NVIC)
-
-  REG_TC4_INTFLAG |= TC_INTFLAG_MC0;                   // Clear the interrupt flags
- 
-  TC4->COUNT16.CTRLA.reg |= TC_CTRLA_PRESCALER_DIV8 | // Set prescaler to 16, 16MHz/16 = 1MHz
-                            TC_CTRLA_ENABLE;           // Enable TC4
-  while (TC4->COUNT16.STATUS.bit.SYNCBUSY);            // Wait for synchronization
-
-  //configure the pin directions
-  pinMode(RCLK_SERVO,OUTPUT);
-  pinMode(CLK_SERVO,OUTPUT);
-  pinMode(DATA_SERVO,OUTPUT);
-
-  digitalWrite(RCLK_SERVO,LOW);
-  digitalWrite(CLK_SERVO,LOW);
-  digitalWrite(DATA_SERVO,LOW);
-
-  for (int i=0; i<NUM_SERVOS; i++) {
-    servo_on[i] = 3000;
-  }
-
-  TC4->COUNT16.INTENSET.reg = TC_INTENSET_MC0;         // Enable TC4 interrupts
-}
+//GCLK5 - motors and servos
+//GCLK6 - encoders
 
 void setup_interrupt() 
 {
@@ -97,7 +51,6 @@ void setup_interrupt()
 
   REG_TC5_INTFLAG |= TC_INTFLAG_MC0;                // Clear the match compare interrupt flag
  
-  // init_servo();
   init_encoders();
 
   //enable the encoder interrupt after initializing the 7366 chips
@@ -127,17 +80,15 @@ void setup()
   setup_interrupt();
   lcdInit();
   init_motors();
-  init_servo_test();
+  init_servo();
 
   set_motor_speed(0,0);
   set_motor_speed(1,0);
 
   backlight_on();
 
-  delay(4000); //wait 4 seconds
+  delay(200); //wait .2 seconds
   SerialUSB.begin(115200); // Initialize Serial Monitor USB
-
-  SerialUSB.println("Send character(s) to relay it over Serial1");
 
   // initialize digital pin LED_BUILTIN as an output.
   pinMode(LED_BUILTIN, OUTPUT);
@@ -187,7 +138,8 @@ void loop()
         set_motor_speed(0, left_speed); //the speed should be between -2400 and +2400
         set_motor_speed(1, right_speed);
 
-        //lcdPrintf("%d %d", left_speed, right_speed);
+        lcdSetCursor(0, 0);
+        lcdPrintf("%d %d", left_speed, right_speed);
       }
       else
       { //bad CRC
@@ -283,7 +235,6 @@ void loop()
     SerialUSB.read();
   } 
 
-  // delay(1); //wait 1ms, otherwise the serial USB port will lock up
   delayMicroseconds(250); //wait 1ms, otherwise the serial USB port will lock up
 }
 
@@ -329,58 +280,6 @@ void TC5_Handler()  // Encoder (ISR) for timer TC5
   SerialUSB.write(buf,13);  //send the data
 }
 
-void TC4_Handler()  // Servo ISR for timer TC4
-{
-  static volatile int state = NUM_SERVOS;
-  static volatile int total_on_time = 10000;
-
-  REG_TC4_INTFLAG = TC_INTFLAG_MC0; // Clear the MC0 interrupt flag
-
-  if (state == NUM_SERVOS) 
-  {
-    REG_PORT_OUTSET0 = PIN_CLK_SERVO;    //clock the shift register
-    REG_PORT_OUTCLR0 = PIN_CLK_SERVO;    //clock the shift register
-
-    REG_PORT_OUTSET0 = PIN_RCLK_SERVO;    //clock the output latch
-    REG_PORT_OUTCLR0 = PIN_RCLK_SERVO;    //clock the output latch
-
-    REG_TC4_COUNT16_CC0 += 40000 - total_on_time; // 20ms - total_on_time
-    while (TC4->COUNT16.STATUS.bit.SYNCBUSY); // Wait for synchronization
-
-    state = 0;
-    total_on_time = 0;
-    REG_PORT_OUTSET0 = PIN_DATA_SERVO; //set the data input to high
-  } 
-  else 
-  {
-    REG_PORT_OUTSET0 = PIN_CLK_SERVO;    //clock the shift register
-    REG_PORT_OUTCLR0 = PIN_CLK_SERVO;    //clock the shift register
-
-    REG_PORT_OUTSET0 = PIN_RCLK_SERVO;    //clock the output latch
-    REG_PORT_OUTCLR0 = PIN_RCLK_SERVO;    //clock the output latch
-
-    REG_TC4_COUNT16_CC0 += servo_on[state]; // on time for the servo
-    while (TC4->COUNT16.STATUS.bit.SYNCBUSY); // Wait for synchronization
-
-    total_on_time += servo_on[state];
-
-    if (state == 0)
-      REG_PORT_OUTCLR0 = PIN_DATA_SERVO; //set the data input to low
-
-    state++;
-  }
-}
-
-void set_servo_old(int num, int position) {
-  TC4->COUNT16.INTENCLR.reg = TC_INTENSET_MC0;         // Disable TC4 interrupts
-  while(TC4->COUNT16.STATUS.bit.SYNCBUSY);
-
-  servo_on[num] = position;
-
-  TC4->COUNT16.INTENSET.reg = TC_INTENSET_MC0;         // Enable TC4 interrupts
-  while(TC4->COUNT16.STATUS.bit.SYNCBUSY);
-}
-
 void set_servo(int num, int position) {
   //the position can run from 0-2000
   if (num == 0)
@@ -391,7 +290,12 @@ void set_servo(int num, int position) {
   {
     TCC0->CC[1].reg = 48000 + 24*position;
   }
+  else if (num == 2)
+  {
+    TCC0->CC[2].reg = 48000 + 24*position;
+  }
 }
+
 void backlight_on() {
   ioex.output(7, TCA9534::Level::H);
 }
