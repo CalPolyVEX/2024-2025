@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <launch>
 
-    <arg name="dev" default="/dev/roboclaw"/>
-    <arg name="baud" default="38400"/>
+    <arg name="dev" default="/dev/herbie"/>
+    <arg name="baud" default="230400"/>
     <arg name="address" default="128"/>
     <arg name="max_abs_linear_speed" default=".50"/>
     <arg name="max_abs_angular_speed" default=".170"/>

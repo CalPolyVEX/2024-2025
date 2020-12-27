@@ -165,14 +165,16 @@ void OdometryPublisher::update_odometry(int enc_left, int enc_right, double* vel
   return;
 }
 
-void OdometryPublisher::encoder_message_callback(const std_msgs::Int32MultiArray::ConstPtr& enc_msg) {
+void OdometryPublisher::encoder_message_callback(int left_encoder, int right_encoder) {
   //this callback is called when a new encoder message is
   //received from the Arduino on the /encoder_service topic
   int enc_left, enc_right;
   double vel_x, vel_theta;
 
-  enc_left = enc_msg->data[0];
-  enc_right = enc_msg->data[1];
+  /* enc_left = enc_msg->data[0]; */
+  /* enc_right = enc_msg->data[1]; */
+  enc_left = left_encoder;
+  enc_right = right_encoder;
 
   //ROS_INFO("debugging left: %d, right %d",  enc_left, enc_right);
   //if there is a big jump in the encoder readings, then ignore the reading
@@ -254,8 +256,8 @@ void OdometryPublisher::run_pid() {
 
   //set the motor speeds
   setmotor_mutex.lock();
-  /* setmotor(-applied_left_motor, -applied_right_motor); */
-  setmotor(-cur_left_motor, -cur_right_motor);
+  setmotor(-applied_left_motor, -applied_right_motor);
+  /* setmotor(-cur_left_motor, -cur_right_motor); */
   setmotor_mutex.unlock();
 }
 

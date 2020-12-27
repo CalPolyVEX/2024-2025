@@ -16,9 +16,9 @@
 #include <ros/console.h>
 #include <serial/serial.h>
 #include <boost/thread.hpp>
-#include <boost/lockfree/queue.hpp>
 #include <iostream>
 #include <cmath>
+#include <queue>
 #include <rtabmap_ros/Info.h>
 
 #define INTEGRAL_ARRAY_SIZE 5
@@ -81,8 +81,9 @@ class OdometryPublisher {
   boost::mutex setmotor_mutex;
   boost::mutex update_encoder_mutex;
   boost::mutex planner_mutex;
+  boost::mutex herbie_board_queue_mutex;
+  std::queue<struct packet> board_queue; //queue of messages to send to the Herbie control board
   serial::Serial *my_serial;
-  boost::lockfree::queue<struct packet> board_queue;
 
   int rtabmap_started = 0;
   int left_counter=0, right_counter=0;
@@ -104,7 +105,7 @@ class OdometryPublisher {
   public:
     OdometryPublisher(); 
     void publish_odometry_message(double vx, double vth); //publish a new Odometry message
-    void encoder_message_callback(const std_msgs::Int32MultiArray::ConstPtr& enc_msg);
+    void encoder_message_callback(int left_encoder, int right_encoder);
     void cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
     void planner_cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
     void rtabmap_info_callback(const rtabmap_ros::Info::ConstPtr& info);
@@ -120,8 +121,10 @@ class OdometryPublisher {
 
     //Roboclaw functions
     void setmotor(int duty_cyclel, int dutycycler);
-    void test_read();
+    void serial_loop();
     int check_receive_crc(unsigned char* data, int len);
+    unsigned short compute_crc(unsigned char* data, int len);
+    void create_control_board_msg(int num, int arg);
 };
 
 #endif

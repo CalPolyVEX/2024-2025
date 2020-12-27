@@ -15,7 +15,6 @@
 #include <serial/serial.h>
 #include <iostream>
 #include <boost/thread.hpp>
-#include <boost/lockfree/queue.hpp>
 #include "encoder_odom.h"
 #include <rtabmap_ros/Info.h>
 
@@ -37,9 +36,10 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   desired_vel_mutex.unlock();
   setmotor_mutex.unlock();
   update_encoder_mutex.unlock();
+  herbie_board_queue_mutex.unlock();
   
   //encoder Int32MultiArray messages are received from the Arduino on this topic
-  sub_ = nh->subscribe("/encoder_service", 1, &OdometryPublisher::encoder_message_callback, this);
+  //sub_ = nh->subscribe("/encoder_service", 1, &OdometryPublisher::encoder_message_callback, this);
 
   //publish Odometry messages to this topic
   pub_ = nh->advertise<nav_msgs::Odometry>("/roboclaw_odom", 1);
@@ -51,23 +51,23 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   loop_closure_pub = nh->advertise<std_msgs::Int32MultiArray>("/update_loop_closure_lcd", 1);
 
   //listen for Twist messages on /cmd_vel
-  sub_cmd_vel = nh->subscribe("/cmd_vel", 1, &OdometryPublisher::cmd_vel_callback, this);
+  sub_cmd_vel = nh->subscribe("/cmd_vel", 2, &OdometryPublisher::cmd_vel_callback, this);
   
   //listen for Twist messages on /cmd_vel
-  sub_planner_cmd_vel = nh->subscribe("/planner/cmd_vel", 1, &OdometryPublisher::planner_cmd_vel_callback, this);
+  sub_planner_cmd_vel = nh->subscribe("/planner/cmd_vel", 2, &OdometryPublisher::planner_cmd_vel_callback, this);
 
   //listen for Empty messages on /robot_stop
-  sub_stop = nh->subscribe("/robot_stop", 1, &OdometryPublisher::stop_toggle_callback, this);
+  sub_stop = nh->subscribe("/robot_stop", 2, &OdometryPublisher::stop_toggle_callback, this);
 
   //listen for Empty messages on /rtabmap/info
-  rtabmap_info_sub = nh->subscribe("/rtabmap/info", 1, &OdometryPublisher::rtabmap_info_callback, this);
+  rtabmap_info_sub = nh->subscribe("/rtabmap/info", 2, &OdometryPublisher::rtabmap_info_callback, this);
   
   //listen for messages to send to the control board
   control_board_sub = nh->subscribe("/control_board", 5, &OdometryPublisher::control_board_callback, this);
 
-  ROS_INFO("Connecting to roboclaw");
-  nh->param<std::string>("dev1", dev_name, "/dev/roboclaw");
-  nh->param<int>("baud1", baud_rate, 38400);
+  ROS_INFO("Connecting to Herbie control board");
+  nh->param<std::string>("dev1", dev_name, "/dev/herbie");
+  nh->param<int>("baud1", baud_rate, 230400);
   nh->param<int>("address1", address, 128);
   nh->param<double>("max_abs_linear_speed1", MAX_ABS_LINEAR_SPEED, 1.0);
   nh->param<double>("max_abs_angular_speed1", MAX_ABS_ANGULAR_SPEED, 2.0);
@@ -105,8 +105,6 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
 
   left_counter = 0;
   right_counter = 0;
-
-  board_queue.reserve(64);
 }
 
 void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
@@ -116,8 +114,8 @@ void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
   unsigned short crc = 0;
   int sent_board_packets = 0;
 
-  my_serial->flushOutput();
-  my_serial->flushInput();
+  /* my_serial->flushOutput(); */
+  /* my_serial->flushInput(); */
 
   data[0] = address;
   data[1] = 34; // set left/right motors command
@@ -129,18 +127,6 @@ void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
   data[5] = dr & 0xFF; //send the low byte of the duty cycle
 
   //Calculates CRC16 of nBytes of data in byte array message
-  /* for (int byte = 0; byte < 6; byte++) { */        
-  /*   crc = crc ^ ((unsigned int)data[byte] << 8); */        
-  /*   for (unsigned char bit = 0; bit < 8; bit++) { */            
-  /*     if (crc & 0x8000) { */                
-  /*       crc = (crc << 1) ^ 0x1021; */            
-  /*     } else { */                
-  /*       crc = crc << 1; */   
-  /*     } */ 
-  /*   } */ 
-  /* } */ 
-  
-  //Calculates CRC16 of nBytes of data in byte array message
   for (int byte = 0; byte < 6; byte++) {        
      crc = (crc << 8) ^ crctable[((crc >> 8) ^ data[byte])];
   }
@@ -149,31 +135,43 @@ void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
   data[7] = crc & 0xFF; //send the low byte of the crc
 
   my_serial->write(data,8);
+  /* std::cout << "\tsending packet" << std::endl; */
 
   //handle the packets to be sent to the Herbie control board
-  while ( (board_queue.empty() != false) && (sent_board_packets < 3)) {
+  herbie_board_queue_mutex.lock();
+  while ((board_queue.size() != 0) && (sent_board_packets < 3)) {
+     herbie_board_queue_mutex.unlock();
      usleep(3000);
      struct packet p;
 
-     board_queue.pop(p);
-     my_serial->write(p.data,p.size);
+     herbie_board_queue_mutex.lock();
+     p = board_queue.front();  //remove the packet from the queue
+     board_queue.pop();
+     herbie_board_queue_mutex.unlock();
+
+     my_serial->write(p.data,p.size); //send the data
      sent_board_packets++;
+
+     herbie_board_queue_mutex.lock();
   }
+  herbie_board_queue_mutex.unlock();
 }
 
 void OdometryPublisher::control_board_callback(const std_msgs::ByteMultiArray::ConstPtr& board_msg) {
    //this function handles command that are sent to the Herbie control board
    //the packets are stored in a queue and the function setmotor() will send 
-   //out the packets to the board
+   //out the packets to the board (every packet must be at least 8 bytes long)
    
    struct packet p;
    
-   p.size = board_msg->data[0];
-   for (int i=0; i<p.size; i++) {
+   p.size = board_msg->data[0]; //get the size of the incoming packet
+   for (int i=0; i<p.size; i++) { //copy over the packet data
       p.data[i] = board_msg->data[i+1];
    }
 
-   board_queue.push(p);
+   herbie_board_queue_mutex.lock();
+   board_queue.push(p);  //push the packet into the queue
+   herbie_board_queue_mutex.unlock();
 }
 
 void OdometryPublisher::safety_callback(const ros::TimerEvent& ev) {
@@ -225,13 +223,14 @@ void OdometryPublisher::safety_callback(const ros::TimerEvent& ev) {
   //ROS_INFO("Voltage: %f", (float) voltage / 10.0);
 }
 
-void OdometryPublisher::test_read() {
+void OdometryPublisher::serial_loop() {
   unsigned char data[RECEIVE_PACKET_SIZE];
   int x;
+  int led_counter = 0;
   int left_encoder, right_encoder;
-  int mask,counter;
+  unsigned int mask,counter;
   unsigned char extra_byte[2];
-  std_msgs::Int32MultiArray wheel_enc_msg;
+  boost::shared_ptr<std_msgs::ByteMultiArray> test_msg(new std_msgs::ByteMultiArray());
 
   my_serial->flushOutput();
   my_serial->flushInput();
@@ -239,6 +238,7 @@ void OdometryPublisher::test_read() {
   while (ros::ok()) {
     x = my_serial->read(data,RECEIVE_PACKET_SIZE);
     if ((check_receive_crc(data,RECEIVE_PACKET_SIZE) == 1) && (data[0] == 0xFF)) {
+      /* std::cout << "valid packet received" << std::endl; */
       left_encoder = 0;
       right_encoder = 0;
 
@@ -249,40 +249,85 @@ void OdometryPublisher::test_read() {
         left_encoder |= mask;
         counter++;
       }
-      wheel_enc_msg.data.push_back(left_encoder);
 
       for(int i=0;i<4;i++) {
         mask = data[counter] << (8*i);
         right_encoder |= mask;
         counter++;
       }
-      wheel_enc_msg.data.push_back(right_encoder);
 
-      extra_byte[0] = data[RECEIVE_PACKET_SIZE-4]; //these are 2 extra bytes of data for future use
-      extra_byte[1] = data[RECEIVE_PACKET_SIZE-3];
+      extra_byte[0] = data[9]; //these are 2 extra bytes of data for future use
+      extra_byte[1] = data[10];
 
-      encoder_message_callback((const std_msgs::Int32MultiArray::ConstPtr&) wheel_enc_msg); 
+      encoder_message_callback(left_encoder, right_encoder); 
     }
+
+    //send test LED messages to the Herbie board
+    led_counter++;
+
+    if ((led_counter & 63) == 0)
+       create_control_board_msg(7,2);
+
+    if ((led_counter & 63) == 2)
+       create_control_board_msg(8,2);
+
+    create_control_board_msg(5,0); //backlight off
 
     ros::spinOnce();
   }
+}
+
+void OdometryPublisher::create_control_board_msg(int num, int arg) {
+   boost::shared_ptr<std_msgs::ByteMultiArray> test_msg(new std_msgs::ByteMultiArray());
+
+   if (num == 7 || num == 8) { //led on/off
+      unsigned char buf[8];
+      unsigned short test_crc;
+      buf[0] = 128;
+      buf[1] = num; //led on/off
+      buf[2] = arg; //led num
+
+      for (int i=0; i<3; i++) {
+         buf[i+3] = 0; 
+      }
+   } else if (num == 4 || num == 5) {
+      unsigned char buf[8];
+      unsigned short test_crc;
+      buf[0] = 128;
+      buf[1] = num; //backlight off/on
+
+      for (int i=2; i<6; i++) {
+         buf[i] = 0; 
+      }
+   }
+
+   test_crc = compute_crc(buf,6);
+   buf[6] = (test_crc >> 8) & 0xFF;
+   buf[7] = test_crc & 0xFF;
+
+   test_msg->data.clear();
+   test_msg->data.push_back(8); //size of the packet
+   for (int i=0; i<8; i++) {
+      test_msg->data.push_back(buf[i]);
+   }
+   control_board_callback(test_msg);
+}
+
+unsigned short OdometryPublisher::compute_crc(unsigned char* data, int len) {
+  unsigned short crc=0;
+
+  for (int byte = 0; byte < len; byte++)
+  {
+     crc = (crc << 8) ^ crctable[((crc >> 8) ^ data[byte])];
+  }
+
+  return crc;
 }
 
 int OdometryPublisher::check_receive_crc(unsigned char* data, int len) {
   unsigned short crc=0;
   unsigned short received_crc=0;
 
-  //Calculates CRC16 of nBytes of data in byte array message
-  /* for (int byte = 0; byte < (len-2); byte++) { */        
-  /*   crc = crc ^ ((unsigned short)data[byte] << 8); */        
-  /*   for (unsigned char bit = 0; bit < 8; bit++) { */            
-  /*     if (crc & 0x8000) { */                
-  /*       crc = (crc << 1) ^ 0x1021; */            
-  /*     } else { */                
-  /*       crc = crc << 1; */   
-  /*     } */ 
-  /*   } */ 
-  /* } */ 
   for (int byte = 0; byte < (len-2); byte++)
   {
      crc = (crc << 8) ^ crctable[((crc >> 8) ^ data[byte])];
@@ -312,7 +357,9 @@ int main(int argc, char** argv) {
 
   ROS_INFO("Starting motor drive");
   //run diagnostics function at 5Hz (.2 seconds)
-  ros::Timer diag_timer = nh->createTimer(ros::Duration(1.2), diag_callback);
+  /* ros::Timer diag_timer = nh->createTimer(ros::Duration(1.2), diag_callback); */
+
+  odom_pub.serial_loop();
 
   ros::spin();
   ros::waitForShutdown();
