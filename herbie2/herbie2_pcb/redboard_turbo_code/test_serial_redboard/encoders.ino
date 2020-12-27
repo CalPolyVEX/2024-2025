@@ -5,6 +5,14 @@
 #define ENC2_SS 13 //ss
 #define SPI_CLK 3500000
 
+#define RCLK_SERVO 5
+#define CLK_SERVO 6
+#define DATA_SERVO 7
+
+#define PIN_RCLK_SERVO PORT_PA15
+#define PIN_CLK_SERVO PORT_PA20
+#define PIN_DATA_SERVO PORT_PA21
+
 const unsigned short crctable[256] =
 {
   0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
@@ -154,6 +162,7 @@ void init_motors() {
 
 void set_motor_speed(int motor_num, int speed) 
 {
+    //speed should be between -2400 and +2400
     int val;
     int dir = 1; //set the default direction
 
@@ -262,9 +271,10 @@ void rstEncCnt(int encoder)
 void init_encoders() 
 {
     //set SS pins to high
-    pinMode(ENC1_SS,OUTPUT);
-    pinMode(ENC2_SS,OUTPUT);
+    PORT->Group[0].DIRSET.reg = PORT_PA19; //set PA19 to output
     REG_PORT_OUTSET0 = PORT_PA19; //PA19
+
+    PORT->Group[0].DIRSET.reg = PORT_PA17; //set PA17 to output
     REG_PORT_OUTSET0 = PORT_PA17; //PA17
 
     SPI.begin();
@@ -315,20 +325,6 @@ void init_encoders()
     }
 }
 
-unsigned char readMDR1(int encoder) 
-{
-    unsigned char mdr1;
-
-    SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
-    setSSEnc(SPI_ENABLE, encoder);
-    SPI.transfer(READ_MDR0);    // Select MDR1
-    mdr1 = SPI.transfer(0x00);  // read MDR1
-    setSSEnc(SPI_DISABLE, encoder);
-    SPI.endTransaction();
-
-    return mdr1;
-}
-
 //*************************************************
 //*****************************************************
 long getChanEncoderValue(int encoder)
@@ -362,7 +358,7 @@ long getChanEncoderValue(int encoder)
 //call this after calling init_motors since
 //this function assume the GCLK is setup for 
 //TCC0
-void init_servo_test() {
+void init_servo() {
     // Set prescaler TCCDiv for TCC0
     TCC0->CTRLA.reg |= TCC_CTRLA_PRESCALER(TCC_CTRLA_PRESCALER_DIV1_Val); //set prescalar to divide by 1 = 48MHz clock
 
@@ -382,7 +378,7 @@ void init_servo_test() {
     //Set the duty cycle 
     //CC[3] for WO[7]
     TCC0->CC[3].reg = 72000; //this set initial on time to 1.5ms = 48000 ticks * 1.5
-    while (TCC0->SYNCBUSY.bit.CC1) {};
+    while (TCC0->SYNCBUSY.bit.CC3) {};
 
     //set PA21 to output, Group[0] refers to PORTA
     PORT->Group[0].DIRSET.reg = PORT_PA21; //set the direction to output
@@ -399,7 +395,7 @@ void init_servo_test() {
     ///////////////////////////////
     //Servo1
     TCC0->CC[1].reg = 72000; //this sets the initial on time of the PWM cycle (1.5ms), CC1 for WO[5]
-    while (TCC0->SYNCBUSY.bit.CC0) {};
+    while (TCC0->SYNCBUSY.bit.CC1) {};
 
     //set PA15 to output, Group[0] refers to PORTA
     PORT->Group[0].DIRSET.reg = PORT_PA15; //set the direction to output
@@ -412,6 +408,23 @@ void init_servo_test() {
     // Because this is an odd numbered pin the PMUX is O (odd) and the PMUX
     // index is pin number - 1 / 2, so 7.
     PORT->Group[0].PMUX[7].reg |= PORT_PMUX_PMUXO_F;
+
+    ///////////////////////////////
+    //Servo2
+    TCC0->CC[2].reg = 72000; //this sets the initial on time of the PWM cycle (1.5ms), CC1 for WO[6]
+    while (TCC0->SYNCBUSY.bit.CC2) {};
+
+    //set PA20 to output, Group[0] refers to PORTA
+    PORT->Group[0].DIRSET.reg = PORT_PA20; //set the direction to output
+    PORT->Group[0].OUTCLR.reg = PORT_PA20; //set the value to output LOW
+
+    /* Enable the peripheral multiplexer for the pins. */
+    PORT->Group[0].PINCFG[20].reg |= PORT_PINCFG_PMUXEN;
+
+    // Set PA20's function to function F. Function F is TCC0/WO[6] for PA20.
+    // Because this is an even numbered pin the PMUX is E (even) and the PMUX
+    // index is pin number / 2, so 10.
+    PORT->Group[0].PMUX[10].reg |= PORT_PMUX_PMUXE_F;
 
     ///////////////////////////////
     //Enable TCC0

@@ -134,7 +134,7 @@ void lcdPrintf(const char *format, ...) {
 void printFloat(float val, uint8_t precision) {
   // prints val with number of decimal places determine by precision
   // precision is a number from 0 to 6 indicating the desired decimial places
-  // example: printDouble( 3.1415, 2); // prints 3.14 (two decimal places)
+  // example: printFloat( 3.1415, 2); // prints 3.14 (two decimal places)
 
   lcdPrintf("%d", int(val));  //prints the int part
   if ( precision > 0) {
