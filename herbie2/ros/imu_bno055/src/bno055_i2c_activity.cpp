@@ -201,8 +201,7 @@ bool BNO055I2CActivity::spinOnce() {
     /* msg_data.angular_velocity.x = (double)record.raw_angular_velocity_x / 900.0; */
     /* msg_data.angular_velocity.y = (double)record.raw_angular_velocity_y / 900.0; */
     /* msg_data.angular_velocity.z = (double)record.raw_angular_velocity_z / 900.0; */
-
-    //JS
+    /* //JS */
     /* msg_data.orientation_covariance[0] = .0001; */
     /* msg_data.orientation_covariance[4] = .0001; */
     /* msg_data.orientation_covariance[8] = .0001; */
@@ -248,15 +247,13 @@ bool BNO055I2CActivity::spinOnce() {
     msg_pose.pose.covariance[35] = (double).001;
     //end JS
 
-    pub_pose.publish(msg_pose);
-
-    //only publish the pose message
     /* sensor_msgs::Temperature msg_temp; */
     /* msg_temp.header.stamp = time; */
     /* msg_temp.header.frame_id = param_frame_id; */
     /* msg_temp.header.seq = seq; */
     /* msg_temp.temperature = (double)record.temperature; */
 
+    pub_pose.publish(msg_pose);
     /* pub_data.publish(msg_data); */
     /* pub_raw.publish(msg_raw); */
     /* pub_mag.publish(msg_mag); */
