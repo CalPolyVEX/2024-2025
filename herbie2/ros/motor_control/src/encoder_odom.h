@@ -111,7 +111,7 @@ class OdometryPublisher {
     void rtabmap_info_callback(const rtabmap_ros::Info::ConstPtr& info);
     void stop_toggle_callback(const std_msgs::Empty::ConstPtr&);
     void safety_callback(const ros::TimerEvent& ev);
-    void control_board_callback(const std_msgs::ByteMultiArray::ConstPtr& board_msg);
+    void control_board_callback(const std_msgs::Int32MultiArray::ConstPtr& board_msg);
 
     //motor control and odometry functions
     void run_pid();

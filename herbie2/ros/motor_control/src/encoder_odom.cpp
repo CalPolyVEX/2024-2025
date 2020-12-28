@@ -176,12 +176,12 @@ void OdometryPublisher::encoder_message_callback(int left_encoder, int right_enc
   enc_left = -left_encoder;
   enc_right = -right_encoder;
 
-  char buf[10];
-  buf[0] = 0; //set the col
-  buf[1] = 0; //set the row
-  create_control_board_msg(1,(void*) buf); //set cursor to top
-  create_control_board_msg(2,(void*) "left:  "); //set cursor to top
-  create_control_board_msg(3,(void*) &enc_left); //print left encoder
+  /* char buf[10]; */
+  /* buf[0] = 0; //set the col */
+  /* buf[1] = 0; //set the row */
+  /* create_control_board_msg(1,(void*) buf); //set cursor to top */
+  /* create_control_board_msg(2,(void*) "left:  "); //set cursor to top */
+  /* create_control_board_msg(3,(void*) &enc_left); //print left encoder */
   /* create_control_board_msg(3,(void*) &enc_right); //print right encoder */
 
   //ROS_INFO("debugging left: %d, right %d",  enc_left, enc_right);
@@ -262,11 +262,25 @@ void OdometryPublisher::run_pid() {
   applied_right_motor = applied_right_motor * 2400; //multiply by 2400 and divide by 32768
   applied_right_motor = (applied_right_motor + ((cur_right_motor >> 31) & ((1 << 15) + ~0))) >> 15; //divide by 32768 with rounding towards 0
 
+  char buf[10];
+  char s[32];
+  buf[0] = 0; //set the col
+  buf[1] = 0; //set the row
+  create_control_board_msg(1,(void*) buf); //set cursor to top
+  snprintf(s, 32, "%d %d  ", applied_left_motor, applied_right_motor);
+  create_control_board_msg(2,(void*) s); //print string
+
+  /* create_control_board_msg(3,(void*) &applied_left_motor); //print left encoder */
+  /* create_control_board_msg(2,(void*) "  "); //set cursor to top */
+  /* create_control_board_msg(3,(void*) &applied_right_motor); //print right encoder */
+  /* create_control_board_msg(2,(void*) "  "); //set cursor to top */
+
   //set the motor speeds
   setmotor_mutex.lock();
   setmotor(-applied_left_motor, -applied_right_motor);
   /* setmotor(-cur_left_motor, -cur_right_motor); */
   setmotor_mutex.unlock();
+
 }
 
 void OdometryPublisher::compute_pid(double left_desired, double left_actual, double right_desired, double right_actual) {

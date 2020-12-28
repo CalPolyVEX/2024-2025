@@ -105,6 +105,8 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
 
   left_counter = 0;
   right_counter = 0;
+
+  create_control_board_msg(5,(void*) 0); //backlight on
 }
 
 void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
@@ -139,9 +141,9 @@ void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
 
   //handle the packets to be sent to the Herbie control board
   herbie_board_queue_mutex.lock();
-  while ((board_queue.size() != 0) && (sent_board_packets < 5)) {
+  while ((board_queue.size() != 0) && (sent_board_packets < 7)) {
      herbie_board_queue_mutex.unlock();
-     usleep(3000);
+     usleep(2000);
      struct packet p;
 
      herbie_board_queue_mutex.lock();
@@ -157,7 +159,7 @@ void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
   herbie_board_queue_mutex.unlock();
 }
 
-void OdometryPublisher::control_board_callback(const std_msgs::ByteMultiArray::ConstPtr& board_msg) {
+void OdometryPublisher::control_board_callback(const std_msgs::Int32MultiArray::ConstPtr& board_msg) {
    //this function handles command that are sent to the Herbie control board
    //the packets are stored in a queue and the function setmotor() will send 
    //out the packets to the board (every packet must be at least 8 bytes long)
@@ -230,7 +232,7 @@ void OdometryPublisher::serial_loop() {
   int left_encoder, right_encoder;
   unsigned int mask,counter;
   unsigned char extra_byte[2];
-  boost::shared_ptr<std_msgs::ByteMultiArray> test_msg(new std_msgs::ByteMultiArray());
+  boost::shared_ptr<std_msgs::Int32MultiArray> test_msg(new std_msgs::Int32MultiArray());
 
   my_serial->flushOutput();
   my_serial->flushInput();
@@ -275,15 +277,12 @@ void OdometryPublisher::serial_loop() {
        create_control_board_msg(8,(void*) &x);
     }
 
-
-    create_control_board_msg(5,(void*) 0); //backlight off
-
     ros::spinOnce();
   }
 }
 
 void OdometryPublisher::create_control_board_msg(int num, void* arg) {
-   boost::shared_ptr<std_msgs::ByteMultiArray> test_msg(new std_msgs::ByteMultiArray());
+   boost::shared_ptr<std_msgs::Int32MultiArray> test_msg(new std_msgs::Int32MultiArray());
    unsigned char buf[8];
    unsigned short test_crc;
 
