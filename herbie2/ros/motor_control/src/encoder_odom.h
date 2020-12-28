@@ -124,7 +124,7 @@ class OdometryPublisher {
     void serial_loop();
     int check_receive_crc(unsigned char* data, int len);
     unsigned short compute_crc(unsigned char* data, int len);
-    void create_control_board_msg(int num, int arg);
+    void create_control_board_msg(int num, void* arg);
 };
 
 #endif

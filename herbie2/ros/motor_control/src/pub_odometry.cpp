@@ -139,7 +139,7 @@ void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
 
   //handle the packets to be sent to the Herbie control board
   herbie_board_queue_mutex.lock();
-  while ((board_queue.size() != 0) && (sent_board_packets < 3)) {
+  while ((board_queue.size() != 0) && (sent_board_packets < 5)) {
      herbie_board_queue_mutex.unlock();
      usleep(3000);
      struct packet p;
@@ -265,40 +265,81 @@ void OdometryPublisher::serial_loop() {
     //send test LED messages to the Herbie board
     led_counter++;
 
-    if ((led_counter & 63) == 0)
-       create_control_board_msg(7,2);
+    if ((led_counter & 63) == 0) {
+       unsigned char x = 2;
+       create_control_board_msg(7,(void*) &x);
+    }
 
-    if ((led_counter & 63) == 2)
-       create_control_board_msg(8,2);
+    if ((led_counter & 63) == 2) {
+       unsigned char x = 2;
+       create_control_board_msg(8,(void*) &x);
+    }
 
-    create_control_board_msg(5,0); //backlight off
+
+    create_control_board_msg(5,(void*) 0); //backlight off
 
     ros::spinOnce();
   }
 }
 
-void OdometryPublisher::create_control_board_msg(int num, int arg) {
+void OdometryPublisher::create_control_board_msg(int num, void* arg) {
    boost::shared_ptr<std_msgs::ByteMultiArray> test_msg(new std_msgs::ByteMultiArray());
+   unsigned char buf[8];
+   unsigned short test_crc;
+
+   buf[0] = 128;  //set the address to 128
+   buf[1] = num;  //this is the command number
 
    if (num == 7 || num == 8) { //led on/off
-      unsigned char buf[8];
-      unsigned short test_crc;
-      buf[0] = 128;
-      buf[1] = num; //led on/off
-      buf[2] = arg; //led num
+      buf[2] = *((char*)arg); //led num
+      buf[3] = 0;
+      buf[4] = 0;
+      buf[5] = 0;
+   } else if (num == 0) { //clear screen
+      buf[2] = 0;
+      buf[3] = 0;
+      buf[4] = 0;
+      buf[5] = 0;
+   } else if (num == 1) { //set cursor to starting position
+      char col = *((char*) arg);
+      char row = *(((char*) arg) + 1);
 
-      for (int i=0; i<3; i++) {
-         buf[i+3] = 0; 
+      buf[2] = col;
+      buf[3] = row;
+      buf[4] = 0;
+      buf[5] = 0;
+   } else if (num == 3) { //print int
+      int val = *((int*) arg);
+      for (int i=0; i<4; i++) {
+         buf[i+2] = (val >> (8*i)) & 0xFF; 
       }
-   } else if (num == 4 || num == 5) {
-      unsigned char buf[8];
-      unsigned short test_crc;
-      buf[0] = 128;
-      buf[1] = num; //backlight off/on
-
+   } else if (num == 4 || num == 5) {  //backlight off/on
       for (int i=2; i<6; i++) {
          buf[i] = 0; 
       }
+   } else if (num == 2) { //print string
+      char str_buf[32];
+      char* str_ptr = (char*) arg;
+      int len = strlen((char*) arg);
+
+      str_buf[0] = 128;  //set the address to 128
+      str_buf[1] = num;  //this is the command number
+      str_buf[2] = (char) len;  //store the length
+      for (int i=0; i<len; i++) {
+         str_buf[3+i] = str_ptr[i];
+      }
+
+      test_crc = compute_crc((unsigned char*) str_buf,len+3);
+      str_buf[len+3] = (test_crc >> 8) & 0xFF;
+      str_buf[len+4] = test_crc & 0xFF;
+
+      test_msg->data.clear();
+      test_msg->data.push_back(len+5); //size of the packet
+      for (int i=0; i<(len+5); i++) {
+         test_msg->data.push_back(str_buf[i]);
+      }
+      control_board_callback(test_msg);
+      return;
    }
 
    test_crc = compute_crc(buf,6);

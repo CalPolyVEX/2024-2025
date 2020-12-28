@@ -173,8 +173,16 @@ void OdometryPublisher::encoder_message_callback(int left_encoder, int right_enc
 
   /* enc_left = enc_msg->data[0]; */
   /* enc_right = enc_msg->data[1]; */
-  enc_left = left_encoder;
-  enc_right = right_encoder;
+  enc_left = -left_encoder;
+  enc_right = -right_encoder;
+
+  char buf[10];
+  buf[0] = 0; //set the col
+  buf[1] = 0; //set the row
+  create_control_board_msg(1,(void*) buf); //set cursor to top
+  create_control_board_msg(2,(void*) "left:  "); //set cursor to top
+  create_control_board_msg(3,(void*) &enc_left); //print left encoder
+  /* create_control_board_msg(3,(void*) &enc_right); //print right encoder */
 
   //ROS_INFO("debugging left: %d, right %d",  enc_left, enc_right);
   //if there is a big jump in the encoder readings, then ignore the reading
