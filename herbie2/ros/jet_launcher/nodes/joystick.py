@@ -52,6 +52,26 @@ class JoystickNode:
       pygame.quit()
       rospy.loginfo("Shutting down")
 
+   def create_clear_screen_packet(self):
+      crc = 0
+      packet = []
+      # bytearray(9)
+
+      packet.append(8)      #packet size
+      packet.append(128)    #roboclaw address
+
+      for i in range(5):
+          packet.append(0)
+
+      #Calculates CRC16 of nBytes of data in byte array message
+      for byte in range(1,7):
+          crc = (((crc << 8) & 0xffff) ^ crctable[((crc >> 8) ^ packet[byte]) & 0xff]) & 0xffff;
+
+      packet.append((crc >> 8) & 0xFF) #send the high byte of the crc
+      packet.append(crc & 0xFF) #send the low byte of the crc
+
+      return packet
+
    def create_led_packet(self, num, state):
       crc = 0
       packet = []
@@ -69,6 +89,98 @@ class JoystickNode:
 
       for i in range(3):
           packet.append(0)
+
+      #Calculates CRC16 of nBytes of data in byte array message
+      for byte in range(1,7):
+          crc = (((crc << 8) & 0xffff) ^ crctable[((crc >> 8) ^ packet[byte]) & 0xff]) & 0xffff;
+
+      packet.append((crc >> 8) & 0xFF) #send the high byte of the crc
+      packet.append(crc & 0xFF) #send the low byte of the crc
+
+      return packet
+
+   def create_servo_packet(self, num, position):
+      crc = 0
+      packet = []
+
+      packet.append(8)      #packet size
+      packet.append(128)    #roboclaw address
+
+      packet.append(6)      #servo command
+
+      packet.append(num)    #servo num
+      packet.append((position >> 8) & 0xff)
+      packet.append(position  & 0xff)
+      packet.append(0)
+
+      #Calculates CRC16 of nBytes of data in byte array message
+      for byte in range(1,7):
+          crc = (((crc << 8) & 0xffff) ^ crctable[((crc >> 8) ^ packet[byte]) & 0xff]) & 0xffff;
+
+      packet.append((crc >> 8) & 0xFF) #send the high byte of the crc
+      packet.append(crc & 0xFF) #send the low byte of the crc
+
+      return packet
+
+   def create_string_packet(self, string):
+      crc = 0
+      packet = []
+
+      packet.append(len(string) + 5)      #packet size
+      packet.append(128)    #roboclaw address
+
+      packet.append(2)      #print string command
+
+      packet.append(len(string))    #length of string in bytes
+
+      for i in range(len(string)):
+        packet.append(ord(string[i]))
+
+      #Calculates CRC16 of nBytes of data in byte array message
+      for byte in range(1,len(string)+4):
+          crc = (((crc << 8) & 0xffff) ^ crctable[((crc >> 8) ^ packet[byte]) & 0xff]) & 0xffff;
+
+      packet.append((crc >> 8) & 0xFF) #send the high byte of the crc
+      packet.append(crc & 0xFF) #send the low byte of the crc
+
+      return packet
+
+   def create_cursor_packet(self, col, row):
+      crc = 0
+      packet = []
+
+      packet.append(8)      #packet size
+      packet.append(128)    #roboclaw address
+
+      packet.append(1)      #cursor command
+
+      packet.append(col)    #column
+      packet.append(row)    #row
+      packet.append(0)
+      packet.append(0)
+
+      #Calculates CRC16 of nBytes of data in byte array message
+      for byte in range(1,7):
+          crc = (((crc << 8) & 0xffff) ^ crctable[((crc >> 8) ^ packet[byte]) & 0xff]) & 0xffff;
+
+      packet.append((crc >> 8) & 0xFF) #send the high byte of the crc
+      packet.append(crc & 0xFF) #send the low byte of the crc
+
+      return packet
+
+   def create_int_packet(self, val):
+      crc = 0
+      packet = []
+
+      packet.append(8)      #packet size
+      packet.append(128)    #roboclaw address
+
+      packet.append(3)      #cursor command
+
+      packet.append(val & 0xff)    #column
+      packet.append((val >> 8) & 0xff)    #row
+      packet.append((val >> 16) & 0xff)
+      packet.append((val >> 24) & 0xff)
 
       #Calculates CRC16 of nBytes of data in byte array message
       for byte in range(1,7):
@@ -102,7 +214,7 @@ class JoystickNode:
       rospy.on_shutdown(self.shutdown)
       rospy.loginfo("Connecting to joystick")
 
-      self.motor_command_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=1)
+      self.motor_command_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=2)
       self.robot_stop_pub = rospy.Publisher('/robot_stop', Empty, queue_size=1)
       self.autonomous_pub = rospy.Publisher('/autonomous', Int8, queue_size=1)
       self.autonomous_led_pub = rospy.Publisher('/read_encoder_cmd', Int8, queue_size=1)
@@ -114,49 +226,44 @@ class JoystickNode:
       #workaround for joystick bug
       ready=0
       button1 = 0
-      # pygame.event.pump()
-      # while pygame.joystick.Joystick(0).get_button(0) == 1:
-      #    print ("stuck")
-      #    pygame.event.pump()
-      #    if button1 == 0:
-      #       l = Lcd()
-      #       l.init_serial_port()
-      #       l.clear_screen()
-      #       l.print_string('Press button 1.')
-      #       l.close()
-      #       button1 = 1
-      l = Lcd()
-      if l.init_serial_port() == True:
-         l.backlight_off()
-         l.clear_screen()
-         l.print_string('Ready to start.')
-         l.close()
+
+      p = Int32MultiArray()
+      p.data = self.create_cursor_packet(0,1)
+      self.herbie_board_pub.publish(p)
+
+      p = Int32MultiArray()
+      p.data = self.create_string_packet('Ready to start.')
+      self.herbie_board_pub.publish(p)
 
       while ready==0:
          #wait for buttons 3 and 4 to be pressed simultaneously
          sleep(.1)
+
          pygame.event.pump()
          button2 = pygame.joystick.Joystick(0).get_button(2)
          button3 = pygame.joystick.Joystick(0).get_button(3)
          if button2==1 and button3==1:
             ready = 1
             for i in range(3):
-               #blink the blue LED on the encoder shield 3 times
+               #blink the LED 3 on the Herbie board 3 times
                p = Int32MultiArray()
-               p.data = self.create_led_packet(3,1)
+               p.data = self.create_led_packet(3,1) #led on
                self.herbie_board_pub.publish(p)
                sleep(.2)
 
                p = Int32MultiArray()
-               p.data = self.create_led_packet(3,0)
+               p.data = self.create_led_packet(3,0) #led off
                self.herbie_board_pub.publish(p)
                sleep(.2)
             sleep(.2)
 
-      l = Lcd()
-      if l.init_serial_port() == True:
-         l.clear_screen()
-         l.close()
+      p = Int32MultiArray()
+      p.data = self.create_cursor_packet(0,1)
+      self.herbie_board_pub.publish(p)
+
+      p = Int32MultiArray()
+      p.data = self.create_string_packet('                ')
+      self.herbie_board_pub.publish(p)
 
    def record_bag(self):
       l = Lcd()
@@ -269,11 +376,13 @@ class JoystickNode:
                #ending program and all nodes
                print ("Button1 hold")
 
-               l = Lcd()
-               if l.init_serial_port() == True:
-                   l.clear_screen()
-                   l.print_string('Exiting...')
-                   l.close()
+               p = Int32MultiArray()
+               p.data = self.create_cursor_packet(0,0)
+               self.herbie_board_pub.publish(p)
+
+               p = Int32MultiArray()
+               p.data = self.create_string_packet('Exiting...')
+               self.herbie_board_pub.publish(p)
 
                #blink LED 3 times
                for i in range(3):
@@ -409,8 +518,14 @@ class JoystickNode:
 
             if button8_hold == 5:
                 if servo_toggle == 0:
+                    p = Int32MultiArray()
+                    p.data = self.create_servo_packet(0,100)
+                    self.herbie_board_pub.publish(p)
                     servo_toggle = 1
                 else:
+                    p = Int32MultiArray()
+                    p.data = self.create_servo_packet(0,1900)
+                    self.herbie_board_pub.publish(p)
                     servo_toggle = 0
 
                 button8_hold = 0

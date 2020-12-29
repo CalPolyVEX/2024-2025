@@ -26,7 +26,7 @@
 
 struct packet {
    int size;
-   unsigned char data[16];
+   unsigned char data[24];
 };
 
 class OdometryPublisher {

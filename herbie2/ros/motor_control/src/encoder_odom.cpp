@@ -266,14 +266,9 @@ void OdometryPublisher::run_pid() {
   char s[32];
   buf[0] = 0; //set the col
   buf[1] = 0; //set the row
-  create_control_board_msg(1,(void*) buf); //set cursor to top
+  /* create_control_board_msg(1,(void*) buf); //set cursor to top */
   snprintf(s, 32, "%d %d  ", applied_left_motor, applied_right_motor);
-  create_control_board_msg(2,(void*) s); //print string
-
-  /* create_control_board_msg(3,(void*) &applied_left_motor); //print left encoder */
-  /* create_control_board_msg(2,(void*) "  "); //set cursor to top */
-  /* create_control_board_msg(3,(void*) &applied_right_motor); //print right encoder */
-  /* create_control_board_msg(2,(void*) "  "); //set cursor to top */
+  /* create_control_board_msg(2,(void*) s); //print string */
 
   //set the motor speeds
   setmotor_mutex.lock();

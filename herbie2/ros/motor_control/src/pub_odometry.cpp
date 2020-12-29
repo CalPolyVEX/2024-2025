@@ -143,7 +143,7 @@ void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
   herbie_board_queue_mutex.lock();
   while ((board_queue.size() != 0) && (sent_board_packets < 7)) {
      herbie_board_queue_mutex.unlock();
-     usleep(2000);
+     usleep(1500);
      struct packet p;
 
      herbie_board_queue_mutex.lock();
@@ -152,6 +152,11 @@ void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
      herbie_board_queue_mutex.unlock();
 
      my_serial->write(p.data,p.size); //send the data
+
+     //add extra delay for clear screen
+     if (p.data[1] == 0)
+        usleep(500);
+
      sent_board_packets++;
 
      herbie_board_queue_mutex.lock();
