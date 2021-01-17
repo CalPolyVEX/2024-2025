@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name js)(type Legacy)(uri /home/jseng/ue4/herbie2/herbie2_pcb/js.lib)(options "")(descr ""))
+)
