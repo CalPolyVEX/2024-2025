@@ -414,19 +414,13 @@ Text GLabel 9450 4100 2    50   Input ~ 0
 Wire Wire Line
 	9400 4100 9400 4200
 Wire Wire Line
-	9650 4400 9950 4400
-Wire Wire Line
 	9950 4400 9950 4300
 Wire Wire Line
 	9950 4300 10300 4300
 Wire Wire Line
-	9650 4500 10050 4500
-Wire Wire Line
 	10050 4500 10050 4600
 Wire Wire Line
 	10050 4600 10300 4600
-Wire Wire Line
-	9650 4600 9950 4600
 Wire Wire Line
 	9950 4600 9950 4900
 Wire Wire Line
@@ -435,9 +429,9 @@ Wire Wire Line
 	9900 4700 9900 5200
 Wire Wire Line
 	9900 5200 10300 5200
-Text GLabel 8750 4400 0    50   Input ~ 0
+Text GLabel 9300 4400 0    50   Input ~ 0
 DATA_SERVO
-Text GLabel 8750 4600 0    50   Input ~ 0
+Text GLabel 9300 4600 0    50   Input ~ 0
 CLK_SERVO
 Text GLabel 7550 2550 2    50   Input ~ 0
 CLK_SERVO
@@ -613,26 +607,6 @@ F 3 "~" H 3700 2800 50  0001 C CNN
 	1    3700 2800
 	-1   0    0    1   
 $EndComp
-$Comp
-L herbie2-rescue:LTC4412ES6_TRMPBF-dk_PMIC-OR-Controllers-Ideal-Diodes Q2
-U 1 1 5FD126F8
-P 3300 2800
-F 0 "Q2" H 3744 2453 60  0000 L CNN
-F 1 "LTC4412" H 3744 2347 60  0000 L CNN
-F 2 "digikey-footprints:SOT-23-6" H 3500 3000 60  0001 L CNN
-F 3 "http://www.linear.com/docs/1527" H 3500 3100 60  0001 L CNN
-F 4 "LTC4412ES6#TRMPBFCT-ND" H 3500 3200 60  0001 L CNN "Digi-Key_PN"
-F 5 "LTC4412ES6#TRMPBF" H 3500 3300 60  0001 L CNN "MPN"
-F 6 "Integrated Circuits (ICs)" H 3500 3400 60  0001 L CNN "Category"
-F 7 "PMIC - OR Controllers, Ideal Diodes" H 3500 3500 60  0001 L CNN "Family"
-F 8 "http://www.linear.com/docs/1527" H 3500 3600 60  0001 L CNN "DK_Datasheet_Link"
-F 9 "/product-detail/en/linear-technology-analog-devices/LTC4412ES6-TRMPBF/LTC4412ES6-TRMPBFCT-ND/890097" H 3500 3700 60  0001 L CNN "DK_Detail_Page"
-F 10 "IC OR CTRLR SRC SELECT TSOT23-6" H 3500 3800 60  0001 L CNN "Description"
-F 11 "Linear Technology/Analog Devices" H 3500 3900 60  0001 L CNN "Manufacturer"
-F 12 "Active" H 3500 4000 60  0001 L CNN "Status"
-	1    3300 2800
-	1    0    0    -1  
-$EndComp
 Text GLabel 6050 6050 0    50   Input ~ 0
 GND
 Wire Wire Line
@@ -713,17 +687,6 @@ Wire Wire Line
 	7550 3150 7350 3150
 Wire Wire Line
 	7350 3050 7550 3050
-$Comp
-L 74xx:74HC595 U1
-U 1 1 601F8C90
-P 9250 4800
-F 0 "U1" H 9250 5581 50  0000 C CNN
-F 1 "74HC595" H 9250 5490 50  0000 C CNN
-F 2 "Package_SO:SOIC-16_3.9x9.9mm_P1.27mm" H 9250 4800 50  0001 C CNN
-F 3 "http://www.ti.com/lit/ds/symlink/sn74hc595.pdf" H 9250 4800 50  0001 C CNN
-	1    9250 4800
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	9650 4700 9900 4700
 Wire Wire Line
@@ -732,18 +695,12 @@ Text GLabel 8750 5000 0    50   Input ~ 0
 GND
 Wire Wire Line
 	8750 5000 8850 5000
-Wire Wire Line
-	8750 4400 8850 4400
-Wire Wire Line
-	8750 4600 8850 4600
 Text GLabel 8750 4700 0    50   Input ~ 0
 3.3V
 Wire Wire Line
 	8750 4700 8850 4700
-Text GLabel 8750 4900 0    50   Input ~ 0
+Text GLabel 9300 4500 0    50   Input ~ 0
 RCLK_SERVO
-Wire Wire Line
-	8750 4900 8850 4900
 Text GLabel 7550 2450 2    50   Input ~ 0
 RCLK_SERVO
 Wire Wire Line
@@ -790,7 +747,7 @@ U 1 1 5FD26865
 P 6150 5350
 F 0 "U6" H 6150 6131 50  0000 C CNN
 F 1 "TCA9534" H 6150 6040 50  0000 C CNN
-F 2 "Package_SO:SOIC-16_4.55x10.3mm_P1.27mm" H 7100 4800 50  0001 C CNN
+F 2 "Package_SO:SOIC-16W_7.5x10.3mm_P1.27mm" H 7100 4800 50  0001 C CNN
 F 3 "http://www.ti.com/lit/ds/symlink/tca9534.pdf" H 6250 5250 50  0001 C CNN
 	1    6150 5350
 	1    0    0    -1  
@@ -874,26 +831,6 @@ F 3 "" H 3400 4950 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	3700 4350 3700 4200
-$Comp
-L herbie2-rescue:LTC4412ES6_TRMPBF-dk_PMIC-OR-Controllers-Ideal-Diodes Q1
-U 1 1 5FCFE60E
-P 3300 4050
-F 0 "Q1" H 3744 3703 60  0000 L CNN
-F 1 "LTC4412" H 3744 3597 60  0000 L CNN
-F 2 "digikey-footprints:SOT-23-6" H 3500 4250 60  0001 L CNN
-F 3 "http://www.linear.com/docs/1527" H 3500 4350 60  0001 L CNN
-F 4 "LTC4412ES6#TRMPBFCT-ND" H 3500 4450 60  0001 L CNN "Digi-Key_PN"
-F 5 "LTC4412ES6#TRMPBF" H 3500 4550 60  0001 L CNN "MPN"
-F 6 "Integrated Circuits (ICs)" H 3500 4650 60  0001 L CNN "Category"
-F 7 "PMIC - OR Controllers, Ideal Diodes" H 3500 4750 60  0001 L CNN "Family"
-F 8 "http://www.linear.com/docs/1527" H 3500 4850 60  0001 L CNN "DK_Datasheet_Link"
-F 9 "/product-detail/en/linear-technology-analog-devices/LTC4412ES6-TRMPBF/LTC4412ES6-TRMPBFCT-ND/890097" H 3500 4950 60  0001 L CNN "DK_Detail_Page"
-F 10 "IC OR CTRLR SRC SELECT TSOT23-6" H 3500 5050 60  0001 L CNN "Description"
-F 11 "Linear Technology/Analog Devices" H 3500 5150 60  0001 L CNN "Manufacturer"
-F 12 "Active" H 3500 5250 60  0001 L CNN "Status"
-	1    3300 4050
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	2400 4450 2900 4450
 Text GLabel 2600 4150 2    50   Input ~ 0
@@ -2005,15 +1942,6 @@ Wire Wire Line
 	10000 2650 10150 2650
 Wire Wire Line
 	10000 2750 10150 2750
-NoConn ~ 9700 5000
-NoConn ~ 9700 5100
-NoConn ~ 9700 5300
-Wire Wire Line
-	9700 5000 9650 5000
-Wire Wire Line
-	9700 5100 9650 5100
-Wire Wire Line
-	9700 5300 9650 5300
 NoConn ~ 4300 800 
 NoConn ~ 4300 900 
 Wire Wire Line
@@ -2262,4 +2190,50 @@ Wire Wire Line
 Connection ~ 6500 6750
 Wire Wire Line
 	6500 6750 6350 6750
+$Comp
+L dk_PMIC-OR-Controllers-Ideal-Diodes:LTC4412 Q2
+U 1 1 60117B73
+P 3300 4050
+F 0 "Q2" H 3744 3703 60  0000 L CNN
+F 1 "LTC4412" H 3744 3597 60  0000 L CNN
+F 2 "digikey-footprints:SOT-23-6" H 3500 4250 60  0001 L CNN
+F 3 "http://www.linear.com/docs/1527" H 3500 4350 60  0001 L CNN
+F 4 "LTC4412ES6#TRMPBFCT-ND" H 3500 4450 60  0001 L CNN "Digi-Key_PN"
+F 5 "LTC4412ES6#TRMPBF" H 3500 4550 60  0001 L CNN "MPN"
+F 6 "Integrated Circuits (ICs)" H 3500 4650 60  0001 L CNN "Category"
+F 7 "PMIC - OR Controllers, Ideal Diodes" H 3500 4750 60  0001 L CNN "Family"
+F 8 "http://www.linear.com/docs/1527" H 3500 4850 60  0001 L CNN "DK_Datasheet_Link"
+F 9 "/product-detail/en/linear-technology-analog-devices/LTC4412ES6-TRMPBF/LTC4412ES6-TRMPBFCT-ND/890097" H 3500 4950 60  0001 L CNN "DK_Detail_Page"
+F 10 "IC OR CTRLR SRC SELECT TSOT23-6" H 3500 5050 60  0001 L CNN "Description"
+F 11 "Linear Technology/Analog Devices" H 3500 5150 60  0001 L CNN "Manufacturer"
+F 12 "Active" H 3500 5250 60  0001 L CNN "Status"
+	1    3300 4050
+	1    0    0    -1  
+$EndComp
+$Comp
+L dk_PMIC-OR-Controllers-Ideal-Diodes:LTC4412 Q1
+U 1 1 601222F1
+P 3300 2800
+F 0 "Q1" H 3744 2453 60  0000 L CNN
+F 1 "LTC4412" H 3744 2347 60  0000 L CNN
+F 2 "digikey-footprints:SOT-23-6" H 3500 3000 60  0001 L CNN
+F 3 "http://www.linear.com/docs/1527" H 3500 3100 60  0001 L CNN
+F 4 "LTC4412ES6#TRMPBFCT-ND" H 3500 3200 60  0001 L CNN "Digi-Key_PN"
+F 5 "LTC4412ES6#TRMPBF" H 3500 3300 60  0001 L CNN "MPN"
+F 6 "Integrated Circuits (ICs)" H 3500 3400 60  0001 L CNN "Category"
+F 7 "PMIC - OR Controllers, Ideal Diodes" H 3500 3500 60  0001 L CNN "Family"
+F 8 "http://www.linear.com/docs/1527" H 3500 3600 60  0001 L CNN "DK_Datasheet_Link"
+F 9 "/product-detail/en/linear-technology-analog-devices/LTC4412ES6-TRMPBF/LTC4412ES6-TRMPBFCT-ND/890097" H 3500 3700 60  0001 L CNN "DK_Detail_Page"
+F 10 "IC OR CTRLR SRC SELECT TSOT23-6" H 3500 3800 60  0001 L CNN "Description"
+F 11 "Linear Technology/Analog Devices" H 3500 3900 60  0001 L CNN "Manufacturer"
+F 12 "Active" H 3500 4000 60  0001 L CNN "Status"
+	1    3300 2800
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9300 4600 9950 4600
+Wire Wire Line
+	9300 4500 10050 4500
+Wire Wire Line
+	9300 4400 9950 4400
 $EndSCHEMATC
