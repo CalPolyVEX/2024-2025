@@ -399,10 +399,6 @@ Text GLabel 10050 1850 0    50   Input ~ 0
 GND
 Wire Wire Line
 	10050 1850 10150 1850
-Text GLabel 9150 5500 0    50   Input ~ 0
-GND
-Wire Wire Line
-	9150 5500 9250 5500
 Text GLabel 8100 1250 0    50   Input ~ 0
 DATA_LCD
 Wire Wire Line
@@ -688,17 +684,7 @@ Wire Wire Line
 Wire Wire Line
 	7350 3050 7550 3050
 Wire Wire Line
-	9650 4700 9900 4700
-Wire Wire Line
 	9400 4200 9250 4200
-Text GLabel 8750 5000 0    50   Input ~ 0
-GND
-Wire Wire Line
-	8750 5000 8850 5000
-Text GLabel 8750 4700 0    50   Input ~ 0
-3.3V
-Wire Wire Line
-	8750 4700 8850 4700
 Text GLabel 9300 4500 0    50   Input ~ 0
 RCLK_SERVO
 Text GLabel 7550 2450 2    50   Input ~ 0
@@ -737,7 +723,7 @@ Wire Wire Line
 	6150 3650 6350 3650
 Text GLabel 6150 3650 0    50   Input ~ 0
 5V
-Text GLabel 6150 2250 0    50   Input ~ 0
+Text GLabel 5450 2100 0    50   Input ~ 0
 VIN_MEASURE
 Wire Wire Line
 	6150 2250 6350 2250
@@ -2236,4 +2222,15 @@ Wire Wire Line
 	9300 4500 10050 4500
 Wire Wire Line
 	9300 4400 9950 4400
+Text GLabel 6150 2250 0    50   Input ~ 0
+SERVO3
+Wire Wire Line
+	5450 2100 5650 2100
+Wire Wire Line
+	5650 2100 5650 2350
+Connection ~ 5650 2350
+Text GLabel 9300 4700 0    50   Input ~ 0
+SERVO3
+Wire Wire Line
+	9300 4700 9900 4700
 $EndSCHEMATC
