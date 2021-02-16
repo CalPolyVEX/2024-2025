@@ -9,7 +9,6 @@ from std_msgs.msg import Int8
 from std_msgs.msg import Int16
 from std_msgs.msg import Int32MultiArray
 import subprocess, threading
-from lcd import Lcd
 from array import array
 
 crctable = array('H', [
@@ -266,11 +265,13 @@ class JoystickNode:
       self.herbie_board_pub.publish(p)
 
    def record_bag(self):
-      l = Lcd()
-      if l.init_serial_port() == True:
-         l.clear_screen()
-         l.print_string('Recording...')
-         l.close()
+      p = Int32MultiArray()
+      p.data = self.create_cursor_packet(0,1)
+      self.herbie_board_pub.publish(p)
+
+      p = Int32MultiArray()
+      p.data = self.create_string_packet('Recording...')
+      self.herbie_board_pub.publish(p)
 
       rec_topics = "rosbag record \
          /zed_node/rgb/image_rect_color \
@@ -286,11 +287,13 @@ class JoystickNode:
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
 
    def record_bag_debugging(self):
-      l = Lcd()
-      if l.init_serial_port() == True:
-         l.clear_screen()
-         l.print_string('Recording...')
-         l.close()
+      p = Int32MultiArray()
+      p.data = self.create_cursor_packet(0,1)
+      self.herbie_board_pub.publish(p)
+
+      p = Int32MultiArray()
+      p.data = self.create_string_packet('Recording...')
+      self.herbie_board_pub.publish(p)
 
       rec_topics = "rosbag record \
          /zed/data_throttled_image /zed/data_throttled_camera_info /laser_scan_filtered \
@@ -302,11 +305,13 @@ class JoystickNode:
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
 
    def record_bag_debugging_cnn(self):
-      l = Lcd()
-      if l.init_serial_port() == True:
-         l.clear_screen()
-         l.print_string('Recording...')
-         l.close()
+      p = Int32MultiArray()
+      p.data = self.create_cursor_packet(0,1)
+      self.herbie_board_pub.publish(p)
+
+      p = Int32MultiArray()
+      p.data = self.create_string_packet('Recording...')
+      self.herbie_board_pub.publish(p)
 
       rec_topics = "rosbag record /image_converter/output_video /planner/move_base/status \
          /zed/data_throttled_image /zed/data_throttled_camera_info /laser_scan_filtered \
@@ -317,13 +322,15 @@ class JoystickNode:
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
 
    def stop_record_bag(self):
-      l = Lcd()
-      if l.init_serial_port() == True:
-         l.clear_screen()
-         l.print_string('Stop Recording.')
-         l.close()
-      proc1 = subprocess.Popen('cd /mnt/temp;rosnode kill /my_bag_recorder', shell=True)
+      p = Int32MultiArray()
+      p.data = self.create_cursor_packet(0,1)
+      self.herbie_board_pub.publish(p)
 
+      p = Int32MultiArray()
+      p.data = self.create_string_packet('Stop Recording.')
+      self.herbie_board_pub.publish(p)
+
+      proc1 = subprocess.Popen('cd /mnt/temp;rosnode kill /my_bag_recorder', shell=True)
 
    def run(self):
       old_linear = 0
@@ -409,8 +416,8 @@ class JoystickNode:
             # rospy.logdebug("axis 1: %f", axis1)
             # rospy.logdebug("button 0: %d", pygame.joystick.Joystick(0).get_button(0))
 
-            vel_msg.linear.x = -.6 * axis1
-            vel_msg.angular.z = -1.3 * axis0
+            vel_msg.linear.x = -.8 * axis1
+            vel_msg.angular.z = -1.5 * axis0
             old_linear = vel_msg.linear.x
             old_angular = vel_msg.angular.z
 
