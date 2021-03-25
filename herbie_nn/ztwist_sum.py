@@ -7,7 +7,6 @@ from __future__ import print_function
 #the program also saves the heading data to a file
 
 import roslib
-import message_filters
 import sys, rospy, time
 import numpy as np
 from nav_msgs.msg import Odometry
@@ -23,7 +22,6 @@ class read_odometry:
         self.ztwist = 0.0
 
         self.f = open("data.txt","w+")
-        self.first = 0
         self.last_yaw = 0
         self.heading_offset = 0
 
@@ -54,16 +52,10 @@ class read_odometry:
             yaw = 57.2958 * math.atan2(t3, t4)
 
             #this code handles the wrap-around of the heading from +180 to -180
-            if self.first == 0:
-                self.first = 1
-                self.heading_offset = 0
-            else:
-                if self.last_yaw > 175 and yaw < -175:
-                    self.heading_offset += 360.0
-                    #print ('-----------------1')
-                elif self.last_yaw < -175 and yaw > 175:
-                    self.heading_offset -= 360.0
-                    #print ('-----------------2')
+            if self.last_yaw > 175 and yaw < -175:
+                self.heading_offset += 360.0
+            elif self.last_yaw < -175 and yaw > 175:
+                self.heading_offset -= 360.0
 
             self.last_yaw = yaw
 
