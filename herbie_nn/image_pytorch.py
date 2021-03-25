@@ -15,11 +15,9 @@ class image_inference:
       print (self.device)
 
       self.model = torch.load(model_name, map_location=self.device)
-      #self.model = torch.load("/home/jseng/Senior-Project/pytorch_networks/mobilenetv3_small-.0110-80out.pt", map_location=torch.device('cpu'))
       self.model.eval()
 
       self.image_resized_pub = rospy.Publisher("/test_image/image_raw/compressed",CompressedImage, queue_size=1)
-      #self.image_resized_pub = rospy.Publisher("/test_image/image_raw",Image, queue_size=1)
 
       self.image_sub = rospy.Subscriber("/see3cam_cu20/image_raw/compressed",CompressedImage,self.callback, queue_size=1, buff_size=10000000)
 
@@ -30,10 +28,18 @@ class image_inference:
 
       self.point_list = []
 
+   def connect_boundary(self, points, img):
+      for i in range(len(points)-1):
+         x1= points[i][0]
+         y1 = points[i][1]
+         x2= points[i+1][0]
+         y2 = points[i+1][1]
+         cv2.line(img, (x1,y1), (x2,y2), (0,255,255), 2)
+
    def local_planner(self, img):
-      #print (self.point_list)
       middle_x = 320
       middle_y = 180
+      bottom_y = 359
 
       distance_list = []
 
@@ -60,25 +66,59 @@ class image_inference:
          i += 1
 
       print ('--------------')
-      print (self.point_list)
+      #print (self.point_list)
 
       #clear out all element with -1,-1
-      temp_distance_list = []
+      temp_point_list = []
       for i in range(len(self.point_list)):
          if self.point_list[i][0] != -1:
-            temp_distance_list.append(self.point_list[i])
+            temp_point_list.append(self.point_list[i])
 
-      distance_list = temp_distance_list
-      print (distance_list)
+      #print (distance_list)
+      distance_list = []
 
-      for p in distance_list:
+      for p in temp_point_list:
          px = p[0]
          py = p[1]
-         #distance = math.sqrt((middle_x - px)**2 + (middle_y - py)**2)
-         #distance_list.append(distance)
-         cv2.line(img, (px,py), (middle_x,359), (255,0,0), 2)
+         distance = math.sqrt((middle_x - px)**2 + (bottom_y - py)**2)
+         distance_list.append(distance)
 
-      print (len(distance_list))
+      sum = 0
+      active_list = []
+      for i in range(len(distance_list)):
+         F_rep = 1.0 / (distance_list[i])
+
+         #print (F_rep)
+         if F_rep < .0031:
+            # F_rep = 0
+            active_list.append(0)
+         else:
+            active_list.append(1)
+
+         if temp_point_list[i][0] < middle_x:
+            F_horizontal = math.atan ((bottom_y - temp_point_list[i][1] + .0001) /  \
+               (middle_x - temp_point_list[i][0] + .0001) )
+            F_rep *= math.cos(F_horizontal) * (temp_point_list[i][1]/bottom_y)
+            sum += F_rep
+         else:
+            F_horizontal = math.atan ((bottom_y - temp_point_list[i][1] + .0001) /  \
+               (temp_point_list[i][0] - middle_x + .0001) )
+            F_rep *= math.cos(F_horizontal) * (temp_point_list[i][1]/bottom_y)
+            sum -= F_rep
+
+      print (sum)
+      cv2.circle(img, (round(1000.0*sum) + 320,160), 4, (0,0,255), -1)
+      cv2.line(img, (320,0), (320,300), (0,0,255))
+      #sum = sum / len(distance_list)
+
+      for i in range(len(temp_point_list)):
+         px = temp_point_list[i][0]
+         py = temp_point_list[i][1]
+
+         if active_list[i] == 1:
+            cv2.line(img, (px,py), (middle_x,bottom_y), (255,0,0), 2)
+         else:
+            cv2.line(img, (px,py), (middle_x,bottom_y), (2550,0,0), 2)
 
    def callback(self,msg_in):
       #### direct conversion to CV2 ####
@@ -116,6 +156,7 @@ class image_inference:
       ms_time = (end_time - start_time)/1000000.0
       fps = 1000.0/ms_time
 
+      self.connect_boundary(self.point_list,image_np_360)
       self.local_planner(image_np_360)
 
       cv2.putText(image_np_360,str(f'{ms_time:.2f}') + 'ms FPS: ' + str(fps),
