@@ -8,10 +8,12 @@ from sensor_msgs.msg import CompressedImage
 import torch
 from torchvision import transforms
 import math
+from threading import Lock
 
 class image_tracker:
    def __init__(self): 
-      self.tracker = cv2.TrackerKCF_create()
+      #self.tracker = cv2.TrackerKCF_create()
+      self.tracker = cv2.TrackerCSRT_create()
 
       self.image_np = None
       self.counter = 0
@@ -26,6 +28,8 @@ class image_tracker:
       self.yaw_list = [0,0,0,0,0,0,0]
       self.heading_offset = 0
       self.last_heading_offset = 0
+      self.turn_dir = 2 # 1 is left, 2 is straight, 3 is right
+      self.l = Lock()
 
       #how many frames to skip before capturing an image
       self.straight_capture_freq = 20
@@ -43,7 +47,8 @@ class image_tracker:
          self.target_set = 1
 
          #reinitialize the tracker on a mouse click
-         self.tracker = cv2.TrackerKCF_create()
+         #self.tracker = cv2.TrackerKCF_create()
+         self.tracker = cv2.TrackerCSRT_create()
 
          bbox = (self.mouseX- int(self.box_width/2), self.mouseY - int(self.box_width/2), self.box_width, self.box_width)
 
@@ -54,15 +59,20 @@ class image_tracker:
          cv2.imshow('image',self.image_np)
 
          #save image data here
-         self.counter += 1
-         # print (self.counter)
-         center_x = x+int(self.box_width/2)
-         center_y = y+int(self.box_width/2)
-         if self.counter % self.capture_freq == 0:
-            self.straight_capture_count += 1
-            print (self.straight_capture_count)
-            cv2.imwrite(self.file_prefix + '-' + str(self.straight_capture_count) + '-' + str(center_x) + '-' + str(center_y) + '.jpg', self.image_orig)
+         if self.l.locked() == False:
+            self.counter += 1
+            # print (self.counter)
+            center_x = self.mouseX
+            center_y = self.mouseY
 
+            if not ((center_x > 320 and self.turn_dir == 1) or (center_x < 320 and self.turn_dir == 3)):
+               self.straight_capture_count += 1
+               print (self.straight_capture_count)
+               cv2.circle(self.image_orig, (center_x,center_y), 4, (0,255,255), -1)
+               cv2.imwrite(self.file_prefix + '-' + str(self.turn_dir) + \
+                  '-' + str(center_x) + '-' + str(center_y) + '-' + \
+                  str(self.straight_capture_count) + '.jpg', \
+                  self.image_orig)
 
    def read_bag(self, bag_name = '/home/jseng/ref_bags/2021-03-23-08-06-14.bag'):
       bag = rosbag.Bag(bag_name)
@@ -86,8 +96,8 @@ class image_tracker:
                   cv2.waitKey(1)
 
             if self.tracking == 0:
-               self.tracker = cv2.TrackerKCF_create()
-               # self.tracker = cv2.TrackerCSRT_create()
+               #self.tracker = cv2.TrackerKCF_create()
+               self.tracker = cv2.TrackerCSRT_create()
 
                bbox = (self.mouseX - int(self.box_width/2), self.mouseY- int(self.box_width/2), self.box_width, self.box_width)
 
@@ -109,13 +119,21 @@ class image_tracker:
                   cv2.imshow('image',self.image_np)
 
                   #save image data here
+                  self.l.acquire()
                   self.counter += 1
                   #print (self.counter)
-                  self.image_orig_jpg = cv2.imencode('.jpg', self.image_orig)
                   if self.counter % self.capture_freq == 0:
-                     self.straight_capture_count += 1
-                     print (self.straight_capture_count)
-                     cv2.imwrite(self.file_prefix + '-' + str(self.straight_capture_count) + '-' + str(center_x) + '-' + str(center_y) + '.jpg', self.image_orig)
+                     #check for invalid conditions
+
+                     if not ((center_x > 320 and self.turn_dir == 1) or (center_x < 320 and self.turn_dir == 3)):
+                        self.straight_capture_count += 1
+                        print (self.straight_capture_count)
+                        cv2.circle(self.image_orig, (center_x,center_y), 4, (0,255,255), -1)
+                        cv2.imwrite(self.file_prefix + '-' + str(self.turn_dir) + \
+                           '-' + str(center_x) + '-' + str(center_y) + '-' + \
+                           str(self.straight_capture_count) + '.jpg', \
+                           self.image_orig)
+                  self.l.release()
                else:
                   print ('tracking lost')
                   self.tracking = 0
@@ -169,11 +187,14 @@ class image_tracker:
             if yaw_average > yaw_threshold:
                #print ("turning right")
                self.capture_freq = self.turn_capture_freq
+               self.turn_dir = 3
             elif yaw_average < -yaw_threshold:
                #print ("turning left")
                self.capture_freq = self.turn_capture_freq
+               self.turn_dir = 1
             else:
                self.capture_freq = self.straight_capture_freq
+               self.turn_dir = 2
 
             self.last_yaw = yaw
             self.last_heading_offset = self.heading_offset
