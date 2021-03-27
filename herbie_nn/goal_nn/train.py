@@ -1,5 +1,12 @@
+#training script for the goal neural network
+#
+#input images in ../Input_Images
+#
+#run: 'python3 train.py split' to copy the input images to the
+#../Training_Images and ../Validation_Images directories
+
 import copy
-import os, time
+import glob, sys, random, os, time
 import augment
 import pretrained_model
 
@@ -15,6 +22,7 @@ from torch.utils.data import Dataset, DataLoader
 import torchvision.models as models
 from tqdm import tqdm
 from time import sleep
+from shutil import copyfile
 
 cudnn.benchmark = True
 
@@ -101,7 +109,56 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     model.load_state_dict(best_model_wts)
     return model
 
+def split_images():
+    print ('---Splitting input images into validation and training---')
+    input_file_list = glob.glob("../Input_Images/*.jpg")
+    random.shuffle(input_file_list)
+
+    train_prefix = '../Training_Images/'
+    val_prefix = '../Validation_Images/'
+
+    val_frac = .05 #.05 of total images used for validation
+    print ('Fraction of images used for validation: ' + str(val_frac))
+
+    #copy the validation images
+    num_val = int(len(input_file_list) * val_frac)
+
+    for x in range(int(len(input_file_list) * val_frac)):
+        filename = input_file_list[0].split('/')[-1]
+        copyfile(input_file_list[0], val_prefix + filename)
+        input_file_list.pop(0) #remove the first item of the list
+    print ('Number of validation images: ' + str(num_val))
+
+    #copy the training images
+    num_train = len(input_file_list)
+
+    for x in range(len(input_file_list)):
+        filename = input_file_list[0].split('/')[-1]
+        copyfile(input_file_list[0], train_prefix + filename)
+        input_file_list.pop(0) #remove the first item of the list
+    print ('Number of training images: ' + str(num_train))
+
+def clean_img_dirs():
+    print('------Cleaning images directories--------')
+    training_file_list = glob.glob("../Training_Images/*.jpg")
+    for x in training_file_list:
+        os.remove(x)
+
+    val_file_list = glob.glob("../Validation_Images/*.jpg")
+    for x in val_file_list:
+        os.remove(x)
+
 if __name__ == '__main__':
+    if len(sys.argv) == 2 and sys.argv[1] == 'split':
+        split_images()
+        exit()
+    elif len(sys.argv) == 2 and sys.argv[1] == 'clean':
+        clean_img_dirs()
+        exit()
+    elif len(sys.argv) == 2:
+        print('Invalid option.  Valid options are: split, clean')
+        exit()
+
     train_fp, val_fp = augment.setup_dir()
     train_d, val_d = augment.create_datasets(train_fp, val_fp)
 
@@ -129,4 +186,5 @@ if __name__ == '__main__':
 
     #train the model
     model = train_model(model, criterion, optimizer, exp_lr_scheduler, num_epochs=480)
+
 

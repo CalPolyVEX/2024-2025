@@ -44,24 +44,35 @@ class GoalDataset(Dataset):
         image_filename = image_filepath.split('/')[-1]
         prefix = image_filename.split('.')[0]
         goal_data_list = prefix.split('-')
-        center_y = float(goal_data_list[-2]) / 360.0
-        center_x = float(goal_data_list[-3]) / 640.0
+        center_y = int(goal_data_list[-2])
+        center_x = int(goal_data_list[-3])
         turn_dir = int(goal_data_list[-4])
 
         # add the data points to the 'data_list'
         data_list = []
-        data_list.append(center_x)
-        data_list.append(center_y)
-        keypoints = [(center_x, center_y)]
+        data_list.append(float(center_x) / 640.0)
+        data_list.append(float(center_y) / 360.0)
 
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) #convert to RGB
 
         # apply the augmentations to the image
         if self.transform is not None:
-            transformed = self.transform(image=image, keypoints=keypoints)
-            image = transformed['image']
-            keypoints = transformed['keypoints']
-            print (keypoints)
+            aug_found = 0
+
+            while aug_found == 0:
+               keypoints = [(center_x, center_y)]
+               transformed = self.transform(image=image, keypoints=keypoints)
+               keypoints = transformed['keypoints']
+
+               #if after transformation there is a single keypoint,
+               #then use the new image and keypoint
+               if len(keypoints) == 1:
+                  image = transformed['image']
+                  data_list = []
+                  #print (data_list)
+                  data_list.append(float(keypoints[0][0])/640.0) #add the x
+                  data_list.append(float(keypoints[0][1])/360.0) #add the y
+                  aug_found = 1
 
         d = torch.Tensor(data_list) # convert the list of data points to a tensor
         return image, d #return the image and the list of datapoints
@@ -74,6 +85,8 @@ def create_datasets(train_file_list,val_file_list):
          A.ISONoise(p=.15),
          A.RandomShadow(p=.1),
          A.MotionBlur(p=.1),
+         A.Perspective(scale=(.05,.1),p=.2),
+         A.Cutout(num_holes=5, max_h_size=12, max_w_size=12, p=.5),
          A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
          ToTensorV2(),
       ],
