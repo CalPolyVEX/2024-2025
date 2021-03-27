@@ -52,12 +52,16 @@ class GoalDataset(Dataset):
         data_list = []
         data_list.append(center_x)
         data_list.append(center_y)
+        keypoints = [(center_x, center_y)]
 
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) #convert to RGB
 
         # apply the augmentations to the image
         if self.transform is not None:
-            image = self.transform(image=image)["image"]
+            transformed = self.transform(image=image, keypoints=keypoints)
+            image = transformed['image']
+            keypoints = transformed['keypoints']
+            print (keypoints)
 
         d = torch.Tensor(data_list) # convert the list of data points to a tensor
         return image, d #return the image and the list of datapoints
@@ -72,7 +76,8 @@ def create_datasets(train_file_list,val_file_list):
          A.MotionBlur(p=.1),
          A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
          ToTensorV2(),
-      ]
+      ],
+      keypoint_params=A.KeypointParams(format='xy')
    )
    train_dataset = GoalDataset(images_filepaths=train_file_list, transform=train_transform)
 
