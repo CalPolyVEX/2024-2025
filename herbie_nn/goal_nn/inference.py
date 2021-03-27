@@ -19,7 +19,8 @@ def main(imageHeight, imageWidth, numOutputs, inputPath, outputPath):
         model = torch.load(sys.argv[1],map_location=device) # load the trained model
         model.eval() #switch the model to inference mode
     else:
-        m = pretrained_model.Pretrained_Model(shape=(imageHeight,imageWidth,3), num_outputs=numOutputs)
+        m = pretrained_model.Goal_Model(shape=(imageHeight,imageWidth,3), \
+            num_outputs=numOutputs)
         model = m.build()
         model.eval() #switch the model to inference mode
 
@@ -29,7 +30,8 @@ def main(imageHeight, imageWidth, numOutputs, inputPath, outputPath):
     # normalize to [0, 1.0]
     preprocess = transforms.Compose([
        transforms.ToTensor(),
-       transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+       transforms.Normalize(mean=[0.485, 0.456, 0.406], \
+           std=[0.229, 0.224, 0.225]),
        ])
 
     for file in os.listdir(inputPath):
@@ -45,17 +47,18 @@ def main(imageHeight, imageWidth, numOutputs, inputPath, outputPath):
             prediction = model(input_tensor)
 
         p_list = prediction.tolist()[0] # convert tensor to a Python list
-        # print (prediction.shape)
+        #print (prediction.shape)
 
         # create the inference image and draw the predicted data points
         validationMaskImage = cv2.imread(imagePath)
-        x = 0
-        for i in range(len(p_list)):
-            y = int(p_list[i] * imageHeight)
-            validationMaskImage = cv2.circle(validationMaskImage, (x, y), 1, (0, 255, 0), -1)
-            x += imageWidth // numOutputs
-        cv2.imwrite('{}/{}_inference.jpg'.format(outputPath, file.split('.')[0]), validationMaskImage)
+
+        x = int(p_list[0] * imageWidth)
+        y = int(p_list[1] * imageHeight)
+        #print((x,y))
+        validationMaskImage = cv2.circle(validationMaskImage, (x, y), \
+            4, (0, 255, 0), -1)
+        cv2.imwrite('{}/{}_inference.jpg'.format(outputPath, \
+            file.split('.')[0]), validationMaskImage)
 
 if __name__ == '__main__':
-    #main(360, 640, 128, '../Validation_Images', 'Inference_Images')
-    main(360, 640, 80, '../Validation_Images', 'Inference_Images')
+    main(360, 640, 2, '../Validation_Images', 'Inference_Images')

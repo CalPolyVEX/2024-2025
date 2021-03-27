@@ -19,7 +19,7 @@ from time import sleep
 cudnn.benchmark = True
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-device = torch.device("cpu")
+#device = torch.device("cpu")
 
 def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     since = time.time() # get the starting time of training
@@ -110,7 +110,7 @@ if __name__ == '__main__':
     image_datasets['val'] = val_d
 
     dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], \
-                   batch_size=4, shuffle=True, num_workers=2) for x in ['train', 'val']}
+                   batch_size=32, shuffle=True, num_workers=12) for x in ['train', 'val']}
 
     dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
     print (dataset_sizes)

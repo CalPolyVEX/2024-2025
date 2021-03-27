@@ -37,8 +37,8 @@ class Goal_Model:
         print(self.m)
         self.print_summary()
 
-        device = torch.device('cpu')
-        self.m.to(device)
+        #device = torch.device('cpu')
+        #self.m.to(device)
 
         # return model
         return self.m

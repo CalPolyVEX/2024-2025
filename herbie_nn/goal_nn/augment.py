@@ -13,7 +13,7 @@ import torch.optim
 from torch.utils.data import Dataset, DataLoader
 import torchvision.models as models
 
-cudnn.benchmark = False
+cudnn.benchmark = True
 
 def setup_dir():
     root_directory = "../"
