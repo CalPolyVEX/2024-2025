@@ -1,17 +1,17 @@
-#!/usr/bin/env python3
-from __future__ import print_function
+#This file is for collecting goal tracking data from a ROS bag file.  The
+#file must publish to /see3cam_cu20/image_raw/compressed and also must
+#publish the odometry to /camera/odom/sample (T265 tracking camera)
+#
+#To run:  python test_tracking.py file.bag
 
 import roslib, rosbag
-import sys, rospy, cv2, time, queue
+import sys, rospy, cv2, time, queue, os, math
 import numpy as np
 from sensor_msgs.msg import CompressedImage
-import torch
-from torchvision import transforms
-import math
 from threading import Lock
 
 class image_tracker:
-   def __init__(self): 
+   def __init__(self):
       #self.tracker = cv2.TrackerKCF_create()
       self.tracker = cv2.TrackerCSRT_create()
 
@@ -35,11 +35,15 @@ class image_tracker:
       self.straight_capture_freq = 20
 
       #how many frames to skip in a turn before capturing an image
-      self.turn_capture_freq = 3 #this number is multiplier of how 
+      self.turn_capture_freq = 3 #this number is multiplier of how
       self.capture_freq = self.straight_capture_freq
 
       self.straight_capture_count = 0
       self.turn_capture_count = 0
+
+      #create Input_Images directory if it does not exist
+      if not os.path.exists('./Input_Images'):
+          os.makedirs('./Input_Images')
 
    def mouse_click(self,event,x,y,flags,param):
       if event == cv2.EVENT_LBUTTONDOWN:
@@ -68,8 +72,8 @@ class image_tracker:
             if not ((center_x > 320 and self.turn_dir == 1) or (center_x < 320 and self.turn_dir == 3)):
                self.straight_capture_count += 1
                print (self.straight_capture_count)
-               cv2.circle(self.image_orig, (center_x,center_y), 4, (0,255,255), -1)
-               cv2.imwrite(self.file_prefix + '-' + str(self.turn_dir) + \
+               #cv2.circle(self.image_orig, (center_x,center_y), 4, (0,255,255), -1)
+               cv2.imwrite('./Input_Images/' + self.file_prefix + '-' + str(self.turn_dir) + \
                   '-' + str(center_x) + '-' + str(center_y) + '-' + \
                   str(self.straight_capture_count) + '.jpg', \
                   self.image_orig)
@@ -90,7 +94,7 @@ class image_tracker:
 
             #waiting for first click
             if self.counter == 0:
-               print ("Waiting for first click")
+               print ("Waiting for first click.  Click on the image to reposition the tracking target.  Use the \'z\' key to pause")
                cv2.imshow('image',self.image_np)
                while self.target_set == 0:
                   cv2.waitKey(1)
@@ -99,12 +103,14 @@ class image_tracker:
                #self.tracker = cv2.TrackerKCF_create()
                self.tracker = cv2.TrackerCSRT_create()
 
-               bbox = (self.mouseX - int(self.box_width/2), self.mouseY- int(self.box_width/2), self.box_width, self.box_width)
+               bbox = (self.mouseX - int(self.box_width/2), self.mouseY - \
+                   int(self.box_width/2), self.box_width, self.box_width)
 
                #initialize tracker
                self.tracker.init(self.image_np, bbox)
                self.tracking = 1
-               cv2.circle(self.image_np, (self.mouseX-int(self.box_width/2),self.mouseY-int(self.box_width/2)), 4, (0,255,255), -1)
+               cv2.circle(self.image_np, (self.mouseX-int(self.box_width/2), \
+                   self.mouseY-int(self.box_width/2)), 4, (0,255,255), -1)
                cv2.imshow('image',self.image_np)
             else:
                (success, box) = self.tracker.update(self.image_np)
@@ -125,11 +131,12 @@ class image_tracker:
                   if self.counter % self.capture_freq == 0:
                      #check for invalid conditions
 
-                     if not ((center_x > 320 and self.turn_dir == 1) or (center_x < 320 and self.turn_dir == 3)):
+                     if not ((center_x > 320 and self.turn_dir == 1) or \
+                         (center_x < 320 and self.turn_dir == 3)):
                         self.straight_capture_count += 1
                         print (self.straight_capture_count)
-                        cv2.circle(self.image_orig, (center_x,center_y), 4, (0,255,255), -1)
-                        cv2.imwrite(self.file_prefix + '-' + str(self.turn_dir) + \
+                        #cv2.circle(self.image_orig, (center_x,center_y), 4, (0,255,255), -1)
+                        cv2.imwrite('./Input_Images/' + self.file_prefix + '-' + str(self.turn_dir) + \
                            '-' + str(center_x) + '-' + str(center_y) + '-' + \
                            str(self.straight_capture_count) + '.jpg', \
                            self.image_orig)
@@ -141,13 +148,12 @@ class image_tracker:
                   while self.target_set == 0:
                      cv2.waitKey(1)
 
-
             #hit 'q' to quit, 'z' to pause
             playing = 1
             paused = 0
 
             while playing == 1 or paused == 1:
-               key = cv2.waitKey(50) 
+               key = cv2.waitKey(50)
                if key == ord('q'):
                   bag.close()
                   cv2.destroyAllWindows()
@@ -177,7 +183,8 @@ class image_tracker:
             #compute a running average
             for i in range(len(self.yaw_list)-1):
                self.yaw_list[i] = self.yaw_list[i+1]
-            self.yaw_list[-1] = (self.last_heading_offset + self.last_yaw) - (self.heading_offset + yaw)
+            self.yaw_list[-1] = (self.last_heading_offset + self.last_yaw) - \
+                (self.heading_offset + yaw)
             yaw_average = sum(self.yaw_list) / len(self.yaw_list)
 
             # print (self.yaw_list)
@@ -198,7 +205,7 @@ class image_tracker:
 
             self.last_yaw = yaw
             self.last_heading_offset = self.heading_offset
-            
+
       #close the bag file and close windows
       bag.close()
       cv2.destroyAllWindows()
