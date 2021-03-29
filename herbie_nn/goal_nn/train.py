@@ -1,9 +1,9 @@
 #training script for the goal neural network
 #
-#input images in ../Input_Images
+#input images in ./Input_Images
 #
 #run: 'python3 train.py split' to copy the input images to the
-#../Training_Images and ../Validation_Images directories
+#./Training_Images and ./Validation_Images directories
 
 import copy
 import glob, sys, random, os, time
@@ -111,11 +111,11 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
 def split_images():
     print ('---Splitting input images into validation and training---')
-    input_file_list = glob.glob("../Input_Images/*.jpg")
+    input_file_list = glob.glob("./Input_Images/*.jpg")
     random.shuffle(input_file_list)
 
-    train_prefix = '../Training_Images/'
-    val_prefix = '../Validation_Images/'
+    train_prefix = './Training_Images/'
+    val_prefix = './Validation_Images/'
 
     val_frac = .05 #.05 of total images used for validation
     print ('Fraction of images used for validation: ' + str(val_frac))
@@ -140,11 +140,11 @@ def split_images():
 
 def clean_img_dirs():
     print('------Cleaning images directories--------')
-    training_file_list = glob.glob("../Training_Images/*.jpg")
+    training_file_list = glob.glob("./Training_Images/*.jpg")
     for x in training_file_list:
         os.remove(x)
 
-    val_file_list = glob.glob("../Validation_Images/*.jpg")
+    val_file_list = glob.glob("./Validation_Images/*.jpg")
     for x in val_file_list:
         os.remove(x)
 

@@ -25,7 +25,7 @@ class image_tracker:
       self.key = 0
       self.box_width = 100
       self.last_heading = 0
-      self.heading_list = [0] * 18
+      self.heading_list = [0] * 30
       self.heading_offset = 0
       self.last_heading_offset = 0
       self.turn_dir = 2 # 1 is left, 2 is straight, 3 is right
@@ -191,7 +191,7 @@ class image_tracker:
             # print (self.heading_list)
             # print (heading_average)
 
-            heading_threshold = .09
+            heading_threshold = .10
             if heading_average > heading_threshold: #turning right
                print ("turning right")
                self.capture_freq = self.turn_capture_freq
