@@ -115,10 +115,10 @@ class image_inference:
          px = temp_point_list[i][0]
          py = temp_point_list[i][1]
 
-         if active_list[i] == 1:
-            cv2.line(img, (px,py), (middle_x,bottom_y), (255,0,0), 2)
-         else:
-            cv2.line(img, (px,py), (middle_x,bottom_y), (2550,0,0), 2)
+         # if active_list[i] == 1:
+         #    cv2.line(img, (px,py), (middle_x,bottom_y), (255,0,0), 2)
+         # else:
+         #    cv2.line(img, (px,py), (middle_x,bottom_y), (255,0,0), 2)
 
    def callback(self,msg_in):
       #### direct conversion to CV2 ####

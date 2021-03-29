@@ -61,8 +61,7 @@ class read_odometry:
 
             #write to a file the heading, seconds, and nanoseconds
             self.f.write(str((self.heading_offset + yaw)) + ',')
-            self.f.write(str(msg_in.header.stamp.secs) + ',')
-            self.f.write(str(msg_in.header.stamp.nsecs) + '\n')
+            self.f.write(str(msg_in.header.stamp.secs) + '.' + str(msg_in.header.stamp.nsecs) + '\n')
 
 def main(args):
     rospy.init_node('odometry_node', anonymous=True) #create the ROS node

@@ -24,8 +24,8 @@ class image_tracker:
       self.target_set = 0
       self.key = 0
       self.box_width = 100
-      self.last_yaw = 0
-      self.yaw_list = [0,0,0,0,0,0,0]
+      self.last_heading = 0
+      self.heading_list = [0] * 18
       self.heading_offset = 0
       self.last_heading_offset = 0
       self.turn_dir = 2 # 1 is left, 2 is straight, 3 is right
@@ -73,10 +73,10 @@ class image_tracker:
                self.straight_capture_count += 1
                print (self.straight_capture_count)
                #cv2.circle(self.image_orig, (center_x,center_y), 4, (0,255,255), -1)
-               cv2.imwrite('./Input_Images/' + self.file_prefix + '-' + str(self.turn_dir) + \
-                  '-' + str(center_x) + '-' + str(center_y) + '-' + \
-                  str(self.straight_capture_count) + '.jpg', \
-                  self.image_orig)
+               # cv2.imwrite('./Input_Images/' + self.file_prefix + '-' + str(self.turn_dir) + \
+               #    '-' + str(center_x) + '-' + str(center_y) + '-' + \
+               #    str(self.straight_capture_count) + '.jpg', \
+               #    self.image_orig)
 
    def read_bag(self, bag_name = '/home/jseng/ref_bags/2021-03-23-08-06-14.bag'):
       bag = rosbag.Bag(bag_name)
@@ -88,7 +88,7 @@ class image_tracker:
       for topic, msg, t in bag.read_messages(topics=['/see3cam_cu20/image_raw/compressed', '/camera/odom/sample']):
          if topic == '/see3cam_cu20/image_raw/compressed':
             np_arr = np.frombuffer(msg.data, np.uint8)
-            self.image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+            self.image_np = cv2.imdecode(np_arr, cv2.IMREAD_COLOR) #decode the JPG
             self.image_np = cv2.resize(self.image_np, (640, 360))  #resize
             self.image_orig = self.image_np.copy() #the data to save
 
@@ -104,13 +104,13 @@ class image_tracker:
                self.tracker = cv2.TrackerCSRT_create()
 
                bbox = (self.mouseX - int(self.box_width/2), self.mouseY - \
-                   int(self.box_width/2), self.box_width, self.box_width)
+                  int(self.box_width/2), self.box_width, self.box_width)
 
                #initialize tracker
                self.tracker.init(self.image_np, bbox)
                self.tracking = 1
                cv2.circle(self.image_np, (self.mouseX-int(self.box_width/2), \
-                   self.mouseY-int(self.box_width/2)), 4, (0,255,255), -1)
+                  self.mouseY-int(self.box_width/2)), 4, (0,255,255), -1)
                cv2.imshow('image',self.image_np)
             else:
                (success, box) = self.tracker.update(self.image_np)
@@ -136,10 +136,10 @@ class image_tracker:
                         self.straight_capture_count += 1
                         print (self.straight_capture_count)
                         #cv2.circle(self.image_orig, (center_x,center_y), 4, (0,255,255), -1)
-                        cv2.imwrite('./Input_Images/' + self.file_prefix + '-' + str(self.turn_dir) + \
-                           '-' + str(center_x) + '-' + str(center_y) + '-' + \
-                           str(self.straight_capture_count) + '.jpg', \
-                           self.image_orig)
+                        # cv2.imwrite('./Input_Images/' + self.file_prefix + '-' + str(self.turn_dir) + \
+                        #    '-' + str(center_x) + '-' + str(center_y) + '-' + \
+                        #    str(self.straight_capture_count) + '.jpg', \
+                        #    self.image_orig)
                   self.l.release()
                else:
                   print ('tracking lost')
@@ -166,44 +166,45 @@ class image_tracker:
                elif paused==0:
                   playing=0
          elif topic == '/camera/odom/sample':
+            #convert the quaternion to a heading
             w = msg.pose.pose.orientation.w
             x = msg.pose.pose.orientation.x
             y = msg.pose.pose.orientation.y
             z = msg.pose.pose.orientation.z
             t3 = +2.0 * (w * z + x * y)
             t4 = +1.0 - 2.0 * (y * y + z * z)
-            yaw = 57.2958 * math.atan2(t3, t4)
+            heading = 57.2958 * math.atan2(t3, t4)
 
             #this code handles the wrap-around of the heading from +180 to -180
-            if self.last_yaw > 175 and yaw < -175:
+            if self.last_heading > 175 and heading < -175:
                 self.heading_offset += 360.0
-            elif self.last_yaw < -175 and yaw > 175:
+            elif self.last_heading < -175 and heading > 175:
                 self.heading_offset -= 360.0
 
             #compute a running average
-            for i in range(len(self.yaw_list)-1):
-               self.yaw_list[i] = self.yaw_list[i+1]
-            self.yaw_list[-1] = (self.last_heading_offset + self.last_yaw) - \
-                (self.heading_offset + yaw)
-            yaw_average = sum(self.yaw_list) / len(self.yaw_list)
+            for i in range(len(self.heading_list)-1):
+               self.heading_list[i] = self.heading_list[i+1]
+            self.heading_list[-1] = (self.last_heading_offset + self.last_heading) - \
+               (self.heading_offset + heading)
+            heading_average = sum(self.heading_list) / len(self.heading_list)
 
-            # print (self.yaw_list)
-            # print (yaw_average)
+            # print (self.heading_list)
+            # print (heading_average)
 
-            yaw_threshold = .09
-            if yaw_average > yaw_threshold:
-               #print ("turning right")
+            heading_threshold = .09
+            if heading_average > heading_threshold: #turning right
+               print ("turning right")
                self.capture_freq = self.turn_capture_freq
                self.turn_dir = 3
-            elif yaw_average < -yaw_threshold:
-               #print ("turning left")
+            elif heading_average < -heading_threshold: #turning left
+               print ("turning left")
                self.capture_freq = self.turn_capture_freq
                self.turn_dir = 1
-            else:
+            else: #going straight
                self.capture_freq = self.straight_capture_freq
                self.turn_dir = 2
 
-            self.last_yaw = yaw
+            self.last_heading = heading
             self.last_heading_offset = self.heading_offset
 
       #close the bag file and close windows
@@ -212,7 +213,7 @@ class image_tracker:
 
 
 def main(args):
-   rospy.init_node('inference_node', anonymous=True)
+   rospy.init_node('tracking_node', anonymous=True)
    cv2.namedWindow('image',cv2.WINDOW_NORMAL)
 
    ic = image_tracker()
