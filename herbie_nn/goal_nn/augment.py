@@ -16,7 +16,7 @@ import torchvision.models as models
 cudnn.benchmark = True
 
 def setup_dir():
-    root_directory = "../"
+    root_directory = "./"
 
     train_directory = os.path.join(root_directory, "Training_Images")
     val_directory = os.path.join(root_directory, "Validation_Images")
