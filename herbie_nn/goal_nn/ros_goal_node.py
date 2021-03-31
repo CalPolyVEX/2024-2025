@@ -28,7 +28,8 @@ class image_inference:
        #transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
        ])
 
-      self.point_list = []
+      self.point_list = [(0,0)] * 10
+      self.current_point_list = 0
 
    def callback(self,msg_in):
       #### direct conversion to CV2 ####
@@ -54,11 +55,34 @@ class image_inference:
       #print (output)
       #print (output.data[0])
 
-      self.point_list = []
       x = int (float(output.data[0][0]) * 640.0)
       y = int (float(output.data[0][1]) * 360.0)
+      self.point_list[self.current_point_list] = (float(x),float(y))
+      self.current_point_list = (self.current_point_list+1) % len(self.point_list)
 
-      cv2.circle(image_np_360, (x,y), 4, (0, 255, 0), -1)
+      #compute the variance
+      avg_x=0
+      avg_y=0
+      for i in self.point_list:
+         avg_x += i[0] 
+         avg_y += i[1] 
+      
+      avg_x = float(avg_x) / len(self.point_list)
+      avg_y = float(avg_y) / len(self.point_list)
+
+      dist_x=0
+      dist_y=0
+      for i in range(len(self.point_list)):
+         dist_x += (self.point_list[i][0] - avg_x)**2
+         dist_y += (self.point_list[i][1] - avg_y)**2
+
+      dist_x = dist_x / len(self.point_list)
+      dist_y = dist_y / len(self.point_list)
+
+      if dist_x > 1500: 
+         cv2.circle(image_np_360, (x,y), 4, (0, 0, 255), -1)
+      else:
+         cv2.circle(image_np_360, (x,y), 4, (0, 255, 0), -1)
 
       font                   = cv2.FONT_HERSHEY_SIMPLEX
       fontScale              = .7
