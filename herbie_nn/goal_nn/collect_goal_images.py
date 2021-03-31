@@ -2,7 +2,7 @@
 #file must publish to /see3cam_cu20/image_raw/compressed and also must
 #publish the odometry to /camera/odom/sample (T265 tracking camera)
 #
-#To run:  python test_tracking.py file.bag
+#To run:  python collect_goal_images.py file.bag
 
 import roslib, rosbag
 import sys, rospy, cv2, time, queue, os, math
