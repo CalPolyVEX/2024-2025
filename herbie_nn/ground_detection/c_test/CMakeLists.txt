@@ -13,5 +13,6 @@ set(Torch_DIR /home/jseng/pt-env/lib/python3.6/site-packages/torch/share/cmake/T
 find_package(Torch REQUIRED)
 
 add_executable(example-app test.cpp)
+target_link_libraries(example-app nvinfer nvinfer_plugin nvcaffe_parser nvonnxparser)
 target_link_libraries(example-app "${TORCH_LIBRARIES}")
 set_property(TARGET example-app PROPERTY CXX_STANDARD 14)
