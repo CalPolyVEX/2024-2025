@@ -1,0 +1,4 @@
+mkdir build
+cd build
+cmake -DCMAKE_PREFIX_PATH=/home/jseng/pt-env/lib/python3.6/site-packages/torch/lib ..
+cmake --build . --config Release
