@@ -37,7 +37,8 @@ def main(imageHeight, imageWidth, numOutputs, inputPath, outputPath):
     for file in os.listdir(inputPath):
         imagePath = os.path.join(inputPath, file)
 
-        input_image = Image.open(imagePath) #use PIL, so it is RGB format
+        #input_image = Image.open(imagePath) #use PIL, so it is RGB format
+        input_image = cv2.imread(imagePath)
         input_tensor = preprocess(input_image)
         input_tensor = input_tensor.unsqueeze(0) #add 0th dimension
 
@@ -61,4 +62,4 @@ def main(imageHeight, imageWidth, numOutputs, inputPath, outputPath):
             file.split('.')[0]), validationMaskImage)
 
 if __name__ == '__main__':
-    main(360, 640, 2, '../Validation_Images', 'Inference_Images')
+    main(360, 640, 2, './Validation_Images', 'Inference_Images')

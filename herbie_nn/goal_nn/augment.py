@@ -53,7 +53,7 @@ class GoalDataset(Dataset):
         data_list.append(float(center_x) / 640.0)
         data_list.append(float(center_y) / 360.0)
 
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) #convert to RGB
+        #image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) #convert to RGB
 
         # apply the augmentations to the image
         if self.transform is not None:
@@ -86,7 +86,7 @@ def create_datasets(train_file_list,val_file_list):
          A.RandomShadow(p=.1),
          A.MotionBlur(p=.1),
          A.Perspective(scale=(.05,.1),p=.2),
-         A.Cutout(num_holes=5, max_h_size=12, max_w_size=12, p=.5),
+         A.Cutout(num_holes=5, max_h_size=30, max_w_size=30, p=.5),
          A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
          ToTensorV2(),
       ],
