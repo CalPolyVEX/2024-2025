@@ -10,12 +10,18 @@ from torchvision import transforms
 import math
 
 class image_inference:
-   def __init__(self, model_name = "mobilenetv2_100-.010-80out.pt"):
+   def __init__(self, model_name = "traced_efficientnetlite.pt", unlabeled = False):
       self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
       print (self.device)
 
       self.model = torch.load(model_name, map_location=self.device)
       self.model.eval()
+
+      if unlabeled == True:
+         self.unlabelling = 1
+      else:
+         self.unlabelling = 0
+      self.unlabeled_counter = 0
 
       self.image_resized_pub = rospy.Publisher("/test_image/image_raw/compressed",CompressedImage, queue_size=1)
 
@@ -68,7 +74,7 @@ class image_inference:
       print ('--------------')
       #print (self.point_list)
 
-      #clear out all element with -1,-1
+      #clear out all elements with -1,-1
       temp_point_list = []
       for i in range(len(self.point_list)):
          if self.point_list[i][0] != -1:
@@ -107,8 +113,8 @@ class image_inference:
             sum -= F_rep
 
       print (sum)
-      cv2.circle(img, (round(1000.0*sum) + 320,160), 4, (0,0,255), -1)
-      cv2.line(img, (320,0), (320,300), (0,0,255))
+      #cv2.circle(img, (round(1000.0*sum) + 320,160), 4, (0,0,255), -1)
+      #cv2.line(img, (320,0), (320,300), (0,0,255))
       #sum = sum / len(distance_list)
 
       for i in range(len(temp_point_list)):
@@ -121,6 +127,15 @@ class image_inference:
          #    cv2.line(img, (px,py), (middle_x,bottom_y), (255,0,0), 2)
 
    def callback(self,msg_in):
+      #save unlabeled images for training (save 1 image every 15 messages)
+      if self.unlabelling == 1 and self.unlabeled_counter % 15 == 0:
+         np_arr = np.frombuffer(msg_in.data, np.uint8)
+         image_unlabeled = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+         image_unlabeled = cv2.resize(image_unlabeled, (640, 360))  #resize
+         image_unlabeled_jpg = np.array(cv2.imencode('.jpg', image_unlabeled)[1]).tobytes()
+         cv2.imwrite('./unlabeled/test-' + str(int(self.unlabeled_counter/15)) + '.jpg', image_unlabeled)
+      self.unlabeled_counter += 1
+
       #### direct conversion to CV2 ####
       # Convert it to something opencv understands
       start_time = time.time_ns()
@@ -140,9 +155,6 @@ class image_inference:
       with torch.no_grad():
           output = self.model(image_np_tensor)
       end_time = time.time_ns()
-
-      #print (output)
-      #print (output.data[0])
 
       self.point_list = []
       for c in range(0,80):
@@ -179,8 +191,13 @@ class image_inference:
 
 def main(args):
    rospy.init_node('inference_node', anonymous=True)
-   if len(args) == 2:
-       ic = image_inference(model_name = args[1])
+
+   if len(args) == 2 and args[1] == 'unlabeled':
+      #if the argument is 'unlabeled', then record images periodically
+      #this is for the ground detection neural network
+       ic = image_inference(unlabeled = True)
+   elif len(args) == 2:
+       ic = image_inference(model_name = args[1], unlabeled = False)
    else:
        ic = image_inference()
 
