@@ -49,7 +49,7 @@ class GoalDataset(Dataset):
         turn_dir = int(goal_data_list[-4])
 
         # add the data points to the 'data_list'
-        data_list = [0] * 80 #start with 80 blank numbers
+        data_list = [0.00000000000] * 80 #start with 80 blank numbers
         data_list.append(float(center_x) / 640.0)
         data_list.append(float(center_y) / 360.0)
 
@@ -68,7 +68,7 @@ class GoalDataset(Dataset):
                #then use the new image and keypoint
                if len(keypoints) == 1:
                   image = transformed['image']
-                  data_list = [0] * 80 #start with 80 blank elements
+                  data_list = [0.000000000] * 80 #start with 80 blank elements
                   #print (data_list)
                   data_list.append(float(keypoints[0][0])/640.0) #add the x
                   data_list.append(float(keypoints[0][1])/360.0) #add the y

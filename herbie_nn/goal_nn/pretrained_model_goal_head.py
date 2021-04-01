@@ -13,6 +13,9 @@ class Goal_Model:
         # load pre-trained ground detection model
         self.m = torch.load('../ground_detection/efficientnet_lite0-.0102-80out.pt')
 
+        for param in self.m.parameters():
+            param.requires_grad = False
+
         ##########################################################
         # save a copy of the weights and biases stored in the final layer
         current_weights = self.m.classifier.weight.data
@@ -27,12 +30,12 @@ class Goal_Model:
         new_neurons = 2 #the number of new neurons to add
 
         # randomly initialize a tensor of weights with the size of the wanted layer
-        outputw_input = torch.zeros([new_neurons, current_weights.shape[1]]) #for adding 2 neurons
+        outputw_input = torch.zeros([new_neurons, current_weights.shape[1]], requires_grad=True) #for adding 2 neurons
         outputw_input = outputw_input.to('cuda:0')
         torch.nn.init.xavier_uniform_(outputw_input, gain=torch.nn.init.calculate_gain('relu'))
 
         # randomly initialize a tensor with biases of the size of the wanted layer
-        outputb_input = torch.zeros([2]) #for adding 2 neuron biases
+        outputb_input = torch.zeros([2], requires_grad=True) #for adding 2 neuron biases
         outputb_input = outputb_input.to('cuda:0')
         #torch.nn.init.normal_(outputb_input) #randomly initialize biases
 
@@ -55,15 +58,14 @@ class Goal_Model:
         print(self.m)
         self.print_summary()
 
-        print (current_bias)
-        print (new_current_bias)
-        print (current_weights)
-        print (new_current_weights)
+        # print (current_bias)
+        # print (new_current_bias)
+        # print (current_weights)
+        # print (new_current_weights)
 
         #freeze the entire model
-        for param in self.m.parameters():
-            #param.requires_grad = False
-            param.requires_grad = True
+        # for param in self.m.parameters():
+        #     param.requires_grad = False
 
         #set only the last goal neurons to be trainable
 

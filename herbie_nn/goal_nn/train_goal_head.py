@@ -65,8 +65,11 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                     preds = outputs
 
                     #use only the last 2 neurons to compute the loss
-                    # print(outputs)
-                    # print(output_tensor)
+                    #so set the first 80 elements to 0 which match
+                    #the output of the dataset
+                    for x in range(80):
+                        outputs[0,x] = 0.0000000
+
                     loss = criterion(outputs, output_tensor)
 
                     # backward + optimize only if in training phase
