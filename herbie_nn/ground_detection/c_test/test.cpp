@@ -14,6 +14,16 @@ using namespace std::chrono;
 #include "NvOnnxParser.h"
 #include "NvInfer.h"
 
+#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+   if (code != cudaSuccess)
+   {
+      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
+
 class Logger : public nvinfer1::ILogger
 {
 public:
@@ -38,6 +48,8 @@ struct TRTDestroy
     }
 };
 
+//////////////////////////////
+//parse and serialize the tensorrt engine
 void parseOnnxModel() 
 {
     int maxBatchSize = 1;
@@ -56,7 +68,7 @@ void parseOnnxModel()
 
     builder->setMaxBatchSize(maxBatchSize);
     nvinfer1::IBuilderConfig* config = builder->createBuilderConfig();
-    config->setMaxWorkspaceSize(1 << 20);
+    config->setMaxWorkspaceSize(1 << 24);
 
     //set dimensions
     nvinfer1::IOptimizationProfile* profile = builder->createOptimizationProfile();
@@ -65,6 +77,10 @@ void parseOnnxModel()
     profile->setDimensions("input", nvinfer1::OptProfileSelector::kMAX, nvinfer1::Dims4(1,3,360,640));
     
     config->addOptimizationProfile(profile);
+
+    //indicate fp16 is acceptable
+    //config->setFlag(nvinfer1::BuilderFlag::kFP16);
+    //config->setFlag(nvinfer1::BuilderFlag::kSTRICT_TYPES);
 
     nvinfer1::ICudaEngine* engine = builder->buildEngineWithConfig(*network, *config);
 
@@ -83,6 +99,81 @@ void parseOnnxModel()
     serializedModel->destroy();
 }
 
+//////////////////////////////
+//deserialize engine
+void load_engine() {
+  std::vector<char> trtModelStream_;
+  size_t size{ 0 };
+
+  std::ifstream file("test_model.engine", std::ios::binary);
+  if (file.good())
+  {
+    file.seekg(0, file.end);
+    size = file.tellg();
+    file.seekg(0, file.beg);
+    trtModelStream_.resize(size);
+    std::cout << "size" << trtModelStream_.size() << std::endl;
+    file.read(trtModelStream_.data(), size);
+    file.close();
+  }
+  std::cout << "size" << size << std::endl;
+  nvinfer1::IRuntime* runtime = nvinfer1::createInferRuntime(gLogger);
+  assert(runtime != nullptr);
+  nvinfer1::ICudaEngine* engine = runtime->deserializeCudaEngine(trtModelStream_.data(), size, nullptr);
+
+  ////////////////////////////////////////////////////////
+  //perform inference
+  nvinfer1::IExecutionContext *context = engine->createExecutionContext();
+
+  //allocate space
+  void** mInputCPU= (void**)malloc(2*sizeof(void*));;
+  cudaHostAlloc((void**)&mInputCPU[0],  3*360*640*sizeof(float), cudaHostAllocDefault);
+  cudaHostAlloc((void**)&mInputCPU[1],  3*360*640*sizeof(float), cudaHostAllocDefault);
+  float prob[80]; //output data
+  
+  // In order to bind the buffers, we need to know the names of the input and output tensors.
+  // note that indices are guaranteed to be less than IEngine::getNbBindings()
+  int inputIndex = engine->getBindingIndex("input");
+  int outputIndex = engine->getBindingIndex("output");
+
+  std::cout << engine->getNbLayers() << std::endl;
+  std::cout << inputIndex << std::endl;
+  std::cout << outputIndex << std::endl;
+
+  void* buffers[2];
+
+  // create GPU buffers and a stream
+  gpuErrchk( cudaMalloc(&buffers[inputIndex], 1 * 3 * 360 * 640 * sizeof(float)) );
+  gpuErrchk( cudaMalloc(&buffers[outputIndex], 1 * 80 * sizeof(float)) );
+
+  cudaStream_t stream;
+  gpuErrchk( cudaStreamCreate(&stream) );
+
+  for (int i=0; i<100; i++) {
+    auto start = high_resolution_clock::now();
+    // DMA the input to the GPU,  execute the batch asynchronously, and DMA it back:
+    gpuErrchk( cudaMemcpyAsync(buffers[inputIndex], mInputCPU[0], 1*3*360*640 * sizeof(float), cudaMemcpyHostToDevice, stream) );
+    context->enqueue(1, buffers, stream, nullptr);
+    //gpuErrchk( cudaMemcpyAsync(prob, buffers[outputIndex], 1*80*sizeof(float), cudaMemcpyDeviceToHost, stream) );
+    gpuErrchk( cudaMemcpyAsync(mInputCPU[1], buffers[outputIndex], 1*80*sizeof(float), cudaMemcpyDeviceToHost, stream) );
+    cudaStreamSynchronize(stream);
+    
+    auto end = high_resolution_clock::now();
+    auto duration = duration_cast<microseconds>(end - start) / 1000.0;
+    std::cout << duration.count() << std::endl;
+  
+  }
+
+  // release the stream and the buffers
+  cudaStreamDestroy(stream);
+  gpuErrchk( cudaFree(buffers[inputIndex]) );
+  gpuErrchk( cudaFree(buffers[outputIndex]) );
+  
+  // destroy the engine
+  context->destroy();
+  engine->destroy();
+}
+
 /////////////////////////////////////////////////
 int main(int argc, const char* argv[]) {
   if (argc != 2) {
@@ -92,6 +183,7 @@ int main(int argc, const char* argv[]) {
   
   //test serialization using TensorRT 
   //parseOnnxModel();
+  //load_engine();
 
   torch::jit::script::Module module;
   try {
