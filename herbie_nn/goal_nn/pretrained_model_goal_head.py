@@ -20,6 +20,8 @@ class Goal_Model:
         # save a copy of the weights and biases stored in the final layer
         current_weights = self.m.classifier.weight.data
         current_bias = self.m.classifier.bias.data
+        self.orig_weights = current_weights
+        self.orig_bias = current_bias
 
         #print(self.m)
         #self.print_summary()
@@ -72,6 +74,30 @@ class Goal_Model:
         # return model
         return self.m
 
+    def restore(self):
+        current_weights = self.m.classifier.weight.data #82*1280 weights
+        current_bias = self.m.classifier.bias.data #82 biases
+
+        new_neurons = 2 #the number of new neurons to add
+
+        # concatenate the old weights with the new weights
+        #print(current_weights[-2:].shape)
+        #print(current_bias[...,-2:].shape)
+        #print(self.orig_weights)
+        #print(self.orig_bias)
+        new_wi = torch.cat([self.orig_weights, current_weights[-2:]], dim=0)
+        new_bias = torch.cat([self.orig_bias, current_bias[...,-2:]], dim=0)
+        print (new_wi.shape)
+        print (new_bias.shape)
+
+        # create the new output layer
+        self.m.classifier = torch.nn.Linear(self.orig_weights.shape[1], \
+            self.orig_weights.shape[0]+new_neurons)
+
+        # set the weight data to new values
+        self.m.classifier.weight = torch.nn.Parameter(new_wi)
+        self.m.classifier.bias = torch.nn.Parameter(new_bias)
+
     def print_summary(self):
         if torch.cuda.is_available():
             summary(self.m.cuda(), (3, 360, 640))
@@ -81,6 +107,7 @@ class Goal_Model:
 if __name__ == '__main__':
     m = Goal_Model(shape=(360,640,3), num_outputs=82)
     model = m.build()
+    m.restore()
     #print (model)
 
     # m.print_summary()
