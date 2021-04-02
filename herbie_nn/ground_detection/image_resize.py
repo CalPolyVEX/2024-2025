@@ -2,6 +2,7 @@
 
 import cv2
 import numpy as np
+import time
 
 def test_convert():
     imghd = cv2.imread('beach.jpg')
@@ -19,13 +20,6 @@ def test_convert():
 
     cv2.imwrite('test1.jpg', blank_image)
 
-    print ('size of imghd: ' + str(imghd.shape))
-    print ('size of imghd_i420: ' + str(imghd_i420.shape))
-    print (imghd_i420[0])
-    print (format(imghd_i420[0][0], '08b'))
-    print (format(imghd_i420[0][1], '08b'))
-    print (format(imghd_i420[0][2], '08b'))
-
 def process_uyvy():
     #https://www.fourcc.org/pixel-format/yuv-uyvy/
 
@@ -37,19 +31,14 @@ def process_uyvy():
 
     counter = 0
     b = bytearray()
+    row_size = 3840 #number byte to access next row
     for i in range(1080):
         for j in range(int(1920/2)):
             u = ba[counter]
-            counter += 1
-
-            y1 = ba[counter]
-            counter += 1
-
-            v = ba[counter]
-            counter += 1
-
-            y2 = ba[counter]
-            counter += 1
+            y1 = ba[counter+1]
+            v = ba[counter+2]
+            y2 = ba[counter+3]
+            counter += 4
 
             y1 -= 16;
             y2 -= 16;
@@ -122,5 +111,107 @@ def process_uyvy():
     # const auto g = 1.164 * Y - 0.392 * U - 0.813 * V;
     # const auto b = 1.164 * Y + 2.017 * U;
 
-process_uyvy()
+def process_uyvy2():
+    #https://www.fourcc.org/pixel-format/yuv-uyvy/
+
+    fh = open('./beach.uyvy', 'rb')
+    ba = bytearray(fh.read())
+    fh.close()
+    print (ba[0])
+    print (len(ba))
+
+    counter = 0
+    next_counter = 0
+    ba_new=bytearray()
+    row_size = 3840 #number of bytes per row
+    start_ms = time.time()*1000.0
+    for i in range(360):
+        for j in range(320):
+            for k in range(2): #alternating pixels within macropixel sets of 3
+                u0 = ba[counter]
+                u2 = ba[counter+4]
+
+                v0 = ba[counter+2]
+                v2 = ba[counter+6]
+
+                if k == 0:
+                    y0 = ba[counter+1]
+                    y2 = ba[counter+5]
+                else:
+                    y0 = ba[counter+3]
+                    y2 = ba[counter+7]
+
+                #next row
+                next_counter = counter + row_size*2
+                u0 += ba[next_counter]
+                u2 += ba[next_counter+4]
+
+                v0 += ba[next_counter+2]
+                v2 += ba[next_counter+6]
+
+                if k == 0:
+                    y0 += ba[next_counter+1]
+                    y2 += ba[next_counter+5]
+                else:
+                    y0 += ba[next_counter+3]
+                    y2 += ba[next_counter+7]
+
+                if k == 0:
+                    counter += 4
+                else:
+                    counter += 8
+
+                #compute totals and average
+                avg_u = (u0 + u2) / 4.0
+                avg_v = (v0 + v2) / 4.0
+                avg_y = (y0 + y2) / 4.0
+
+                avg_y -= 16;
+                avg_u -= 128;
+                avg_v -= 128;
+
+                r = 1.164 * avg_y                 + 1.596 * avg_v;
+                g = 1.164 * avg_y - 0.392 * avg_u - 0.813 * avg_v;
+                b = 1.164 * avg_y + 2.017 * avg_u;
+
+                if b > 255:
+                    b = 255
+                if g > 255:
+                    g = 255
+                if r > 255:
+                    r = 255
+
+                if b < 0:
+                    b = 0
+                if g < 0:
+                    g = 0
+                if r < 0:
+                    r = 0
+
+                # print (r1,g1,b1)
+
+                ba_new.append(int(b))
+                ba_new.append(int(g))
+                ba_new.append(int(r))
+
+        counter += row_size*2
+
+    end_ms = time.time()*1000.0
+    print ('time in ms:  ' + str(end_ms-start_ms))
+
+    #print (counter)
+    #print (len(ba_new))
+
+    blank_image = np.zeros((360,640,3), np.uint8)
+    counter = 0
+
+    for z in range(360):
+        for y in range(640):
+            for x in range(3):
+                blank_image[z][y][x] = ba_new[counter]
+                counter += 1
+
+    cv2.imwrite('test1.jpg', blank_image)
+
+process_uyvy2()
 
