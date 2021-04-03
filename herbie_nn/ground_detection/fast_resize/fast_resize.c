@@ -13,6 +13,15 @@ void process_uyvy(unsigned char* buffer) {
     int u0,v0,y0,y2;
 
     double total_time = 0;
+    double v_table[256], v_table2[256];
+
+    for(int z=0;z<255;z++) {
+        v_table[z] = 1.596 * (z-128);
+    }
+
+    for(int z=0;z<255;z++) {
+        v_table2[z] = 0.813 * (z-128);
+    }
 
     for (int t = 0; t < 1000; t++)
     {
@@ -66,17 +75,28 @@ void process_uyvy(unsigned char* buffer) {
                     v0 = v0 >> 2; //divide by 4 to get average
                     y0 = (y0 + y2) >> 2; //divide by 4 to get average
 
-                    int avg_u = (u0);
-                    int avg_v = (v0);
-                    int avg_y = (y0);
+                    // int avg_u = (u0);
+                    // int avg_v = (v0);
+                    // int avg_y = (y0);
 
-                    avg_y -= 16;
-                    avg_u -= 128;
-                    avg_v -= 128;
+                    // avg_y -= 16;
+                    // avg_u -= 128;
+                    // avg_v -= 128;
+                    // printf ("v: %d\n", v0);
+                    y0 -= 16;
+                    u0 -= 128;
+                    // v0 -= 128;
 
-                    float r = 1.164 * avg_y + 1.596 * avg_v;
-                    float g = 1.164 * avg_y - 0.392 * avg_u - 0.813 * avg_v;
-                    float b = 1.164 * avg_y + 2.017 * avg_u;
+                    // float r = 1.164 * avg_y + 1.596 * avg_v;
+                    // float g = 1.164 * avg_y - 0.392 * avg_u - 0.813 * avg_v;
+                    // float b = 1.164 * avg_y + 2.017 * avg_u;
+
+
+                    //double r = 1.164 * y0              + 1.596 * v0;
+                    double r = 1.164 * y0              + v_table[v0];
+                    // double g = 1.164 * y0 - 0.392 * u0 - 0.813 * v0;
+                    double g = 1.164 * y0 - 0.392 * u0 + v_table2[v0];
+                    double b = 1.164 * y0 + 2.017 * u0;
 
                     if (b > 255)
                         b = 255;
@@ -100,9 +120,11 @@ void process_uyvy(unsigned char* buffer) {
                     ba_new[index] = (unsigned char)r;
                     index++;
                 }
+
+                __builtin_prefetch (&(buffer[counter + 256]));
+                __builtin_prefetch (&(buffer[counter + 256 + row_size*2]));
             }
             counter += row_size * 2;
-            //__builtin_prefetch (&buffer[counter + row_size*16]);
         }
 
         clock_t end = clock();

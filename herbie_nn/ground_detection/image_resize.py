@@ -159,9 +159,17 @@ def process_uyvy2():
                     counter += 8
 
                 #compute totals and average
-                avg_u = (u0) / 4.0
-                avg_v = (v0) / 4.0
-                avg_y = (y0 + y2) / 4.0
+                u0 = u0 >> 2
+                v0 = v0 >> 2
+                y0 = (y0 + y2) >> 2
+
+                avg_u = int(u0) 
+                avg_v = int(v0) 
+                avg_y = int(y0) 
+
+                # avg_u = (u0) / 4.0
+                # avg_v = (v0) / 4.0
+                # avg_y = (y0 + y2) / 4.0
 
                 avg_y -= 16;
                 avg_u -= 128;
@@ -173,16 +181,17 @@ def process_uyvy2():
 
                 if b > 255:
                     b = 255
+                elif b < 0:
+                    b = 0
+
                 if g > 255:
                     g = 255
+                elif g < 0:
+                    g = 0
+
                 if r > 255:
                     r = 255
-
-                if b < 0:
-                    b = 0
-                if g < 0:
-                    g = 0
-                if r < 0:
+                elif r < 0:
                     r = 0
 
                 # print (r1,g1,b1)
