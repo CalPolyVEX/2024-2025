@@ -8,6 +8,7 @@ from sensor_msgs.msg import CompressedImage
 import torch
 from torchvision import transforms
 import math
+from datetime import datetime
 
 class image_inference:
    def __init__(self, model_name = "traced_efficientnetlite.pt", unlabeled = False):
@@ -128,12 +129,15 @@ class image_inference:
 
    def callback(self,msg_in):
       #save unlabeled images for training (save 1 image every 15 messages)
-      if self.unlabelling == 1 and self.unlabeled_counter % 15 == 0:
+      if self.unlabelling == 1 and self.unlabeled_counter % 4 == 0:
          np_arr = np.frombuffer(msg_in.data, np.uint8)
          image_unlabeled = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
-         image_unlabeled = cv2.resize(image_unlabeled, (640, 360))  #resize
+         #image_unlabeled = cv2.resize(image_unlabeled, (640, 360))  #resize
          image_unlabeled_jpg = np.array(cv2.imencode('.jpg', image_unlabeled)[1]).tobytes()
-         cv2.imwrite('./unlabeled/test-' + str(int(self.unlabeled_counter/15)) + '.jpg', image_unlabeled)
+         now = datetime.now()
+         d = now.strftime("%m_%d_%Y_%H_%M_%S_")
+         print (d)
+         cv2.imwrite('./unlabeled/' + str(d) + str(int(self.unlabeled_counter/4)) + '.jpg', image_unlabeled)
       self.unlabeled_counter += 1
 
       #### direct conversion to CV2 ####
