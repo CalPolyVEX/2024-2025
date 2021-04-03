@@ -117,53 +117,50 @@ def process_uyvy2():
     fh = open('./beach.uyvy', 'rb')
     ba = bytearray(fh.read())
     fh.close()
-    print (ba[0])
-    print (len(ba))
+    #print (ba[0])
+    #print (len(ba))
 
     counter = 0
     next_counter = 0
     ba_new=bytearray()
+    inc = 0
     row_size = 3840 #number of bytes per row
     start_ms = time.time()*1000.0
     for i in range(360):
-        for j in range(320):
+        for j in range(320): #640/2 = process pixels in sets of 6
             for k in range(2): #alternating pixels within macropixel sets of 3
-                u0 = ba[counter]
-                u2 = ba[counter+4]
+                u0 = ba[counter] + ba[counter+4] #add the U values (u0 and u2)
+                v0 = ba[counter+2] + ba[counter+6] #add the V values (v0 and v2)
 
-                v0 = ba[counter+2]
-                v2 = ba[counter+6]
+                #2 rows down
+                next_counter = counter + row_size*2
+                u0 += ba[next_counter] + ba[next_counter+4] #add the U values
+                v0 += ba[next_counter+2] + ba[next_counter+6] #add the V values
 
                 if k == 0:
                     y0 = ba[counter+1]
                     y2 = ba[counter+5]
+
+                    #2 rows down
+                    y0 += ba[next_counter+1]
+                    y2 += ba[next_counter+5]
+
+                    #goto the next macropixel
+                    counter += 4
                 else:
                     y0 = ba[counter+3]
                     y2 = ba[counter+7]
 
-                #next row
-                next_counter = counter + row_size*2
-                u0 += ba[next_counter]
-                u2 += ba[next_counter+4]
-
-                v0 += ba[next_counter+2]
-                v2 += ba[next_counter+6]
-
-                if k == 0:
-                    y0 += ba[next_counter+1]
-                    y2 += ba[next_counter+5]
-                else:
+                    #2 rows down
                     y0 += ba[next_counter+3]
                     y2 += ba[next_counter+7]
 
-                if k == 0:
-                    counter += 4
-                else:
+                    #skip 8 bytes to get to the next set of 3 macropixels
                     counter += 8
 
                 #compute totals and average
-                avg_u = (u0 + u2) / 4.0
-                avg_v = (v0 + v2) / 4.0
+                avg_u = (u0) / 4.0
+                avg_v = (v0) / 4.0
                 avg_y = (y0 + y2) / 4.0
 
                 avg_y -= 16;
