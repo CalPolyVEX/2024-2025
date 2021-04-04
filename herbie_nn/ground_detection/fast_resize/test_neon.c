@@ -1,11 +1,13 @@
 #include<stdio.h>
 #include<arm_neon.h>
 #include<stdlib.h>
+#include <time.h>
 
 int main() {
    FILE* ptr;
    unsigned char arr[1920 * 1080 * 2];
-   unsigned char img[640*360*3];
+   unsigned char img1[100];
+   unsigned char img2[100];
    int16x8_t u0, u2;
    int16x8_t u0_temp, u2_next;
    int16x8_t v0, v2;
@@ -32,14 +34,12 @@ int main() {
    int row_size = 3840; 
    int temp_index = 0;
 
-   for(int i=0;i<1024;i++)
-   {
-      arr[i] = i & 0xFF;
-   }
+   clock_t begin = clock();
 
-   for (int row=0;row<360;row++) 
-   {
-      for(int counter=0;counter<1920*2;counter+=96)
+   for (int j=0;j<1000;j++) {
+      int counter = 0;
+
+      while(counter < (96*40*360))
       {
          //u0 = buffer[counter] + buffer[counter + 4];     //add the U values (u0 and u2)
          u0 = vsetq_lane_s16(arr[counter   ], u0, 0);
@@ -222,7 +222,7 @@ int main() {
             else if (val < 0)
                val = 0;
 
-            img[temp_index] = (char) val;
+            img1[temp_index] = (char) val;
             temp_index++;
 
             //store green values
@@ -233,7 +233,7 @@ int main() {
             else if (val < 0)
                val = 0;
 
-            img[temp_index] = (char) val;
+            img1[temp_index] = (char) val;
             temp_index++;
 
             //store red values
@@ -244,7 +244,7 @@ int main() {
             else if (val < 0)
                val = 0;
 
-            img[temp_index] = (char) val;
+            img1[temp_index] = (char) val;
             temp_index++;
          }
 
@@ -279,7 +279,7 @@ int main() {
             else if (val < 0)
                val = 0;
 
-            img[temp_index] = (char) val;
+            img1[temp_index] = (char) val;
             temp_index++;
 
             //store green values
@@ -290,7 +290,7 @@ int main() {
             else if (val < 0)
                val = 0;
 
-            img[temp_index] = (char) val;
+            img1[temp_index] = (char) val;
             temp_index++;
 
             //store red values
@@ -301,9 +301,10 @@ int main() {
             else if (val < 0)
                val = 0;
 
-            img[temp_index] = (char) val;
+            img1[temp_index] = (char) val;
             temp_index++;
          }
+         temp_index = 0;
          // float r = 1.164 * avg_y                 + 1.596 * avg_v;
          // float g = 1.164 * avg_y - 0.392 * avg_u - 0.813 * avg_v;
          // float b = 1.164 * avg_y + 2.017 * avg_u;
@@ -457,7 +458,7 @@ int main() {
             else if (val < 0)
                val = 0;
 
-            img[temp_index] = (char) val;
+            img2[temp_index] = (char) val;
             temp_index++;
 
             //store green values
@@ -468,7 +469,7 @@ int main() {
             else if (val < 0)
                val = 0;
 
-            img[temp_index] = (char) val;
+            img2[temp_index] = (char) val;
             temp_index++;
 
             //store red values
@@ -479,7 +480,7 @@ int main() {
             else if (val < 0)
                val = 0;
 
-            img[temp_index] = (char) val;
+            img2[temp_index] = (char) val;
             temp_index++;
          }
 
@@ -514,7 +515,7 @@ int main() {
             else if (val < 0)
                val = 0;
 
-            img[temp_index] = (char) val;
+            img2[temp_index] = (char) val;
             temp_index++;
 
             //store green values
@@ -525,7 +526,7 @@ int main() {
             else if (val < 0)
                val = 0;
 
-            img[temp_index] = (char) val;
+            img2[temp_index] = (char) val;
             temp_index++;
 
             //store red values
@@ -536,16 +537,25 @@ int main() {
             else if (val < 0)
                val = 0;
 
-            img[temp_index] = (char) val;
+            img2[temp_index] = (char) val;
             temp_index++;
          }
+         temp_index = 0;
          // float r = 1.164 * avg_y                 + 1.596 * avg_v;
          // float g = 1.164 * avg_y - 0.392 * avg_u - 0.813 * avg_v;
          // float b = 1.164 * avg_y + 2.017 * avg_u;
+         //
+
+
+         // TODO: reorder the BGR values
+         counter += 96;
       }
    }
 
 
+   clock_t end = clock();
+   double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+   printf ("time in ms:  %f\n", time_spent/1000.0);
 
    printf ("%d\n", vgetq_lane_s16 (u0, 0));
    printf ("%d\n", vgetq_lane_s16 (v0, 0));
@@ -553,6 +563,7 @@ int main() {
    printf ("%d\n", vgetq_lane_s16 (u2, 0));
    printf ("%f\n", vgetq_lane_f32 (y_const, 0));
    printf ("temp index: %d\n", temp_index);
+   printf ("%c\n", img2[1]);
 
    return 0;
 }
