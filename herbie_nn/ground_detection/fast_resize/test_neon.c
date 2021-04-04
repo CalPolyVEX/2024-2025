@@ -8,6 +8,7 @@ int main() {
    unsigned char arr[1920 * 1080 * 2];
    unsigned char img1[100];
    unsigned char img2[100];
+   unsigned char new_img[640*360*3];
    int16x8_t u0, u2;
    int16x8_t u0_temp, u2_next;
    int16x8_t v0, v2;
@@ -33,13 +34,17 @@ int main() {
 
    int row_size = 3840; 
    int temp_index = 0;
+   int pixel_index = 0;
 
    clock_t begin = clock();
 
    for (int j=0;j<1000;j++) {
-      int counter = 0;
+      usleep(540);
 
-      while(counter < (96*40*360))
+      int counter = 0;
+      pixel_index = 0;
+
+      while(counter < (96*40*360)) //96 bytes (per 16 pixels) * 40 (40 is 640/16) * 360 rows
       {
          //u0 = buffer[counter] + buffer[counter + 4];     //add the U values (u0 and u2)
          u0 = vsetq_lane_s16(arr[counter   ], u0, 0);
@@ -185,9 +190,9 @@ int main() {
          y0_a = vshrq_n_s16(y0_a,2);
 
          //subtract scalars
-         y0_a -= vdupq_n_s16(-16);
-         u0 -= vdupq_n_s16(-128);
-         v0 -= vdupq_n_s16(-128);
+         y0_a -= vdupq_n_s16(16);
+         u0 -= vdupq_n_s16(128);
+         v0 -= vdupq_n_s16(128);
 
          ///////////////////////////////////////////////////////////////
          //Convert to BGR values
@@ -215,7 +220,7 @@ int main() {
 
          for (int i=0; i<4; i++) {
             //store blue values
-            float val = vgetq_lane_u32(b_low_int, i);
+            int val = vgetq_lane_u32(b_low_int, i);
 
             if (val > 255)
                val = 255;
@@ -244,7 +249,7 @@ int main() {
             else if (val < 0)
                val = 0;
 
-            img1[temp_index] = (char) val;
+            new_img[temp_index] = (char) val;
             temp_index++;
          }
 
@@ -272,7 +277,7 @@ int main() {
 
          for (int i=0; i<4; i++) {
             //store blue values
-            float val = vgetq_lane_u32(b_high_int, i);
+            int val = vgetq_lane_u32(b_high_int, i);
 
             if (val > 255)
                val = 255;
@@ -309,14 +314,9 @@ int main() {
          // float g = 1.164 * avg_y - 0.392 * avg_u - 0.813 * avg_v;
          // float b = 1.164 * avg_y + 2.017 * avg_u;
 
-
-
          //////////////////////////////////////////////////////////////////
-         //Compute the BGR values here before continuing
+         //Computing the second set of UYVY conversions
          //////////////////////////////////////////////////////////////////
-
-
-
 
          //second set of U in 'counter' row
          u0_temp = vsetq_lane_s16(arr[next_counter    + 8], u0_temp, 0);
@@ -421,9 +421,9 @@ int main() {
          y0_b = vshrq_n_s16(y0_b,2);
 
          //subtract scalars
-         y0_b -= vdupq_n_s16(-16);
-         u2 -= vdupq_n_s16(-128);
-         v2 -= vdupq_n_s16(-128);
+         y0_b -= vdupq_n_s16(16);
+         u2 -= vdupq_n_s16(128);
+         v2 -= vdupq_n_s16(128);
 
          ///////////////////////////////////////////////////////////////
          //Convert to BGR values
@@ -451,7 +451,7 @@ int main() {
 
          for (int i=0; i<4; i++) {
             //store blue values
-            float val = vgetq_lane_u32(b_low_int, i);
+            int val = vgetq_lane_u32(b_low_int, i);
 
             if (val > 255)
                val = 255;
@@ -508,7 +508,7 @@ int main() {
 
          for (int i=0; i<4; i++) {
             //store blue values
-            float val = vgetq_lane_u32(b_high_int, i);
+            int val = vgetq_lane_u32(b_high_int, i);
 
             if (val > 255)
                val = 255;
@@ -547,8 +547,23 @@ int main() {
          //
 
 
-         // TODO: reorder the BGR values
+         for (int i=0; i<24; i+=3) 
+         {
+            new_img[pixel_index] = img1[i];
+            new_img[pixel_index+1] = img1[i+1];
+            new_img[pixel_index+2] = img1[i+2];
+
+            new_img[pixel_index+3] = img2[i];
+            new_img[pixel_index+4] = img2[i+1];
+            new_img[pixel_index+5] = img2[i+2];
+
+            pixel_index += 6;
+         }
+
          counter += 96;
+
+         /* __builtin_prefetch (&(arr[counter + 256])); */
+         /* __builtin_prefetch (&(arr[counter + 256 + row_size*2])); */
       }
    }
 
@@ -564,6 +579,7 @@ int main() {
    printf ("%f\n", vgetq_lane_f32 (y_const, 0));
    printf ("temp index: %d\n", temp_index);
    printf ("%c\n", img2[1]);
+   printf ("%c\n", new_img[100]);
 
    return 0;
 }
