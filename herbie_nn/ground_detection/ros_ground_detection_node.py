@@ -148,7 +148,6 @@ class image_inference:
 
       image_np = cv2.resize(image_np, (640, 360))  #resize
       image_np_360 = image_np
-      image_np = image_np[:,:,::-1].copy() # convert BGR to RGB
 
       image_np_tensor = self.preprocess(image_np)
       image_np_tensor = image_np_tensor.to(device=self.device)
