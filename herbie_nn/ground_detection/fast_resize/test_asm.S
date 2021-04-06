@@ -58,18 +58,82 @@ asm_foo:
 
   //do FP computation to get BGR
   eor v13.8b, v13.8b, v13.8b //zero out v13
-  saddw v14.4s, v13.4s, v10.4h
+  saddw v14.4s, v13.4s, v10.4h //convert YUV values in 4x32 int
   saddw v15.4s, v13.4s, v11.4h
   
+  scvtf v14.4s, v14.4s //convert to floats, registers in format Y1-V0-Y0-U0
+  scvtf v15.4s, v15.4s
 
+  //00111111100101001111110111110100 //1.164
+  movz w5, 0b0011111110010100, lsl 16
+  movk w5, 0b1111110111110100 //1.164
+  dup v16.4s, w5 //copy to all elements
+  mov w4, v16.s[1] //debugging print 
+
+  mov v17.s[1], v15.s[1]  //move the Y into place
+  mov v17.s[0], v14.s[1] 
+  fmul v17.4s, v17.4s, v16.4s //v17 contains 1.164*Y
+  mov v20.16b, v17.16b  //where to hold the R values
+  mov v21.16b, v17.16b  //where to hold the G values
+  mov v22.16b, v17.16b  //where to hold the B values
+
+  //00111111110011000100100110111010 //1.596
+  movz w5, 0b0011111111001100, lsl 16
+  movk w5, 0b0100100110111010 //1.596
+  dup v16.4s, w5 //copy to all elements
+
+  mov v18.s[1], v15.s[2]  //move the V into place
+  mov v18.s[0], v14.s[2] 
+  fmla v20.4s, v18.4s, v16.4s //R values computed
+  
+  //00111111010100000010000011000101  //.813
+  movz w5, 0b00111111010100, lsl 16
+  movk w5, 0b10000011000101 //.813
+  dup v16.4s, w5 //copy to all elements
+  fmls v21.4s, v18.4s, v16.4s
+
+  //00111110110010001011010000111001 //.392
+  movz w5, 0b0011111011001000, lsl 16
+  movk w5, 0b1011010000111001 //.392
+  dup v16.4s, w5 //copy to all elements
+
+  mov v23.s[1], v15.s[0]  //move the U into place
+  mov v23.s[0], v14.s[0] 
+  fmls v21.4s, v23.4s, v16.4s //G values computed
+
+  //01000000000001101101100100010111 //2.017
+  movz w5, 0b0100000000000110, lsl 16
+  movk w5, 0b1101100100010111 //2.107
+  dup v16.4s, w5 //copy to all elements
+  fmla v22.4s, v23.4s, v16.4s //B values computed
+
+  //replace all values above 255
+  movz w5, 0b0100001101111111, lsl 16
+  movk w5, 0b0000000000000000 //255.0
+  dup v16.4s, w5 //copy to all elements
+  fcmgt v17.4s, v22.4s, v16.4s //set max B values
+  bit v22.16b, v16.16b, v17.16b
+
+  fcmgt v17.4s, v21.4s, v16.4s //set max G values
+  bit v21.16b, v16.16b, v17.16b
+
+  fcmgt v17.4s, v20.4s, v16.4s //set max R values
+  bit v20.16b, v16.16b, v17.16b
+
+  //convert the fp to int (rounding toward zero)
+  /* fcvtzu v22.4s, v22.4s //convert B to int */
+  /* fcvtzu v21.4s, v21.4s //convert G to int */
+  /* fcvtzu v20.4s, v20.4s //convert R to int */
 
 
   //get lane
   //mov x3, v0.d[0]
-  mov w3, v14.s[2]
+  mov w3, v14.s[0]
   //mov w3,w3,lsr 16
   
   //mov x3, -2 //move constant -2 into x3
   //ldr x3,[x0] //load into a register
-  str x3,[x1]
+  str w3,[x1]
+  add x1, x1, 4
+  str w4,[x1]
   ret
