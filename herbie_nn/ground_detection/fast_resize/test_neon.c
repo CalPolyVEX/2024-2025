@@ -40,7 +40,7 @@ int main() {
    clock_t begin = clock();
 
    for (int j=0;j<1000;j++) {
-      usleep(500);
+      /* usleep(50000); */
 
       counter = 0;
       pixel_index = 0;
@@ -231,8 +231,8 @@ int main() {
                if (val > 255)
                   val = 255;
 
-               new_img[pixel_index] = (unsigned char) val;
-               pixel_index++;
+               img1[temp_index] = (unsigned char) val;
+               /* temp_index++; */
 
                //store green values
                val = vgetq_lane_u32(g_low_int, i);
@@ -240,8 +240,8 @@ int main() {
                if (val > 255)
                   val = 255;
 
-               new_img[pixel_index] = (unsigned char) val;
-               pixel_index++;
+               img1[temp_index+1] = (unsigned char) val;
+               /* temp_index++; */
 
                //store red values
                val = vgetq_lane_u32(r_low_int, i);
@@ -249,8 +249,8 @@ int main() {
                if (val > 255)
                   val = 255;
 
-               new_img[pixel_index] = (unsigned char) val;
-               pixel_index += 4;
+               img1[temp_index+2] = (unsigned char) val;
+               temp_index+=3;
             }
 
             //////////////convert high set of 4/////////////////////////////////////////
@@ -282,8 +282,8 @@ int main() {
                if (val > 255)
                   val = 255;
 
-               new_img[pixel_index] = (unsigned char) val;
-               pixel_index++;
+               img1[temp_index] = (unsigned char) val;
+               /* temp_index++; */
 
                //store green values
                val = vgetq_lane_u32(g_high_int, i);
@@ -291,8 +291,8 @@ int main() {
                if (val > 255)
                   val = 255;
 
-               new_img[pixel_index] = (unsigned char) val;
-               pixel_index++;
+               img1[temp_index+1] = (unsigned char) val;
+               /* temp_index++; */
 
                //store red values
                val = vgetq_lane_u32(r_high_int, i);
@@ -300,12 +300,12 @@ int main() {
                if (val > 255)
                   val = 255;
 
-               new_img[pixel_index] = (unsigned char) val;
-               pixel_index += 4;
+               img1[temp_index+2] = (unsigned char) val;
+               temp_index+=3;
             }
             temp_index = 0;
             /* printf("ending: %d\n", pixel_index-45); */
-            pixel_index -= 45;
+            /* pixel_index -= 45; */
             // float r = 1.164 * avg_y                 + 1.596 * avg_v;
             // float g = 1.164 * avg_y - 0.392 * avg_u - 0.813 * avg_v;
             // float b = 1.164 * avg_y + 2.017 * avg_u;
@@ -452,8 +452,8 @@ int main() {
                if (val > 255)
                   val = 255;
 
-               new_img[pixel_index] = (unsigned char) val;
-               pixel_index++;
+               img2[temp_index] = (unsigned char) val;
+               /* temp_index++; */
 
                //store green values
                val = vgetq_lane_u32(g_low_int, i);
@@ -461,8 +461,8 @@ int main() {
                if (val > 255)
                   val = 255;
 
-               new_img[pixel_index] = (unsigned char) val;
-               pixel_index++;
+               img2[temp_index+1] = (unsigned char) val;
+               /* temp_index++; */
 
                //store red values
                val = vgetq_lane_u32(r_low_int, i);
@@ -470,8 +470,8 @@ int main() {
                if (val > 255)
                   val = 255;
 
-               new_img[pixel_index] = (unsigned char) val;
-               pixel_index += 4;
+               img2[temp_index+2] = (unsigned char) val;
+               temp_index+=3;
             }
 
             //////////////convert high set of 4/////////////////////////////////////////
@@ -503,8 +503,8 @@ int main() {
                if (val > 255)
                   val = 255;
 
-               new_img[pixel_index] = (unsigned char) val;
-               pixel_index++;
+               img2[temp_index] = (unsigned char) val;
+               /* temp_index++; */
 
                //store green values
                val = vgetq_lane_u32(g_high_int, i);
@@ -512,8 +512,8 @@ int main() {
                if (val > 255)
                   val = 255;
 
-               new_img[pixel_index] = (unsigned char) val;
-               pixel_index++;
+               img2[temp_index+1] = (unsigned char) val;
+               /* temp_index++; */
 
                //store red values
                val = vgetq_lane_u32(r_high_int, i);
@@ -521,10 +521,11 @@ int main() {
                if (val > 255)
                   val = 255;
 
-               new_img[pixel_index] = (unsigned char) val;
-               pixel_index += 4;
+               img2[temp_index+2] = (unsigned char) val;
+               temp_index+=3;
+               /* pixel_index += 4; */
             }
-            pixel_index -= 3;
+            //pixel_index -= 3;
             temp_index = 0;
 
             // float r = 1.164 * avg_y                 + 1.596 * avg_v;
@@ -532,28 +533,28 @@ int main() {
             // float b = 1.164 * avg_y + 2.017 * avg_u;
             //
 
-            /* for (int i=0; i<24; i+=3) */ 
-            /* { */
-            /*    new_img[pixel_index] = img1[i]; */
-            /*    new_img[pixel_index+1] = img1[i+1]; */
-            /*    new_img[pixel_index+2] = img1[i+2]; */
+            //copy the BGR values into the final image
+            for (int i=0; i<24; i+=3) 
+            {
+               new_img[pixel_index] = img1[i];
+               new_img[pixel_index+1] = img1[i+1];
+               new_img[pixel_index+2] = img1[i+2];
 
-            /*    new_img[pixel_index+3] = img2[i]; */
-            /*    new_img[pixel_index+4] = img2[i+1]; */
-            /*    new_img[pixel_index+5] = img2[i+2]; */
+               new_img[pixel_index+3] = img2[i];
+               new_img[pixel_index+4] = img2[i+1];
+               new_img[pixel_index+5] = img2[i+2];
 
-            /*    pixel_index += 6; */
-            /* } */
+               pixel_index += 6;
+            }
 
             counter += 96;
-
-            /* __builtin_prefetch (&(arr[counter + 256])); */
-            /* __builtin_prefetch (&(arr[counter + 256 + row_size*2])); */
          }
 
          //at the end of each row, skip forward 2 rows
          counter += 1920*2*2;
+
          //printf ("end pixel index row: %d\n", pixel_index);
+         /* __builtin_prefetch (&(arr[counter + 3840*2])); */
       }
    }
 
@@ -569,8 +570,8 @@ int main() {
    printf ("%f\n", vgetq_lane_f32 (y_const, 0));
    printf ("counter: %d\n", counter);
    printf ("pixel index: %d\n", pixel_index);
-   printf ("%c\n", img2[1]);
-   printf ("%c\n", new_img[100]);
+   printf ("%d\n", img2[1]);
+   printf ("%d\n", new_img[100]);
 
    return 0;
 }
