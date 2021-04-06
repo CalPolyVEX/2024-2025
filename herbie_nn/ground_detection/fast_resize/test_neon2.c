@@ -3,6 +3,24 @@
 #include<stdlib.h>
 #include<time.h>
 
+void asm_foo(unsigned char* in, unsigned char* out);
+
+void test_asm(unsigned char* in, unsigned char* out) {
+   register uint32x2_t a asm ("d16");
+   register uint32x2_t b asm ("d17");
+   register uint32x2_t c asm ("d18");
+
+   asm volatile (
+         "mov %[result], %[value], ror #1" : [result] "=r" (in) : [value] "r" (out));
+
+
+   /* asm volatile ( */
+   /*       "vadd %d0, %d1, %d2 \n\t" */
+   /*       : "=w" (a) */
+   /*       : "w" (b), "w" (c) */
+   /*     ); */
+}
+
 int main() {
    FILE* ptr;
    unsigned char arr[1920 * 1080 * 2];
@@ -15,7 +33,7 @@ int main() {
    int16x8_t y0_a_temp; 
    unsigned int *test_ptr = (unsigned int*) arr;
    unsigned char val;
-   
+
    ptr = fopen("./beach.uyvy","rb");  // r for read, b for binary
 
    if (!ptr) {
@@ -30,6 +48,10 @@ int main() {
    }
 
    fclose(ptr);
+
+   //test assembly call
+   asm_foo(arr, new_img);
+   printf("%x\n", new_img[0]);
 
    int row_size = 3840; 
    int pixel_index = 0;
