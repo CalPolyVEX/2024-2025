@@ -1,7 +1,32 @@
 .section .text
 .globl asm_foo
 .type asm_foo, @function
+
 asm_foo:
+  mov w15, 0 //w15 = counter
+  movz w16, 0x1, lsl 16
+  movk w16, 0xC200 
+  mov x10,x1 //keep a copy of the starting address of the incoming array
+
+  //compute the constant (16,128,16,128) and put into v12
+  //subtract 16, 128, and 128
+  mov x3, 16 //16 to subtract from Y
+  mov x3, x3, lsl 48 //shift left 16
+  mov x4, 128 //128 to subtract from V
+  mov x4, x4, lsl 32 //shift left 32
+  orr x3, x3, x4
+  mov x4, 16 //16 to subtract from Y
+  mov x4, x4, lsl 16 //shift left 16
+  orr x3, x3, x4
+  mov x4, 128 //128 to subtract from U
+  orr x3, x3, x4
+
+  ins v12.d[0], x3 //put the constant (16,128,16,128) into a register
+
+loop:
+  cmp w15, w16
+  beq end
+
   //load the first 2 UYVY
   ld1 {v0.2s}, [x0] //load 8-bytes
   ext v1.8b, v0.8b, v0.8b, #4 //swap 4 bytes
@@ -39,28 +64,14 @@ asm_foo:
   uaddw v11.8h, v11.8h, v5.8b //add the second word of 2 rows below
 
   //v10 and v11 have the YUV sum, divide by 4 to average
-  ushr v10.8h, v10.8h, 2
+  ushr v10.8h, v10.8h, 2 //shift right to divide by 4
   ushr v11.8h, v11.8h, 2
 
-  //subtract 16, 128, and 128
-  mov x3, 128 //128 to subtract from V
-  mov x3, x3, lsl 32 //shift left 32
-  mov x4, 16 //16 to subtract from Y
-  mov x4, x4, lsl 16 //shift left 16
-  orr x3, x3, x4
-  mov x4, 128 //128 to subtract from U
-  orr x3, x3, x4
-
-  ins v12.d[0], x3
-
-  ssubl v10.4s,v10.4h,v12.4h
+  //subtract the constant after averaging
+  ssubl v10.4s,v10.4h,v12.4h //subtract the constant (16,128,16,128)
   ssubl v11.4s,v11.4h,v12.4h
 
   //do FP computation to get BGR
-  /* eor v13.8b, v13.8b, v13.8b //zero out v13 */
-  /* saddw v14.4s, v13.4s, v10.4h //convert YUV values in 4x32 int */
-  /* saddw v15.4s, v13.4s, v11.4h */
-  
   scvtf v14.4s, v10.4s //convert to floats, registers in format Y1-V0-Y0-U0
   scvtf v15.4s, v11.4s
 
@@ -70,7 +81,7 @@ asm_foo:
   dup v16.4s, w5 //copy to all elements
   //mov w4, v16.s[1] //debugging print 
 
-  mov v17.s[1], v15.s[1]  //move the Y into place
+  mov v17.s[1], v15.s[3]  //move the Y into place
   mov v17.s[0], v14.s[1] 
   //mov w4, v17.s[0] //debugging print 
   fmul v17.4s, v17.4s, v16.4s //v17 contains 1.164*Y
@@ -128,19 +139,47 @@ asm_foo:
   bit v20.16b, v16.16b, v17.16b
 
   //convert the fp to int (rounding toward zero)
-  /* fcvtzu v22.4s, v22.4s //convert B to int */
-  /* fcvtzu v21.4s, v21.4s //convert G to int */
-  /* fcvtzu v20.4s, v20.4s //convert R to int */
+  fcvtzu v22.4s, v22.4s //convert B to int
+  fcvtzu v21.4s, v21.4s //convert G to int
+  fcvtzu v20.4s, v20.4s //convert R to int
 
+  //store 6 bytes BGRBGR
+  mov w8, v22.s[0]
+  strb w8,[x1]
+  add x1, x1, 1
+
+  mov w8, v21.s[0]
+  strb w8,[x1]
+  add x1, x1, 1
+
+  mov w8, v20.s[0]
+  strb w8,[x1]
+  add x1, x1, 1
+
+  mov w8, v22.s[1]
+  strb w8,[x1]
+  add x1, x1, 1
+
+  mov w8, v21.s[1]
+  strb w8,[x1]
+  add x1, x1, 1
+
+  mov w8, v20.s[1]
+  strb w8,[x1]
+  add x1, x1, 1
 
   //get lane
   //mov x3, v0.d[0]
-  mov w3, v21.s[0]
+  //mov w3, v21.s[0]
   //mov w3,w3,lsr 16
   
   //mov x3, -2 //move constant -2 into x3
   //ldr x3,[x0] //load into a register
-  str w3,[x1]
-  add x1, x1, 4
-  str w4,[x1]
+  /* str w3,[x1] */
+  /* add x1, x1, 4 */
+  /* str w4,[x1] */
+  add w15, w15, 1
+  b loop
+end:
+  //str x15,[x10]
   ret
