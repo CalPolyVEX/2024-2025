@@ -6,7 +6,7 @@ asm_foo:
   mov w15, 0 //w15 = counter
   movz w16, 360 //360 columns
   mov w17, 0 //w17 = counter
-  movz w18, 320 //640/2 per row
+  movz w18, 160 //640/4 per row
 
   mov x10,x1 //keep a copy of the starting address of the incoming array
 
@@ -75,6 +75,7 @@ asm_foo:
   //testing
   //v8,v9 - third UYVY swapped
   //10,11,13,14 - following 2 bytes, swapped, and next row
+  //15,16 - sum of pixel values and average
 
 outerloop:
   cmp w15, w16
@@ -96,6 +97,7 @@ innerloop:
   //load the third UYVY
   add x3, x0, 8
   ld1 {v2.2s}, [x3] //load 8-bytes
+  ext v8.8b, v2.8b, v2.8b, #4 //swap 4 bytes
 
   //load the first 2 UYVY - 2 rows down
   ld1 {v3.2s}, [x4] //load 8-bytes
@@ -103,6 +105,7 @@ innerloop:
 
   //load the third UYVY - 2 rows down
   ld1 {v5.2s}, [x5] //load 8-bytes
+  ext v9.8b, v5.8b, v5.8b, #4 //swap 4 bytes
 
   //add the words for the first pixel
   eor v6.16b, v6.16b, v6.16b //zero out v6
@@ -124,6 +127,59 @@ innerloop:
   ushr v6.8h, v6.8h, 2 //shift right to divide by 4
   ushr v7.8h, v7.8h, 2
 
+  //////////////// load the third UYVY set of bytes (packet 4,5,6)
+  add x3, x3, 8
+  add x5, x5, 8
+  //load the packet 5,6 bytes (8 bytes)
+  ld1 {v10.2s}, [x3] //load 8-bytes
+  ext v11.8b, v10.8b, v10.8b, #4 //swap 4 bytes
+
+  //load the next rows packet 5,6 bytes (8 bytes)
+  ld1 {v13.2s}, [x5] //load 8-bytes
+  ext v14.8b, v13.8b, v13.8b, #4 //swap 4 bytes
+
+
+
+
+  //add the words for the first pixel
+  eor v15.16b, v15.16b, v15.16b //zero out v15
+  mov v16.16b, v15.16b         //zero out v16
+
+  uaddw v15.8h, v15.8h, v8.8b
+  uaddw v15.8h, v15.8h, v10.8b //add the first and second words of current row
+
+  uaddw v15.8h, v15.8h, v9.8b //add the first word of 2 rows below
+  uaddw v15.8h, v15.8h, v13.8b //add the second word of 2 rows below
+
+  //add the words for the second pixel
+  uaddw v16.8h, v16.8h, v10.8b
+  uaddw v16.8h, v16.8h, v11.8b //add the first and second words of current row
+
+  uaddw v16.8h, v16.8h, v13.8b //add the first word of 2 rows below
+  uaddw v16.8h, v16.8h, v14.8b //add the second word of 2 rows below
+
+  //v15 and v16 have the YUV sum, divide by 4 to average
+  ushr v15.8h, v15.8h, 2 //shift right to divide by 4
+  ushr v16.8h, v16.8h, 2
+
+
+
+  //subtract the constant after averaging
+  ssubl v15.4s,v15.4h,v12.4h //subtract the constant (16,128,16,128)
+  ssubl v16.4s,v16.4h,v12.4h
+
+  //do FP computation to get BGR
+  scvtf v15.4s, v15.4s //convert to floats, registers in format Y1-V0-Y0-U0
+  scvtf v16.4s, v16.4s
+
+
+
+
+
+
+
+  ///////////////////////////////////////////////////////////////
+
   //subtract the constant after averaging
   ssubl v6.4s,v6.4h,v12.4h //subtract the constant (16,128,16,128)
   ssubl v7.4s,v7.4h,v12.4h
@@ -132,6 +188,9 @@ innerloop:
   scvtf v6.4s, v6.4s //convert to floats, registers in format Y1-V0-Y0-U0
   scvtf v7.4s, v7.4s
 
+  mov v17.s[3], v16.s[3]  //move the Y into place (packet 4,5,6)
+  mov v17.s[2], v15.s[1] 
+
   mov v17.s[1], v7.s[3]  //move the Y into place
   mov v17.s[0], v6.s[1] 
   fmul v17.4s, v17.4s, v20.4s //v17 contains 1.164*Y
@@ -139,11 +198,17 @@ innerloop:
   mov v30.16b, v17.16b  //where to hold the G values
   mov v31.16b, v17.16b  //where to hold the B values
 
+  mov v18.s[3], v16.s[2]  //move the V into place (packet 4,5,6)
+  mov v18.s[2], v15.s[2] 
+
   mov v18.s[1], v7.s[2]  //move the V into place
   mov v18.s[0], v6.s[2] 
   fmla v29.4s, v18.4s, v21.4s //R values computed
   
   fmls v30.4s, v18.4s, v22.4s //G compute -.813*V
+
+  mov v23.s[3], v16.s[0]  //move the U into place (packet 4,5,6)
+  mov v23.s[2], v15.s[0] 
 
   mov v23.s[1], v7.s[0]  //move the U into place
   mov v23.s[0], v6.s[0] 
@@ -167,7 +232,7 @@ innerloop:
   fcvtzu v30.4s, v30.4s //convert G to int
   fcvtzu v29.4s, v29.4s //convert R to int
 
-  //store 6 bytes BGRBGR
+  ///////store 4 bytes BGRB
   mov w10, v31.s[1]
   lsl w10, w10, 8
 
@@ -185,15 +250,46 @@ innerloop:
   str w10,[x1] //store BGRB
   add x1, x1, 4
 
-  mov w8, v30.s[1]
-  strb w8,[x1] //store second G
-  add x1, x1, 1
+  ///////store 4 bytes GRBG
+  mov w10, v30.s[2]
+  lsl w10, w10, 8
 
-  mov w8, v29.s[1]
-  strb w8,[x1] //store second R
-  add x1, x1, 1
+  mov w11, v31.s[2] 
+  orr w10, w10, w11
+  lsl w10, w10, 8
+  
+  mov w11, v29.s[1] 
+  orr w10, w10, w11
+  lsl w10, w10, 8
 
-  add x0, x0, 12 //move over 12 bytes to point to next set of 3 UYVY
+  mov w11, v30.s[1]
+  orr w10, w10, w11
+
+  str w10,[x1] //store GRBG
+  add x1, x1, 4
+
+
+  ///////store 4 bytes RBGR
+  mov w10, v29.s[3]
+  lsl w10, w10, 8
+
+  mov w11, v30.s[3] 
+  orr w10, w10, w11
+  lsl w10, w10, 8
+  
+  mov w11, v31.s[3] 
+  orr w10, w10, w11
+  lsl w10, w10, 8
+
+  mov w11, v29.s[2]
+  orr w10, w10, w11
+
+  str w10,[x1] //store RBGR
+  add x1, x1, 4
+
+//////
+
+  add x0, x0, 24 //move over 12 bytes to point to next set of 3 UYVY
 
   add w17, w17, 1
 
