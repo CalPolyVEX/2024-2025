@@ -3,7 +3,7 @@
 .type asm_foo, @function
 asm_foo:
   //load the first 2 UYVY
-  ld1 {v0.2s}, [x0] //load 8-bytes, post-increment x0 by 8
+  ld1 {v0.2s}, [x0] //load 8-bytes
   ext v1.8b, v0.8b, v0.8b, #4 //swap 4 bytes
 
   //load the third UYVY
@@ -16,7 +16,7 @@ asm_foo:
   add x5, x4, 8
 
   //load the first 2 UYVY
-  ld1 {v3.2s}, [x4] //load 8-bytes, post-increment x0 by 8
+  ld1 {v3.2s}, [x4] //load 8-bytes
   ext v4.8b, v3.8b, v3.8b, #4 //swap 4 bytes
 
   //load the third UYVY
@@ -44,34 +44,35 @@ asm_foo:
 
   //subtract 16, 128, and 128
   mov x3, 128 //128 to subtract from V
-  mov x3, x3, lsl 32 //shift left 24
+  mov x3, x3, lsl 32 //shift left 32
   mov x4, 16 //16 to subtract from Y
   mov x4, x4, lsl 16 //shift left 16
   orr x3, x3, x4
   mov x4, 128 //128 to subtract from U
   orr x3, x3, x4
 
-  ins v12.s[0], w3
+  ins v12.d[0], x3
 
-  sub v10.8h,v10.8h,v12.8h
-  sub v11.8h,v11.8h,v12.8h
+  ssubl v10.4s,v10.4h,v12.4h
+  ssubl v11.4s,v11.4h,v12.4h
 
   //do FP computation to get BGR
-  eor v13.8b, v13.8b, v13.8b //zero out v13
-  saddw v14.4s, v13.4s, v10.4h //convert YUV values in 4x32 int
-  saddw v15.4s, v13.4s, v11.4h
+  /* eor v13.8b, v13.8b, v13.8b //zero out v13 */
+  /* saddw v14.4s, v13.4s, v10.4h //convert YUV values in 4x32 int */
+  /* saddw v15.4s, v13.4s, v11.4h */
   
-  scvtf v14.4s, v14.4s //convert to floats, registers in format Y1-V0-Y0-U0
-  scvtf v15.4s, v15.4s
+  scvtf v14.4s, v10.4s //convert to floats, registers in format Y1-V0-Y0-U0
+  scvtf v15.4s, v11.4s
 
   //00111111100101001111110111110100 //1.164
   movz w5, 0b0011111110010100, lsl 16
   movk w5, 0b1111110111110100 //1.164
   dup v16.4s, w5 //copy to all elements
-  mov w4, v16.s[1] //debugging print 
+  //mov w4, v16.s[1] //debugging print 
 
   mov v17.s[1], v15.s[1]  //move the Y into place
   mov v17.s[0], v14.s[1] 
+  //mov w4, v17.s[0] //debugging print 
   fmul v17.4s, v17.4s, v16.4s //v17 contains 1.164*Y
   mov v20.16b, v17.16b  //where to hold the R values
   mov v21.16b, v17.16b  //where to hold the G values
@@ -81,21 +82,25 @@ asm_foo:
   movz w5, 0b0011111111001100, lsl 16
   movk w5, 0b0100100110111010 //1.596
   dup v16.4s, w5 //copy to all elements
+  //mov w4, v16.s[0] //debugging print 
 
   mov v18.s[1], v15.s[2]  //move the V into place
   mov v18.s[0], v14.s[2] 
+  //mov w4, v18.s[0] //debugging print 
   fmla v20.4s, v18.4s, v16.4s //R values computed
   
   //00111111010100000010000011000101  //.813
-  movz w5, 0b00111111010100, lsl 16
-  movk w5, 0b10000011000101 //.813
+  movz w5, 0b0011111101010000, lsl 16
+  movk w5, 0b0010000011000101 //.813
   dup v16.4s, w5 //copy to all elements
+  //mov w4, v16.s[0] //debugging print 
   fmls v21.4s, v18.4s, v16.4s
 
   //00111110110010001011010000111001 //.392
   movz w5, 0b0011111011001000, lsl 16
   movk w5, 0b1011010000111001 //.392
   dup v16.4s, w5 //copy to all elements
+  //mov w4, v16.s[0] //debugging print 
 
   mov v23.s[1], v15.s[0]  //move the U into place
   mov v23.s[0], v14.s[0] 
@@ -105,12 +110,14 @@ asm_foo:
   movz w5, 0b0100000000000110, lsl 16
   movk w5, 0b1101100100010111 //2.107
   dup v16.4s, w5 //copy to all elements
+  //mov w4, v16.s[0] //debugging print 
   fmla v22.4s, v23.4s, v16.4s //B values computed
 
   //replace all values above 255
   movz w5, 0b0100001101111111, lsl 16
   movk w5, 0b0000000000000000 //255.0
   dup v16.4s, w5 //copy to all elements
+  //mov w4, v16.s[0] //debugging print 
   fcmgt v17.4s, v22.4s, v16.4s //set max B values
   bit v22.16b, v16.16b, v17.16b
 
@@ -128,7 +135,7 @@ asm_foo:
 
   //get lane
   //mov x3, v0.d[0]
-  mov w3, v14.s[0]
+  mov w3, v21.s[0]
   //mov w3,w3,lsr 16
   
   //mov x3, -2 //move constant -2 into x3
