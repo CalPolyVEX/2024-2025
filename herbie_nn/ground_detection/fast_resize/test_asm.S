@@ -55,6 +55,27 @@ asm_foo:
   movk w5, 0b0000000000000000 //255.0
   dup v26.4s, w5 //copy to all elements
 
+  //register usage
+  //v0 - first 2 UYVY
+  //v1 - v0 swapped
+  //v2 - third UYVY
+  //v3 - 2 rows down - first 2 UYVY
+  //v4 - v3 swapped
+  //v5 - 2 rows down - third UYVY
+  //v6-v7 - used 
+  //v12 - constant (16,128,16,128)
+  //v17-v19 - used
+  //v20-v22 - constants
+  //v24-v26 - constants
+  //v29 - R
+  //v30 - G
+  //v31 - B
+  //available = v8,v9,v10,v11,v13,v14,v15,v16,v27,v28
+
+  //testing
+  //v8,v9 - third UYVY swapped
+  //10,11,13,14 - following 2 bytes, swapped, and next row
+
 outerloop:
   cmp w15, w16
   beq end
@@ -64,22 +85,23 @@ outerloop:
 innerloop:
   //load the first 2 UYVY
   ld1 {v0.2s}, [x0] //load 8-bytes
-  ext v1.8b, v0.8b, v0.8b, #4 //swap 4 bytes
-
-  //load the third UYVY
-  add x3, x0, 8
-  ld1 {v2.2s}, [x3] //load 8-bytes
 
   //skip down 2 rows (1920*2 * 2 bytes) = 7680
   add x4, x0, 3840
   add x4, x4, 3840
   add x5, x4, 8
 
-  //load the first 2 UYVY
+  ext v1.8b, v0.8b, v0.8b, #4 //swap 4 bytes
+
+  //load the third UYVY
+  add x3, x0, 8
+  ld1 {v2.2s}, [x3] //load 8-bytes
+
+  //load the first 2 UYVY - 2 rows down
   ld1 {v3.2s}, [x4] //load 8-bytes
   ext v4.8b, v3.8b, v3.8b, #4 //swap 4 bytes
 
-  //load the third UYVY
+  //load the third UYVY - 2 rows down
   ld1 {v5.2s}, [x5] //load 8-bytes
 
   //add the words for the first pixel
@@ -113,61 +135,61 @@ innerloop:
   mov v17.s[1], v7.s[3]  //move the Y into place
   mov v17.s[0], v6.s[1] 
   fmul v17.4s, v17.4s, v20.4s //v17 contains 1.164*Y
-  mov v28.16b, v17.16b  //where to hold the R values
-  mov v29.16b, v17.16b  //where to hold the G values
-  mov v30.16b, v17.16b  //where to hold the B values
+  mov v29.16b, v17.16b  //where to hold the R values
+  mov v30.16b, v17.16b  //where to hold the G values
+  mov v31.16b, v17.16b  //where to hold the B values
 
   mov v18.s[1], v7.s[2]  //move the V into place
   mov v18.s[0], v6.s[2] 
-  fmla v28.4s, v18.4s, v21.4s //R values computed
+  fmla v29.4s, v18.4s, v21.4s //R values computed
   
-  fmls v29.4s, v18.4s, v22.4s //G compute -.813*V
+  fmls v30.4s, v18.4s, v22.4s //G compute -.813*V
 
   mov v23.s[1], v7.s[0]  //move the U into place
   mov v23.s[0], v6.s[0] 
-  fmls v29.4s, v23.4s, v24.4s //G values compute: -.392*U
+  fmls v30.4s, v23.4s, v24.4s //G values compute: -.392*U
 
-  fmla v30.4s, v23.4s, v25.4s //B values compute: 2.017*U
+  fmla v31.4s, v23.4s, v25.4s //B values compute: 2.017*U
 
   ////////////////////////////////////////////
   //replace all values above 255
-  fcmgt v17.4s, v30.4s, v26.4s //set max B values
-  bit v30.16b, v26.16b, v17.16b
+  fcmgt v17.4s, v31.4s, v26.4s //set max B values
+  bit v31.16b, v26.16b, v17.16b
 
-  fcmgt v19.4s, v29.4s, v26.4s //set max G values
-  bit v29.16b, v26.16b, v19.16b
+  fcmgt v19.4s, v30.4s, v26.4s //set max G values
+  bit v30.16b, v26.16b, v19.16b
 
-  fcmgt v17.4s, v28.4s, v26.4s //set max R values
-  bit v28.16b, v26.16b, v17.16b
+  fcmgt v17.4s, v29.4s, v26.4s //set max R values
+  bit v29.16b, v26.16b, v17.16b
 
   //convert the fp to int (rounding toward zero)
-  fcvtzu v30.4s, v30.4s //convert B to int
-  fcvtzu v29.4s, v29.4s //convert G to int
-  fcvtzu v28.4s, v28.4s //convert R to int
+  fcvtzu v31.4s, v31.4s //convert B to int
+  fcvtzu v30.4s, v30.4s //convert G to int
+  fcvtzu v29.4s, v29.4s //convert R to int
 
   //store 6 bytes BGRBGR
-  mov w10, v30.s[1]
+  mov w10, v31.s[1]
   lsl w10, w10, 8
 
-  mov w11, v28.s[0] 
-  orr w10, w10, w11
-  lsl w10, w10, 8
-  
   mov w11, v29.s[0] 
   orr w10, w10, w11
   lsl w10, w10, 8
+  
+  mov w11, v30.s[0] 
+  orr w10, w10, w11
+  lsl w10, w10, 8
 
-  mov w11, v30.s[0]
+  mov w11, v31.s[0]
   orr w10, w10, w11
 
   str w10,[x1] //store BGRB
   add x1, x1, 4
 
-  mov w8, v29.s[1]
+  mov w8, v30.s[1]
   strb w8,[x1] //store second G
   add x1, x1, 1
 
-  mov w8, v28.s[1]
+  mov w8, v29.s[1]
   strb w8,[x1] //store second R
   add x1, x1, 1
 

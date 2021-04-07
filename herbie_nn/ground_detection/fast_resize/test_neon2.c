@@ -5,22 +5,6 @@
 
 void asm_foo(unsigned char* in, unsigned char* out);
 
-void test_asm(unsigned char* in, unsigned char* out) {
-   register uint32x2_t a asm ("d16");
-   register uint32x2_t b asm ("d17");
-   register uint32x2_t c asm ("d18");
-
-   asm volatile (
-         "mov %[result], %[value], ror #1" : [result] "=r" (in) : [value] "r" (out));
-
-
-   /* asm volatile ( */
-   /*       "vadd %d0, %d1, %d2 \n\t" */
-   /*       : "=w" (a) */
-   /*       : "w" (b), "w" (c) */
-   /*     ); */
-}
-
 int main() {
    FILE* ptr;
    unsigned char arr[1920 * 1080 * 2];
@@ -32,7 +16,7 @@ int main() {
    int16x8_t y0_a, y0_b;
    int16x8_t y0_a_temp; 
    unsigned int *test_ptr = (unsigned int*) arr;
-   unsigned char val;
+   unsigned short val;
 
    ptr = fopen("./beach.uyvy","rb");  // r for read, b for binary
 
@@ -50,8 +34,25 @@ int main() {
    fclose(ptr);
 
    //test assembly call
-   asm_foo(arr, new_img);
-   printf("%x\n", new_img[0]);
+   clock_t begin1 = clock();
+   for (int j=0; j<1000; j++) {
+      unsigned int* p = (unsigned int*) &(new_img[0]);
+      int* f_ptr = (int*) &(new_img[0]);
+      asm_foo(arr, new_img);
+      /* printf("%08x %08x\n", *p, *(p+1)); */
+      /* printf("%d %d\n", *f_ptr, *(f_ptr+1)); */
+   }
+
+   /* FILE* wptr; */
+   /* wptr = fopen("./beach360.uyvy","wb");  // r for read, b for binary */
+   /* fwrite((void*)new_img, 1, 360*640*3, wptr); */
+   /* fclose(wptr); */
+   /* for (int j=0;j<640*360*3;j++) { */
+   /*    printf ("%0x ", new_img[j]); */
+   /* } */
+   clock_t end1 = clock();
+   double time_spent1 = (double)(end1 - begin1) / CLOCKS_PER_SEC;
+   printf ("time in ms:  %f\n", time_spent1/1000.0);
 
    int row_size = 3840; 
    int pixel_index = 0;
@@ -309,35 +310,35 @@ int main() {
 
             //copy the BGR values into the final image
             for (int i=0; i<4; i++) {
-               val = (unsigned char) vgetq_lane_u32(b_low_int, i);
+               val = (unsigned short) vgetq_lane_u32(b_low_int, i);
                if (val > 255)
                   val = 255;
-               new_img[pixel_index] = val;
+               new_img[pixel_index] = (unsigned char) val;
 
-               val = (unsigned char) vgetq_lane_u32(g_low_int, i);
+               val = (unsigned short) vgetq_lane_u32(g_low_int, i);
                if (val > 255)
                   val = 255;
-               new_img[pixel_index+1] = val;
+               new_img[pixel_index+1] = (unsigned char) val;
 
-               val = (unsigned char) vgetq_lane_u32(r_low_int, i);
+               val = (unsigned short) vgetq_lane_u32(r_low_int, i);
                if (val > 255)
                   val = 255;
-               new_img[pixel_index+2] = val;
+               new_img[pixel_index+2] = (unsigned char) val;
 
-               val = (unsigned char) vgetq_lane_u32(r_second_int, i);
+               val = (unsigned short) vgetq_lane_u32(r_second_int, i);
                if (val > 255)
                   val = 255;
-               new_img[pixel_index+3] = val;
+               new_img[pixel_index+3] = (unsigned char) val;
 
-               val = (unsigned char) vgetq_lane_u32(g_second_int, i);
+               val = (unsigned short) vgetq_lane_u32(g_second_int, i);
                if (val > 255)
                   val = 255;
-               new_img[pixel_index+4] = val;
+               new_img[pixel_index+4] = (unsigned char) val;
 
-               val = (unsigned char) vgetq_lane_u32(r_second_int, i);
+               val = (unsigned short) vgetq_lane_u32(r_second_int, i);
                if (val > 255)
                   val = 255;
-               new_img[pixel_index+5] = val;
+               new_img[pixel_index+5] = (unsigned char) val;
                pixel_index+=6;
             }
 
@@ -363,6 +364,11 @@ int main() {
    printf ("counter: %d\n", counter);
    printf ("pixel index: %d\n", pixel_index);
    printf ("%d\n", new_img[100]);
+
+   /* FILE* wptr; */
+   /* wptr = fopen("./c_code_beach360.uyvy","wb");  // r for read, b for binary */
+   /* fwrite((void*)new_img, 1, 360*640*3, wptr); */
+   /* fclose(wptr); */
 
    return 0;
 }
