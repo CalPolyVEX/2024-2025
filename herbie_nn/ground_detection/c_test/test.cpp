@@ -14,6 +14,11 @@ using namespace std::chrono;
 #include "NvOnnxParser.h"
 #include "NvInfer.h"
 
+void writeNetworkTensorNames(nvinfer1::INetworkDefinition *network);
+bool setDynamicRange(nvinfer1::INetworkDefinition *network);
+std::unordered_map<std::string, float>
+  mPerTensorDynamicRangeMap; //!< Mapping from tensor name to max absolute dynamic range values
+
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
 {
@@ -68,21 +73,32 @@ void parseOnnxModel()
 
     builder->setMaxBatchSize(maxBatchSize);
     nvinfer1::IBuilderConfig* config = builder->createBuilderConfig();
-    config->setMaxWorkspaceSize(1 << 24);
+    config->setMaxWorkspaceSize(1 << 30);
 
     //set dimensions
-    nvinfer1::IOptimizationProfile* profile = builder->createOptimizationProfile();
-    profile->setDimensions("input", nvinfer1::OptProfileSelector::kMIN, nvinfer1::Dims4(1,3,360,640));
-    profile->setDimensions("input", nvinfer1::OptProfileSelector::kOPT, nvinfer1::Dims4(1,3,360,640));
-    profile->setDimensions("input", nvinfer1::OptProfileSelector::kMAX, nvinfer1::Dims4(1,3,360,640));
+//    nvinfer1::IOptimizationProfile* profile = builder->createOptimizationProfile();
+    /* profile->setDimensions("input", nvinfer1::OptProfileSelector::kMIN, nvinfer1::Dims4(1,3,360,640)); */
+    /* profile->setDimensions("input", nvinfer1::OptProfileSelector::kOPT, nvinfer1::Dims4(1,3,360,640)); */
+    /* profile->setDimensions("input", nvinfer1::OptProfileSelector::kMAX, nvinfer1::Dims4(1,3,360,640)); */
     
-    config->addOptimizationProfile(profile);
+    //config->addOptimizationProfile(profile);
 
     //indicate fp16 is acceptable
-    //config->setFlag(nvinfer1::BuilderFlag::kFP16);
-    //config->setFlag(nvinfer1::BuilderFlag::kSTRICT_TYPES);
+    /* config->setFlag(nvinfer1::BuilderFlag::kFP16); */
+    config->setFlag(nvinfer1::BuilderFlag::kINT8);
+    config->setFlag(nvinfer1::BuilderFlag::kSTRICT_TYPES);
+
+    //test DLA code
+    config->setFlag(nvinfer1::BuilderFlag::kGPU_FALLBACK);
+    //config->setFlag(nvinfer1::BuilderFlag::kFP16); 
+    config->setDefaultDeviceType(nvinfer1::DeviceType::kDLA);
+    config->setDLACore(1);
+
+    setDynamicRange(network);
 
     nvinfer1::ICudaEngine* engine = builder->buildEngineWithConfig(*network, *config);
+
+    //writeNetworkTensorNames(network); //write out the tensor names
 
     parser->destroy();
     network->destroy();
@@ -129,7 +145,7 @@ void load_engine() {
   void** mInputCPU= (void**)malloc(2*sizeof(void*));;
   cudaHostAlloc((void**)&mInputCPU[0],  3*360*640*sizeof(float), cudaHostAllocDefault);
   cudaHostAlloc((void**)&mInputCPU[1],  3*360*640*sizeof(float), cudaHostAllocDefault);
-  float prob[80]; //output data
+  //float prob[80]; //output data
   
   // In order to bind the buffers, we need to know the names of the input and output tensors.
   // note that indices are guaranteed to be less than IEngine::getNbBindings()
@@ -149,11 +165,13 @@ void load_engine() {
   cudaStream_t stream;
   gpuErrchk( cudaStreamCreate(&stream) );
 
-  for (int i=0; i<100; i++) {
+  for (int i=0; i<10000; i++) {
     auto start = high_resolution_clock::now();
     // DMA the input to the GPU,  execute the batch asynchronously, and DMA it back:
     gpuErrchk( cudaMemcpyAsync(buffers[inputIndex], mInputCPU[0], 1*3*360*640 * sizeof(float), cudaMemcpyHostToDevice, stream) );
-    context->enqueue(1, buffers, stream, nullptr);
+    //context->enqueue(1, buffers, stream, nullptr);
+    context->executeV2(buffers);
+    /* context->enqueueV2(buffers, stream, nullptr); */
     //gpuErrchk( cudaMemcpyAsync(prob, buffers[outputIndex], 1*80*sizeof(float), cudaMemcpyDeviceToHost, stream) );
     gpuErrchk( cudaMemcpyAsync(mInputCPU[1], buffers[outputIndex], 1*80*sizeof(float), cudaMemcpyDeviceToHost, stream) );
     cudaStreamSynchronize(stream);
@@ -161,7 +179,6 @@ void load_engine() {
     auto end = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(end - start) / 1000.0;
     std::cout << duration.count() << std::endl;
-  
   }
 
   // release the stream and the buffers
@@ -182,8 +199,16 @@ int main(int argc, const char* argv[]) {
   }
   
   //test serialization using TensorRT 
-  //parseOnnxModel();
-  //load_engine();
+  if (strcmp(argv[1],"build") == 0) {
+    std::cout << "Building engine." << std::endl;
+    parseOnnxModel();
+    return 0;
+  }
+  else if (strcmp(argv[1],"load") == 0) {
+    std::cout << "Running engine." << std::endl;
+    load_engine();
+    return 0;
+  }
 
   torch::jit::script::Module module;
   try {
