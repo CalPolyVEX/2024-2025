@@ -4,11 +4,14 @@ import onnx
 from onnx import helper
 import onnxruntime
 import numpy as np
+import sys, cv2
 
 #import onnx_tensorrt.backend as backend
 
-def convert_pytorch_onnx():
-    model_name = 'semnasnet_100-.0074-80out.pt'
+def convert_pytorch_onnx(model_name = 'efficientnet_lite0-.0102-80out.pt'):
+    #model_name = 'efficientnet_lite0-.0102-80out.pt'
+    #model_name = 'mobilenetv3_small-.0110-80out.pt'
+    #semnasnet_100-.0074-80out.pt'
     print ('Converting ' + model_name + ' to .onnx')
     model = torch.load(model_name)
     model.eval()
@@ -34,9 +37,18 @@ def convert_pytorch_onnx():
                     #                 'output' : {0 : 'batch_size'}})
 
 def onnx_inference():
+    layers = []
+    max_val = []
+    min_val = []
     model_name = 'test_model.onnx'
     new_model_name = 'test_mod_model.onnx'
     model = onnx.load(model_name)
+
+    # Check that the IR is well formed
+    onnx.checker.check_model(model)
+
+    # Print a human readable representation of the graph
+    #onnx.helper.printable_graph(model.graph)
 
     #print layer names
     for node in model.graph.node:
@@ -50,24 +62,45 @@ def onnx_inference():
     onnx.save(model,new_model_name)
 
     print ('Running onnx inference')
-    ximg = np.random.rand(1, 3, 360, 640).astype(np.float32)
+    img = cv2.imread('beach.jpg').astype(np.float32) / 255
+    ximg = cv2.resize(img, (640, 360), 0, 0, interpolation = cv2.INTER_LINEAR)
+    ximg = np.expand_dims(ximg, axis=0)
+    ximg = np.transpose(ximg, (0,3,1,2))
+    print (ximg.shape)
+    # return
+    # ximg = np.random.rand(1, 3, 360, 640).astype(np.float32)
     sess = onnxruntime.InferenceSession(new_model_name)
 
     for x in sess.get_outputs():
-        print(x.name)
-        print(x.shape)
+        if x.name not in layers:
+            if x.name != 'output':
+                layers.append(x.name)
+
+        #print(x.name)
+        #print(x.shape)
 
     print("The model input shape: ", sess.get_inputs()[0].shape)
-    print("The model output shape: ", sess.get_outputs()[1].shape)
+    print("The model output shape: ", sess.get_outputs()[0].shape)
     print("The shape of the Image is: ", ximg.shape)
+    #print (layers)
 
     input_name = sess.get_inputs()[0].name
     label_name = sess.get_outputs()[0].name
     result = sess.run(None, {input_name: ximg})
     prob = result[0]
-    print(prob.ravel()[:80])
+    #print(prob.ravel()[:80])
+    print ('layers len: ' + str(len(layers)))
+    print ('output len: ' + str(len(result)))
 
-    print (result)
+    for x in range(len(result)-1):
+        #print (result[x])
+        min = np.amin(result[x+1])
+        max = np.amax(result[x+1])
+        output_name = sess.get_outputs()[x+1].name
+        print ('layer: ' + layers[x] + output_name + '  min ' + str(min) + '  max: ' + str(max))
+        max_val.append(np.amax(result[x+1]))
+        min_val.append(np.amin(result[x+1]))
+    #print (result)
 
 def onnx_tensorrt_inference():
     import onnx
@@ -86,5 +119,11 @@ def onnx_tensorrt_inference():
         end = time.time()
         print(str(1000.0/(end - start)))
 
-#convert_pytorch_onnx()
-onnx_inference()
+def main(args):
+   if len(args) == 2:
+       convert_pytorch_onnx(args[1])
+   onnx_inference()
+
+if __name__ == '__main__':
+   main(sys.argv)
+
