@@ -3,10 +3,15 @@
 .type asm_foo, @function
 
 asm_foo:
-  mov w15, 0 //w15 = counter
-  movz w16, 360 //360 columns
-  mov w17, 0 //w17 = counter
-  movz w18, 160 //640/4 per row
+  //must preserve v8-v15 registers
+  sub sp, sp, #128
+  st1 { v8.2d,  v9.2d, v10.2d, v11.2d}, [sp], #64
+  st1 {v12.2d, v13.2d, v14.2d, v15.2d}, [sp], #64
+
+  mov w9, 0 //w9 = counter
+  movz w12, 360 //360 columns
+  mov w13, 0 //w13 = counter
+  movz w14, 160 //640/4 per row
 
   mov x10,x1 //keep a copy of the starting address of the incoming array
 
@@ -78,10 +83,10 @@ asm_foo:
   //15,16 - sum of pixel values and average
 
 outerloop:
-  cmp w15, w16
+  cmp w9, w12
   beq end
 
-  mov w17,0
+  mov w13,0
 
 innerloop:
   //load the first 2 UYVY
@@ -136,10 +141,10 @@ innerloop:
   scvtf v7.4s, v7.4s
 
   //////////////// load the third UYVY set of bytes (packet 4,5,6)
-  add x3, x3, 8
+//  add x3, x3, 8
   add x5, x5, 8
   //load the packet 5,6 bytes (8 bytes)
-  ld1 {v10.2s}, [x3] //load 8-bytes
+ // ld1 {v10.2s}, [x3] //load 8-bytes
   ext v11.8b, v10.8b, v10.8b, #4 //swap 4 bytes
 
   //load the next rows packet 5,6 bytes (8 bytes)
@@ -281,19 +286,24 @@ innerloop:
   add x0, x0, 24 //move over 24 bytes to point to next set of 3 UYVY
   add x1, x1, 12
 
-  add w17, w17, 1
+  add w13, w13, 1
 
   add x7, x0, 256 //prefetch
   prfm pldl1strm, [x7]
 
-  cmp w17, w18
+  cmp w13, w14
   bne innerloop
 
   add x0, x0, 3840  //move down 2 rows
   add x0, x0, 3840
 
-  add w15, w15, 1 //increment the outer loop
+  add w9, w9, 1 //increment the outer loop
   b outerloop
 end:
   //str x15,[x10]
+
+  //restore registers
+  sub sp, sp, #128
+  ld1 { v8.2d,  v9.2d, v10.2d, v11.2d}, [sp], #64
+  ld1 {v12.2d, v13.2d, v14.2d, v15.2d}, [sp], #64
   ret
