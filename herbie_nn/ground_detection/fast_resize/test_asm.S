@@ -141,10 +141,10 @@ innerloop:
   scvtf v7.4s, v7.4s
 
   //////////////// load the third UYVY set of bytes (packet 4,5,6)
-//  add x3, x3, 8
+  add x3, x3, 8
   add x5, x5, 8
   //load the packet 5,6 bytes (8 bytes)
- // ld1 {v10.2s}, [x3] //load 8-bytes
+  ld1 {v10.2s}, [x3] //load 8-bytes
   ext v11.8b, v10.8b, v10.8b, #4 //swap 4 bytes
 
   //load the next rows packet 5,6 bytes (8 bytes)
