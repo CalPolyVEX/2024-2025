@@ -142,9 +142,14 @@ class CameraReader {
             break;
           }
 
+#ifndef ARM_CPU
           cvtColor(yuyv_frame, bgr_frame, COLOR_YUV2BGR_UYVY);
           resize(bgr_frame, bgr_frame_360, bgr_frame_360.size(), 0, 0);
           /* resize(preview, preview1, preview1.size(), 0, 0); */
+#else
+          //if this CPU supports NEON
+          cvtColor(yuyv_frame, bgr_frame, COLOR_YUV2BGR_UYVY);
+#endif
 
           sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_frame_360).toImageMsg();
           image_pub_.publish(pub_msg);
