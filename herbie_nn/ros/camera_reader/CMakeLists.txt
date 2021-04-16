@@ -63,6 +63,7 @@ add_compile_options (${GCC_COMPILE_FLAGS})
 if ("x86_64" STREQUAL ${CMAKE_HOST_SYSTEM_PROCESSOR})
    add_executable (${JS_OPENCV_V4L2_BIN} ${JS_V4L2_SOURCE})
 else()
+   target_compile_definitions(${JS_OPENCV_V4L2_BIN} PUBLIC ARM_CPU)
    add_executable (${JS_OPENCV_V4L2_BIN} ${JS_V4L2_SOURCE} ${JS_V4L2_SOURCE_ASM})
 endif()
 

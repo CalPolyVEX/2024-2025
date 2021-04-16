@@ -11,6 +11,10 @@
 #include <sensor_msgs/image_encodings.h>
 #include <signal.h>
  
+#ifdef ARM_CPU
+  void asm_foo(unsigned char* in, unsigned char* out);
+#endif
+
 using namespace std;
 using namespace cv;
 
@@ -148,7 +152,7 @@ class CameraReader {
           /* resize(preview, preview1, preview1.size(), 0, 0); */
 #else
           //if this CPU supports NEON
-          cvtColor(yuyv_frame, bgr_frame, COLOR_YUV2BGR_UYVY);
+          asm_foo(yuyv_frame.data, bgr_frame_360.data);
 #endif
 
           sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_frame_360).toImageMsg();
