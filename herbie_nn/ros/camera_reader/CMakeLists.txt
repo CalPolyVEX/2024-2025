@@ -9,10 +9,9 @@ message("CMAKE_CXX_FLAGS_RELEASE is ${CMAKE_CXX_FLAGS_RELEASE}")
 message("CMAKE_CXX_FLAGS_RELWITHDEBINFO is ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}")
 message("CMAKE_CXX_FLAGS_MINSIZEREL is ${CMAKE_CXX_FLAGS_MINSIZEREL}")
 
-project ("camera_reader")
+project ("camera_reader" ASM)
 
 set (V4L2_SOURCE "src/opencv_v4l2.cpp")
-#set (JS_V4L2_SOURCE "src/js_opencv_v4l2.cpp src/test_asm.S")
 set (JS_V4L2_SOURCE "src/js_opencv_v4l2.cpp")
 
 #check if the CPU is ARM
@@ -28,7 +27,7 @@ set (INFO_SOURCE "src/opencv_buildinfo.cpp")
 set (OPENCV_V4L2_BIN "opencv-v4l2")
 set (JS_OPENCV_V4L2_BIN "camera_reader_node")
 set (OPENCV_BUILDINFO_BIN "opencv-buildinfo")
-set_property(SOURCE src/test_asm.S PROPERTY LANGUAGE C)
+set_property(SOURCE "src/test_asm.S" PROPERTY LANGUAGE C)
 
 find_package( OpenCV REQUIRED )
 include_directories( ${OpenCV_INCLUDE_DIRS} )
@@ -63,8 +62,8 @@ add_compile_options (${GCC_COMPILE_FLAGS})
 if ("x86_64" STREQUAL ${CMAKE_HOST_SYSTEM_PROCESSOR})
    add_executable (${JS_OPENCV_V4L2_BIN} ${JS_V4L2_SOURCE})
 else()
-   target_compile_definitions(${JS_OPENCV_V4L2_BIN} PUBLIC ARM_CPU)
    add_executable (${JS_OPENCV_V4L2_BIN} ${JS_V4L2_SOURCE} ${JS_V4L2_SOURCE_ASM})
+   target_compile_definitions(${JS_OPENCV_V4L2_BIN} PUBLIC ARM_CPU)
 endif()
 
 target_include_directories (${JS_OPENCV_V4L2_BIN} PUBLIC ${V4L2_HELPER_LIB_INCLUDE_DIR})
@@ -78,7 +77,7 @@ target_link_libraries (${OPENCV_V4L2_BIN} ${OpenCV_LIBS})
 
 install (
 	TARGETS
-	${OPENCV_V4L2_BIN}
+	#${OPENCV_V4L2_BIN}
 	RUNTIME DESTINATION bin
 )
 

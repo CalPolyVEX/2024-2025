@@ -12,7 +12,7 @@
 #include <signal.h>
  
 #ifdef ARM_CPU
-  void asm_foo(unsigned char* in, unsigned char* out);
+  extern "C" void asm_foo(unsigned char* in, unsigned char* out);
 #endif
 
 using namespace std;
@@ -152,7 +152,7 @@ class CameraReader {
           /* resize(preview, preview1, preview1.size(), 0, 0); */
 #else
           //if this CPU supports NEON
-          asm_foo(yuyv_frame.data, bgr_frame_360.data);
+          asm_foo((unsigned char*) yuyv_frame.data, (unsigned char*) bgr_frame_360.data);
 #endif
 
           sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_frame_360).toImageMsg();
