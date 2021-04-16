@@ -75,7 +75,7 @@ asm_foo:
   //v29 - R
   //v30 - G
   //v31 - B
-  //available = v8,v9,v10,v11,v13,v14,v15,v16,v27,v28
+  //available = v27,v28
 
   //testing
   //v8,v9 - third UYVY swapped
@@ -91,6 +91,7 @@ outerloop:
 innerloop:
   //load the first 2 UYVY
   ld1 {v0.2s}, [x0] //load 8-bytes
+  //ld1 { v0.8b, v1.8b, v2.8b }, [x0], #24 
 
   //skip down 2 rows (1920*2 * 2 bytes) = 7680
   add x4, x0, 3840
@@ -213,14 +214,9 @@ innerloop:
 
   ////////////////////////////////////////////
   //replace all values above 255
-  fcmgt v17.4s, v31.4s, v26.4s //set max B values
-  bit v31.16b, v26.16b, v17.16b
-
-  fcmgt v19.4s, v30.4s, v26.4s //set max G values
-  bit v30.16b, v26.16b, v19.16b
-
-  fcmgt v17.4s, v29.4s, v26.4s //set max R values
-  bit v29.16b, v26.16b, v17.16b
+  fmin v31.4s, v31.4s, v26.4s //set max B values
+  fmin v30.4s, v30.4s, v26.4s //set max G values
+  fmin v29.4s, v29.4s, v26.4s //set max R values
 
   //convert the fp to int (rounding toward zero)
   fcvtzu v31.4s, v31.4s //convert B to int
