@@ -1,0 +1,85 @@
+#!/bin/bash
+##This is the setup to build a new kernel for the Xavier with Logitech Rumblepad support
+#Tested with Jetpack 4.4.1
+#
+#Run this file on a x86 Ubuntu host, then copy over the kernel and necessary modules
+#
+
+
+##########################################################################
+#1.  Download the GCC toolchain 
+export BUILD_PREFIX=/home/jseng/test_build
+export TOOLCHAIN_PREFIX=gcc-linaro-7.3.1-2018.05-x86_64_aarch64-linux-gnu
+
+#check command line arguments
+if [ $# != 2 ]; then #not enough arguments
+   echo "Usage:  compile_kernel_setup build /path/to/public_sources"
+   exit
+elif [ $1 != "build" ]; then
+   echo "Error"
+   exit
+fi
+
+if [ ! -f "$2" ]; then #check if public_sources exists
+   echo "$2 does not exist."
+   exit
+fi
+
+mkdir -p $BUILD_PREFIX
+cd $BUILD_PREFIX
+wget http://releases.linaro.org/components/toolchain/binaries/7.3-2018.05/aarch64-linux-gnu/$TOOLCHAIN_PREFIX.tar.xz
+unxz $TOOLCHAIN_PREFIX.tar.xz
+tar -xf $TOOLCHAIN_PREFIX.tar
+
+export CROSS_COMPILE=$BUILD_PREFIX/$TOOLCHAIN_PREFIX/bin/aarch64-linux-gnu-
+export TEGRA_KERNEL_OUT=$BUILD_PREFIX/kernel
+export LOCALVERSION=-tegra
+
+echo $CROSS_COMPILE
+
+#######################################################################
+#2.  Download and extract the Linux4Tegra sources (L4T Sources)
+#example: https://developer.nvidia.com/embedded/L4T/r32_Release_v4.4/r32_Release_v4.4-GMC3/Sources/T186/public_sources.tbz2
+
+cp $2 $BUILD_PREFIX
+cd $BUILD_PREFIX
+SOURCES_BZIP2=`echo "$2" | sed 's/.*\///'`;  #remove leading path from bzip2 filename
+bunzip2 $SOURCES_BZIP2
+TAR_SOURCES=`echo "$2" | sed 's/.*\///' | sed 's/.tbz2/.tar/g'`; #change extension to .tar
+echo $TAR_SOURCES
+tar -xf $TAR_SOURCES
+
+####################################################################
+#3. Extract the kernel source
+mkdir -p $TEGRA_KERNEL_OUT
+cd Linux_for_Tegra/source/public
+tar -xjf kernel_src.tbz2
+
+#######################################################################
+#4.  Add the logitech flags to the kernel compile config
+echo 'CONFIG_LOGITECH_FF=y' >> kernel/kernel-4.9/arch/arm64/configs/tegra_defconfig
+echo 'CONFIG_LOGIRUMBLEPAD2_FF=y' >> kernel/kernel-4.9/arch/arm64/configs/tegra_defconfig
+
+#######################################################################
+#5.  Configure and build the kernel
+
+#generate .config
+cd kernel/kernel-4.9
+make ARCH=arm64 O=$TEGRA_KERNEL_OUT tegra_defconfig
+
+#compile kernel
+make ARCH=arm64 O=$TEGRA_KERNEL_OUT -j4
+
+#build modules
+make ARCH=arm64 O=$TEGRA_KERNEL_OUT modules_install INSTALL_MOD_PATH=$BUILD_PREFIX/Linux_for_Tegra/rootfs/
+
+#######################################################################
+#6.  Copy the kernel Image (kernel/arch/arm64/boot/Image) to /boot/Image on the Xavier
+
+#######################################################################
+#7.  Copy the contents of the dts dir (kernel/arch/arm64/boot/dts/) to /boot/dtb on the Xavier
+
+#######################################################################
+#8.  Copy the Logitech modules to /lib/modules/4.9.140-tegra/kernel/drivers/hid on the Xavier:
+#
+#The modules are located in Linux_for_Tegra/rootfs/lib/modules/4.9.140-tegra/kernel/drivers/hid

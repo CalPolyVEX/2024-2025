@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="run_diag" default="true"/>
+
+    <node if="$(arg run_diag)" pkg="jet_launcher" type="joystick.py" name="joystick_node"/>
+</launch>

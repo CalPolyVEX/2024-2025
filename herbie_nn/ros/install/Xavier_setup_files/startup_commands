@@ -1,0 +1,9 @@
+#!/bin/bash
+sudo mkdir /tmp/ramdisk
+sudo mount -t tmpfs -o size=1024m myramdisk /tmp/ramdisk
+sudo -u jseng cp /home/jseng/.ros/rtabmap.db /tmp/ramdisk
+#sudo modprobe -r bluedroid_pm
+sudo devmem2 0x0243d048 byte 0x59
+#sudo rmmod hid_logitech
+#sudo modprobe -r hid_logitech
+

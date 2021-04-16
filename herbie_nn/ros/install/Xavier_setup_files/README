@@ -1,0 +1,15 @@
+1.  disable USB autosuspend
+   -edit /boot/extlinux/extlinux.conf
+   -add 'usbcore.autosuspend=-1' to modify the line 'APPEND ${cbootargs} usbcore.autosuspend=-1 quiet'
+
+2.  add user to dialout group to enable serial port access
+   -sudo adduser jseng dialout
+
+3.  disable auto updates of packages
+   -edit /etc/apt/apt.conf.d/10periodic
+
+4.  add the external SSD to /etc/fstab using:
+   UUID=de8a2a2f-13c4-4662-a1de-9697d5ce74e8   /mnt/temp   ext4 defaults 0  0
+
+   -change the UUID to the correct one (find the correct one by running 'ls -al /dev/disk/by-uuid/')
+
