@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-  <node name="navigation_goals" pkg="navigation_goals"
-      type="navigation_goals"
-      output="screen" >
-  </node>
-
-</launch>
