@@ -51,13 +51,13 @@ class CameraReader {
     image_pub_ = it_.advertise("/see3cam_cu20/image_raw", 1);
   }
 
-  int init(int argc, char **argv, ros::NodeHandle* nh);
+  int init(char* videodev, int width, int height, ros::NodeHandle* nh);
   void frame_loop();
   int close_camera();
 
   //neural network functions
-  void buildEngine(char* s);
-  void load_engine(char* s);
+  static void buildEngine(char* s, int dla);
+  static void loadEngine(char* s);
 };
 
 #endif

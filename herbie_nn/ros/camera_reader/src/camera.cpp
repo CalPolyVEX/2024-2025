@@ -1,41 +1,11 @@
 #include "camera.h"
+#include <getopt.h>
+#include <string>
 
 ros::NodeHandle* nh = NULL; 
 
-int CameraReader::init(int argc, char **argv, ros::NodeHandle* nh) {
+int CameraReader::init(char* videodev, int width, int height, ros::NodeHandle* nh) {
    n = nh;
-   if (argc == 4) {
-      videodev = argv[1];
-
-      string width_str = argv[2];
-      string height_str = argv[3];
-      try {
-         size_t pos;
-         width = stoi(width_str, &pos);
-         if (pos < width_str.size()) {
-            cerr << "Trailing characters after width: " << width_str << '\n';
-         }
-
-         height = stoi(height_str, &pos);
-         if (pos < height_str.size()) {
-            cerr << "Trailing characters after height: " << height_str << '\n';
-         }
-      } catch (invalid_argument const &ex) {
-         cerr << "Invalid width or height\n";
-         return EXIT_FAILURE;
-      } catch (out_of_range const &ex) {
-         cerr << "Width or Height out of range\n";
-         return EXIT_FAILURE;
-      }
-   } else {
-      cout << "Note: This program accepts (only) three arguments.\n";
-      cout << "First arg: device file path, Second arg: width, Third arg: height\n";
-      cout << "No arguments given. Assuming default values.\n";
-      cout << "Device file path: " << default_videodev << "; Width: 640; Height: 480\n";
-      videodev = default_videodev;
-      width = 1920;
-      height = 1080;
-   }
 
    /*
     * Helper function to initialize camera to a specific resolution and format
@@ -133,18 +103,117 @@ void mySigintHandler(int sig)
 }
 
 int main(int argc, char **argv) {
-  ros::init(argc, argv, "camera_reader_node", ros::init_options::NoSigintHandler);
-  ros::NodeHandle n;
-  nh = &n;
+   int c, accel=0;
+   int verbose_flag, width=1920, height=1080;
+   int build_flag=0, load_flag=0;
+   char videodev[50], onnx_file[200], engine_file[200];
+   videodev[0] = 0;
 
-  signal(SIGINT, mySigintHandler);
+   while (1)
+   {
+      static struct option long_options[] =
+      {
+         /* These options set a flag. */
+         //{"load",   no_argument,      &verbose_flag, 0},
+         /* These options don’t set a flag.
+            We distinguish them by their indices. */
+         {"accelerator", required_argument, 0, 'a'},
+         {"build",   required_argument, 0, 'b'},
+         {"device",  required_argument, 0, 'd'},
+         {"width",   required_argument, 0, 'w'},
+         {"height",  required_argument, 0, 'h'},
+         {"load",    required_argument, 0, 'l'},
+         {0, 0, 0, 0}
+      };
+      /* getopt_long stores the option index here. */
+      int option_index = 0;
 
-  CameraReader c;
-  nh->setParam("/read_see3cam", false);
-  c.init(argc,argv,nh);
-  c.frame_loop();
+      c = getopt_long (argc, argv, "a:b:d:w:h:l:",
+            long_options, &option_index);
 
-  ros::spin();
-  ros::waitForShutdown();
-  return EXIT_SUCCESS;
+      /* Detect the end of the options. */
+      if (c == -1)
+         break;
+
+      switch (c)
+      {
+      case 0:
+         /* If this option set a flag, do nothing else now. */
+         if (long_options[option_index].flag != 0)
+            break;
+         printf ("option %s", long_options[option_index].name);
+         if (optarg)
+            printf (" with arg %s", optarg);
+         printf ("\n");
+         break;
+
+      case 'a':
+         printf ("Using accelerator: '%s'\n", optarg);
+         accel = stoi(optarg);
+         break;
+         
+      case 'b':
+         printf ("Building engine with ONNX file: '%s'\n", optarg);
+         strncpy(onnx_file,optarg,200);
+         build_flag = 1;
+         break;
+
+      case 'l':
+         printf ("Loading engine file: '%s'\n", optarg);
+         strncpy(engine_file,optarg,200);
+         load_flag = 1;
+         break;
+         
+      case 'd':
+         strncpy(videodev,optarg,50);
+         break;
+
+      case 'w':
+         printf ("option -w with value `%s'\n", optarg);
+         width = stoi(optarg);
+         break;
+
+      case 'h':
+         printf ("option -h with value `%s'\n", optarg);
+         height = stoi(optarg);
+         break;
+
+      case '?':
+         /* getopt_long already printed an error message. */
+         break;
+
+      default:
+         abort ();
+      }
+   }
+
+  //if there is a video device, then run in camera reader mode
+  if (strlen(videodev) > 0) {
+     std::cout << "Using device: " << videodev << std::endl;
+     std::cout << "Using width: " << width << std::endl;
+     std::cout << "Using height: " << height << std::endl;
+
+     ros::init(argc, argv, "camera_reader_node", ros::init_options::NoSigintHandler);
+     ros::NodeHandle n;
+     nh = &n;
+
+     signal(SIGINT, mySigintHandler);
+
+     CameraReader cr;
+     nh->setParam("/read_see3cam", false);
+     cr.init(videodev,width,height,nh);
+     cr.frame_loop();
+
+     ros::spin();
+     ros::waitForShutdown();
+     return EXIT_SUCCESS;
+  } else if (build_flag == 1) {
+     std::cout << "Building engine..." << std::endl;
+     CameraReader::buildEngine(onnx_file, accel);
+  } else if (load_flag == 1) {
+     std::cout << "Loading engine..." << std::endl;
+     CameraReader::loadEngine(engine_file);
+  }
+
+  return 0;
 }

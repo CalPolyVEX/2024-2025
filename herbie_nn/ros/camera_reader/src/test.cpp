@@ -44,21 +44,27 @@ public:
 
 //////////////////////////////////////
 //build the engine from the ONNX model
-void CameraReader::buildEngine(char* s) 
+void CameraReader::buildEngine(char* s, int dla) 
 {
     //do some filename conversions first
     boost::filesystem::path p((char*) &s[0]); //convert the path
-    char filename[50];
-    char engine_filename[50];
-    strncpy(filename, p.stem().c_str(), 50);
-    strncpy(engine_filename, boost::filesystem::change_extension(filename, ".engine").c_str(), 50);
+    char onnx_filename_path[200];
+    char engine_filename[200];
+    strncpy(onnx_filename_path, p.c_str(), 200);
+    strncpy(engine_filename, boost::filesystem::change_extension(onnx_filename_path, ".engine").c_str(), 200);
 
-    std::cout << "input ONNX file: " << filename << std::endl;
+    std::cout << "input ONNX file: " << onnx_filename_path << std::endl;
     std::cout << "output engine file: " << engine_filename << std::endl;
 
-    //start creating the network and parser
-    int maxBatchSize = 1;
+    if (dla == 0) {
+       std::cout << "Using GPU" << std::endl;
+    } else if (dla == 1) {
+       std::cout << "Using DLA 0" << std::endl;
+    } else {
+       std::cout << "Using DLA 1" << std::endl;
+    }
 
+    //start creating the network and parser
     nvinfer1::IBuilder* builder = nvinfer1::createInferBuilder(gLogger);
     const auto explicitBatch = 1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kEXPLICIT_BATCH);
     nvinfer1::INetworkDefinition* network = builder->createNetworkV2(explicitBatch);
@@ -66,25 +72,34 @@ void CameraReader::buildEngine(char* s)
     nvonnxparser::IParser* parser = nvonnxparser::createParser(*network, gLogger);
     
     //parse the ONNX file
-    parser->parseFromFile(filename, 1); 
+    parser->parseFromFile(onnx_filename_path, 1); 
     for (int i = 0; i < parser->getNbErrors(); ++i)
     {
         std::cout << parser->getError(i)->desc() << std::endl;
     }
 
-    builder->setMaxBatchSize(maxBatchSize);
+    builder->setMaxBatchSize(1); //set the batch size to 1
     nvinfer1::IBuilderConfig* config = builder->createBuilderConfig();
     config->setMaxWorkspaceSize(1 << 30);
 
-    //indicate fp16 is acceptable
-    config->setFlag(nvinfer1::BuilderFlag::kFP16);
-    /* config->setFlag(nvinfer1::BuilderFlag::kINT8); */
-    config->setFlag(nvinfer1::BuilderFlag::kSTRICT_TYPES);
-
     //test DLA code
-    /* config->setFlag(nvinfer1::BuilderFlag::kGPU_FALLBACK); */
-    /* config->setDefaultDeviceType(nvinfer1::DeviceType::kDLA); */
-    /* config->setDLACore(0); */
+    if (dla == 0) { //use the GPU
+       //indicate fp16 is acceptable
+       config->setFlag(nvinfer1::BuilderFlag::kFP16);
+    }
+    else if (dla == 1) { //use DLA core 0
+       config->setFlag(nvinfer1::BuilderFlag::kFP16);
+       config->setFlag(nvinfer1::BuilderFlag::kSTRICT_TYPES);
+       config->setFlag(nvinfer1::BuilderFlag::kGPU_FALLBACK);
+       config->setDefaultDeviceType(nvinfer1::DeviceType::kDLA);
+       config->setDLACore(0);
+    } else if (dla == 2) { //use DLA core 1
+       config->setFlag(nvinfer1::BuilderFlag::kFP16);
+       config->setFlag(nvinfer1::BuilderFlag::kSTRICT_TYPES);
+       config->setFlag(nvinfer1::BuilderFlag::kGPU_FALLBACK);
+       config->setDefaultDeviceType(nvinfer1::DeviceType::kDLA);
+       config->setDLACore(1);
+    }
 
     setDynamicRange(network);
 
@@ -101,13 +116,14 @@ void CameraReader::buildEngine(char* s)
     nvinfer1::IHostMemory *serializedModel = engine->serialize();
     std::ofstream engine_file(engine_filename);
     engine_file.write((const char*)serializedModel->data(),serializedModel->size());
+    std::cout << "Engine serialized to: " << engine_filename << std::endl;
 
     serializedModel->destroy();
 }
 
 ///////////////////////////////////
 //load a serialized engine
-void CameraReader::load_engine(char* s) {
+void CameraReader::loadEngine(char* s) {
   std::vector<char> trtModelStream_;
   size_t size{ 0 };
 
