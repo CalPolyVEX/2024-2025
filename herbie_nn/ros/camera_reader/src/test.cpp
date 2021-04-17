@@ -1,23 +1,25 @@
-#include <torch/script.h> // One-stop header.
-#include <torch/torch.h>
-
-//#include "ros/ros.h"
+#include "camera.h"
 
 #include <iostream>
 #include <memory>
 #include <chrono>
-using namespace std::chrono;
+#include <unordered_map>
+#include <fstream>
+#include <cassert>
+#include <cstring>
 
 //Tensorrt includes
-//#include "parserOnnxConfig.h"
 #include <cuda_runtime_api.h>
 #include "NvOnnxParser.h"
 #include "NvInfer.h"
 
-void writeNetworkTensorNames(nvinfer1::INetworkDefinition *network);
-bool setDynamicRange(nvinfer1::INetworkDefinition *network);
-std::unordered_map<std::string, float>
-  mPerTensorDynamicRangeMap; //!< Mapping from tensor name to max absolute dynamic range values
+using namespace std::chrono;
+
+extern void writeNetworkTensorNames(nvinfer1::INetworkDefinition *network);
+extern bool setDynamicRange(nvinfer1::INetworkDefinition *network);
+
+//Mapping from tensor name to max absolute dynamic range values
+std::unordered_map<std::string, float> mPerTensorDynamicRangeMap; 
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
@@ -40,23 +42,21 @@ public:
     }
 } gLogger;
 
-// destroy TensorRT objects if something goes wrong
-/* struct TRTDestroy */
-/* { */
-/*     template< class T > */
-/*     void operator()(T* obj) const */
-/*     { */
-/*         if (obj) */
-/*         { */
-/*             obj->destroy(); */
-/*         } */
-/*     } */
-/* }; */
-
-//////////////////////////////
-//parse and serialize the tensorrt engine
-void parseOnnxModel() 
+//////////////////////////////////////
+//build the engine from the ONNX model
+void CameraReader::buildEngine(char* s) 
 {
+    //do some filename conversions first
+    boost::filesystem::path p((char*) &s[0]); //convert the path
+    char filename[50];
+    char engine_filename[50];
+    strncpy(filename, p.stem().c_str(), 50);
+    strncpy(engine_filename, boost::filesystem::change_extension(filename, ".engine").c_str(), 50);
+
+    std::cout << "input ONNX file: " << filename << std::endl;
+    std::cout << "output engine file: " << engine_filename << std::endl;
+
+    //start creating the network and parser
     int maxBatchSize = 1;
 
     nvinfer1::IBuilder* builder = nvinfer1::createInferBuilder(gLogger);
@@ -64,8 +64,9 @@ void parseOnnxModel()
     nvinfer1::INetworkDefinition* network = builder->createNetworkV2(explicitBatch);
 
     nvonnxparser::IParser* parser = nvonnxparser::createParser(*network, gLogger);
-
-    parser->parseFromFile("./test_model.onnx", 1);
+    
+    //parse the ONNX file
+    parser->parseFromFile(filename, 1); 
     for (int i = 0; i < parser->getNbErrors(); ++i)
     {
         std::cout << parser->getError(i)->desc() << std::endl;
@@ -74,14 +75,6 @@ void parseOnnxModel()
     builder->setMaxBatchSize(maxBatchSize);
     nvinfer1::IBuilderConfig* config = builder->createBuilderConfig();
     config->setMaxWorkspaceSize(1 << 30);
-
-    //set dimensions
-//    nvinfer1::IOptimizationProfile* profile = builder->createOptimizationProfile();
-    /* profile->setDimensions("input", nvinfer1::OptProfileSelector::kMIN, nvinfer1::Dims4(1,3,360,640)); */
-    /* profile->setDimensions("input", nvinfer1::OptProfileSelector::kOPT, nvinfer1::Dims4(1,3,360,640)); */
-    /* profile->setDimensions("input", nvinfer1::OptProfileSelector::kMAX, nvinfer1::Dims4(1,3,360,640)); */
-    
-    //config->addOptimizationProfile(profile);
 
     //indicate fp16 is acceptable
     config->setFlag(nvinfer1::BuilderFlag::kFP16);
@@ -106,21 +99,20 @@ void parseOnnxModel()
 
     //serialize the model to a file
     nvinfer1::IHostMemory *serializedModel = engine->serialize();
-
-    std::ofstream engine_file("test_model.engine");
-
+    std::ofstream engine_file(engine_filename);
     engine_file.write((const char*)serializedModel->data(),serializedModel->size());
 
     serializedModel->destroy();
 }
 
-//////////////////////////////
-//deserialize engine
-void load_engine() {
+///////////////////////////////////
+//load a serialized engine
+void CameraReader::load_engine(char* s) {
   std::vector<char> trtModelStream_;
   size_t size{ 0 };
 
-  std::ifstream file("test_model.engine", std::ios::binary);
+  std::ifstream file(s, std::ios::binary);
+
   if (file.good())
   {
     file.seekg(0, file.end);
@@ -143,8 +135,7 @@ void load_engine() {
   //allocate space
   void** mInputCPU= (void**)malloc(2*sizeof(void*));;
   cudaHostAlloc((void**)&mInputCPU[0],  3*360*640*sizeof(float), cudaHostAllocDefault);
-  cudaHostAlloc((void**)&mInputCPU[1],  3*360*640*sizeof(float), cudaHostAllocDefault);
-  //float prob[80]; //output data
+  cudaHostAlloc((void**)&mInputCPU[1],  1*80*sizeof(float), cudaHostAllocDefault);
   
   // In order to bind the buffers, we need to know the names of the input and output tensors.
   // note that indices are guaranteed to be less than IEngine::getNbBindings()
@@ -168,11 +159,11 @@ void load_engine() {
     auto start = high_resolution_clock::now();
     // DMA the input to the GPU,  execute the batch asynchronously, and DMA it back:
     gpuErrchk( cudaMemcpyAsync(buffers[inputIndex], mInputCPU[0], 1*3*360*640 * sizeof(float), cudaMemcpyHostToDevice, stream) );
-    //context->enqueue(1, buffers, stream, nullptr);
+
     context->executeV2(buffers);
-    /* context->enqueueV2(buffers, stream, nullptr); */
-    //gpuErrchk( cudaMemcpyAsync(prob, buffers[outputIndex], 1*80*sizeof(float), cudaMemcpyDeviceToHost, stream) );
+
     gpuErrchk( cudaMemcpyAsync(mInputCPU[1], buffers[outputIndex], 1*80*sizeof(float), cudaMemcpyDeviceToHost, stream) );
+
     cudaStreamSynchronize(stream);
     
     auto end = high_resolution_clock::now();
@@ -188,55 +179,4 @@ void load_engine() {
   // destroy the engine
   context->destroy();
   engine->destroy();
-}
-
-/////////////////////////////////////////////////
-int main(int argc, const char* argv[]) {
-  if (argc != 2) {
-    std::cerr << "usage: example-app <path-to-exported-script-module>\n";
-    return -1;
-  }
-  
-  //test serialization using TensorRT 
-  if (strcmp(argv[1],"build") == 0) {
-    std::cout << "Building engine." << std::endl;
-    parseOnnxModel();
-    return 0;
-  }
-  else if (strcmp(argv[1],"load") == 0) {
-    std::cout << "Running engine." << std::endl;
-    load_engine();
-    return 0;
-  }
-
-  torch::jit::script::Module module;
-  try {
-    // Deserialize the ScriptModule from a file using torch::jit::load().
-    module = torch::jit::load(argv[1], torch::kCUDA);
-  }
-  catch (const c10::Error& e) {
-    std::cerr << "error loading the model\n";
-    return -1;
-  }
-
-  std::cout << "model loaded successfully.\n";
-
-  for(int i=0; i<1000000; i++) {
-    auto input = torch::randn({3, 360, 640});
-    input = input.unsqueeze(0);
-    auto start = high_resolution_clock::now();
-
-    // Create a vector of inputs.
-    torch::Tensor gpu_tensor = input.to(torch::kCUDA);
-    std::vector<torch::jit::IValue> inputs;
-    inputs.push_back(gpu_tensor);
-    
-    // Execute the model and turn its output into a tensor.
-    at::Tensor output = module.forward(inputs).toTensor();
-
-    auto end = high_resolution_clock::now();
-    auto duration = duration_cast<microseconds>(end - start) / 1000.0;
-    std::cout << output.slice(1,0,8) << std::endl;
-    std::cout << duration.count() << std::endl;
-  }
 }

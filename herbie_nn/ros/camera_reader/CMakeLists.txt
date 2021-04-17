@@ -12,7 +12,7 @@ message("CMAKE_CXX_FLAGS_MINSIZEREL is ${CMAKE_CXX_FLAGS_MINSIZEREL}")
 project ("camera_reader")
 
 set (V4L2_SOURCE "src/opencv_v4l2.cpp")
-set (JS_V4L2_SOURCE "src/js_opencv_v4l2.cpp")
+set (JS_V4L2_SOURCE "src/camera.cpp")
 
 #check if the CPU is ARM
 if ("x86_64" STREQUAL ${CMAKE_HOST_SYSTEM_PROCESSOR})
@@ -62,7 +62,7 @@ add_compile_options (${GCC_COMPILE_FLAGS})
 if ("x86_64" STREQUAL ${CMAKE_HOST_SYSTEM_PROCESSOR})
    add_executable (${JS_OPENCV_V4L2_BIN} ${JS_V4L2_SOURCE})
 else()
-   add_executable (${JS_OPENCV_V4L2_BIN} ${JS_V4L2_SOURCE} ${JS_V4L2_SOURCE_ASM} src/logger.cpp src/sampleINT8API.cpp)
+   add_executable (${JS_OPENCV_V4L2_BIN} ${JS_V4L2_SOURCE} ${JS_V4L2_SOURCE_ASM} src/logger.cpp src/sampleINT8API.cpp src/test.cpp)
    target_compile_definitions(${JS_OPENCV_V4L2_BIN} PUBLIC ARM_CPU)
 endif()
 
