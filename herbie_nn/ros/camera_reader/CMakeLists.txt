@@ -47,6 +47,7 @@ catkin_package(
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/include"
 )
 
 # Include the directories containing libraries
