@@ -34,9 +34,9 @@ int CameraReader::init(char* videodev, int width, int height, ros::NodeHandle* n
 
    //initialize cuda memory
    //allocate space
-   mInputCPU = (void**)malloc(2*sizeof(void*));;
-   cudaHostAlloc((void**)&mInputCPU[0],  3*360*640*sizeof(float), cudaHostAllocDefault);
-   cudaHostAlloc((void**)&mInputCPU[1],  1*80*sizeof(float), cudaHostAllocDefault);
+   /* mInputCPU = (void**)malloc(2*sizeof(void*));; */
+   /* cudaHostAlloc((void**)&mInputCPU[0],  3*360*640*sizeof(float), cudaHostAllocDefault); */
+   /* cudaHostAlloc((void**)&mInputCPU[1],  1*80*sizeof(float), cudaHostAllocDefault); */
 
    ground_pub = nh->advertise<std_msgs::Float64MultiArray>("/ground_boundary", 1000);
 
@@ -45,7 +45,7 @@ int CameraReader::init(char* videodev, int width, int height, ros::NodeHandle* n
 
 void CameraReader::frame_loop() {
    while(ros::ok()) {
-      usleep(60000);
+      usleep(45000);
       bool read_cam=true;
 
       /* n->getParam("/read_see3cam", read_cam); */
@@ -93,6 +93,8 @@ void CameraReader::frame_loop() {
          msg.data.clear();
          msg.data.insert(msg.data.end(), vec1.begin(), vec1.end());
          ground_pub.publish(msg);
+
+         inference();
 
          /*
           * Helper function to release camera data. This must be called for every
@@ -228,6 +230,7 @@ int main(int argc, char **argv) {
      CameraReader cr;
      //nh->setParam("/read_see3cam", false);
      nh->setParam("/read_see3cam", true);
+     cr.initInference(engine_file);
      if (cr.init(videodev,width,height,nh) != 0) {
         return -1;
      }
@@ -247,7 +250,11 @@ int main(int argc, char **argv) {
 
      std::cout << "Loading engine..." << std::endl;
      CameraReader cr;
-     cr.loadEngine(engine_file);
+     cr.initInference(engine_file);
+     for (int i=0; i<1000; i++) {
+        cr.inference();
+     }
+     cr.endInference();
   }
 
   return 0;

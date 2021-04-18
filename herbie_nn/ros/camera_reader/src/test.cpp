@@ -122,9 +122,13 @@ void CameraReader::buildEngine(char* s, int dla)
 
 ///////////////////////////////////
 //load a serialized engine
-void CameraReader::loadEngine(char* s) {
+void CameraReader::initInference(char* s) {
   std::ifstream file(s, std::ios::binary);
+  size_t engine_size{ 0 };
+  std::vector<char> trtModelStream_;
 
+  /////////////////////////////////////
+  //read in the engine data
   if (file.good())
   {
     file.seekg(0, file.end);
@@ -147,44 +151,46 @@ void CameraReader::loadEngine(char* s) {
   context = engine->createExecutionContext();
 
   //allocate space
-  //void** mInputCPU= (void**)malloc(2*sizeof(void*));;
+  //void** mInputCPU= (void**)malloc(2*sizeof(void*));
+  mInputCPU= (void**)malloc(2*sizeof(void*));
   cudaHostAlloc((void**)&mInputCPU[0],  3*360*640*sizeof(float), cudaHostAllocDefault);
   cudaHostAlloc((void**)&mInputCPU[1],  1*80*sizeof(float), cudaHostAllocDefault);
-  
-  // In order to bind the buffers, we need to know the names of the input and output tensors.
-  // note that indices are guaranteed to be less than IEngine::getNbBindings()
-  int inputIndex = engine->getBindingIndex("input");
-  int outputIndex = engine->getBindingIndex("output");
+
+  inputIndex = engine->getBindingIndex("input");
+  outputIndex = engine->getBindingIndex("output");
 
   std::cout << engine->getNbLayers() << std::endl;
   std::cout << inputIndex << std::endl;
   std::cout << outputIndex << std::endl;
-
-  void* buffers[2];
-  cudaStream_t stream;
 
   // create GPU buffers and a stream
   gpuErrchk( cudaMalloc(&buffers[inputIndex], 1 * 3 * 360 * 640 * sizeof(float)) );
   gpuErrchk( cudaMalloc(&buffers[outputIndex], 1 * 80 * sizeof(float)) );
 
   gpuErrchk( cudaStreamCreate(&stream) );
+}
 
-  for (int i=0; i<10000; i++) {
-    auto start = high_resolution_clock::now();
-    // DMA the input to the GPU,  execute the batch asynchronously, and DMA it back:
-    gpuErrchk( cudaMemcpyAsync(buffers[inputIndex], mInputCPU[0], 1*3*360*640 * sizeof(float), cudaMemcpyHostToDevice, stream) );
+///////////////////////////////////
+//run inference
+void CameraReader::inference() {
+   auto start = high_resolution_clock::now();
+   // DMA the input to the GPU,  execute the batch asynchronously, and DMA it back:
+   gpuErrchk( cudaMemcpyAsync(buffers[inputIndex], mInputCPU[0], 1*3*360*640 * sizeof(float), cudaMemcpyHostToDevice, stream) );
 
-    context->executeV2(buffers);
+   context->executeV2(buffers);
 
-    gpuErrchk( cudaMemcpyAsync(mInputCPU[1], buffers[outputIndex], 1*80*sizeof(float), cudaMemcpyDeviceToHost, stream) );
+   gpuErrchk( cudaMemcpyAsync(mInputCPU[1], buffers[outputIndex], 1*80*sizeof(float), cudaMemcpyDeviceToHost, stream) );
 
-    cudaStreamSynchronize(stream);
-    
-    auto end = high_resolution_clock::now();
-    auto duration = duration_cast<microseconds>(end - start) / 1000.0;
-    std::cout << duration.count() << std::endl;
-  }
+   cudaStreamSynchronize(stream);
 
+   auto end = high_resolution_clock::now();
+   auto duration = duration_cast<microseconds>(end - start) / 1000.0;
+   std::cout << duration.count() << std::endl;
+}
+
+///////////////////////////////////
+//clean up inference
+void CameraReader::endInference() {
   // release the stream and the buffers
   cudaStreamDestroy(stream);
   gpuErrchk( cudaFree(buffers[inputIndex]) );

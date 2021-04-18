@@ -30,7 +30,7 @@ using namespace cv;
 
 class CameraReader {
   unsigned int width, height;
-  const char* default_videodev = "/dev/video0";
+  //const char* default_videodev = "/dev/video0";
   const char *videodev;
   unsigned int start, end, fps = 0;
   unsigned char* ptr_cam_frame;
@@ -50,14 +50,14 @@ class CameraReader {
 
   ////////////////////////////////////////////////
   //variables for inference
-  std::vector<char> trtModelStream_;
-  size_t engine_size{ 0 };
-  std::ifstream file;
-
   nvinfer1::IRuntime* runtime;
   nvinfer1::ICudaEngine* engine;
   nvinfer1::IExecutionContext *context;
   void** mInputCPU;
+  void* buffers[2];
+  cudaStream_t stream;
+  int inputIndex;
+  int outputIndex;
 
   public:
   CameraReader() : it_(nh_) {
@@ -70,7 +70,9 @@ class CameraReader {
 
   //neural network functions
   static void buildEngine(char* s, int dla);
-  void loadEngine(char* s);
+  void initInference(char* s);
+  void inference();
+  void endInference();
 };
 
 #endif
