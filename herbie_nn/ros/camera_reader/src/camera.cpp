@@ -2,7 +2,10 @@
 #include <getopt.h>
 #include <string>
 
+#include <std_msgs/Float64MultiArray.h>
+
 ros::NodeHandle* nh = NULL; 
+using namespace std::chrono;
 
 int CameraReader::init(char* videodev, int width, int height, ros::NodeHandle* nh) {
    n = nh;
@@ -20,28 +23,35 @@ int CameraReader::init(char* videodev, int width, int height, ros::NodeHandle* n
     *
     * [1]: https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/pixfmt-v4l2.html#c.v4l2_pix_format
     */
-   /* if (helper_init_cam(videodev, width, height, V4L2_PIX_FMT_UYVY, IO_METHOD_USERPTR) < 0) { */
-   if (helper_init_cam(videodev, width, height, V4L2_PIX_FMT_UYVY, IO_METHOD_MMAP) < 0) {
+   if (helper_init_cam(videodev, width, height, V4L2_PIX_FMT_UYVY, IO_METHOD_USERPTR) < 0) {
+   /* if (helper_init_cam(videodev, width, height, V4L2_PIX_FMT_UYVY, IO_METHOD_MMAP) < 0) { */
       return EXIT_FAILURE;
    }
 
-   yuyv_frame = Mat(height, width, CV_8UC2);        //full HD resolution
+   uyvy_frame = Mat(height, width, CV_8UC2);        //full HD resolution
    bgr_frame = Mat(height, width, CV_8UC3);         //full HD resolution
    bgr_frame_360 = Mat(height/3, width/3, CV_8UC3); //640x360 resolution
+
+   //initialize cuda memory
+   //allocate space
+   mInputCPU = (void**)malloc(2*sizeof(void*));;
+   cudaHostAlloc((void**)&mInputCPU[0],  3*360*640*sizeof(float), cudaHostAllocDefault);
+   cudaHostAlloc((void**)&mInputCPU[1],  1*80*sizeof(float), cudaHostAllocDefault);
+
+   ground_pub = nh->advertise<std_msgs::Float64MultiArray>("/ground_boundary", 1000);
 
    return 0;
 }
 
 void CameraReader::frame_loop() {
    while(ros::ok()) {
-      usleep(88000);
-      bool read_cam;
-      n->getParam("/read_see3cam", read_cam);
+      usleep(60000);
+      bool read_cam=true;
+
+      /* n->getParam("/read_see3cam", read_cam); */
+      /* if (read_cam == true) { */ 
       if (read_cam == true) { 
-         //usleep(40000);
-         /*
-          * Helper function to access camera data
-          */
+         //Get a new image from the camera
          if (helper_get_cam_frame(&ptr_cam_frame, &bytes_used) < 0) {
             break;
          }
@@ -50,23 +60,39 @@ void CameraReader::frame_loop() {
           * It's easy to re-use the matrix for our case (V4L2 user pointer) by changing the
           * member 'data' to point to the data obtained from the V4L2 helper.
           */
-         yuyv_frame.data = ptr_cam_frame;
-         if(yuyv_frame.empty()) {
-            cout << "Img load failed" << endl;
-            break;
-         }
+         uyvy_frame.data = ptr_cam_frame;
+         /* if(uyvy_frame.empty()) { */
+         /*    cout << "Img load failed" << endl; */
+         /*    break; */
+         /* } */
 
-#ifndef ARM_CPU
-         cvtColor(yuyv_frame, bgr_frame, COLOR_YUV2BGR_UYVY);
-         resize(bgr_frame, bgr_frame_360, bgr_frame_360.size(), 0, 0);
-         /* resize(preview, preview1, preview1.size(), 0, 0); */
-#else
+#ifdef ARM_CPU
          //if this CPU supports NEON
-         asm_foo((unsigned char*) yuyv_frame.data, (unsigned char*) bgr_frame_360.data);
+         asm_foo((unsigned char*) uyvy_frame.data, (unsigned char*) bgr_frame_360.data);
+#else
+         cvtColor(uyvy_frame, bgr_frame, COLOR_YUV2BGR_UYVY);
+         resize(bgr_frame, bgr_frame_360, bgr_frame_360.size(), 0, 0);
 #endif
 
-         sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_frame_360).toImageMsg();
-         image_pub_.publish(pub_msg);
+         //////////////////////
+         //publish the image
+         /* sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_frame_360).toImageMsg(); */
+         /* image_pub_.publish(pub_msg); */
+
+         //publish vector test
+         vector<double> vec1 = { 1.1, 2., 3.1};
+         std_msgs::Float64MultiArray msg;
+
+         // set up dimensions
+         msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
+         msg.layout.dim[0].size = vec1.size();
+         msg.layout.dim[0].stride = 1;
+         msg.layout.dim[0].label = "x"; // or whatever name you typically use to index vec1
+
+         // copy in the data
+         msg.data.clear();
+         msg.data.insert(msg.data.end(), vec1.begin(), vec1.end());
+         ground_pub.publish(msg);
 
          /*
           * Helper function to release camera data. This must be called for every
@@ -104,7 +130,7 @@ void mySigintHandler(int sig)
 
 int main(int argc, char **argv) {
    int c, accel=0;
-   int verbose_flag, width=1920, height=1080;
+   int width=1920, height=1080;
    int build_flag=0, load_flag=0;
    char videodev[50], onnx_file[200], engine_file[200];
    videodev[0] = 0;
@@ -200,8 +226,12 @@ int main(int argc, char **argv) {
      signal(SIGINT, mySigintHandler);
 
      CameraReader cr;
-     nh->setParam("/read_see3cam", false);
-     cr.init(videodev,width,height,nh);
+     //nh->setParam("/read_see3cam", false);
+     nh->setParam("/read_see3cam", true);
+     if (cr.init(videodev,width,height,nh) != 0) {
+        return -1;
+     }
+
      cr.frame_loop();
 
      ros::spin();
@@ -211,8 +241,13 @@ int main(int argc, char **argv) {
      std::cout << "Building engine..." << std::endl;
      CameraReader::buildEngine(onnx_file, accel);
   } else if (load_flag == 1) {
+     ros::init(argc, argv, "camera_reader_node", ros::init_options::NoSigintHandler);
+     ros::NodeHandle n;
+     nh = &n;
+
      std::cout << "Loading engine..." << std::endl;
-     CameraReader::loadEngine(engine_file);
+     CameraReader cr;
+     cr.loadEngine(engine_file);
   }
 
   return 0;

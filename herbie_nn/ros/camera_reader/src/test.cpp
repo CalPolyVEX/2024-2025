@@ -1,6 +1,5 @@
 #include "camera.h"
 
-#include <iostream>
 #include <memory>
 #include <chrono>
 #include <unordered_map>
@@ -59,9 +58,9 @@ void CameraReader::buildEngine(char* s, int dla)
     if (dla == 0) {
        std::cout << "Using GPU" << std::endl;
     } else if (dla == 1) {
-       std::cout << "Using DLA 0" << std::endl;
+       std::cout << "Using DLA Core 0" << std::endl;
     } else {
-       std::cout << "Using DLA 1" << std::endl;
+       std::cout << "Using DLA Core 1" << std::endl;
     }
 
     //start creating the network and parser
@@ -124,32 +123,31 @@ void CameraReader::buildEngine(char* s, int dla)
 ///////////////////////////////////
 //load a serialized engine
 void CameraReader::loadEngine(char* s) {
-  std::vector<char> trtModelStream_;
-  size_t size{ 0 };
-
   std::ifstream file(s, std::ios::binary);
 
   if (file.good())
   {
     file.seekg(0, file.end);
-    size = file.tellg();
+    engine_size = file.tellg();
     file.seekg(0, file.beg);
-    trtModelStream_.resize(size);
+    trtModelStream_.resize(engine_size);
     std::cout << "size" << trtModelStream_.size() << std::endl;
-    file.read(trtModelStream_.data(), size);
+    file.read(trtModelStream_.data(), engine_size);
     file.close();
   }
-  std::cout << "size" << size << std::endl;
-  nvinfer1::IRuntime* runtime = nvinfer1::createInferRuntime(gLogger);
+
+  ////////////////////////////////////////////////
+  //create the inference runtime
+  runtime = nvinfer1::createInferRuntime(gLogger);
   assert(runtime != nullptr);
-  nvinfer1::ICudaEngine* engine = runtime->deserializeCudaEngine(trtModelStream_.data(), size, nullptr);
+  engine = runtime->deserializeCudaEngine(trtModelStream_.data(), engine_size, nullptr);
 
   ////////////////////////////////////////////////////////
   //perform inference
-  nvinfer1::IExecutionContext *context = engine->createExecutionContext();
+  context = engine->createExecutionContext();
 
   //allocate space
-  void** mInputCPU= (void**)malloc(2*sizeof(void*));;
+  //void** mInputCPU= (void**)malloc(2*sizeof(void*));;
   cudaHostAlloc((void**)&mInputCPU[0],  3*360*640*sizeof(float), cudaHostAllocDefault);
   cudaHostAlloc((void**)&mInputCPU[1],  1*80*sizeof(float), cudaHostAllocDefault);
   
@@ -163,12 +161,12 @@ void CameraReader::loadEngine(char* s) {
   std::cout << outputIndex << std::endl;
 
   void* buffers[2];
+  cudaStream_t stream;
 
   // create GPU buffers and a stream
   gpuErrchk( cudaMalloc(&buffers[inputIndex], 1 * 3 * 360 * 640 * sizeof(float)) );
   gpuErrchk( cudaMalloc(&buffers[outputIndex], 1 * 80 * sizeof(float)) );
 
-  cudaStream_t stream;
   gpuErrchk( cudaStreamCreate(&stream) );
 
   for (int i=0; i<10000; i++) {

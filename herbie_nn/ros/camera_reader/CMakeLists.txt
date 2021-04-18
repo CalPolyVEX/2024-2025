@@ -56,7 +56,7 @@ add_subdirectory (lib)
 set (CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${V4L2_HELPER_LIB_INSTALL_PATH}")
 
 # Specify the compiler flags
-set (GCC_COMPILE_FLAGS -Wall -Wpedantic -Wextra -O3 -Wshadow -g -static)
+set (GCC_COMPILE_FLAGS -Wall -Wpedantic -Wextra -O3 -Wshadow)
 add_compile_options (${GCC_COMPILE_FLAGS})
 
 if ("x86_64" STREQUAL ${CMAKE_HOST_SYSTEM_PROCESSOR})

@@ -13,6 +13,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
 #include <signal.h>
+#include <std_msgs/Float64MultiArray.h>
 
 //NVIDIA includes
 #include <boost/filesystem.hpp>
@@ -38,13 +39,25 @@ class CameraReader {
   ros::NodeHandle* n;
   image_transport::ImageTransport it_;
   image_transport::Publisher image_pub_;
+  ros::Publisher ground_pub;
 
   /*
    * Re-using the frame matrix(ces) instead of creating new ones (i.e., declaring 'Mat frame'
    * (and cuda::GpuMat gpu_frame) outside the 'while (1)' loop instead of declaring it
    * within the loop) improves the performance for higher resolutions.
    */
-  Mat yuyv_frame, bgr_frame, bgr_frame_360;
+  Mat uyvy_frame, bgr_frame, bgr_frame_360;
+
+  ////////////////////////////////////////////////
+  //variables for inference
+  std::vector<char> trtModelStream_;
+  size_t engine_size{ 0 };
+  std::ifstream file;
+
+  nvinfer1::IRuntime* runtime;
+  nvinfer1::ICudaEngine* engine;
+  nvinfer1::IExecutionContext *context;
+  void** mInputCPU;
 
   public:
   CameraReader() : it_(nh_) {
@@ -57,7 +70,7 @@ class CameraReader {
 
   //neural network functions
   static void buildEngine(char* s, int dla);
-  static void loadEngine(char* s);
+  void loadEngine(char* s);
 };
 
 #endif
