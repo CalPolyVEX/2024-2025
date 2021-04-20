@@ -16,14 +16,12 @@
 #include <iostream>
 #include <boost/thread.hpp>
 #include "encoder_odom.h"
-#include <rtabmap_ros/Info.h>
 
 using namespace std;
 
 ros::NodeHandle *nh;
 ros::Subscriber sub_, sub_cmd_vel, sub_planner_cmd_vel;
 ros::Subscriber sub_stop;
-ros::Subscriber rtabmap_info_sub;
 ros::Subscriber control_board_sub;
 ros::Publisher pub_, loop_closure_pub;
 ros::Publisher twist_pub;
@@ -59,9 +57,6 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   //listen for Empty messages on /robot_stop
   sub_stop = nh->subscribe("/robot_stop", 2, &OdometryPublisher::stop_toggle_callback, this);
 
-  //listen for Empty messages on /rtabmap/info
-  rtabmap_info_sub = nh->subscribe("/rtabmap/info", 2, &OdometryPublisher::rtabmap_info_callback, this);
-  
   //listen for messages to send to the control board
   control_board_sub = nh->subscribe("/control_board", 5, &OdometryPublisher::control_board_callback, this);
 

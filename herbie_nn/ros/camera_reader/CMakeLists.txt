@@ -12,13 +12,18 @@ message("CMAKE_CXX_FLAGS_MINSIZEREL is ${CMAKE_CXX_FLAGS_MINSIZEREL}")
 project ("camera_reader")
 
 set (V4L2_SOURCE "src/opencv_v4l2.cpp")
-set (JS_V4L2_SOURCE "src/js_opencv_v4l2.cpp")
-set (MAIN_SOURCE "src/opencv_main.cpp")
-set (INFO_SOURCE "src/opencv_buildinfo.cpp")
+set (JS_V4L2_SOURCE "src/camera.cpp")
 
-set (OPENCV_V4L2_BIN "opencv-v4l2")
+#check if the CPU is ARM
+if ("x86_64" STREQUAL ${CMAKE_HOST_SYSTEM_PROCESSOR})
+   set (JS_V4L2_SOURCE_ASM "")
+else()
+   set (JS_V4L2_SOURCE_ASM "src/test_asm.S")
+endif()
+
 set (JS_OPENCV_V4L2_BIN "camera_reader_node")
 set (OPENCV_BUILDINFO_BIN "opencv-buildinfo")
+set_property(SOURCE "src/test_asm.S" PROPERTY LANGUAGE C)
 
 find_package( OpenCV REQUIRED )
 include_directories( ${OpenCV_INCLUDE_DIRS} )
@@ -30,6 +35,9 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
 )
 
+set(Torch_DIR /home/jseng/pt-env/lib/python3.6/site-packages/torch/share/cmake/Torch)
+find_package(Torch REQUIRED)
+
 roslint_cpp()
 
 catkin_package(
@@ -38,6 +46,7 @@ catkin_package(
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/include"
 )
 
 # Include the directories containing libraries
@@ -47,22 +56,25 @@ add_subdirectory (lib)
 set (CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_RPATH};${V4L2_HELPER_LIB_INSTALL_PATH}")
 
 # Specify the compiler flags
-set (GCC_COMPILE_FLAGS -Wall -Wpedantic -Wextra -O3 -Wshadow -std=c++11 -g -static)
+set (GCC_COMPILE_FLAGS -Wall -Wpedantic -Wextra -O3 -Wshadow)
 add_compile_options (${GCC_COMPILE_FLAGS})
 
-add_executable (${JS_OPENCV_V4L2_BIN} ${JS_V4L2_SOURCE})
+if ("x86_64" STREQUAL ${CMAKE_HOST_SYSTEM_PROCESSOR})
+   add_executable (${JS_OPENCV_V4L2_BIN} ${JS_V4L2_SOURCE})
+else()
+   add_executable (${JS_OPENCV_V4L2_BIN} ${JS_V4L2_SOURCE} ${JS_V4L2_SOURCE_ASM} src/logger.cpp src/sampleINT8API.cpp src/test.cpp)
+   target_compile_definitions(${JS_OPENCV_V4L2_BIN} PUBLIC ARM_CPU)
+endif()
+
+set_property(TARGET ${JS_OPENCV_V4L2_BIN} PROPERTY CXX_STANDARD 14)
 target_include_directories (${JS_OPENCV_V4L2_BIN} PUBLIC ${V4L2_HELPER_LIB_INCLUDE_DIR})
 target_link_libraries (${JS_OPENCV_V4L2_BIN} v4l2_helper ${catkin_LIBRARIES})
 target_link_libraries (${JS_OPENCV_V4L2_BIN} ${OpenCV_LIBS})
-
-add_executable (${OPENCV_V4L2_BIN} ${V4L2_SOURCE})
-target_include_directories (${OPENCV_V4L2_BIN} PUBLIC ${V4L2_HELPER_LIB_INCLUDE_DIR})
-target_link_libraries (${OPENCV_V4L2_BIN} v4l2_helper)
-target_link_libraries (${OPENCV_V4L2_BIN} ${OpenCV_LIBS})
+target_link_libraries (${JS_OPENCV_V4L2_BIN} nvinfer nvinfer_plugin nvcaffe_parser nvonnxparser)
+target_link_libraries (${JS_OPENCV_V4L2_BIN} "${TORCH_LIBRARIES}")
 
 install (
 	TARGETS
-	${OPENCV_V4L2_BIN}
 	RUNTIME DESTINATION bin
 )
 

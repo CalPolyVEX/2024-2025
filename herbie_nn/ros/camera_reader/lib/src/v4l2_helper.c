@@ -538,7 +538,7 @@ int helper_init_cam(const char* devname, unsigned int width, unsigned int height
 		 * accessing multiple devices simultaneously.
 		 * So, return an error when such access is attempted.
 		 */
-		fprintf(stderr, "Cannot use the library to initialise multiple devices, simultaneously.\n");
+		fprintf(stderr, "Cannot use the library to initialize multiple devices, simultaneously.\n");
 		return ERR;
 	}
 
@@ -549,7 +549,7 @@ int helper_init_cam(const char* devname, unsigned int width, unsigned int height
 		start_capturing() < 0
 	)
 	{
-		fprintf(stderr, "Error occurred when initialising camera\n");
+		fprintf(stderr, "Error occurred when initializing camera\n");
 		return ERR;
 	}
 
@@ -561,7 +561,7 @@ int helper_deinit_cam()
 {
 	if (!is_initialised)
 	{
-		fprintf(stderr, "Error: trying to de-initialise without initialising camera\n");
+		fprintf(stderr, "Error: trying to de-initialise without initializing camera\n");
 		return ERR;
 	}
 
@@ -578,7 +578,7 @@ int helper_deinit_cam()
 		close_device() < 0
 	)
 	{
-		fprintf(stderr, "Error occurred when de-initialising camera\n");
+		fprintf(stderr, "Error occurred when de-initializing camera\n");
 		return ERR;
 	}
 
@@ -592,7 +592,7 @@ int helper_get_cam_frame(unsigned char **pointer_to_cam_data, int *size)
 
 	if (!is_initialised)
 	{
-		fprintf (stderr, "Error: trying to get frame without successfully initialising camera\n");
+		fprintf (stderr, "Error: trying to get frame without successfully initializing camera\n");
 		return ERR;
 	}
 
@@ -663,7 +663,7 @@ int helper_release_cam_frame()
 {
 	if (!is_initialised)
 	{
-		fprintf (stderr, "Error: trying to release frame without successfully initialising camera\n");
+		fprintf (stderr, "Error: trying to release frame without successfully initializing camera\n");
 		return ERR;
 	}
 
@@ -704,7 +704,7 @@ int helper_change_cam_res(unsigned int width, unsigned int height, unsigned int 
 {
 	if (!is_initialised)
 	{
-		fprintf(stderr, "Error: trying to de-initialise without initialising camera\n");
+		fprintf(stderr, "Error: trying to de-initialise without initializing camera\n");
 		return ERR;
 	}
 
@@ -738,7 +738,7 @@ int helper_queryctrl(unsigned int id,struct v4l2_queryctrl* qctrl)
 {
 	if (!is_initialised)
 	{
-		fprintf(stderr, "Error: trying to query control without initialising camera\n");
+		fprintf(stderr, "Error: trying to query control without initializing camera\n");
 		return ERR;
 	}
 
@@ -755,7 +755,7 @@ int helper_ctrl(unsigned int id, int flag,int* value)
 {
 	if (!is_initialised)
 	{
-		fprintf(stderr, "Error: trying to get/set control without initialising camera\n");
+		fprintf(stderr, "Error: trying to get/set control without initializing camera\n");
 		return ERR;
 	}
 

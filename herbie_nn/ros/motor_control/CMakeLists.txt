@@ -14,7 +14,6 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   std_msgs
   serial
-  rtabmap_ros
 )
 
 roslint_cpp()
@@ -36,11 +35,5 @@ add_executable(pub_odometry
   src/encoder_odom.cpp
   src/encoder_odom.h)
 
-add_executable(arduino_node
-  src/arduino_node.cpp)
-
 add_dependencies(pub_odometry ${PROJECT_NAME}_gencfg)
 target_link_libraries(pub_odometry ${catkin_LIBRARIES})
-
-add_dependencies(arduino_node ${PROJECT_NAME}_gencfg)
-target_link_libraries(arduino_node ${catkin_LIBRARIES})

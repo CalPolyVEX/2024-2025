@@ -19,7 +19,6 @@
 #include <iostream>
 #include <cmath>
 #include <queue>
-#include <rtabmap_ros/Info.h>
 
 #define INTEGRAL_ARRAY_SIZE 5
 #define RECEIVE_PACKET_SIZE 13
@@ -108,7 +107,6 @@ class OdometryPublisher {
     void encoder_message_callback(int left_encoder, int right_encoder);
     void cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
     void planner_cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
-    void rtabmap_info_callback(const rtabmap_ros::Info::ConstPtr& info);
     void stop_toggle_callback(const std_msgs::Empty::ConstPtr&);
     void safety_callback(const ros::TimerEvent& ev);
     void control_board_callback(const std_msgs::Int32MultiArray::ConstPtr& board_msg);
