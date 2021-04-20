@@ -58,7 +58,7 @@ F 3 "~" H 700 1400 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Sparkfun_boards:ARDUINO_UNO_R3_SHIELD_ICSP B2
+L SparkFun-Boards:ARDUINO_UNO_R3_SHIELD_ICSP B2
 U 1 1 5FD1143C
 P 6850 3050
 F 0 "B2" H 6850 4510 45  0000 C CNN
@@ -583,8 +583,6 @@ Text GLabel 8100 900  0    50   Input ~ 0
 Wire Wire Line
 	8100 900  8300 900 
 Wire Wire Line
-	3300 2800 3300 2900
-Wire Wire Line
 	3700 2950 3700 3100
 Wire Wire Line
 	3400 3550 3350 3550
@@ -652,11 +650,7 @@ Wire Wire Line
 Wire Wire Line
 	1200 4650 1350 4650
 Wire Wire Line
-	1200 6150 1300 6150
-Wire Wire Line
 	1200 6050 1300 6050
-Wire Wire Line
-	1200 5400 1300 5400
 Wire Wire Line
 	1200 5300 1300 5300
 Text GLabel 7550 3050 2    50   Input ~ 0
@@ -719,8 +713,6 @@ Text GLabel 6150 3450 0    50   Input ~ 0
 GND
 Text GLabel 6150 4150 0    50   Input ~ 0
 GND
-Wire Wire Line
-	6150 3650 6350 3650
 Text GLabel 6150 3650 0    50   Input ~ 0
 5V
 Text GLabel 5450 2100 0    50   Input ~ 0
@@ -1073,17 +1065,9 @@ Wire Wire Line
 	10650 5800 10650 6100
 Connection ~ 10650 5800
 Wire Wire Line
-	9650 4800 9850 4800
-Wire Wire Line
 	9850 4800 9850 5500
 Wire Wire Line
-	9850 5500 10300 5500
-Wire Wire Line
-	9650 4900 9800 4900
-Wire Wire Line
 	9800 4900 9800 5800
-Wire Wire Line
-	9800 5800 10300 5800
 $Comp
 L Device:R R7
 U 1 1 5FEC49C9
@@ -1144,12 +1128,8 @@ Wire Wire Line
 	9550 2800 9550 2900
 Wire Wire Line
 	9550 3200 9550 3250
-Wire Wire Line
-	9550 3250 10150 3250
 Text GLabel 9700 3800 0    50   Input ~ 0
 GND
-Wire Wire Line
-	9750 3350 10150 3350
 Wire Wire Line
 	2250 6100 2400 6100
 Wire Wire Line
@@ -1583,8 +1563,6 @@ F 3 "~" H 6650 6600 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	5900 4750 6150 4750
-Wire Wire Line
 	6650 6450 6350 6450
 Wire Wire Line
 	6650 6750 6500 6750
@@ -1671,14 +1649,10 @@ Text GLabel 9100 700  2    50   Input ~ 0
 3.3V
 Wire Wire Line
 	9100 700  9050 700 
-Wire Wire Line
-	9050 700  9050 800 
 Text GLabel 8550 750  0    50   Input ~ 0
 GND
 Wire Wire Line
 	8550 750  8850 750 
-Wire Wire Line
-	8850 750  8850 800 
 $Comp
 L dk_Transistors-FETs-MOSFETs-Single:2N7002 Q5
 U 1 1 5FDB34D9
@@ -2177,7 +2151,7 @@ Connection ~ 6500 6750
 Wire Wire Line
 	6500 6750 6350 6750
 $Comp
-L dk_PMIC-OR-Controllers-Ideal-Diodes:LTC4412 Q2
+L dk_PMIC-OR-Controllers-Ideal-Diodes:LTC4412ES6_TRMPBF Q2
 U 1 1 60117B73
 P 3300 4050
 F 0 "Q2" H 3744 3703 60  0000 L CNN
@@ -2197,7 +2171,7 @@ F 12 "Active" H 3500 5250 60  0001 L CNN "Status"
 	1    0    0    -1  
 $EndComp
 $Comp
-L dk_PMIC-OR-Controllers-Ideal-Diodes:LTC4412 Q1
+L dk_PMIC-OR-Controllers-Ideal-Diodes:LTC4412ES6_TRMPBF Q1
 U 1 1 601222F1
 P 3300 2800
 F 0 "Q1" H 3744 2453 60  0000 L CNN
@@ -2233,4 +2207,62 @@ Text GLabel 9300 4700 0    50   Input ~ 0
 SERVO3
 Wire Wire Line
 	9300 4700 9900 4700
+Wire Wire Line
+	1300 5400 1200 5400
+Wire Wire Line
+	8850 750  8850 800 
+Wire Wire Line
+	9050 700  9050 800 
+Wire Wire Line
+	1200 6150 1300 6150
+Wire Wire Line
+	5900 4750 6150 4750
+Wire Wire Line
+	10150 3250 9550 3250
+NoConn ~ 3250 7250
+NoConn ~ 3250 7150
+NoConn ~ 3250 7050
+Wire Wire Line
+	3250 7150 3050 7150
+Wire Wire Line
+	3250 7050 3050 7050
+Wire Wire Line
+	3250 7250 3050 7250
+NoConn ~ 3250 6750
+Wire Wire Line
+	3250 6750 3050 6750
+NoConn ~ 3150 6300
+NoConn ~ 3150 6200
+NoConn ~ 3150 6100
+NoConn ~ 3150 5800
+Wire Wire Line
+	3150 5800 3050 5800
+Wire Wire Line
+	3150 6100 3050 6100
+Wire Wire Line
+	3150 6200 3050 6200
+Wire Wire Line
+	3150 6300 3050 6300
+Wire Wire Line
+	6150 3650 6350 3650
+NoConn ~ 6250 4050
+Wire Wire Line
+	6250 4050 6350 4050
+NoConn ~ 6200 3150
+Wire Wire Line
+	6200 3150 6350 3150
+Wire Wire Line
+	3300 2800 3300 2900
+Wire Wire Line
+	9750 3350 10150 3350
+Wire Wire Line
+	9850 5500 10300 5500
+Wire Wire Line
+	9800 5800 10300 5800
+NoConn ~ 9600 4800
+NoConn ~ 9600 4900
+Wire Wire Line
+	9600 4800 9850 4800
+Wire Wire Line
+	9600 4900 9800 4900
 $EndSCHEMATC
