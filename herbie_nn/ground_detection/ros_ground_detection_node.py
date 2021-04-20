@@ -151,7 +151,7 @@ class image_inference:
 
       image_np_tensor = self.preprocess(image_np)
       image_np_tensor = image_np_tensor.to(device=self.device)
-      image_np_tensor = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(image_np_tensor)
+      #image_np_tensor = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(image_np_tensor)
       image_np_tensor = image_np_tensor.unsqueeze(0)
 
       #run the forward pass of the model
