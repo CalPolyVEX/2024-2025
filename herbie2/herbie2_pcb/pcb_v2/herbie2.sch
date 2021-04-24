@@ -1020,54 +1020,7 @@ Wire Wire Line
 	5050 1000 5150 1000
 Wire Wire Line
 	5050 1100 5150 1100
-$Comp
-L Connector:Conn_01x03_Male S4
-U 1 1 5FE2DF64
-P 10400 5700
-F 0 "S4" H 10508 5981 50  0000 C CNN
-F 1 "Servo4" H 10508 5890 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 10400 5700 50  0001 C CNN
-F 3 "~" H 10400 5700 50  0001 C CNN
-	1    10400 5700
-	0    -1   -1   0   
-$EndComp
-$Comp
-L Connector:Conn_01x03_Male S5
-U 1 1 5FE2E62F
-P 10400 6000
-F 0 "S5" H 10508 6281 50  0000 C CNN
-F 1 "Servo5" H 10508 6190 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 10400 6000 50  0001 C CNN
-F 3 "~" H 10400 6000 50  0001 C CNN
-	1    10400 6000
-	0    -1   -1   0   
-$EndComp
-Wire Wire Line
-	10350 5150 10350 5500
-Wire Wire Line
-	10350 5500 10400 5500
 Connection ~ 10350 5150
-Wire Wire Line
-	10350 5500 10350 5800
-Wire Wire Line
-	10350 5800 10400 5800
-Connection ~ 10350 5500
-Wire Wire Line
-	10650 5500 10500 5500
-Wire Wire Line
-	10650 5200 10650 5500
-Wire Wire Line
-	10650 5500 10650 5800
-Wire Wire Line
-	10650 5800 10500 5800
-Connection ~ 10650 5500
-Wire Wire Line
-	10650 5800 10650 6100
-Connection ~ 10650 5800
-Wire Wire Line
-	9850 4800 9850 5500
-Wire Wire Line
-	9800 4900 9800 5800
 $Comp
 L Device:R R7
 U 1 1 5FEC49C9
@@ -1958,7 +1911,7 @@ F 3 "~" H 5750 2750 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 Wire Wire Line
-	5950 2750 6350 2750
+	5950 2750 6000 2750
 $Comp
 L Connector_Generic:Conn_01x02 J5
 U 1 1 5FFFC61D
@@ -2243,8 +2196,6 @@ Wire Wire Line
 	3150 6200 3050 6200
 Wire Wire Line
 	3150 6300 3050 6300
-Wire Wire Line
-	6150 3650 6350 3650
 NoConn ~ 6250 4050
 Wire Wire Line
 	6250 4050 6350 4050
@@ -2256,13 +2207,48 @@ Wire Wire Line
 Wire Wire Line
 	9750 3350 10150 3350
 Wire Wire Line
-	9850 5500 10300 5500
+	10650 5200 10650 6100
 Wire Wire Line
-	9800 5800 10300 5800
-NoConn ~ 9600 4800
-NoConn ~ 9600 4900
+	10350 5150 10350 5800
+$Comp
+L dk_Tactile-Switches:B3F-1000 S4
+U 1 1 60B675E6
+P 5550 3200
+F 0 "S4" H 5550 3547 60  0000 C CNN
+F 1 "B3F-1000" H 5550 3441 60  0000 C CNN
+F 2 "digikey-footprints:Switch_Tactile_THT_B3F-1xxx" H 5750 3400 60  0001 L CNN
+F 3 "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3f.pdf" H 5750 3500 60  0001 L CNN
+F 4 "SW400-ND" H 5750 3600 60  0001 L CNN "Digi-Key_PN"
+F 5 "B3F-1000" H 5750 3700 60  0001 L CNN "MPN"
+F 6 "Switches" H 5750 3800 60  0001 L CNN "Category"
+F 7 "Tactile Switches" H 5750 3900 60  0001 L CNN "Family"
+F 8 "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3f.pdf" H 5750 4000 60  0001 L CNN "DK_Datasheet_Link"
+F 9 "/product-detail/en/omron-electronics-inc-emc-div/B3F-1000/SW400-ND/33150" H 5750 4100 60  0001 L CNN "DK_Detail_Page"
+F 10 "SWITCH TACTILE SPST-NO 0.05A 24V" H 5750 4200 60  0001 L CNN "Description"
+F 11 "Omron Electronics Inc-EMC Div" H 5750 4300 60  0001 L CNN "Manufacturer"
+F 12 "Active" H 5750 4400 60  0001 L CNN "Status"
+	1    5550 3200
+	1    0    0    -1  
+$EndComp
 Wire Wire Line
-	9600 4800 9850 4800
+	6000 2750 6000 2900
 Wire Wire Line
-	9600 4900 9800 4900
+	6000 2900 5750 2900
+Wire Wire Line
+	5750 2900 5750 3100
+Connection ~ 6000 2750
+Wire Wire Line
+	6000 2750 6350 2750
+Text GLabel 5250 3100 0    50   Input ~ 0
+GND
+Wire Wire Line
+	5250 3100 5350 3100
+Wire Wire Line
+	6350 3650 6150 3650
+NoConn ~ 5800 3300
+NoConn ~ 5300 3300
+Wire Wire Line
+	5800 3300 5750 3300
+Wire Wire Line
+	5300 3300 5350 3300
 $EndSCHEMATC
