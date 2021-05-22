@@ -39,6 +39,7 @@ class CameraReader {
   ros::NodeHandle* n;
   image_transport::ImageTransport it_;
   image_transport::Publisher image_pub_;
+  image_transport::Subscriber image_sub_;
   ros::Publisher ground_pub;
 
   /*
@@ -60,13 +61,10 @@ class CameraReader {
   int outputIndex;
 
   public:
-  CameraReader() : it_(nh_) {
-    image_pub_ = it_.advertise("/see3cam_cu20/image_raw", 1);
-  }
-
-  int init(char* videodev, int width, int height, ros::NodeHandle* nh);
-  void nhwc_to_nchw(unsigned char* src, float* dest, int height, int width);
+  int init(char* videodev, int width, int height, ros::NodeHandle* nh, bool simulate);
+  void nhwc_to_nchw(unsigned char* src, float* dest, int nn_height, int nn_width);
   void frame_loop();
+  void simulate_callback(const sensor_msgs::ImageConstPtr& msg);
   int close_camera();
 
   //neural network functions
@@ -74,6 +72,13 @@ class CameraReader {
   void initInference(char* s);
   void inference();
   void endInference();
+
+  CameraReader() : it_(nh_) {
+    image_transport::TransportHints hints("compressed");
+    image_pub_ = it_.advertise("/see3cam_cu20/image_raw1", 1);
+    image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &CameraReader::simulate_callback, this, hints);
+  }
+
 };
 
 #endif

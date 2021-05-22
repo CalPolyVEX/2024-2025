@@ -1,3 +1,8 @@
+//run commands:
+//build:  ./devel/lib/camera_reader/camera_reader_node -b ~/ue4/herbie_nn/ground_detection/c_test/build/test_model.onnx -a 0
+//run in sim mode:  ./devel/lib/camera_reader/camera_reader_node -l /home/jseng/ue4/herbie_nn/ground_detection/c_test/build/test_model.engine --sim
+//run with camera:  ./devel/lib/camera_reader/camera_reader_node -l /home/jseng/ue4/herbie_nn/ground_detection/c_test/build/test_model.engine -d /dev/video0
+
 #include "camera.h"
 #include <getopt.h>
 #include <string>
@@ -6,11 +11,13 @@
 
 ros::NodeHandle* nh = NULL; 
 using namespace std::chrono;
+bool g_simulate = false;
 
-int CameraReader::init(char* videodev, int width, int height, ros::NodeHandle* nh) {
+int CameraReader::init(char* videodev, int width, int height, ros::NodeHandle* nh, bool simulate) {
    n = nh;
 
-   /*
+   if (simulate == false) {
+      /*
     * Helper function to initialize camera to a specific resolution and format
     *
     * 1. Using User pointer method of streaming I/O contributes to increased performance as
@@ -23,41 +30,40 @@ int CameraReader::init(char* videodev, int width, int height, ros::NodeHandle* n
     *
     * [1]: https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/pixfmt-v4l2.html#c.v4l2_pix_format
     */
-   if (helper_init_cam(videodev, width, height, V4L2_PIX_FMT_UYVY, IO_METHOD_USERPTR) < 0) {
-   /* if (helper_init_cam(videodev, width, height, V4L2_PIX_FMT_UYVY, IO_METHOD_MMAP) < 0) { */
-      return EXIT_FAILURE;
+      if (helper_init_cam(videodev, width, height, V4L2_PIX_FMT_UYVY, IO_METHOD_USERPTR) < 0)
+      {
+         /* if (helper_init_cam(videodev, width, height, V4L2_PIX_FMT_UYVY, IO_METHOD_MMAP) < 0) { */
+         return EXIT_FAILURE;
+      }
+   } else {
+      // simulate mode
+      g_simulate = true;
    }
 
    uyvy_frame = Mat(height, width, CV_8UC2);        //full HD resolution
    bgr_frame = Mat(height, width, CV_8UC3);         //full HD resolution
    bgr_frame_360 = Mat(height/3, width/3, CV_8UC3); //640x360 resolution
 
-   //initialize cuda memory
-   //allocate space
-   /* mInputCPU = (void**)malloc(2*sizeof(void*));; */
-   /* cudaHostAlloc((void**)&mInputCPU[0],  3*360*640*sizeof(float), cudaHostAllocDefault); */
-   /* cudaHostAlloc((void**)&mInputCPU[1],  1*80*sizeof(float), cudaHostAllocDefault); */
-
    ground_pub = nh->advertise<std_msgs::Float64MultiArray>("/ground_boundary", 1000);
 
    return 0;
 }
 
-void CameraReader::nhwc_to_nchw(unsigned char* src, float* dest, int height, int width) {
+void CameraReader::nhwc_to_nchw(unsigned char* src, float* dest, int nn_height, int nn_width) {
    //convert NHWC to NCHW with 3 channels
-   int num_pixels = height * width;
+   int num_pixels = nn_height * nn_width;
 
-   for (int h=0; h<height; h++) {
-      for (int w=0; w<width; w++) {
-         *dest = (float) *src / 255.0; //B
+   for (int h=0; h<nn_height; h++) {
+      for (int w=0; w<nn_width; w++) {
+         *dest = ((float) *src) / 255.0; //B
          
          dest += num_pixels; //move over height*width
          src++;
-         *dest = (float) *src / 255.0; //G
+         *dest = ((float) *src) / 255.0; //G
 
          dest += num_pixels; //move over height*width
          src++;
-         *dest = (float) *src / 255.0; //R
+         *dest = ((float) *src) / 255.0; //R
 
          dest -= 2*num_pixels; //go back to B channel
          dest++; //move over 1 pixel
@@ -68,9 +74,73 @@ void CameraReader::nhwc_to_nchw(unsigned char* src, float* dest, int height, int
    return;
 }
 
+void CameraReader::simulate_callback(const sensor_msgs::ImageConstPtr &msg)
+{
+   cv_bridge::CvImageConstPtr cv_ptr;
+
+   try
+   {
+      cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::BGR8);
+   }
+   catch (cv_bridge::Exception &e)
+   {
+      ROS_ERROR("cv_bridge exception: %s", e.what());
+   }
+
+   if (cv_ptr->image.cols != 1920 || cv_ptr->image.rows != 1080) {
+      std::cout << "Incorrect image size" << std::endl;
+      return; 
+   }
+
+   uyvy_frame.data = cv_ptr->image.data; //incoming image should be 1920x1080
+
+   //resize the incoming image to 640x360
+   resize(cv_ptr->image, bgr_frame_360, bgr_frame_360.size(), 0, 0);
+
+   //convert to nchw
+   nhwc_to_nchw((unsigned char *)bgr_frame_360.data, (float *)mInputCPU[0], 360, 640);
+
+   inference(); //run the inference
+
+   //publish vector test
+   vector<double> vec1;
+   std_msgs::Float64MultiArray ground_msg;
+
+   //push ground boundary data into vector
+   int col_counter = 0;
+   for (int i = 0; i < 80; i++)
+   {
+      vec1.push_back(((float *)mInputCPU[1])[i]);
+
+      //draw circle on 640x360 image
+      circle(bgr_frame_360, Point(col_counter, (int) (((float *)mInputCPU[1])[i] * 360.0)), 2, Scalar(0, 0, 255), -1);
+
+      col_counter += 8;
+   }
+
+   // set up dimensions
+   ground_msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
+   ground_msg.layout.dim[0].size = vec1.size();
+   ground_msg.layout.dim[0].stride = 1;
+   ground_msg.layout.dim[0].label = "x"; // or whatever name you typically use to index vec1
+
+   // copy in the data
+   ground_msg.data.clear();
+   ground_msg.data.insert(ground_msg.data.end(), vec1.begin(), vec1.end());
+   vec1.clear();
+   ground_pub.publish(ground_msg);
+
+   //////////////////////
+   //publish the image
+   sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_frame_360).toImageMsg();
+   image_pub_.publish(pub_msg);
+}
+
 void CameraReader::frame_loop() {
+   float nchw[640][360][3];
+
    while(ros::ok()) {
-      usleep(45000);
+      usleep(25000);
       bool read_cam=true;
 
       /* n->getParam("/read_see3cam", read_cam); */
@@ -101,12 +171,17 @@ void CameraReader::frame_loop() {
 
          //////////////////////
          //publish the image
-         /* sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_frame_360).toImageMsg(); */
-         /* image_pub_.publish(pub_msg); */
+         sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_frame_360).toImageMsg();
+         image_pub_.publish(pub_msg);
 
          //publish vector test
-         vector<double> vec1 = { 1.1, 2., 3.1};
+         vector<double> vec1;
          std_msgs::Float64MultiArray msg;
+
+         //push ground boundary data into vector
+         for (int i=0; i<80; i++) {
+            vec1.push_back(((float*) mInputCPU[1])[i]);
+         }
 
          // set up dimensions
          msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
@@ -117,7 +192,11 @@ void CameraReader::frame_loop() {
          // copy in the data
          msg.data.clear();
          msg.data.insert(msg.data.end(), vec1.begin(), vec1.end());
+         vec1.clear();
          ground_pub.publish(msg);
+
+         //convert to nchw
+         nhwc_to_nchw((unsigned char*) bgr_frame_360.data, (float *) mInputCPU[0], 360, 640);
 
          inference();
 
@@ -146,19 +225,21 @@ int CameraReader::close_camera() {
 
 void mySigintHandler(int sig)
 {
-  helper_release_cam_frame();
+   if (g_simulate == false) {
+      helper_release_cam_frame();
 
-  usleep(10000);
-  helper_deinit_cam();  //close the camera
-  
-  // All the default sigint handler does is call shutdown()
-  ros::shutdown();
+      usleep(10000);
+      helper_deinit_cam(); //close the camera
+   }
+
+   // All the default sigint handler does is call shutdown()
+   ros::shutdown();
 }
 
 int main(int argc, char **argv) {
    int c, accel=0;
    int width=1920, height=1080;
-   int build_flag=0, load_flag=0;
+   int build_flag=0, load_flag=0, sim_flag=0;
    char videodev[50], onnx_file[200], engine_file[200];
    videodev[0] = 0;
 
@@ -168,6 +249,7 @@ int main(int argc, char **argv) {
       {
          /* These options set a flag. */
          //{"load",   no_argument,      &verbose_flag, 0},
+         {"sim",   no_argument, &sim_flag, 1},
          /* These options don’t set a flag.
             We distinguish them by their indices. */
          {"accelerator", required_argument, 0, 'a'},
@@ -240,8 +322,37 @@ int main(int argc, char **argv) {
       }
    }
 
-  //if there is a video device, then run in camera reader mode
-  if (strlen(videodev) > 0) {
+  if (sim_flag == 1) {
+     //running in simulate mode (use --sim flag)
+     std::cout << "Simulate mode: video from bag file" << std::endl;
+     std::cout << "Using width: " << width << std::endl;
+     std::cout << "Using height: " << height << std::endl;
+
+     ros::init(argc, argv, "camera_reader_node", ros::init_options::NoSigintHandler);
+     ros::NodeHandle n;
+     nh = &n;
+
+     signal(SIGINT, mySigintHandler);
+
+     if (load_flag == 0) {
+        std::cout << "No engine file specified" << std::endl;
+        return -1;
+     }
+
+     CameraReader cr;
+     cr.initInference(engine_file);
+     if (cr.init(videodev,width,height,nh,true) != 0) {
+        std::cout << "Error initializing camera" << std::endl;
+        return -1;
+     }
+
+     //cr.frame_loop();
+
+     ros::spin();
+     ros::waitForShutdown();
+     return EXIT_SUCCESS;
+  } else if (strlen(videodev) > 0) {
+     //if there is a video device, then run in camera reader mode
      std::cout << "Using device: " << videodev << std::endl;
      std::cout << "Using width: " << width << std::endl;
      std::cout << "Using height: " << height << std::endl;
@@ -256,7 +367,8 @@ int main(int argc, char **argv) {
      //nh->setParam("/read_see3cam", false);
      nh->setParam("/read_see3cam", true);
      cr.initInference(engine_file);
-     if (cr.init(videodev,width,height,nh) != 0) {
+     if (cr.init(videodev,width,height,nh,false) != 0) {
+        std::cout << "Error initializing camera" << std::endl;
         return -1;
      }
 
