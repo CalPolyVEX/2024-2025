@@ -65,6 +65,7 @@ class CameraReader {
   }
 
   int init(char* videodev, int width, int height, ros::NodeHandle* nh);
+  void nhwc_to_nchw(unsigned char* src, float* dest, int height, int width);
   void frame_loop();
   int close_camera();
 

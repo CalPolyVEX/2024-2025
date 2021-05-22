@@ -43,6 +43,31 @@ int CameraReader::init(char* videodev, int width, int height, ros::NodeHandle* n
    return 0;
 }
 
+void CameraReader::nhwc_to_nchw(unsigned char* src, float* dest, int height, int width) {
+   //convert NHWC to NCHW with 3 channels
+   int num_pixels = height * width;
+
+   for (int h=0; h<height; h++) {
+      for (int w=0; w<width; w++) {
+         *dest = (float) *src / 255.0; //B
+         
+         dest += num_pixels; //move over height*width
+         src++;
+         *dest = (float) *src / 255.0; //G
+
+         dest += num_pixels; //move over height*width
+         src++;
+         *dest = (float) *src / 255.0; //R
+
+         dest -= 2*num_pixels; //go back to B channel
+         dest++; //move over 1 pixel
+         src++;
+      }
+   }
+
+   return;
+}
+
 void CameraReader::frame_loop() {
    while(ros::ok()) {
       usleep(45000);
