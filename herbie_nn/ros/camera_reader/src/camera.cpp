@@ -9,10 +9,12 @@
 #include <chrono>
 
 #include <std_msgs/Float64MultiArray.h>
+#include <std_msgs/Empty.h>
 
 ros::NodeHandle* nh = NULL; 
 using namespace std::chrono;
 bool g_simulate = false;
+bool publish_360_image = false;
 
 int CameraReader::init(char* videodev, int width, int height, ros::NodeHandle* nh, bool simulate) {
    n = nh;
@@ -46,28 +48,35 @@ int CameraReader::init(char* videodev, int width, int height, ros::NodeHandle* n
    bgr_frame_360 = Mat(height/3, width/3, CV_8UC3); //640x360 resolution
 
    ground_pub = nh->advertise<std_msgs::Float64MultiArray>("/ground_boundary", 1000);
+   image_debug_toggle_ = nh->subscribe("/image_pub_toggle", 1, &CameraReader::image_pub_toggle_cb, this);
 
    return 0;
+}
+
+void CameraReader::image_pub_toggle_cb(const std_msgs::Empty::ConstPtr&) {
+   if (publish_360_image == false) {
+      publish_360_image = true;
+   } else {
+      publish_360_image = false;
+   }
 }
 
 void CameraReader::nhwc_to_nchw(unsigned char* src, float* dest, int nn_height, int nn_width) {
    //convert NHWC to NCHW with 3 channels
    int num_pixels = nn_height * nn_width;
+   unsigned char* temp_src;
 
-   for (int h=0; h<num_pixels; h++) {
-         *dest = ((float) *src) / 255.0; //B
-         
-         dest += num_pixels; //move over height*width
-         src++;
-         *dest = ((float) *src) / 255.0; //G
+   for (int i = 0; i < 3; i++)
+   {
+      temp_src = src + i;
 
-         dest += num_pixels; //move over height*width
-         src++;
-         *dest = ((float) *src) / 255.0; //R
+      for (int h = 0; h < num_pixels; h++)
+      {
+         *dest = ((float)*temp_src) / 255.0; //B
 
-         dest -= 2*num_pixels; //go back to B channel
          dest++; //move over 1 pixel
-         src++;
+         temp_src += 3;
+      }
    }
 
    return;
@@ -86,10 +95,10 @@ void CameraReader::simulate_callback(const sensor_msgs::ImageConstPtr &msg)
       ROS_ERROR("cv_bridge exception: %s", e.what());
    }
 
-   if (cv_ptr->image.cols != 1920 || cv_ptr->image.rows != 1080) {
-      std::cout << "Incorrect image size" << std::endl;
-      return; 
-   }
+   // if (cv_ptr->image.cols != 1920 || cv_ptr->image.rows != 1080) {
+   //    std::cout << "Incorrect image size" << std::endl;
+   //    return; 
+   // }
 
    uyvy_frame.data = cv_ptr->image.data; //incoming image should be 1920x1080
 
@@ -118,7 +127,9 @@ void CameraReader::simulate_callback(const sensor_msgs::ImageConstPtr &msg)
       vec1.push_back(((float *)nn1.mInputCPU[1])[i]);
 
       //draw circle on 640x360 image
-      circle(bgr_frame_360, Point(col_counter, (int) (((float *)nn1.mInputCPU[1])[i] * 360.0)), 2, Scalar(0, 0, 255), -1);
+      if (publish_360_image) {
+         circle(bgr_frame_360, Point(col_counter, (int)(((float *)nn1.mInputCPU[1])[i] * 360.0)), 2, Scalar(0, 0, 255), -1);
+      }
 
       col_counter += 8;
    }
@@ -137,8 +148,10 @@ void CameraReader::simulate_callback(const sensor_msgs::ImageConstPtr &msg)
 
    //////////////////////
    //publish the image
-   sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_frame_360).toImageMsg();
-   image_pub_.publish(pub_msg);
+   if (publish_360_image) {
+      sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_frame_360).toImageMsg();
+      image_pub_.publish(pub_msg);
+   }
 }
 
 void CameraReader::frame_loop() {
@@ -185,42 +198,50 @@ void CameraReader::frame_loop() {
          std::cout << "--" << duration.count() << std::endl;
 
          //publish vector test
-         vector<double> vec1;
+         array<double,80> vec1;
          std_msgs::Float64MultiArray msg;
 
          //push ground boundary data into vector
          int col_counter = 0;
-         for (int i=0; i<80; i++) {
-            vec1.push_back(((float*) nn1.mInputCPU[1])[i]);
+         for (int i = 0; i < 80; i++)
+         {
+            //vec1.push_back(((float*) nn1.mInputCPU[1])[i]);
+            vec1[i] = ((float *)nn1.mInputCPU[1])[i];
 
             //draw circle on 640x360 image
-            circle(bgr_frame_360, Point(col_counter, (int)(((float *)nn1.mInputCPU[1])[i] * 360.0)), 2, Scalar(0, 0, 255), -1);
+            if (publish_360_image)
+            {
+               circle(bgr_frame_360, Point(col_counter, (int)(((float *)nn1.mInputCPU[1])[i] * 360.0)), 2, Scalar(0, 0, 255), -1);
+            }
 
             col_counter += 8;
          }
 
          // set up dimensions
          msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
-         msg.layout.dim[0].size = vec1.size();
+         msg.layout.dim[0].size = 80; //array size
          msg.layout.dim[0].stride = 1;
-         msg.layout.dim[0].label = "x"; // or whatever name you typically use to index vec1
+         msg.layout.dim[0].label = "ground_y_percent"; // or whatever name you typically use to index vec1
 
          // copy in the data
          msg.data.clear();
          msg.data.insert(msg.data.end(), vec1.begin(), vec1.end());
-         vec1.clear();
+         // vec1.clear();
          ground_pub.publish(msg);
 
          //////////////////////
          //publish the image
-         sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_frame_360).toImageMsg();
-         image_pub_.publish(pub_msg);
+         if (publish_360_image) {
+            sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_frame_360).toImageMsg();
+            image_pub_.publish(pub_msg);
+         }
 
          /*
           * Helper function to release camera data. This must be called for every
           * call to helper_get_cam_frame()
           */
-         if (helper_release_cam_frame() < 0) {
+         if (helper_release_cam_frame() < 0)
+         {
             break;
          }
       }

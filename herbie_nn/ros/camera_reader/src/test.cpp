@@ -159,7 +159,6 @@ void CameraReader::initInference(char* s) {
    nn->context = nn->engine->createExecutionContext();
 
    //allocate space
-   //void** mInputCPU= (void**)malloc(2*sizeof(void*));
    nn->mInputCPU = (void **)malloc(2 * sizeof(void *));
    cudaHostAlloc((void **)&nn->mInputCPU[0], 3 * 360 * 640 * sizeof(float), cudaHostAllocDefault);
    cudaHostAlloc((void **)&nn->mInputCPU[1], 1 * 80 * sizeof(float), cudaHostAllocDefault);
@@ -181,7 +180,7 @@ void CameraReader::initInference(char* s) {
 ///////////////////////////////////
 //run inference
 void CameraReader::inference(struct nn_context* nn) {
-   auto start = high_resolution_clock::now();
+   //auto start = high_resolution_clock::now();
    // DMA the input to the GPU,  execute the batch asynchronously, and DMA it back:
    gpuErrchk( cudaMemcpyAsync(nn->buffers[nn->inputIndex], nn->mInputCPU[0], 1*3*360*640 * sizeof(float), cudaMemcpyHostToDevice, nn->stream) );
 
@@ -191,9 +190,9 @@ void CameraReader::inference(struct nn_context* nn) {
 
    cudaStreamSynchronize(nn->stream);
 
-   auto end = high_resolution_clock::now();
-   auto duration = duration_cast<microseconds>(end - start) / 1000.0;
-   std::cout << duration.count() << std::endl;
+   // auto end = high_resolution_clock::now();
+   // auto duration = duration_cast<microseconds>(end - start) / 1000.0;
+   // std::cout << duration.count() << std::endl;
 }
 
 ///////////////////////////////////

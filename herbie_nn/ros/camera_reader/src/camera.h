@@ -14,6 +14,7 @@
 #include <sensor_msgs/image_encodings.h>
 #include <signal.h>
 #include <std_msgs/Float64MultiArray.h>
+#include <std_msgs/Empty.h>
 
 //NVIDIA includes
 #include <boost/filesystem.hpp>
@@ -40,6 +41,7 @@ class CameraReader {
   image_transport::ImageTransport it_;
   image_transport::Publisher image_pub_;
   image_transport::Subscriber image_sub_;
+  ros::Subscriber image_debug_toggle_;
   ros::Publisher ground_pub;
 
   /*
@@ -80,6 +82,7 @@ class CameraReader {
   //void inference();
   void inference(struct nn_context* nn);
   void endInference();
+  void image_pub_toggle_cb(const std_msgs::Empty::ConstPtr&);
 
   CameraReader() : it_(nh_) {
     image_transport::TransportHints hints("compressed");
