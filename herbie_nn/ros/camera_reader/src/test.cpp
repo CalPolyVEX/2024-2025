@@ -123,65 +123,73 @@ void CameraReader::buildEngine(char* s, int dla)
 ///////////////////////////////////
 //load a serialized engine
 void CameraReader::initInference(char* s) {
-  std::ifstream file(s, std::ios::binary);
-  size_t engine_size{ 0 };
-  std::vector<char> trtModelStream_;
+   struct nn_context* nn = &nn1;
+   if (network_counter == 0) {
+      network_counter++;
+      nn = &nn1;
+   } else {
+      nn = &nn2;
+   }
 
-  /////////////////////////////////////
-  //read in the engine data
-  if (file.good())
-  {
-    file.seekg(0, file.end);
-    engine_size = file.tellg();
-    file.seekg(0, file.beg);
-    trtModelStream_.resize(engine_size);
-    std::cout << "size" << trtModelStream_.size() << std::endl;
-    file.read(trtModelStream_.data(), engine_size);
-    file.close();
-  }
+   std::ifstream file(s, std::ios::binary);
+   size_t engine_size{0};
+   std::vector<char> trtModelStream_;
 
-  ////////////////////////////////////////////////
-  //create the inference runtime
-  nn1.runtime = nvinfer1::createInferRuntime(gLogger);
-  assert(nn1.runtime != nullptr);
-  nn1.engine = nn1.runtime->deserializeCudaEngine(trtModelStream_.data(), engine_size, nullptr);
+   /////////////////////////////////////
+   //read in the engine data
+   if (file.good())
+   {
+      file.seekg(0, file.end);
+      engine_size = file.tellg();
+      file.seekg(0, file.beg);
+      trtModelStream_.resize(engine_size);
+      std::cout << "size" << trtModelStream_.size() << std::endl;
+      file.read(trtModelStream_.data(), engine_size);
+      file.close();
+   }
 
-  ////////////////////////////////////////////////////////
-  //perform inference
-  nn1.context = nn1.engine->createExecutionContext();
+   ////////////////////////////////////////////////
+   //create the inference runtime
+   nn->runtime = nvinfer1::createInferRuntime(gLogger);
+   assert(nn->runtime != nullptr);
+   nn->engine = nn->runtime->deserializeCudaEngine(trtModelStream_.data(), engine_size, nullptr);
 
-  //allocate space
-  //void** mInputCPU= (void**)malloc(2*sizeof(void*));
-  nn1.mInputCPU= (void**)malloc(2*sizeof(void*));
-  cudaHostAlloc((void**)&nn1.mInputCPU[0],  3*360*640*sizeof(float), cudaHostAllocDefault);
-  cudaHostAlloc((void**)&nn1.mInputCPU[1],  1*80*sizeof(float), cudaHostAllocDefault);
+   ////////////////////////////////////////////////////////
+   //perform inference
+   nn->context = nn->engine->createExecutionContext();
 
-  nn1.inputIndex = nn1.engine->getBindingIndex("input");
-  nn1.outputIndex = nn1.engine->getBindingIndex("output");
+   //allocate space
+   //void** mInputCPU= (void**)malloc(2*sizeof(void*));
+   nn->mInputCPU = (void **)malloc(2 * sizeof(void *));
+   cudaHostAlloc((void **)&nn->mInputCPU[0], 3 * 360 * 640 * sizeof(float), cudaHostAllocDefault);
+   cudaHostAlloc((void **)&nn->mInputCPU[1], 1 * 80 * sizeof(float), cudaHostAllocDefault);
 
-  std::cout << nn1.engine->getNbLayers() << std::endl;
-  std::cout << nn1.inputIndex << std::endl;
-  std::cout << nn1.outputIndex << std::endl;
+   nn->inputIndex = nn->engine->getBindingIndex("input");
+   nn->outputIndex = nn->engine->getBindingIndex("output");
 
-  // create GPU buffers and a stream
-  gpuErrchk( cudaMalloc(&nn1.buffers[nn1.inputIndex], 1 * 3 * 360 * 640 * sizeof(float)) );
-  gpuErrchk( cudaMalloc(&nn1.buffers[nn1.outputIndex], 1 * 80 * sizeof(float)) );
+   std::cout << nn->engine->getNbLayers() << std::endl;
+   std::cout << nn->inputIndex << std::endl;
+   std::cout << nn->outputIndex << std::endl;
 
-  gpuErrchk( cudaStreamCreate(&nn1.stream) );
+   // create GPU buffers and a stream
+   gpuErrchk(cudaMalloc(&nn->buffers[nn->inputIndex], 1 * 3 * 360 * 640 * sizeof(float)));
+   gpuErrchk(cudaMalloc(&nn->buffers[nn->outputIndex], 1 * 80 * sizeof(float)));
+
+   gpuErrchk(cudaStreamCreate(&nn->stream));
 }
 
 ///////////////////////////////////
 //run inference
-void CameraReader::inference() {
+void CameraReader::inference(struct nn_context* nn) {
    auto start = high_resolution_clock::now();
    // DMA the input to the GPU,  execute the batch asynchronously, and DMA it back:
-   gpuErrchk( cudaMemcpyAsync(nn1.buffers[nn1.inputIndex], nn1.mInputCPU[0], 1*3*360*640 * sizeof(float), cudaMemcpyHostToDevice, nn1.stream) );
+   gpuErrchk( cudaMemcpyAsync(nn->buffers[nn->inputIndex], nn->mInputCPU[0], 1*3*360*640 * sizeof(float), cudaMemcpyHostToDevice, nn->stream) );
 
-   nn1.context->executeV2(nn1.buffers);
+   nn1.context->executeV2(nn->buffers);
 
-   gpuErrchk( cudaMemcpyAsync(nn1.mInputCPU[1], nn1.buffers[nn1.outputIndex], 1*80*sizeof(float), cudaMemcpyDeviceToHost, nn1.stream) );
+   gpuErrchk( cudaMemcpyAsync(nn->mInputCPU[1], nn->buffers[nn->outputIndex], 1*80*sizeof(float), cudaMemcpyDeviceToHost, nn->stream) );
 
-   cudaStreamSynchronize(nn1.stream);
+   cudaStreamSynchronize(nn->stream);
 
    auto end = high_resolution_clock::now();
    auto duration = duration_cast<microseconds>(end - start) / 1000.0;

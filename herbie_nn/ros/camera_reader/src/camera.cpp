@@ -101,7 +101,7 @@ void CameraReader::simulate_callback(const sensor_msgs::ImageConstPtr &msg)
    //convert to nchw
    nhwc_to_nchw((unsigned char *)bgr_frame_360.data, (float *)nn1.mInputCPU[0], 360, 640);
 
-   inference(); //run the inference
+   inference(&nn1); //run the inference
 
    auto end = high_resolution_clock::now();
    auto duration = duration_cast<microseconds>(end - start) / 1000.0;
@@ -143,7 +143,7 @@ void CameraReader::simulate_callback(const sensor_msgs::ImageConstPtr &msg)
 
 void CameraReader::frame_loop() {
    while(ros::ok()) {
-      usleep(2000);
+      //usleep(200);
       bool read_cam=true;
 
       /* n->getParam("/read_see3cam", read_cam); */
@@ -177,7 +177,8 @@ void CameraReader::frame_loop() {
          //convert to nchw
          nhwc_to_nchw((unsigned char*) bgr_frame_360.data, (float *) nn1.mInputCPU[0], 360, 640);
 
-         inference();
+         inference(&nn1);
+         inference(&nn2);
 
          auto end = high_resolution_clock::now();
          auto duration = duration_cast<microseconds>(end - start) / 1000.0;
@@ -256,6 +257,7 @@ int main(int argc, char **argv) {
    int width=1920, height=1080;
    int build_flag=0, load_flag=0, sim_flag=0;
    char videodev[50], onnx_file[200], engine_file[200];
+   char engine_file1[200] = "/home/jseng/ue4/herbie_nn/ground_detection/c_test/build/test_model.engine";
    videodev[0] = 0;
 
    while (1)
@@ -382,6 +384,7 @@ int main(int argc, char **argv) {
      //nh->setParam("/read_see3cam", false);
      nh->setParam("/read_see3cam", true);
      cr.initInference(engine_file);
+     cr.initInference(engine_file1); //create 2 networks
      if (cr.init(videodev,width,height,nh,false) != 0) {
         std::cout << "Error initializing camera" << std::endl;
         return -1;
@@ -404,7 +407,7 @@ int main(int argc, char **argv) {
      CameraReader cr;
      cr.initInference(engine_file);
      for (int i=0; i<1000; i++) {
-        cr.inference();
+        //cr.inference();
      }
      cr.endInference();
   }

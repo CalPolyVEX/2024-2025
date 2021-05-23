@@ -63,6 +63,8 @@ class CameraReader {
   };
 
   struct nn_context nn1;
+  struct nn_context nn2;
+  int network_counter = 0;
 
   public:
   int init(char* videodev, int width, int height, ros::NodeHandle* nh, bool simulate);
@@ -73,8 +75,10 @@ class CameraReader {
 
   //neural network functions
   static void buildEngine(char* s, int dla);
+  //void initInference(char* s);
   void initInference(char* s);
-  void inference();
+  //void inference();
+  void inference(struct nn_context* nn);
   void endInference();
 
   CameraReader() : it_(nh_) {
