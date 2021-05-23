@@ -51,14 +51,18 @@ class CameraReader {
 
   ////////////////////////////////////////////////
   //variables for inference
-  nvinfer1::IRuntime* runtime;
-  nvinfer1::ICudaEngine* engine;
-  nvinfer1::IExecutionContext *context;
-  void** mInputCPU;
-  void* buffers[2];
-  cudaStream_t stream;
-  int inputIndex;
-  int outputIndex;
+  struct nn_context {
+    nvinfer1::IRuntime *runtime;
+    nvinfer1::ICudaEngine *engine;
+    nvinfer1::IExecutionContext *context;
+    void **mInputCPU;
+    void *buffers[2];
+    cudaStream_t stream;
+    int inputIndex;
+    int outputIndex;
+  };
+
+  struct nn_context nn1;
 
   public:
   int init(char* videodev, int width, int height, ros::NodeHandle* nh, bool simulate);

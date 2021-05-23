@@ -6,6 +6,7 @@
 #include "camera.h"
 #include <getopt.h>
 #include <string>
+#include <chrono>
 
 #include <std_msgs/Float64MultiArray.h>
 
@@ -53,8 +54,7 @@ void CameraReader::nhwc_to_nchw(unsigned char* src, float* dest, int nn_height, 
    //convert NHWC to NCHW with 3 channels
    int num_pixels = nn_height * nn_width;
 
-   for (int h=0; h<nn_height; h++) {
-      for (int w=0; w<nn_width; w++) {
+   for (int h=0; h<num_pixels; h++) {
          *dest = ((float) *src) / 255.0; //B
          
          dest += num_pixels; //move over height*width
@@ -68,7 +68,6 @@ void CameraReader::nhwc_to_nchw(unsigned char* src, float* dest, int nn_height, 
          dest -= 2*num_pixels; //go back to B channel
          dest++; //move over 1 pixel
          src++;
-      }
    }
 
    return;
@@ -94,13 +93,19 @@ void CameraReader::simulate_callback(const sensor_msgs::ImageConstPtr &msg)
 
    uyvy_frame.data = cv_ptr->image.data; //incoming image should be 1920x1080
 
+   auto start = high_resolution_clock::now();
+
    //resize the incoming image to 640x360
    resize(cv_ptr->image, bgr_frame_360, bgr_frame_360.size(), 0, 0);
 
    //convert to nchw
-   nhwc_to_nchw((unsigned char *)bgr_frame_360.data, (float *)mInputCPU[0], 360, 640);
+   nhwc_to_nchw((unsigned char *)bgr_frame_360.data, (float *)nn1.mInputCPU[0], 360, 640);
 
    inference(); //run the inference
+
+   auto end = high_resolution_clock::now();
+   auto duration = duration_cast<microseconds>(end - start) / 1000.0;
+   std::cout << "--" << duration.count() << std::endl;
 
    //publish vector test
    vector<double> vec1;
@@ -110,10 +115,10 @@ void CameraReader::simulate_callback(const sensor_msgs::ImageConstPtr &msg)
    int col_counter = 0;
    for (int i = 0; i < 80; i++)
    {
-      vec1.push_back(((float *)mInputCPU[1])[i]);
+      vec1.push_back(((float *)nn1.mInputCPU[1])[i]);
 
       //draw circle on 640x360 image
-      circle(bgr_frame_360, Point(col_counter, (int) (((float *)mInputCPU[1])[i] * 360.0)), 2, Scalar(0, 0, 255), -1);
+      circle(bgr_frame_360, Point(col_counter, (int) (((float *)nn1.mInputCPU[1])[i] * 360.0)), 2, Scalar(0, 0, 255), -1);
 
       col_counter += 8;
    }
@@ -137,10 +142,8 @@ void CameraReader::simulate_callback(const sensor_msgs::ImageConstPtr &msg)
 }
 
 void CameraReader::frame_loop() {
-   float nchw[640][360][3];
-
    while(ros::ok()) {
-      usleep(25000);
+      usleep(2000);
       bool read_cam=true;
 
       /* n->getParam("/read_see3cam", read_cam); */
@@ -161,6 +164,8 @@ void CameraReader::frame_loop() {
          /*    break; */
          /* } */
 
+         auto start = high_resolution_clock::now();
+
 #ifdef ARM_CPU
          //if this CPU supports NEON
          asm_foo((unsigned char*) uyvy_frame.data, (unsigned char*) bgr_frame_360.data);
@@ -169,18 +174,28 @@ void CameraReader::frame_loop() {
          resize(bgr_frame, bgr_frame_360, bgr_frame_360.size(), 0, 0);
 #endif
 
-         //////////////////////
-         //publish the image
-         sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_frame_360).toImageMsg();
-         image_pub_.publish(pub_msg);
+         //convert to nchw
+         nhwc_to_nchw((unsigned char*) bgr_frame_360.data, (float *) nn1.mInputCPU[0], 360, 640);
+
+         inference();
+
+         auto end = high_resolution_clock::now();
+         auto duration = duration_cast<microseconds>(end - start) / 1000.0;
+         std::cout << "--" << duration.count() << std::endl;
 
          //publish vector test
          vector<double> vec1;
          std_msgs::Float64MultiArray msg;
 
          //push ground boundary data into vector
+         int col_counter = 0;
          for (int i=0; i<80; i++) {
-            vec1.push_back(((float*) mInputCPU[1])[i]);
+            vec1.push_back(((float*) nn1.mInputCPU[1])[i]);
+
+            //draw circle on 640x360 image
+            circle(bgr_frame_360, Point(col_counter, (int)(((float *)nn1.mInputCPU[1])[i] * 360.0)), 2, Scalar(0, 0, 255), -1);
+
+            col_counter += 8;
          }
 
          // set up dimensions
@@ -195,10 +210,10 @@ void CameraReader::frame_loop() {
          vec1.clear();
          ground_pub.publish(msg);
 
-         //convert to nchw
-         nhwc_to_nchw((unsigned char*) bgr_frame_360.data, (float *) mInputCPU[0], 360, 640);
-
-         inference();
+         //////////////////////
+         //publish the image
+         sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_frame_360).toImageMsg();
+         image_pub_.publish(pub_msg);
 
          /*
           * Helper function to release camera data. This must be called for every

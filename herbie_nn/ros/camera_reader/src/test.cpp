@@ -142,32 +142,32 @@ void CameraReader::initInference(char* s) {
 
   ////////////////////////////////////////////////
   //create the inference runtime
-  runtime = nvinfer1::createInferRuntime(gLogger);
-  assert(runtime != nullptr);
-  engine = runtime->deserializeCudaEngine(trtModelStream_.data(), engine_size, nullptr);
+  nn1.runtime = nvinfer1::createInferRuntime(gLogger);
+  assert(nn1.runtime != nullptr);
+  nn1.engine = nn1.runtime->deserializeCudaEngine(trtModelStream_.data(), engine_size, nullptr);
 
   ////////////////////////////////////////////////////////
   //perform inference
-  context = engine->createExecutionContext();
+  nn1.context = nn1.engine->createExecutionContext();
 
   //allocate space
   //void** mInputCPU= (void**)malloc(2*sizeof(void*));
-  mInputCPU= (void**)malloc(2*sizeof(void*));
-  cudaHostAlloc((void**)&mInputCPU[0],  3*360*640*sizeof(float), cudaHostAllocDefault);
-  cudaHostAlloc((void**)&mInputCPU[1],  1*80*sizeof(float), cudaHostAllocDefault);
+  nn1.mInputCPU= (void**)malloc(2*sizeof(void*));
+  cudaHostAlloc((void**)&nn1.mInputCPU[0],  3*360*640*sizeof(float), cudaHostAllocDefault);
+  cudaHostAlloc((void**)&nn1.mInputCPU[1],  1*80*sizeof(float), cudaHostAllocDefault);
 
-  inputIndex = engine->getBindingIndex("input");
-  outputIndex = engine->getBindingIndex("output");
+  nn1.inputIndex = nn1.engine->getBindingIndex("input");
+  nn1.outputIndex = nn1.engine->getBindingIndex("output");
 
-  std::cout << engine->getNbLayers() << std::endl;
-  std::cout << inputIndex << std::endl;
-  std::cout << outputIndex << std::endl;
+  std::cout << nn1.engine->getNbLayers() << std::endl;
+  std::cout << nn1.inputIndex << std::endl;
+  std::cout << nn1.outputIndex << std::endl;
 
   // create GPU buffers and a stream
-  gpuErrchk( cudaMalloc(&buffers[inputIndex], 1 * 3 * 360 * 640 * sizeof(float)) );
-  gpuErrchk( cudaMalloc(&buffers[outputIndex], 1 * 80 * sizeof(float)) );
+  gpuErrchk( cudaMalloc(&nn1.buffers[nn1.inputIndex], 1 * 3 * 360 * 640 * sizeof(float)) );
+  gpuErrchk( cudaMalloc(&nn1.buffers[nn1.outputIndex], 1 * 80 * sizeof(float)) );
 
-  gpuErrchk( cudaStreamCreate(&stream) );
+  gpuErrchk( cudaStreamCreate(&nn1.stream) );
 }
 
 ///////////////////////////////////
@@ -175,13 +175,13 @@ void CameraReader::initInference(char* s) {
 void CameraReader::inference() {
    auto start = high_resolution_clock::now();
    // DMA the input to the GPU,  execute the batch asynchronously, and DMA it back:
-   gpuErrchk( cudaMemcpyAsync(buffers[inputIndex], mInputCPU[0], 1*3*360*640 * sizeof(float), cudaMemcpyHostToDevice, stream) );
+   gpuErrchk( cudaMemcpyAsync(nn1.buffers[nn1.inputIndex], nn1.mInputCPU[0], 1*3*360*640 * sizeof(float), cudaMemcpyHostToDevice, nn1.stream) );
 
-   context->executeV2(buffers);
+   nn1.context->executeV2(nn1.buffers);
 
-   gpuErrchk( cudaMemcpyAsync(mInputCPU[1], buffers[outputIndex], 1*80*sizeof(float), cudaMemcpyDeviceToHost, stream) );
+   gpuErrchk( cudaMemcpyAsync(nn1.mInputCPU[1], nn1.buffers[nn1.outputIndex], 1*80*sizeof(float), cudaMemcpyDeviceToHost, nn1.stream) );
 
-   cudaStreamSynchronize(stream);
+   cudaStreamSynchronize(nn1.stream);
 
    auto end = high_resolution_clock::now();
    auto duration = duration_cast<microseconds>(end - start) / 1000.0;
@@ -192,11 +192,11 @@ void CameraReader::inference() {
 //clean up inference
 void CameraReader::endInference() {
   // release the stream and the buffers
-  cudaStreamDestroy(stream);
-  gpuErrchk( cudaFree(buffers[inputIndex]) );
-  gpuErrchk( cudaFree(buffers[outputIndex]) );
+  cudaStreamDestroy(nn1.stream);
+  gpuErrchk( cudaFree(nn1.buffers[nn1.inputIndex]) );
+  gpuErrchk( cudaFree(nn1.buffers[nn1.outputIndex]) );
   
   // destroy the engine
-  context->destroy();
-  engine->destroy();
+  nn1.context->destroy();
+  nn1.engine->destroy();
 }
