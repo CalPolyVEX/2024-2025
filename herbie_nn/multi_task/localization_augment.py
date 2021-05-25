@@ -15,7 +15,7 @@ import torchvision.models as models
 
 cudnn.benchmark = True
 
-def setup_dir():
+def localization_setup_dir():
     root_directory = "./"
 
     train_directory = os.path.join(root_directory, "Localization_Training_Images")
@@ -73,7 +73,7 @@ def create_datasets(train_file_list,val_file_list):
          A.ISONoise(p=.15),
          A.RandomShadow(p=.2),
          A.MotionBlur(p=.1),
-         A.Cutout(num_holes=5, max_h_size=30, max_w_size=30, p=.5),
+         A.CoarseDropout(max_holes=5, max_height=30, max_width=30, p=.5),
          A.Perspective(p=.3),
          ToTensorV2(),
       ]
@@ -90,7 +90,7 @@ def create_datasets(train_file_list,val_file_list):
    return train_dataset, val_dataset
 
 if __name__ == '__main__':
-    train_fp, val_fp = setup_dir()
+    train_fp, val_fp = localization_setup_dir()
 
     train_d, val_d = create_datasets(train_fp, val_fp)
     print (len(train_d), len(val_d))

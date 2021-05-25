@@ -15,11 +15,11 @@ import torchvision.models as models
 
 cudnn.benchmark = True
 
-def setup_dir():
-    root_directory = "../"
+def ground_setup_dir():
+    root_directory = "./"
 
-    train_directory = os.path.join(root_directory, "Training_Images")
-    val_directory = os.path.join(root_directory, "Validation_Images")
+    train_directory = os.path.join(root_directory, "Ground_Training_Images")
+    val_directory = os.path.join(root_directory, "Ground_Validation_Images")
 
     #generate all the paths of the images
     train_images_filepaths = [os.path.join(train_directory, f) for f in os.listdir(train_directory)]
@@ -43,7 +43,7 @@ class GroundDataset(Dataset):
         #read in mask data
         mask_data_filename = image_filepath.split('/')[-1]
         prefix = mask_data_filename.split('.')
-        mask_data_full_path = '../Mask_Data/' + prefix[0] + '_mask_data.txt'
+        mask_data_full_path = './Mask_Data/' + prefix[0] + '_mask_data.txt'
 
         # read in all the mask data into 'lines' list
         data_point_file = open(mask_data_full_path, 'r')
@@ -89,7 +89,7 @@ def create_datasets(train_file_list,val_file_list):
    return train_dataset, val_dataset
 
 if __name__ == '__main__':
-    train_fp, val_fp = setup_dir()
+    train_fp, val_fp = ground_setup_dir()
 
     train_d, val_d = create_datasets(train_fp, val_fp)
     print (len(train_d), len(val_d))

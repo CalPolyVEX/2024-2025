@@ -1,5 +1,5 @@
 import copy
-import os, time
+import os, time, sys
 import ground_augment
 import localization_augment
 import pretrained_model
@@ -102,18 +102,38 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     return model
 
 if __name__ == '__main__':
-    train_fp, val_fp = augment.setup_dir()
-    train_d, val_d = augment.create_datasets(train_fp, val_fp)
+    # create the dataloader for the ground dataset
+    ground_train_fp, ground_val_fp = ground_augment.ground_setup_dir()
+    ground_train_d, ground_val_d = ground_augment.create_datasets(ground_train_fp, ground_val_fp)
 
-    image_datasets = {}
-    image_datasets['train'] = train_d
-    image_datasets['val'] = val_d
+    ground_image_datasets = {}
+    ground_image_datasets['train'] = ground_train_d
+    ground_image_datasets['val'] = ground_val_d
 
-    dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], \
-                   batch_size=32, shuffle=True, num_workers=12) for x in ['train', 'val']}
+    ground_dataloaders = {x: torch.utils.data.DataLoader(ground_image_datasets[x], \
+                   batch_size=32, shuffle=True, num_workers=8) for x in ['train', 'val']}
 
-    dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
-    print (dataset_sizes)
+    ground_dataset_sizes = {x: len(ground_image_datasets[x]) for x in ['train', 'val']}
+
+    # create the dataloader for the localization dataset
+    localization_train_fp, localization_val_fp = localization_augment.localization_setup_dir()
+    localization_train_d, localization_val_d = localization_augment.create_datasets(localization_train_fp, localization_val_fp)
+
+    localization_image_datasets = {}
+    localization_image_datasets['train'] = localization_train_d
+    localization_image_datasets['val'] = localization_val_d
+
+    localization_dataloaders = {x: torch.utils.data.DataLoader(localization_image_datasets[x], \
+                   batch_size=32, shuffle=True, num_workers=8) for x in ['train', 'val']}
+
+    localization_dataset_sizes = {x: len(localization_image_datasets[x]) for x in ['train', 'val']}
+
+    print (ground_dataset_sizes)
+    print (len(ground_dataloaders['train']))
+    print (localization_dataset_sizes)
+    print (len(localization_dataloaders['val']))
+
+    sys.exit()
 
     #create the model
     m = pretrained_model.Pretrained_Model(shape=(360,640,3), num_outputs=64)
