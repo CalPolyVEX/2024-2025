@@ -123,80 +123,87 @@ void CameraReader::buildEngine(char* s, int dla)
 ///////////////////////////////////
 //load a serialized engine
 void CameraReader::initInference(char* s) {
-  std::ifstream file(s, std::ios::binary);
-  size_t engine_size{ 0 };
-  std::vector<char> trtModelStream_;
+   struct nn_context* nn = &nn1;
+   if (network_counter == 0) {
+      network_counter++;
+      nn = &nn1;
+   } else {
+      nn = &nn2;
+   }
 
-  /////////////////////////////////////
-  //read in the engine data
-  if (file.good())
-  {
-    file.seekg(0, file.end);
-    engine_size = file.tellg();
-    file.seekg(0, file.beg);
-    trtModelStream_.resize(engine_size);
-    std::cout << "size" << trtModelStream_.size() << std::endl;
-    file.read(trtModelStream_.data(), engine_size);
-    file.close();
-  }
+   std::ifstream file(s, std::ios::binary);
+   size_t engine_size{0};
+   std::vector<char> trtModelStream_;
 
-  ////////////////////////////////////////////////
-  //create the inference runtime
-  runtime = nvinfer1::createInferRuntime(gLogger);
-  assert(runtime != nullptr);
-  engine = runtime->deserializeCudaEngine(trtModelStream_.data(), engine_size, nullptr);
+   /////////////////////////////////////
+   //read in the engine data
+   if (file.good())
+   {
+      file.seekg(0, file.end);
+      engine_size = file.tellg();
+      file.seekg(0, file.beg);
+      trtModelStream_.resize(engine_size);
+      std::cout << "size" << trtModelStream_.size() << std::endl;
+      file.read(trtModelStream_.data(), engine_size);
+      file.close();
+   }
 
-  ////////////////////////////////////////////////////////
-  //perform inference
-  context = engine->createExecutionContext();
+   ////////////////////////////////////////////////
+   //create the inference runtime
+   nn->runtime = nvinfer1::createInferRuntime(gLogger);
+   assert(nn->runtime != nullptr);
+   nn->engine = nn->runtime->deserializeCudaEngine(trtModelStream_.data(), engine_size, nullptr);
 
-  //allocate space
-  //void** mInputCPU= (void**)malloc(2*sizeof(void*));
-  mInputCPU= (void**)malloc(2*sizeof(void*));
-  cudaHostAlloc((void**)&mInputCPU[0],  3*360*640*sizeof(float), cudaHostAllocDefault);
-  cudaHostAlloc((void**)&mInputCPU[1],  1*80*sizeof(float), cudaHostAllocDefault);
+   ////////////////////////////////////////////////////////
+   //perform inference
+   nn->context = nn->engine->createExecutionContext();
 
-  inputIndex = engine->getBindingIndex("input");
-  outputIndex = engine->getBindingIndex("output");
+   //allocate space
+   nn->mInputCPU = (void **)malloc(2 * sizeof(void *));
+   cudaHostAlloc((void **)&nn->mInputCPU[0], 3 * 360 * 640 * sizeof(float), cudaHostAllocDefault);
+   cudaHostAlloc((void **)&nn->mInputCPU[1], 1 * 80 * sizeof(float), cudaHostAllocDefault);
 
-  std::cout << engine->getNbLayers() << std::endl;
-  std::cout << inputIndex << std::endl;
-  std::cout << outputIndex << std::endl;
+   nn->inputIndex = nn->engine->getBindingIndex("input");
+   nn->outputIndex = nn->engine->getBindingIndex("output");
 
-  // create GPU buffers and a stream
-  gpuErrchk( cudaMalloc(&buffers[inputIndex], 1 * 3 * 360 * 640 * sizeof(float)) );
-  gpuErrchk( cudaMalloc(&buffers[outputIndex], 1 * 80 * sizeof(float)) );
+   std::cout << nn->engine->getNbLayers() << std::endl;
+   std::cout << nn->inputIndex << std::endl;
+   std::cout << nn->outputIndex << std::endl;
 
-  gpuErrchk( cudaStreamCreate(&stream) );
+   // create GPU buffers and a stream
+   gpuErrchk(cudaMalloc(&nn->buffers[nn->inputIndex], 1 * 3 * 360 * 640 * sizeof(float)));
+   gpuErrchk(cudaMalloc(&nn->buffers[nn->outputIndex], 1 * 80 * sizeof(float)));
+
+   gpuErrchk(cudaStreamCreate(&nn->stream));
 }
 
 ///////////////////////////////////
 //run inference
-void CameraReader::inference() {
-   auto start = high_resolution_clock::now();
+void CameraReader::inference(struct nn_context* nn) {
+   //auto start = high_resolution_clock::now();
    // DMA the input to the GPU,  execute the batch asynchronously, and DMA it back:
-   gpuErrchk( cudaMemcpyAsync(buffers[inputIndex], mInputCPU[0], 1*3*360*640 * sizeof(float), cudaMemcpyHostToDevice, stream) );
+   gpuErrchk( cudaMemcpyAsync(nn->buffers[nn->inputIndex], nn->mInputCPU[0], 1*3*360*640 * sizeof(float), cudaMemcpyHostToDevice, nn->stream) );
 
-   context->executeV2(buffers);
+   nn1.context->executeV2(nn->buffers);
 
-   gpuErrchk( cudaMemcpyAsync(mInputCPU[1], buffers[outputIndex], 1*80*sizeof(float), cudaMemcpyDeviceToHost, stream) );
+   gpuErrchk( cudaMemcpyAsync(nn->mInputCPU[1], nn->buffers[nn->outputIndex], 1*80*sizeof(float), cudaMemcpyDeviceToHost, nn->stream) );
 
-   cudaStreamSynchronize(stream);
+   cudaStreamSynchronize(nn->stream);
 
-   auto end = high_resolution_clock::now();
-   auto duration = duration_cast<microseconds>(end - start) / 1000.0;
-   std::cout << duration.count() << std::endl;
+   // auto end = high_resolution_clock::now();
+   // auto duration = duration_cast<microseconds>(end - start) / 1000.0;
+   // std::cout << duration.count() << std::endl;
 }
 
 ///////////////////////////////////
 //clean up inference
 void CameraReader::endInference() {
   // release the stream and the buffers
-  cudaStreamDestroy(stream);
-  gpuErrchk( cudaFree(buffers[inputIndex]) );
-  gpuErrchk( cudaFree(buffers[outputIndex]) );
+  cudaStreamDestroy(nn1.stream);
+  gpuErrchk( cudaFree(nn1.buffers[nn1.inputIndex]) );
+  gpuErrchk( cudaFree(nn1.buffers[nn1.outputIndex]) );
   
   // destroy the engine
-  context->destroy();
-  engine->destroy();
+  nn1.context->destroy();
+  nn1.engine->destroy();
 }

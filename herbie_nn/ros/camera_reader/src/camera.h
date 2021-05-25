@@ -14,6 +14,7 @@
 #include <sensor_msgs/image_encodings.h>
 #include <signal.h>
 #include <std_msgs/Float64MultiArray.h>
+#include <std_msgs/Empty.h>
 
 //NVIDIA includes
 #include <boost/filesystem.hpp>
@@ -39,6 +40,8 @@ class CameraReader {
   ros::NodeHandle* n;
   image_transport::ImageTransport it_;
   image_transport::Publisher image_pub_;
+  image_transport::Subscriber image_sub_;
+  ros::Subscriber image_debug_toggle_;
   ros::Publisher ground_pub;
 
   /*
@@ -50,29 +53,43 @@ class CameraReader {
 
   ////////////////////////////////////////////////
   //variables for inference
-  nvinfer1::IRuntime* runtime;
-  nvinfer1::ICudaEngine* engine;
-  nvinfer1::IExecutionContext *context;
-  void** mInputCPU;
-  void* buffers[2];
-  cudaStream_t stream;
-  int inputIndex;
-  int outputIndex;
+  struct nn_context {
+    nvinfer1::IRuntime *runtime;
+    nvinfer1::ICudaEngine *engine;
+    nvinfer1::IExecutionContext *context;
+    void **mInputCPU;
+    void *buffers[2];
+    cudaStream_t stream;
+    int inputIndex;
+    int outputIndex;
+  };
+
+  struct nn_context nn1;
+  struct nn_context nn2;
+  int network_counter = 0;
 
   public:
-  CameraReader() : it_(nh_) {
-    image_pub_ = it_.advertise("/see3cam_cu20/image_raw", 1);
-  }
-
-  int init(char* videodev, int width, int height, ros::NodeHandle* nh);
+  int init(char* videodev, int width, int height, ros::NodeHandle* nh, bool simulate);
+  void nhwc_to_nchw(unsigned char* src, float* dest, int nn_height, int nn_width);
   void frame_loop();
+  void simulate_callback(const sensor_msgs::ImageConstPtr& msg);
   int close_camera();
 
   //neural network functions
   static void buildEngine(char* s, int dla);
+  //void initInference(char* s);
   void initInference(char* s);
-  void inference();
+  //void inference();
+  void inference(struct nn_context* nn);
   void endInference();
+  void image_pub_toggle_cb(const std_msgs::Empty::ConstPtr&);
+
+  CameraReader() : it_(nh_) {
+    image_transport::TransportHints hints("compressed");
+    image_pub_ = it_.advertise("/see3cam_cu20/image_raw1", 1);
+    image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &CameraReader::simulate_callback, this, hints);
+  }
+
 };
 
 #endif
