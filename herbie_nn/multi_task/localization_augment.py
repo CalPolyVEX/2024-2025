@@ -55,6 +55,9 @@ class LocalizationDataset(Dataset):
             else:
                 data_list.append(float(0.0))
 
+        data_list.append(float(0.0))
+        data_list.append(float(0.0))
+
         # apply the augmentations to the image
         if self.transform is not None:
             image = self.transform(image=image)["image"]

@@ -21,7 +21,7 @@ cudnn.benchmark = True
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
+def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=25):
     since = time.time() # get the starting time of training
 
     best_loss = 100000.0
@@ -40,30 +40,48 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 model.eval()   # Set model to evaluate mode
 
             running_loss = 0.0
-            iterations = len(dataloaders[phase])
+            iterations = len(ground_dataloaders[phase])
+
+            ground_iterator = iter(ground_dataloaders[phase])
+            localization_iterator = iter(localization_dataloaders[phase])
 
             # Iterate over data.
             pbar = tqdm(total=iterations,desc=phase,ncols=70)
-            for inputs, labels in dataloaders[phase]:
-                inputs = inputs.to(device)
-                output_tensor = labels.to(device)
+            #for inputs, labels in ground_dataloaders[phase]:
+            for i in range(1):
+                gnd_inputs,gnd_labels = next(ground_iterator)
+
+                gnd_inputs = gnd_inputs.to(device)
+                gnd_output_tensor = gnd_labels.to(device)
+
+                loc_inputs,loc_labels = next(localization_iterator)
+
+                loc_inputs = loc_inputs.to(device)
+                loc_output_tensor = loc_labels.to(device)
 
                 # zero the parameter gradients
                 optimizer.zero_grad()
 
                 # Run the forward pass and track history if only in training
                 with torch.set_grad_enabled(phase == 'train'):
-                    outputs = model(inputs)
-                    preds = outputs
-                    loss = criterion(outputs, output_tensor)
+                    outputs = model(gnd_inputs)
+                    ground_output = outputs[:, 0:80] # get the first 80 outputs
 
+                    output2 = model(loc_inputs)
+                    loc_output = output2[:, 80:146] # get the last 66 outputs
+
+                    #loss = criterion1(outputs[0:80], output_tensor)
+                    loss1 = criterion1(ground_output, gnd_output_tensor)
+                    loss2 = criterion2(loc_output, loc_output_tensor)
+
+                    loss = loss1
                     # backward + optimize only if in training phase
                     if phase == 'train':
                         loss.backward()
                         optimizer.step()
 
                 # statistics
-                running_loss += loss.item() * inputs.size(0)
+                running_loss += loss.item() * gnd_inputs.size(0)
                 pbar.update(1)
                 sleep(0.01) #delay to print stats
             pbar.close()
@@ -79,7 +97,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=tmax, verbose=True)
                 print ("New T_max: " + str(tmax))
 
-            epoch_loss = running_loss / dataset_sizes[phase]
+            epoch_loss = running_loss / ground_dataset_sizes[phase]
 
             print('{} Loss: {:.4f}'.format(phase, epoch_loss))
 
@@ -133,20 +151,27 @@ if __name__ == '__main__':
     print (localization_dataset_sizes)
     print (len(localization_dataloaders['val']))
 
-    sys.exit()
-
-    #create the model
-    m = pretrained_model.Pretrained_Model(shape=(360,640,3), num_outputs=64)
+    # create the model 
+    # total outputs is 80 (ground detection) and 66 (localization)
+    m = pretrained_model.Pretrained_Model(shape=(360,640,3), num_outputs=(80 + 66))
     model = m.build()
+
+    #sys.exit()
 
     if torch.cuda.is_available(): #send the model to the GPU if available
         model.cuda()
 
     #configure the training
-    criterion = nn.MSELoss() # use mean squared error loss
+    ground_criterion = nn.L1Loss()        # use L1 for ground detection
+    localization_criterion = nn.MSELoss() # use mean squared error for localization
+
     optimizer = optim.AdamW(model.parameters(), lr=0.005)
     exp_lr_scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, verbose=True)
 
+    # sys.exit()
+
     #train the model
-    model = train_model(model, criterion, optimizer, exp_lr_scheduler, num_epochs=203)
+    model = train_model(
+        model, ground_criterion, localization_criterion, optimizer, 
+        exp_lr_scheduler, num_epochs=203)
 
