@@ -21,29 +21,34 @@ class Pretrained_Model(torch.nn.Module):
         self.removed = list(self.m.children())[:-1]
         self.m = torch.nn.Sequential(*self.removed)
 
-        # self.fc1 = torch.nn.Linear(1280, 256)
-        # self.fc2 = torch.nn.Linear(1280, 256)
+        self.fc0 = torch.nn.Linear(1280, 512)
 
-        # self.temp1 = torch.nn.Linear(256, 256)
-        # self.temp2 = torch.nn.Linear(256, 256)
+        # self.fc1 = torch.nn.Linear(1280, 128)
+        # self.fc2 = torch.nn.Linear(1280, 128)
 
-        self.out1 = torch.nn.Linear(1280, self.num_outputs1)
-        self.out2 = torch.nn.Linear(1280, self.num_outputs2)
+        self.temp1 = torch.nn.Linear(1280, 256)
+        self.temp2 = torch.nn.Linear(1280, 256)
+
+        self.out1 = torch.nn.Linear(256, self.num_outputs1)
+        self.out2 = torch.nn.Linear(256, self.num_outputs2)
 
         self.softmax = torch.nn.Softmax(1)
 
     def forward(self, x):
         o1 = self.m(x)
 
-        #o2 = F.relu(self.fc1(o1))
-        # o3 = F.relu(self.fc1(o1))
+        #o2 = F.relu6(self.fc0(o1), inplace=True)
 
-        #o4 = F.relu(self.temp1(o2))
-        # o5 = F.relu(self.temp2(o3))
+        # o2 = F.relu6(self.fc1(o1), inplace=True)
+        # o3 = F.relu6(self.fc1(o1), inplace=True)
 
-        o6 = self.out1(o1)
-        o7 = self.out2(o1)
-        o8 = self.softmax(o7)
+        o4 = F.relu6(self.temp1(o1), inplace=True)
+        o5 = F.relu6(self.temp2(o1), inplace=True)
+
+        o6 = self.out1(o4)
+        o7 = self.out2(o5)
+
+        o8 = self.softmax(o7) # localization output
 
         return o6,o8
 

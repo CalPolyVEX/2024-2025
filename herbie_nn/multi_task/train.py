@@ -39,16 +39,19 @@ def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=
             else:
                 model.eval()   # Set model to evaluate mode
 
-            if phase == 'train':
-               l = 212
-               # l = 330
+            ground_iterations = len(ground_dataloaders[phase])
+            localization_iterations = len(localization_dataloaders[phase])
+
+            if localization_iterations > ground_iterations:
+               iterations = localization_iterations
             else:
-               #l = 12
-               l = 12
+               iterations = ground_iterations
+
+            #print ('iterations: ' + str(iterations))
 
             running_loss = 0.0
             #iterations = len(ground_dataloaders[phase])
-            iterations = l
+            #iterations = l
 
             ground_iterator = iter(ground_dataloaders[phase])
             localization_iterator = iter(localization_dataloaders[phase])
@@ -56,13 +59,21 @@ def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=
             # Iterate over data.
             pbar = tqdm(total=iterations,desc=phase,ncols=70)
             #for inputs, labels in ground_dataloaders[phase]:
-            for i in range(l):
-                gnd_inputs,gnd_labels = next(ground_iterator)
+            for i in range(iterations):
+                try:
+                    gnd_inputs,gnd_labels = next(ground_iterator)
+                except:
+                    ground_iterator = iter(ground_dataloaders[phase])
+                    gnd_inputs,gnd_labels = next(ground_iterator)
 
                 gnd_inputs = gnd_inputs.to(device)
                 gnd_output_tensor = gnd_labels.to(device)
 
-                loc_inputs,loc_labels = next(localization_iterator)
+                try:
+                    loc_inputs,loc_labels = next(localization_iterator)
+                except:
+                    localization_iterator = iter(localization_dataloaders[phase])
+                    loc_inputs,loc_labels = next(localization_iterator)
 
                 loc_inputs = loc_inputs.to(device)
                 loc_output_tensor = loc_labels.to(device)
