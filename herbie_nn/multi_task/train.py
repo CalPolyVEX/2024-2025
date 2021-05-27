@@ -39,8 +39,16 @@ def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=
             else:
                 model.eval()   # Set model to evaluate mode
 
+            if phase == 'train':
+               l = 212
+               # l = 330
+            else:
+               #l = 12
+               l = 12
+
             running_loss = 0.0
-            iterations = len(ground_dataloaders[phase])
+            #iterations = len(ground_dataloaders[phase])
+            iterations = l
 
             ground_iterator = iter(ground_dataloaders[phase])
             localization_iterator = iter(localization_dataloaders[phase])
@@ -48,7 +56,7 @@ def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=
             # Iterate over data.
             pbar = tqdm(total=iterations,desc=phase,ncols=70)
             #for inputs, labels in ground_dataloaders[phase]:
-            for i in range(1):
+            for i in range(l):
                 gnd_inputs,gnd_labels = next(ground_iterator)
 
                 gnd_inputs = gnd_inputs.to(device)
@@ -65,23 +73,25 @@ def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=
                 # Run the forward pass and track history if only in training
                 with torch.set_grad_enabled(phase == 'train'):
                     outputs = model(gnd_inputs)
-                    ground_output = outputs[:, 0:80] # get the first 80 outputs
+                    ground_output = outputs[0] # get the first 80 outputs
 
                     output2 = model(loc_inputs)
-                    loc_output = output2[:, 80:146] # get the last 66 outputs
+                    loc_output = output2[1] # get the last 66 outputs
 
-                    #loss = criterion1(outputs[0:80], output_tensor)
                     loss1 = criterion1(ground_output, gnd_output_tensor)
                     loss2 = criterion2(loc_output, loc_output_tensor)
 
-                    loss = loss1
+                    loss = loss1 + loss2
+                    # loss = loss2
+
                     # backward + optimize only if in training phase
                     if phase == 'train':
                         loss.backward()
                         optimizer.step()
 
                 # statistics
-                running_loss += loss.item() * gnd_inputs.size(0)
+                running_loss += loss.item() * loc_inputs.size(0)
+
                 pbar.update(1)
                 sleep(0.01) #delay to print stats
             pbar.close()
@@ -97,7 +107,8 @@ def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=
                 scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=tmax, verbose=True)
                 print ("New T_max: " + str(tmax))
 
-            epoch_loss = running_loss / ground_dataset_sizes[phase]
+            #epoch_loss = running_loss / ground_dataset_sizes[phase]
+            epoch_loss = running_loss / localization_dataset_sizes[phase]
 
             print('{} Loss: {:.4f}'.format(phase, epoch_loss))
 
@@ -129,7 +140,7 @@ if __name__ == '__main__':
     ground_image_datasets['val'] = ground_val_d
 
     ground_dataloaders = {x: torch.utils.data.DataLoader(ground_image_datasets[x], \
-                   batch_size=32, shuffle=True, num_workers=8) for x in ['train', 'val']}
+                   batch_size=32, shuffle=True, num_workers=6) for x in ['train', 'val']}
 
     ground_dataset_sizes = {x: len(ground_image_datasets[x]) for x in ['train', 'val']}
 
@@ -142,7 +153,7 @@ if __name__ == '__main__':
     localization_image_datasets['val'] = localization_val_d
 
     localization_dataloaders = {x: torch.utils.data.DataLoader(localization_image_datasets[x], \
-                   batch_size=32, shuffle=True, num_workers=8) for x in ['train', 'val']}
+                   batch_size=32, shuffle=True, num_workers=6) for x in ['train', 'val']}
 
     localization_dataset_sizes = {x: len(localization_image_datasets[x]) for x in ['train', 'val']}
 
@@ -151,10 +162,12 @@ if __name__ == '__main__':
     print (localization_dataset_sizes)
     print (len(localization_dataloaders['val']))
 
-    # create the model 
+    # create the model
     # total outputs is 80 (ground detection) and 66 (localization)
-    m = pretrained_model.Pretrained_Model(shape=(360,640,3), num_outputs=(80 + 66))
-    model = m.build()
+    m = pretrained_model.Pretrained_Model(
+        shape=(360,640,3), num_outputs1=80, num_outputs2=64)
+    m.build()
+    model = m
 
     #sys.exit()
 
@@ -163,6 +176,7 @@ if __name__ == '__main__':
 
     #configure the training
     ground_criterion = nn.L1Loss()        # use L1 for ground detection
+    #localization_criterion = nn.MSELoss() # use mean squared error for localization
     localization_criterion = nn.MSELoss() # use mean squared error for localization
 
     optimizer = optim.AdamW(model.parameters(), lr=0.005)
@@ -172,6 +186,6 @@ if __name__ == '__main__':
 
     #train the model
     model = train_model(
-        model, ground_criterion, localization_criterion, optimizer, 
+        model, ground_criterion, localization_criterion, optimizer,
         exp_lr_scheduler, num_epochs=203)
 

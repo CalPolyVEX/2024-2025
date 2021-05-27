@@ -37,6 +37,7 @@ class LocalizationDataset(Dataset):
         return len(self.images_filepaths)
 
     def __getitem__(self, idx):
+        #print (idx)
         image_filepath = self.images_filepaths[idx]
         image = cv2.imread(image_filepath) #read in BGR format
 
@@ -55,8 +56,8 @@ class LocalizationDataset(Dataset):
             else:
                 data_list.append(float(0.0))
 
-        data_list.append(float(0.0))
-        data_list.append(float(0.0))
+        # data_list.append(float(0.0))
+        # data_list.append(float(0.0))
 
         # apply the augmentations to the image
         if self.transform is not None:
