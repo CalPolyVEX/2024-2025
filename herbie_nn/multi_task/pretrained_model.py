@@ -37,8 +37,8 @@ class Pretrained_Model(torch.nn.Module):
 
         self.softmax = torch.nn.Softmax(1)
 
-        if load == True:
-            self.set_fixed()
+        # if load == True:
+        #     self.set_fixed()
 
     def forward(self, x):
         o1 = self.m(x)
@@ -82,8 +82,13 @@ class Pretrained_Model(torch.nn.Module):
         else:
             summary(self.m, (3, 224, 224))
 
-    def set_fixed(self):
-        model_ft = self.m
+    @staticmethod
+    def set_fixed(model):
+        print ("--setting fixed--")
+        layers = ['m', 'temp2', 'out2']
+
+        # fix the backbone
+        model_ft = model.m
         ct = 0
 
         for child in model_ft.children():
@@ -91,6 +96,29 @@ class Pretrained_Model(torch.nn.Module):
             print (child)
             for param in child.parameters():
                   param.requires_grad = False
+
+        print ('--backbone complete--')
+
+        # fix the backbone
+        model_ft = model.temp2
+        ct = 0
+
+        for child in model_ft.children():
+            ct += 1
+            print (child)
+            for param in child.parameters():
+                  param.requires_grad = False
+
+        # fix the backbone
+        model_ft = model.out2
+        ct = 0
+
+        for child in model_ft.children():
+            ct += 1
+            print (child)
+            for param in child.parameters():
+                  param.requires_grad = False
+
 
 if __name__ == '__main__':
     m = Pretrained_Model(shape=(360,640,3), num_outputs1=80, num_outputs2=64,

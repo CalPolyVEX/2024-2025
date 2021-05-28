@@ -42,6 +42,7 @@ def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=
             ground_iterations = len(ground_dataloaders[phase])
             localization_iterations = len(localization_dataloaders[phase])
 
+            # number of iterations determined the larger dataset
             if localization_iterations > ground_iterations:
                iterations = localization_iterations
             else:
@@ -69,14 +70,15 @@ def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=
                 gnd_inputs = gnd_inputs.to(device)
                 gnd_output_tensor = gnd_labels.to(device)
 
-                try:
-                    loc_inputs,loc_labels = next(localization_iterator)
-                except:
-                    localization_iterator = iter(localization_dataloaders[phase])
-                    loc_inputs,loc_labels = next(localization_iterator)
+                if retrain == False:
+                    try:
+                        loc_inputs,loc_labels = next(localization_iterator)
+                    except:
+                        localization_iterator = iter(localization_dataloaders[phase])
+                        loc_inputs,loc_labels = next(localization_iterator)
 
-                loc_inputs = loc_inputs.to(device)
-                loc_output_tensor = loc_labels.to(device)
+                    loc_inputs = loc_inputs.to(device)
+                    loc_output_tensor = loc_labels.to(device)
 
                 # zero the parameter gradients
                 optimizer.zero_grad()
@@ -85,15 +87,15 @@ def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=
                 with torch.set_grad_enabled(phase == 'train'):
                     outputs = model(gnd_inputs)
                     ground_output = outputs[0] # get the first 80 outputs
-
-                    output2 = model(loc_inputs)
-                    loc_output = output2[1] # get the last 66 outputs
-
                     loss1 = criterion1(ground_output, gnd_output_tensor)
-                    loss2 = criterion2(loc_output, loc_output_tensor)
 
-                    loss = loss1 + loss2
-                    # loss = loss2
+                    if retrain == False:
+                        output2 = model(loc_inputs)
+                        loc_output = output2[1] # get the last 66 outputs
+                        loss2 = criterion2(loc_output, loc_output_tensor)
+                        loss = loss1 + loss2 # update using both losses
+                    else:
+                        loss = loss1 # update using just the ground loss
 
                     # backward + optimize only if in training phase
                     if phase == 'train':
@@ -101,7 +103,10 @@ def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=
                         optimizer.step()
 
                 # statistics
-                running_loss += loss.item() * loc_inputs.size(0)
+                if retrain == False:
+                    running_loss += loss.item() * loc_inputs.size(0)
+                else:
+                    running_loss += loss.item() * gnd_inputs.size(0)
 
                 pbar.update(1)
                 sleep(0.01) #delay to print stats
@@ -119,7 +124,10 @@ def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=
                 print ("New T_max: " + str(tmax))
 
             #epoch_loss = running_loss / ground_dataset_sizes[phase]
-            epoch_loss = running_loss / localization_dataset_sizes[phase]
+            if retrain == False:
+                epoch_loss = running_loss / localization_dataset_sizes[phase]
+            else:
+                epoch_loss = running_loss / ground_dataset_sizes[phase]
 
             print('{} Loss: {:.4f}'.format(phase, epoch_loss))
 
@@ -128,7 +136,7 @@ def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=
                 best_loss = epoch_loss
                 best_model_wts = copy.deepcopy(model.state_dict())
                 print ("Saving new best model...")
-                # torch.save(model, 'test.pt')
+                torch.save(model, 'inference.pt')
                 torch.save({
                     'epoch': epoch,
                     'model_state_dict': model.state_dict(),
@@ -148,6 +156,15 @@ def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=
     return model
 
 if __name__ == '__main__':
+    if len(sys.argv) > 1 and sys.argv[1] == str(1):
+        retrain = True
+        ground_w = 10
+        loc_w = 1
+    else:
+        retrain = False
+        ground_w = 6
+        loc_w = 6
+
     # create the dataloader for the ground dataset
     ground_train_fp, ground_val_fp = ground_augment.ground_setup_dir()
     ground_train_d, ground_val_d = ground_augment.create_datasets(ground_train_fp, ground_val_fp)
@@ -157,7 +174,7 @@ if __name__ == '__main__':
     ground_image_datasets['val'] = ground_val_d
 
     ground_dataloaders = {x: torch.utils.data.DataLoader(ground_image_datasets[x], \
-                   batch_size=32, shuffle=True, num_workers=6) for x in ['train', 'val']}
+                   batch_size=32, shuffle=True, num_workers=ground_w) for x in ['train', 'val']}
 
     ground_dataset_sizes = {x: len(ground_image_datasets[x]) for x in ['train', 'val']}
 
@@ -170,7 +187,7 @@ if __name__ == '__main__':
     localization_image_datasets['val'] = localization_val_d
 
     localization_dataloaders = {x: torch.utils.data.DataLoader(localization_image_datasets[x], \
-                   batch_size=32, shuffle=True, num_workers=6) for x in ['train', 'val']}
+                   batch_size=32, shuffle=True, num_workers=loc_w) for x in ['train', 'val']}
 
     localization_dataset_sizes = {x: len(localization_image_datasets[x]) for x in ['train', 'val']}
 
@@ -179,13 +196,8 @@ if __name__ == '__main__':
     print (localization_dataset_sizes)
     print (len(localization_dataloaders['val']))
 
-
     # create the model
     # total outputs is 80 (ground detection) and 66 (localization)
-    if len(sys.argv) == 2 and sys.argv[1] == str(1):
-        retrain = True
-    else:
-        retrain = False
 
     if retrain == False:
         m = pretrained_model.Pretrained_Model(
@@ -194,27 +206,36 @@ if __name__ == '__main__':
         model = m
 
         optimizer = optim.AdamW(model.parameters(), lr=0.005)
+        # optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
+        #     model.parameters()), lr=0.005)
     else:
         m = pretrained_model.Pretrained_Model(
             shape=(360,640,3), num_outputs1=80, num_outputs2=64, load=retrain)
         m.build()
         model = m
-        print ("Retraining model")
+        print ("-----------Retraining model--------------")
 
         checkpoint = torch.load('test.pt')
         model.load_state_dict(checkpoint['model_state_dict'])
 
+        #print (model.m)
+
+        pretrained_model.Pretrained_Model.set_fixed(model)
+
+        #sys.exit()
+
         optimizer = optim.AdamW(model.parameters(), lr=0.005)
-        # epoch = checkpoint['epoch']
-        # loss = checkpoint['loss']
+        # optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
+        #     model.parameters()), lr=0.005)
 
     #sys.exit()
 
     if torch.cuda.is_available(): #send the model to the GPU if available
         model.cuda()
 
-    if retrain == True:
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    # if retrain == True:
+    #     print (checkpoint['optimizer_state_dict'])
+    #     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
     #configure the training
     ground_criterion = nn.L1Loss()        # use L1 for ground detection
