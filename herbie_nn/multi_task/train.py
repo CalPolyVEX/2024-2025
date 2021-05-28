@@ -128,7 +128,13 @@ def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=
                 best_loss = epoch_loss
                 best_model_wts = copy.deepcopy(model.state_dict())
                 print ("Saving new best model...")
-                torch.save(model, 'test.pt')
+                # torch.save(model, 'test.pt')
+                torch.save({
+                    'epoch': epoch,
+                    'model_state_dict': model.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'loss': loss
+                    }, 'test.pt')
 
         print()
 
@@ -173,24 +179,48 @@ if __name__ == '__main__':
     print (localization_dataset_sizes)
     print (len(localization_dataloaders['val']))
 
+
     # create the model
     # total outputs is 80 (ground detection) and 66 (localization)
-    m = pretrained_model.Pretrained_Model(
-        shape=(360,640,3), num_outputs1=80, num_outputs2=64)
-    m.build()
-    model = m
+    if len(sys.argv) == 2 and sys.argv[1] == str(1):
+        retrain = True
+    else:
+        retrain = False
+
+    if retrain == False:
+        m = pretrained_model.Pretrained_Model(
+            shape=(360,640,3), num_outputs1=80, num_outputs2=64, load=retrain)
+        m.build()
+        model = m
+
+        optimizer = optim.AdamW(model.parameters(), lr=0.005)
+    else:
+        m = pretrained_model.Pretrained_Model(
+            shape=(360,640,3), num_outputs1=80, num_outputs2=64, load=retrain)
+        m.build()
+        model = m
+        print ("Retraining model")
+
+        checkpoint = torch.load('test.pt')
+        model.load_state_dict(checkpoint['model_state_dict'])
+
+        optimizer = optim.AdamW(model.parameters(), lr=0.005)
+        # epoch = checkpoint['epoch']
+        # loss = checkpoint['loss']
 
     #sys.exit()
 
     if torch.cuda.is_available(): #send the model to the GPU if available
         model.cuda()
 
+    if retrain == True:
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
     #configure the training
     ground_criterion = nn.L1Loss()        # use L1 for ground detection
     #localization_criterion = nn.MSELoss() # use mean squared error for localization
     localization_criterion = nn.MSELoss() # use mean squared error for localization
 
-    optimizer = optim.AdamW(model.parameters(), lr=0.005)
     exp_lr_scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, verbose=True)
 
     # sys.exit()

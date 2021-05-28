@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 class Pretrained_Model(torch.nn.Module):
 # class Pretrained_Model:
-    def __init__(self, shape, num_outputs1, num_outputs2):
+    def __init__(self, shape, num_outputs1, num_outputs2, load):
         super(Pretrained_Model, self).__init__()
 
         self.shape = shape
@@ -21,7 +21,7 @@ class Pretrained_Model(torch.nn.Module):
         self.removed = list(self.m.children())[:-1]
         self.m = torch.nn.Sequential(*self.removed)
 
-        self.fc0 = torch.nn.Linear(1280, 512)
+        #self.fc0 = torch.nn.Linear(1280, 512)
 
         # self.fc1 = torch.nn.Linear(1280, 128)
         # self.fc2 = torch.nn.Linear(1280, 128)
@@ -29,10 +29,16 @@ class Pretrained_Model(torch.nn.Module):
         self.temp1 = torch.nn.Linear(1280, 256)
         self.temp2 = torch.nn.Linear(1280, 256)
 
+        #self.bn1 = torch.nn.Dropout(p=.05)
+        # self.bn2 = torch.nn.Dropout(p=.05)
+
         self.out1 = torch.nn.Linear(256, self.num_outputs1)
         self.out2 = torch.nn.Linear(256, self.num_outputs2)
 
         self.softmax = torch.nn.Softmax(1)
+
+        if load == True:
+            self.set_fixed()
 
     def forward(self, x):
         o1 = self.m(x)
@@ -76,8 +82,19 @@ class Pretrained_Model(torch.nn.Module):
         else:
             summary(self.m, (3, 224, 224))
 
+    def set_fixed(self):
+        model_ft = self.m
+        ct = 0
+
+        for child in model_ft.children():
+            ct += 1
+            print (child)
+            for param in child.parameters():
+                  param.requires_grad = False
+
 if __name__ == '__main__':
-    m = Pretrained_Model(shape=(360,640,3), num_outputs1=80, num_outputs2=64)
+    m = Pretrained_Model(shape=(360,640,3), num_outputs1=80, num_outputs2=64,
+        load=False)
     m = m.to(device='cuda')
     # model = m.build()
     print (m)
