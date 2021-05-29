@@ -83,42 +83,42 @@ class Pretrained_Model(torch.nn.Module):
             summary(self.m, (3, 224, 224))
 
     @staticmethod
-    def set_fixed(model):
-        print ("--setting fixed--")
-        layers = ['m', 'temp2', 'out2']
+    def set_fixed_ground(model):
+        print ("--setting fixed ground--")
 
-        # fix the backbone
-        model_ft = model.m
-        ct = 0
+        # freeze everything in the model
+        for param in model.parameters():
+            param.requires_grad = False
 
-        for child in model_ft.children():
-            ct += 1
-            print (child)
-            for param in child.parameters():
-                  param.requires_grad = False
+        # enable training for specific layers
+        model.temp1.weight.requires_grad = True
+        model.temp1.bias.requires_grad = True
+
+        model.out1.weight.requires_grad = True
+        model.out1.bias.requires_grad = True
 
         print ('--backbone complete--')
 
-        # fix the backbone
-        model_ft = model.temp2
-        ct = 0
+        return model
 
-        for child in model_ft.children():
-            ct += 1
-            print (child)
-            for param in child.parameters():
-                  param.requires_grad = False
+    @staticmethod
+    def set_fixed_localization(model):
+        print ("--setting fixed localization--")
 
-        # fix the backbone
-        model_ft = model.out2
-        ct = 0
+        # freeze everything in the model
+        for param in model.parameters():
+            param.requires_grad = False
 
-        for child in model_ft.children():
-            ct += 1
-            print (child)
-            for param in child.parameters():
-                  param.requires_grad = False
+        # enable training for specific layers
+        model.temp2.weight.requires_grad = True
+        model.temp2.bias.requires_grad = True
 
+        model.out2.weight.requires_grad = True
+        model.out2.bias.requires_grad = True
+
+        print ('--backbone complete--')
+
+        return model
 
 if __name__ == '__main__':
     m = Pretrained_Model(shape=(360,640,3), num_outputs1=80, num_outputs2=64,

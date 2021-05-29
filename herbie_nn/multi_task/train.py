@@ -21,7 +21,7 @@ cudnn.benchmark = True
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=25):
+def train_model(model, criterion1, criterion2, opt, scheduler, num_epochs=25):
     since = time.time() # get the starting time of training
 
     best_loss = 100000.0
@@ -35,9 +35,15 @@ def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
             if phase == 'train':
+                #model.apply(deactivate_batchnorm)
                 model.train()  # Set model to training mode
+
+                if retrain == 1 or retrain == 2:
+                    model.m.eval()
             else:
+                #model.apply(deactivate_batchnorm)
                 model.eval()   # Set model to evaluate mode
+                model.m.eval()
 
             ground_iterations = len(ground_dataloaders[phase])
             localization_iterations = len(localization_dataloaders[phase])
@@ -61,16 +67,17 @@ def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=
             pbar = tqdm(total=iterations,desc=phase,ncols=70)
             #for inputs, labels in ground_dataloaders[phase]:
             for i in range(iterations):
-                try:
-                    gnd_inputs,gnd_labels = next(ground_iterator)
-                except:
-                    ground_iterator = iter(ground_dataloaders[phase])
-                    gnd_inputs,gnd_labels = next(ground_iterator)
+                if retrain == 0 or retrain == 1:
+                    try:
+                        gnd_inputs,gnd_labels = next(ground_iterator)
+                    except:
+                        ground_iterator = iter(ground_dataloaders[phase])
+                        gnd_inputs,gnd_labels = next(ground_iterator)
 
-                gnd_inputs = gnd_inputs.to(device)
-                gnd_output_tensor = gnd_labels.to(device)
+                    gnd_inputs = gnd_inputs.to(device)
+                    gnd_output_tensor = gnd_labels.to(device)
 
-                if retrain == False:
+                if retrain == 0 or retrain == 2:
                     try:
                         loc_inputs,loc_labels = next(localization_iterator)
                     except:
@@ -81,32 +88,39 @@ def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=
                     loc_output_tensor = loc_labels.to(device)
 
                 # zero the parameter gradients
-                optimizer.zero_grad()
+                opt.zero_grad()
 
                 # Run the forward pass and track history if only in training
                 with torch.set_grad_enabled(phase == 'train'):
-                    outputs = model(gnd_inputs)
-                    ground_output = outputs[0] # get the first 80 outputs
-                    loss1 = criterion1(ground_output, gnd_output_tensor)
+                    if retrain == 0 or retrain == 1:
+                        outputs = model(gnd_inputs)
+                        ground_output = outputs[0] # get the first 80 outputs
+                        loss1 = criterion1(ground_output, gnd_output_tensor)
 
-                    if retrain == False:
+                    if retrain == 0 or retrain == 2:
                         output2 = model(loc_inputs)
                         loc_output = output2[1] # get the last 66 outputs
                         loss2 = criterion2(loc_output, loc_output_tensor)
+
+                    if retrain == 0:
                         loss = loss1 + loss2 # update using both losses
-                    else:
+                    elif retrain == 1:
                         loss = loss1 # update using just the ground loss
+                    else:
+                        loss = loss2 # update using just the ground loss
 
                     # backward + optimize only if in training phase
                     if phase == 'train':
                         loss.backward()
-                        optimizer.step()
+                        opt.step()
 
                 # statistics
-                if retrain == False:
+                if retrain == 0:
                     running_loss += loss.item() * loc_inputs.size(0)
-                else:
+                elif retrain == 1:
                     running_loss += loss.item() * gnd_inputs.size(0)
+                else:
+                    running_loss += loss.item() * loc_inputs.size(0)
 
                 pbar.update(1)
                 sleep(0.01) #delay to print stats
@@ -118,13 +132,15 @@ def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=
             # With the cosine annealing scheduler, the learning rate is
             # gradually reduced.  If the learning rate is very small, then
             # reset the scheduler to do a warm restart
-            if optimizer.param_groups[0]['lr'] < .0000001:
+            if opt.param_groups[0]['lr'] < .0000001:
                 tmax = int(tmax * tmax_factor)
-                scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=tmax, verbose=True)
+                scheduler = lr_scheduler.CosineAnnealingLR(opt, T_max=tmax, verbose=True)
                 print ("New T_max: " + str(tmax))
 
             #epoch_loss = running_loss / ground_dataset_sizes[phase]
-            if retrain == False:
+            if retrain == 0:
+                epoch_loss = running_loss / localization_dataset_sizes[phase]
+            if retrain == 1:
                 epoch_loss = running_loss / localization_dataset_sizes[phase]
             else:
                 epoch_loss = running_loss / ground_dataset_sizes[phase]
@@ -136,12 +152,13 @@ def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=
                 best_loss = epoch_loss
                 best_model_wts = copy.deepcopy(model.state_dict())
                 print ("Saving new best model...")
+                model.eval()
                 torch.save(model, 'inference.pt')
                 torch.save({
                     'epoch': epoch,
-                    'model_state_dict': model.state_dict(),
-                    'optimizer_state_dict': optimizer.state_dict(),
-                    'loss': loss
+                    'model_state_dict': model.state_dict()
+                    #'optimizer_state_dict': optimizer.state_dict(),
+                    #'loss': loss
                     }, 'test.pt')
 
         print()
@@ -157,11 +174,15 @@ def train_model(model, criterion1, criterion2, optimizer, scheduler, num_epochs=
 
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == str(1):
-        retrain = True
+        retrain = 1 # retrain ground
         ground_w = 10
         loc_w = 1
+    elif len(sys.argv) > 1 and sys.argv[1] == str(2):
+        retrain = 2 # retrain localization
+        ground_w = 1
+        loc_w = 10
     else:
-        retrain = False
+        retrain = 0 # initial training
         ground_w = 6
         loc_w = 6
 
@@ -199,43 +220,52 @@ if __name__ == '__main__':
     # create the model
     # total outputs is 80 (ground detection) and 66 (localization)
 
-    if retrain == False:
+    if retrain == 0: # initial training
         m = pretrained_model.Pretrained_Model(
             shape=(360,640,3), num_outputs1=80, num_outputs2=64, load=retrain)
         m.build()
         model = m
 
+        if torch.cuda.is_available(): #send the model to the GPU if available
+           model.cuda()
+
         optimizer = optim.AdamW(model.parameters(), lr=0.005)
-        # optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
-        #     model.parameters()), lr=0.005)
-    else:
+
+    elif retrain == 1: # retraining for ground detection
         m = pretrained_model.Pretrained_Model(
             shape=(360,640,3), num_outputs1=80, num_outputs2=64, load=retrain)
         m.build()
         model = m
-        print ("-----------Retraining model--------------")
+        print ("-----------Retraining model for ground detection--------------")
 
         checkpoint = torch.load('test.pt')
         model.load_state_dict(checkpoint['model_state_dict'])
 
-        #print (model.m)
+        if torch.cuda.is_available(): #send the model to the GPU if available
+           model.cuda()
 
-        pretrained_model.Pretrained_Model.set_fixed(model)
+        model = pretrained_model.Pretrained_Model.set_fixed_ground(model)
 
-        #sys.exit()
+        optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
+            model.parameters()), lr=0.005)
 
-        optimizer = optim.AdamW(model.parameters(), lr=0.005)
-        # optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
-        #     model.parameters()), lr=0.005)
+    elif retrain == 2: # retraining for localization
+        m = pretrained_model.Pretrained_Model(
+            shape=(360,640,3), num_outputs1=80, num_outputs2=64, load=retrain)
+        m.build()
+        model = m
+        print ("-----------Retraining model for localizaiton--------------")
 
-    #sys.exit()
+        checkpoint = torch.load('test.pt')
+        model.load_state_dict(checkpoint['model_state_dict'])
 
-    if torch.cuda.is_available(): #send the model to the GPU if available
-        model.cuda()
+        if torch.cuda.is_available(): #send the model to the GPU if available
+           model.cuda()
 
-    # if retrain == True:
-    #     print (checkpoint['optimizer_state_dict'])
-    #     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        model = pretrained_model.Pretrained_Model.set_fixed_localization(model)
+
+        optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
+            model.parameters()), lr=0.005)
 
     #configure the training
     ground_criterion = nn.L1Loss()        # use L1 for ground detection
