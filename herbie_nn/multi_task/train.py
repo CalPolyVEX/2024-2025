@@ -50,7 +50,7 @@ def train_model(model, criterion1, criterion2, opt, scheduler, num_epochs=25):
 
             # number of iterations determined the larger dataset
             if localization_iterations > ground_iterations:
-               iterations = localization_iterations
+               iterations = int(localization_iterations * 0.7)
             else:
                iterations = ground_iterations
 
@@ -103,6 +103,7 @@ def train_model(model, criterion1, criterion2, opt, scheduler, num_epochs=25):
                         loss2 = criterion2(loc_output, loc_output_tensor)
 
                     if retrain == 0:
+                        #print (str(loss1) + '  ' + str(loss2))
                         loss = loss1 + loss2 # update using both losses
                     elif retrain == 1:
                         loss = loss1 # update using just the ground loss

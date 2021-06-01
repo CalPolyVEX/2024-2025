@@ -74,10 +74,10 @@ def create_datasets(train_file_list,val_file_list):
       [
          A.RandomBrightnessContrast(p=0.5),
          A.GaussNoise(p=.25),
-         A.ISONoise(p=.15),
-         A.RandomShadow(p=.2),
-         A.MotionBlur(p=.1),
-         A.CoarseDropout(max_holes=5, max_height=30, max_width=30, p=.5),
+         A.ISONoise(p=.25),
+         A.RandomShadow(p=.3),
+         A.MotionBlur(p=.2),
+         A.CoarseDropout(max_holes=8, max_height=30, max_width=30, p=.5),
          A.Perspective(p=.3),
          ToTensorV2(),
       ]

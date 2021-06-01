@@ -21,24 +21,19 @@ class Pretrained_Model(torch.nn.Module):
         self.removed = list(self.m.children())[:-1]
         self.m = torch.nn.Sequential(*self.removed)
 
-        #self.fc0 = torch.nn.Linear(1280, 512)
+        self.temp1 = torch.nn.Linear(1280, 80)
+        self.temp2 = torch.nn.Linear(1280, 80)
 
-        # self.fc1 = torch.nn.Linear(1280, 128)
-        # self.fc2 = torch.nn.Linear(1280, 128)
+        self.do = torch.nn.Dropout(p=.15)
+        self.lr = torch.nn.LeakyReLU()
 
-        self.temp1 = torch.nn.Linear(1280, 256)
-        self.temp2 = torch.nn.Linear(1280, 256)
+        self.out1 = torch.nn.Linear(80, self.num_outputs1)
+        self.out2 = torch.nn.Linear(80, self.num_outputs2)
 
-        #self.bn1 = torch.nn.Dropout(p=.05)
-        # self.bn2 = torch.nn.Dropout(p=.05)
-
-        self.out1 = torch.nn.Linear(256, self.num_outputs1)
-        self.out2 = torch.nn.Linear(256, self.num_outputs2)
+        # self.out1a = torch.nn.Linear(512, 512)
+        #self.out2a = torch.nn.Linear(256, 256)
 
         self.softmax = torch.nn.Softmax(1)
-
-        # if load == True:
-        #     self.set_fixed()
 
     def forward(self, x):
         o1 = self.m(x)
@@ -48,8 +43,11 @@ class Pretrained_Model(torch.nn.Module):
         # o2 = F.relu6(self.fc1(o1), inplace=True)
         # o3 = F.relu6(self.fc1(o1), inplace=True)
 
-        o4 = F.relu6(self.temp1(o1), inplace=True)
-        o5 = F.relu6(self.temp2(o1), inplace=True)
+        o4 = self.lr(self.temp1(o1))
+        o5 = self.lr(self.temp2(o1))
+
+        # o6a = F.relu6(self.out1a(o4))
+        # o7a = F.relu6(self.out2a(o5))
 
         o6 = self.out1(o4)
         o7 = self.out2(o5)
@@ -97,6 +95,9 @@ class Pretrained_Model(torch.nn.Module):
         model.out1.weight.requires_grad = True
         model.out1.bias.requires_grad = True
 
+        # model.out1a.weight.requires_grad = True
+        # model.out1a.bias.requires_grad = True
+
         print ('--backbone complete--')
 
         return model
@@ -115,6 +116,9 @@ class Pretrained_Model(torch.nn.Module):
 
         model.out2.weight.requires_grad = True
         model.out2.bias.requires_grad = True
+
+        # model.out2a.weight.requires_grad = True
+        # model.out2a.bias.requires_grad = True
 
         print ('--backbone complete--')
 
