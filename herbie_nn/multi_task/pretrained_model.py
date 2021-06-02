@@ -24,14 +24,14 @@ class Pretrained_Model(torch.nn.Module):
 
         self.temp1 = torch.nn.Linear(1280, 80)
         self.temp2 = torch.nn.Linear(1280, 80)
-        self.temp3 = torch.nn.Linear(1280, 80)
+        self.temp3 = torch.nn.Linear(1280, 50)
 
         self.do = torch.nn.Dropout(p=.15)
         self.lr = torch.nn.LeakyReLU()
 
         self.out1 = torch.nn.Linear(80, self.num_outputs1)
         self.out2 = torch.nn.Linear(80, self.num_outputs2)
-        self.out3 = torch.nn.Linear(80, self.goal_outputs)
+        self.out3 = torch.nn.Linear(50, self.goal_outputs)
 
         self.softmax = torch.nn.Softmax(1)
 

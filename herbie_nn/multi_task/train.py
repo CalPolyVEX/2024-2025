@@ -97,7 +97,8 @@ def train_model(model, criterion1, criterion2, criterion3, opt, scheduler, num_e
                     loc_inputs = loc_inputs.to(device)
                     loc_output_tensor = loc_labels.to(device)
 
-                if retrain == 0 or retrain == 3:
+                #if retrain == 0 or retrain == 3:
+                if retrain == 3:
                     try:
                         goal_inputs,goal_labels = next(goal_iterator)
                     except:
@@ -122,16 +123,18 @@ def train_model(model, criterion1, criterion2, criterion3, opt, scheduler, num_e
                         loc_output = output2[1] # get the last 66 outputs
                         loss2 = criterion2(loc_output, loc_output_tensor)
 
-                    if retrain == 0 or retrain == 3:
-                        # outputs = model(goal_inputs)
-                        # goal_output = outputs[2] # get the last 2 goal outputs
-                        # loss3 = criterion3(goal_output, goal_output_tensor)
-                        pass
+                    #if retrain == 0 or retrain == 3:
+                    if retrain == 3:
+                        # print ('shape')
+                        # print (goal_inputs.shape)
+                        outputs = model(goal_inputs)
+                        goal_output = outputs[2] # get the last 2 goal outputs
+                        loss3 = criterion3(goal_output, goal_output_tensor)
+                        #pass
 
                     if retrain == 0:
                         #print (str(loss1) + '  ' + str(loss2))
-                        loss3 = 0
-                        loss = loss1 + loss2 + loss3 # update using all losses
+                        loss = (loss1 + loss2) # update using all losses
                         #print(loss1, loss2, loss3)
                     elif retrain == 1:
                         loss = loss1 # update using just the ground loss
@@ -174,9 +177,9 @@ def train_model(model, criterion1, criterion2, criterion3, opt, scheduler, num_e
             if retrain == 0:
                 epoch_loss = running_loss / localization_dataset_sizes[phase]
             if retrain == 1:
-                epoch_loss = running_loss / localization_dataset_sizes[phase]
-            if retrain == 2:
                 epoch_loss = running_loss / ground_dataset_sizes[phase]
+            if retrain == 2:
+                epoch_loss = running_loss / localization_dataset_sizes[phase]
             else:
                 epoch_loss = running_loss / goal_dataset_sizes[phase]
 
@@ -225,9 +228,9 @@ if __name__ == '__main__':
         goal_w = 10
     else:
         retrain = 0 # initial training
-        ground_w = 4
-        loc_w = 4
-        goal_w = 4
+        ground_w = 6
+        loc_w = 5
+        goal_w = 1
 
     # create the dataloader for the ground dataset
     ground_train_fp, ground_val_fp = ground_augment.ground_setup_dir()
