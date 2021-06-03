@@ -49,13 +49,23 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             ground_iterations = len(ground_dataloaders[phase])
             ground_iterator = iter(ground_dataloaders[phase])
 
+            loc_iterations = len(loc_dataloaders[phase])
+            loc_iterator = iter(loc_dataloaders[phase])
+
             for i in range(ground_iterations):
-
             #for inputs, labels in dataloaders[phase]:
-                inputs, labels = next(ground_iterator)
+                loc_freq = 2
 
-                inputs = inputs.to(device)
-                output_tensor = labels.to(device)
+                if i % loc_freq == 0:
+                    inputs, labels = next(loc_iterator)
+
+                    inputs = inputs.to(device)
+                    output_tensor = labels.to(device)
+                else:
+                    inputs, labels = next(ground_iterator)
+
+                    inputs = inputs.to(device)
+                    output_tensor = labels.to(device)
 
                 #print(output_tensor.shape)
 
@@ -68,7 +78,11 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                     preds = outputs
 
                     #print (outputs.shape)
-                    loss = criterion(outputs[0], output_tensor)
+                    if i % loc_freq == 0: #localization
+                         #outputs = outputs.to(dtype=torch.long)
+                         loss = criterion[1](outputs[1], output_tensor)
+                    else: # ground
+                         loss = criterion[0](outputs[0], output_tensor)
 
                     # backward + optimize only if in training phase
                     if phase == 'train':
@@ -116,6 +130,15 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     return model
 
 if __name__ == '__main__':
+    if len(sys.argv) > 1 and sys.argv[1] == str(1):
+        retrain = 1 # retrain ground
+    elif len(sys.argv) > 1 and sys.argv[1] == str(2):
+        retrain = 2 # retrain localization
+    elif len(sys.argv) > 1 and sys.argv[1] == str(3):
+        retrain = 3 # retrain goal
+    else:
+        retrain = 0 # initial training
+
     # create the dataloader for the ground dataset
     ground_train_fp, ground_val_fp = ground_augment.ground_setup_dir()
     ground_train_d, ground_val_d = ground_augment.create_datasets(ground_train_fp, ground_val_fp)
@@ -157,9 +180,19 @@ if __name__ == '__main__':
     print (ground_dataset_sizes)
 
     #create the model
-    m = pretrained_model.Pretrained_Model(shape=(360,640,3), num_outputs1=80,
-        num_outputs2=64, goal_outputs=2)
-    model = m
+    if retrain == 0:
+        m = pretrained_model.Pretrained_Model(shape=(360,640,3), num_outputs1=80,
+            num_outputs2=64, goal_outputs=2)
+        model = m
+
+        if torch.cuda.is_available(): #send the model to the GPU if available
+           model.cuda()
+
+        optimizer = optim.AdamW(model.parameters(), lr=0.005)
+    elif retrain == 1:
+        pass
+    elif retrain == 2:
+        pass
     # enable training for specific layers
     # model.temp2.weight.requires_grad = False
     # model.temp2.bias.requires_grad = False
@@ -174,12 +207,12 @@ if __name__ == '__main__':
     # model.out2.bias.requires_grad = False
     #model = m.build()
 
-    if torch.cuda.is_available(): #send the model to the GPU if available
-        model.cuda()
+    # if torch.cuda.is_available(): #send the model to the GPU if available
+    #     model.cuda()
 
     #configure the training
-    criterion = nn.L1Loss()
-    optimizer = optim.AdamW(model.parameters(), lr=0.005)
+    criterion = [nn.L1Loss(), nn.MSELoss()]
+    # optimizer = optim.AdamW(model.parameters(), lr=0.005)
     exp_lr_scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, verbose=True)
 
     #train the model
