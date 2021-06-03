@@ -23,40 +23,31 @@ class Pretrained_Model(torch.nn.Module):
         self.m = torch.nn.Sequential(*self.removed)
 
         self.temp1 = torch.nn.Linear(1280, 80)
-        self.temp2 = torch.nn.Linear(1280, 80)
-        self.temp3 = torch.nn.Linear(1280, 50)
+        self.temp2 = torch.nn.Linear(1280, 64)
+        self.temp3 = torch.nn.Linear(1280, 10)
 
-        self.do = torch.nn.Dropout(p=.15)
         self.lr = torch.nn.LeakyReLU()
 
-        self.out1 = torch.nn.Linear(80, self.num_outputs1)
-        self.out2 = torch.nn.Linear(80, self.num_outputs2)
-        self.out3 = torch.nn.Linear(50, self.goal_outputs)
+        #self.out1 = torch.nn.Linear(80, self.num_outputs1)
+        self.out2 = torch.nn.Linear(64, self.num_outputs2)
+        self.out3 = torch.nn.Linear(10, self.goal_outputs)
 
         self.softmax = torch.nn.Softmax(1)
 
     def forward(self, x):
         o1 = self.m(x)
 
-        #o2 = F.relu6(self.fc0(o1), inplace=True)
-
-        # o2 = F.relu6(self.fc1(o1), inplace=True)
-        # o3 = F.relu6(self.fc1(o1), inplace=True)
-
         o4 = self.lr(self.temp1(o1))
         o5 = self.lr(self.temp2(o1))
         goal_hidden_out = self.lr(self.temp3(o1))
 
-        # o6a = F.relu6(self.out1a(o4))
-        # o7a = F.relu6(self.out2a(o5))
-
-        o6 = self.out1(o4)
+        #o6 = self.out1(o4)
         o7 = self.out2(o5)
         goal_out = self.out3(goal_hidden_out)
 
         o8 = self.softmax(o7) # localization output
 
-        return o6,o8,goal_out
+        return o4,o8,goal_out
 
     def build(self):
         #self.m = timm.create_model('efficientnet_lite0', pretrained=True)
@@ -94,8 +85,8 @@ class Pretrained_Model(torch.nn.Module):
         model.temp1.weight.requires_grad = True
         model.temp1.bias.requires_grad = True
 
-        model.out1.weight.requires_grad = True
-        model.out1.bias.requires_grad = True
+        # model.out1.weight.requires_grad = True
+        # model.out1.bias.requires_grad = True
 
         print ('--backbone complete--')
 

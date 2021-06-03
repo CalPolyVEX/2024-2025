@@ -53,7 +53,8 @@ def train_model(model, criterion1, criterion2, criterion3, opt, scheduler, num_e
             # number of iterations determined the larger dataset
             if retrain == 0:
                if localization_iterations > ground_iterations:
-                  iterations = int(localization_iterations * 0.7)
+                  #iterations = int(localization_iterations * 0.7)
+                  iterations = ground_iterations # set to the smaller number
                else:
                   iterations = ground_iterations
             elif retrain == 1:
@@ -66,6 +67,8 @@ def train_model(model, criterion1, criterion2, criterion3, opt, scheduler, num_e
             #print ('iterations: ' + str(iterations))
 
             running_loss = 0.0
+            total_loss1 = 0.0
+            total_loss2 = 0.0
             #iterations = len(ground_dataloaders[phase])
             #iterations = l
 
@@ -134,7 +137,13 @@ def train_model(model, criterion1, criterion2, criterion3, opt, scheduler, num_e
 
                     if retrain == 0:
                         #print (str(loss1) + '  ' + str(loss2))
-                        loss = (loss1 + loss2) # update using all losses
+                        loss_part1 = .8 * loss1
+                        loss_part2 = .2 * loss2
+
+                        loss = loss_part1 + loss_part2 # update using all losses
+                        total_loss1 += loss_part1.item() * gnd_inputs.size(0)
+                        total_loss2 += loss_part2.item() * gnd_inputs.size(0)
+
                         #print(loss1, loss2, loss3)
                     elif retrain == 1:
                         loss = loss1 # update using just the ground loss
@@ -175,7 +184,9 @@ def train_model(model, criterion1, criterion2, criterion3, opt, scheduler, num_e
 
             #epoch_loss = running_loss / ground_dataset_sizes[phase]
             if retrain == 0:
-                epoch_loss = running_loss / localization_dataset_sizes[phase]
+                epoch_loss = running_loss / ground_dataset_sizes[phase]
+                total_loss1 = total_loss1 / ground_dataset_sizes[phase]
+                total_loss2 = total_loss2 / ground_dataset_sizes[phase]
             if retrain == 1:
                 epoch_loss = running_loss / ground_dataset_sizes[phase]
             if retrain == 2:
@@ -184,6 +195,8 @@ def train_model(model, criterion1, criterion2, criterion3, opt, scheduler, num_e
                 epoch_loss = running_loss / goal_dataset_sizes[phase]
 
             print('{} Loss: {:.4f}'.format(phase, epoch_loss))
+            print('Loss Ground: {:.4f}'.format(total_loss1))
+            print('Loss Localization: {:.4f}'.format(total_loss2))
 
             # deep copy the model
             if phase == 'val' and epoch_loss < best_loss:
@@ -241,7 +254,7 @@ if __name__ == '__main__':
     ground_image_datasets['val'] = ground_val_d
 
     ground_dataloaders = {x: torch.utils.data.DataLoader(ground_image_datasets[x], \
-                   batch_size=32, shuffle=True, num_workers=ground_w) for x in ['train', 'val']}
+                   batch_size=16, shuffle=True, num_workers=ground_w) for x in ['train', 'val']}
 
     ground_dataset_sizes = {x: len(ground_image_datasets[x]) for x in ['train', 'val']}
 
@@ -254,7 +267,7 @@ if __name__ == '__main__':
     localization_image_datasets['val'] = localization_val_d
 
     localization_dataloaders = {x: torch.utils.data.DataLoader(localization_image_datasets[x], \
-                   batch_size=32, shuffle=True, num_workers=loc_w) for x in ['train', 'val']}
+                   batch_size=16, shuffle=True, num_workers=loc_w) for x in ['train', 'val']}
 
     localization_dataset_sizes = {x: len(localization_image_datasets[x]) for x in ['train', 'val']}
 
@@ -267,7 +280,7 @@ if __name__ == '__main__':
     goal_image_datasets['val'] = goal_val_d
 
     goal_dataloaders = {x: torch.utils.data.DataLoader(goal_image_datasets[x], \
-                   batch_size=32, shuffle=True, num_workers=goal_w) for x in ['train', 'val']}
+                   batch_size=16, shuffle=True, num_workers=goal_w) for x in ['train', 'val']}
 
     goal_dataset_sizes = {x: len(goal_image_datasets[x]) for x in ['train', 'val']}
 
