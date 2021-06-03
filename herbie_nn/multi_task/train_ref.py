@@ -1,6 +1,7 @@
 import copy
 import os, time
-import augment
+import ground_augment
+import localization_augment
 import pretrained_model
 
 import albumentations as A
@@ -39,14 +40,24 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 model.eval()   # Set model to evaluate mode
 
             running_loss = 0.0
-            iterations = len(dataloaders[phase])
+            iterations = len(ground_dataloaders[phase])
 
             # Iterate over data.
             pbar = tqdm(total=iterations,desc=phase,ncols=70)
 
-            for inputs, labels in dataloaders[phase]:
+            # testing iterations
+            ground_iterations = len(ground_dataloaders[phase])
+            ground_iterator = iter(ground_dataloaders[phase])
+
+            for i in range(ground_iterations):
+
+            #for inputs, labels in dataloaders[phase]:
+                inputs, labels = next(ground_iterator)
+
                 inputs = inputs.to(device)
                 output_tensor = labels.to(device)
+
+                #print(output_tensor.shape)
 
                 # zero the parameter gradients
                 optimizer.zero_grad()
@@ -55,7 +66,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 with torch.set_grad_enabled(phase == 'train'):
                     outputs = model(inputs)
                     preds = outputs
-                    loss = criterion(outputs, output_tensor)
+
+                    #print (outputs.shape)
+                    loss = criterion(outputs[0], output_tensor)
 
                     # backward + optimize only if in training phase
                     if phase == 'train':
@@ -80,7 +93,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=tmax, verbose=True)
                 print ("New T_max: " + str(tmax))
 
-            epoch_loss = running_loss / dataset_sizes[phase]
+            epoch_loss = running_loss / ground_dataset_sizes[phase]
 
             print('{} Loss: {:.4f}'.format(phase, epoch_loss))
 
@@ -103,22 +116,63 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     return model
 
 if __name__ == '__main__':
-    train_fp, val_fp = augment.setup_dir()
-    train_d, val_d = augment.create_datasets(train_fp, val_fp)
+    # create the dataloader for the ground dataset
+    ground_train_fp, ground_val_fp = ground_augment.ground_setup_dir()
+    ground_train_d, ground_val_d = ground_augment.create_datasets(ground_train_fp, ground_val_fp)
 
-    image_datasets = {}
-    image_datasets['train'] = train_d
-    image_datasets['val'] = val_d
+    ground_image_datasets = {}
+    ground_image_datasets['train'] = ground_train_d
+    ground_image_datasets['val'] = ground_val_d
 
-    dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], \
-                   batch_size=32, shuffle=True, num_workers=12) for x in ['train', 'val']}
+    ground_dataloaders = {x: torch.utils.data.DataLoader(ground_image_datasets[x], \
+                   batch_size=32, shuffle=True, num_workers=6) for x in ['train', 'val']}
 
-    dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
-    print (dataset_sizes)
+    ground_dataset_sizes = {x: len(ground_image_datasets[x]) for x in ['train', 'val']}
+
+    # localization dataloader
+    loc_train_fp, loc_val_fp = localization_augment.localization_setup_dir()
+    loc_train_d, loc_val_d = localization_augment.create_datasets(loc_train_fp, loc_val_fp)
+
+    loc_image_datasets = {}
+    loc_image_datasets['train'] = loc_train_d
+    loc_image_datasets['val'] = loc_val_d
+
+    loc_dataloaders = {x: torch.utils.data.DataLoader(loc_image_datasets[x], \
+                   batch_size=32, shuffle=True, num_workers=6) for x in ['train', 'val']}
+
+    loc_dataset_sizes = {x: len(loc_image_datasets[x]) for x in ['train', 'val']}
+
+    #ground data
+    # train_fp, val_fp = ground_augment.ground_setup_dir()
+    # train_d, val_d = ground_augment.create_datasets(train_fp, val_fp)
+
+    # image_datasets = {}
+    # image_datasets['train'] = train_d
+    # image_datasets['val'] = val_d
+
+    # dataloaders = {x: torch.utils.data.DataLoader(image_datasets[x], \
+    #                batch_size=32, shuffle=True, num_workers=12) for x in ['train', 'val']}
+
+    #dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
+    print (ground_dataset_sizes)
 
     #create the model
-    m = pretrained_model.Pretrained_Model(shape=(360,640,3), num_outputs=80)
-    model = m.build()
+    m = pretrained_model.Pretrained_Model(shape=(360,640,3), num_outputs1=80,
+        num_outputs2=64, goal_outputs=2)
+    model = m
+    # enable training for specific layers
+    # model.temp2.weight.requires_grad = False
+    # model.temp2.bias.requires_grad = False
+
+    # model.out2.weight.requires_grad = False
+    # model.out2.bias.requires_grad = False
+
+    # model.temp2.weight.requires_grad = False
+    # model.temp2.bias.requires_grad = False
+
+    # model.out2.weight.requires_grad = False
+    # model.out2.bias.requires_grad = False
+    #model = m.build()
 
     if torch.cuda.is_available(): #send the model to the GPU if available
         model.cuda()
