@@ -1,5 +1,5 @@
 import copy
-import os, time
+import os, time, sys
 import ground_augment
 import localization_augment
 import pretrained_model
@@ -36,14 +36,13 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
         for phase in ['train', 'val']:
             if phase == 'train':
                 model.train()  # Set model to training mode
+
+                if retrain == 1 or retrain == 2:
+                    model.m.eval()
             else:
                 model.eval()   # Set model to evaluate mode
 
             running_loss = 0.0
-            iterations = len(ground_dataloaders[phase])
-
-            # Iterate over data.
-            pbar = tqdm(total=iterations,desc=phase,ncols=70)
 
             # testing iterations
             ground_iterations = len(ground_dataloaders[phase])
@@ -52,17 +51,31 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             loc_iterations = len(loc_dataloaders[phase])
             loc_iterator = iter(loc_dataloaders[phase])
 
-            for i in range(ground_iterations):
+            if retrain == 0:
+                iterations = ground_iterations
+            elif retrain == 2:
+                iterations = loc_iterations
+
+            # Iterate over data.
+            pbar = tqdm(total=iterations,desc=phase,ncols=70)
+
+            for i in range(iterations):
             #for inputs, labels in dataloaders[phase]:
-                loc_freq = 2
+                loc_freq = 20
 
-                if i % loc_freq == 0:
+                if retrain == 0:
+                    if i % loc_freq == 0:
+                        inputs, labels = next(loc_iterator)
+
+                        inputs = inputs.to(device)
+                        output_tensor = labels.to(device)
+                    else:
+                        inputs, labels = next(ground_iterator)
+
+                        inputs = inputs.to(device)
+                        output_tensor = labels.to(device)
+                elif retrain == 2:
                     inputs, labels = next(loc_iterator)
-
-                    inputs = inputs.to(device)
-                    output_tensor = labels.to(device)
-                else:
-                    inputs, labels = next(ground_iterator)
 
                     inputs = inputs.to(device)
                     output_tensor = labels.to(device)
@@ -78,11 +91,14 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                     preds = outputs
 
                     #print (outputs.shape)
-                    if i % loc_freq == 0: #localization
-                         #outputs = outputs.to(dtype=torch.long)
-                         loss = criterion[1](outputs[1], output_tensor)
-                    else: # ground
-                         loss = criterion[0](outputs[0], output_tensor)
+                    if retrain == 0:
+                        if i % loc_freq == 0: #localization
+                             #outputs = outputs.to(dtype=torch.long)
+                             loss = criterion[1](outputs[1], output_tensor)
+                        else: # ground
+                             loss = criterion[0](outputs[0], output_tensor)
+                    elif retrain == 2:
+                        loss = criterion[1](outputs[1], output_tensor)
 
                     # backward + optimize only if in training phase
                     if phase == 'train':
@@ -107,7 +123,10 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=tmax, verbose=True)
                 print ("New T_max: " + str(tmax))
 
-            epoch_loss = running_loss / ground_dataset_sizes[phase]
+            if retrain == 0:
+                epoch_loss = running_loss / ground_dataset_sizes[phase]
+            elif retrain == 2:
+                epoch_loss = running_loss / loc_dataset_sizes[phase]
 
             print('{} Loss: {:.4f}'.format(phase, epoch_loss))
 
@@ -116,7 +135,11 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 best_loss = epoch_loss
                 best_model_wts = copy.deepcopy(model.state_dict())
                 print ("Saving new best model...")
-                torch.save(model, 'test.pt')
+                torch.save(model, 'inference.pt')
+                torch.save({
+                    'epoch': epoch,
+                    'model_state_dict': model.state_dict()
+                    }, 'test.pt')
 
         print()
 
@@ -134,10 +157,14 @@ if __name__ == '__main__':
         retrain = 1 # retrain ground
     elif len(sys.argv) > 1 and sys.argv[1] == str(2):
         retrain = 2 # retrain localization
+        g_workers = 1
+        l_workers = 11
     elif len(sys.argv) > 1 and sys.argv[1] == str(3):
         retrain = 3 # retrain goal
     else:
         retrain = 0 # initial training
+        g_workers = 6
+        l_workers = 6
 
     # create the dataloader for the ground dataset
     ground_train_fp, ground_val_fp = ground_augment.ground_setup_dir()
@@ -148,7 +175,7 @@ if __name__ == '__main__':
     ground_image_datasets['val'] = ground_val_d
 
     ground_dataloaders = {x: torch.utils.data.DataLoader(ground_image_datasets[x], \
-                   batch_size=32, shuffle=True, num_workers=6) for x in ['train', 'val']}
+                   batch_size=16, shuffle=True, num_workers=g_workers) for x in ['train', 'val']}
 
     ground_dataset_sizes = {x: len(ground_image_datasets[x]) for x in ['train', 'val']}
 
@@ -161,7 +188,7 @@ if __name__ == '__main__':
     loc_image_datasets['val'] = loc_val_d
 
     loc_dataloaders = {x: torch.utils.data.DataLoader(loc_image_datasets[x], \
-                   batch_size=32, shuffle=True, num_workers=6) for x in ['train', 'val']}
+                   batch_size=16, shuffle=True, num_workers=l_workers) for x in ['train', 'val']}
 
     loc_dataset_sizes = {x: len(loc_image_datasets[x]) for x in ['train', 'val']}
 
@@ -189,10 +216,43 @@ if __name__ == '__main__':
            model.cuda()
 
         optimizer = optim.AdamW(model.parameters(), lr=0.005)
+
     elif retrain == 1:
-        pass
+        # retrain the ground detection
+        m = pretrained_model.Pretrained_Model(
+            shape=(360,640,3), num_outputs1=80, num_outputs2=64, goal_outputs=2)
+        model = m
+        print ("-----------Retraining model for ground detection--------------")
+
+        checkpoint = torch.load('test.pt')
+        model.load_state_dict(checkpoint['model_state_dict'])
+
+        if torch.cuda.is_available(): #send the model to the GPU if available
+           model.cuda()
+
+        model = pretrained_model.Pretrained_Model.set_fixed_ground(model)
+
+        optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
+            model.parameters()), lr=0.005)
+
     elif retrain == 2:
-        pass
+        # retrain the localization head
+        m = pretrained_model.Pretrained_Model(
+            shape=(360,640,3), num_outputs1=80, num_outputs2=64, goal_outputs=2)
+        model = m
+        print ("-----------Retraining model for localizaiton--------------")
+
+        checkpoint = torch.load('test.pt')
+        model.load_state_dict(checkpoint['model_state_dict'])
+
+        if torch.cuda.is_available(): #send the model to the GPU if available
+           model.cuda()
+
+        model = pretrained_model.Pretrained_Model.set_fixed_localization(model)
+
+        optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
+            model.parameters()), lr=0.005)
+
     # enable training for specific layers
     # model.temp2.weight.requires_grad = False
     # model.temp2.bias.requires_grad = False

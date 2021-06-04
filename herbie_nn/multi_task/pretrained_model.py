@@ -6,7 +6,7 @@ import torch.nn.functional as F
 
 class Pretrained_Model(torch.nn.Module):
 # class Pretrained_Model:
-    def __init__(self, shape, num_outputs1, num_outputs2, goal_outputs, load):
+    def __init__(self, shape, num_outputs1, num_outputs2, goal_outputs):
         super(Pretrained_Model, self).__init__()
 
         self.shape = shape
@@ -16,8 +16,6 @@ class Pretrained_Model(torch.nn.Module):
 
         # instantiate pre-trained model
         self.m = timm.create_model('efficientnet_lite0', pretrained=True)
-        #self.m = timm.create_model('hardcorenas_a', pretrained=True)
-        #self.m = timm.create_model('efficientnet_b1', pretrained=True)
 
         self.removed = list(self.m.children())[:-1]
         self.m = torch.nn.Sequential(*self.removed)
@@ -41,31 +39,17 @@ class Pretrained_Model(torch.nn.Module):
         o5 = self.lr(self.temp2(o1))
         goal_hidden_out = self.lr(self.temp3(o1))
 
-        #o6 = self.out1(o4)
         o7 = self.out2(o5)
         goal_out = self.out3(goal_hidden_out)
 
         o8 = self.softmax(o7) # localization output
 
-        return o4,o8,goal_out
+        #return o4,o8,goal_out
+        return o4, o8, goal_out
 
     def build(self):
-        #self.m = timm.create_model('efficientnet_lite0', pretrained=True)
-
-        # remove the last layer of the pretrained model
-        # 'classifier' is the name of the final layer of the model
-        #num_final_inputs = self.m.classifier.in_features
-        # self.m.classifier[0] = torch.nn.Linear(num_final_inputs, 128)
-        # self.m.out1 = torch.nn.Linear(128, self.num_outputs1)
-
-        # self.m.classifier[1] = torch.nn.Linear(num_final_inputs, 128)
-        # self.m.out2 = torch.nn.Linear(128, self.num_outputs2)
-
         print(self.m)
         self.print_summary()
-
-        # return model
-        return self.m
 
     def print_summary(self):
         if torch.cuda.is_available():
@@ -132,7 +116,7 @@ class Pretrained_Model(torch.nn.Module):
 
 if __name__ == '__main__':
     m = Pretrained_Model(shape=(360,640,3), num_outputs1=80, num_outputs2=64,
-        load=False)
+        goal_outputs=2)
     m = m.to(device='cuda')
     # model = m.build()
     print (m)

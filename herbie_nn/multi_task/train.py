@@ -28,21 +28,25 @@ def train_model(model, criterion1, criterion2, criterion3, opt, scheduler, num_e
     best_loss = 100000.0
     tmax_factor = 1.5 # with warm restart, multiply the max factor by this amount
     tmax = 10 # after tmax iterations, the learning rate is reset
+    loc_frequency = 500000
 
     for epoch in range(num_epochs):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
 
+        # for param in model.parameters():
+        #     print (param)
+
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
+
             if phase == 'train':
-                #model.apply(deactivate_batchnorm)
                 model.train()  # Set model to training mode
 
                 if retrain == 1 or retrain == 2 or retrain == 3:
                     model.m.eval()
+
             else:
-                #model.apply(deactivate_batchnorm)
                 model.eval()   # Set model to evaluate mode
                 model.m.eval()
 
@@ -69,8 +73,6 @@ def train_model(model, criterion1, criterion2, criterion3, opt, scheduler, num_e
             running_loss = 0.0
             total_loss1 = 0.0
             total_loss2 = 0.0
-            #iterations = len(ground_dataloaders[phase])
-            #iterations = l
 
             ground_iterator = iter(ground_dataloaders[phase])
             localization_iterator = iter(localization_dataloaders[phase])
@@ -79,7 +81,53 @@ def train_model(model, criterion1, criterion2, criterion3, opt, scheduler, num_e
             # Iterate over data.
             pbar = tqdm(total=iterations,desc=phase,ncols=70)
             #for inputs, labels in ground_dataloaders[phase]:
+            loc_train_counter = 0
+
             for i in range(iterations):
+
+                loc_train_counter += 1
+
+                # if retrain == 0:
+                #     if loc_train_counter % loc_frequency == 0:
+                #         model.temp2.train()
+                #         model.temp3.train()
+
+                #         model.out2.train()
+                #         model.out3.train()
+
+                #         # enable training for specific layers
+                #         model.temp2.weight.requires_grad = True
+                #         model.temp2.bias.requires_grad = True
+
+                #         model.out2.weight.requires_grad = True
+                #         model.out2.bias.requires_grad = True
+
+                #         model.temp3.weight.requires_grad = True
+                #         model.temp3.bias.requires_grad = True
+
+                #         model.out3.weight.requires_grad = True
+                #         model.out3.bias.requires_grad = True
+
+                #     else: # set the localization head to not update
+                #         model.temp2.eval()
+                #         model.temp3.eval()
+
+                #         model.out2.eval()
+                #         model.out3.eval()
+
+                #         # enable training for specific layers
+                #         model.temp2.weight.requires_grad = False
+                #         model.temp2.bias.requires_grad = False
+
+                #         model.out2.weight.requires_grad = False
+                #         model.out2.bias.requires_grad = False
+
+                #         model.temp3.weight.requires_grad = False
+                #         model.temp3.bias.requires_grad = False
+
+                #         model.out3.weight.requires_grad = False
+                #         model.out3.bias.requires_grad = False
+
                 if retrain == 0 or retrain == 1:
                     try:
                         gnd_inputs,gnd_labels = next(ground_iterator)
@@ -118,10 +166,12 @@ def train_model(model, criterion1, criterion2, criterion3, opt, scheduler, num_e
                 with torch.set_grad_enabled(phase == 'train'):
                     if retrain == 0 or retrain == 1:
                         outputs = model(gnd_inputs)
-                        ground_output = outputs[0] # get the first 80 outputs
+                        ground_output = outputs # get the first 80 outputs
                         loss1 = criterion1(ground_output, gnd_output_tensor)
+                        # print (loss1)
 
-                    if retrain == 0 or retrain == 2:
+                    #if retrain == 0 or retrain == 2:
+                    if retrain == 2:
                         output2 = model(loc_inputs)
                         loc_output = output2[1] # get the last 66 outputs
                         loss2 = criterion2(loc_output, loc_output_tensor)
@@ -133,16 +183,20 @@ def train_model(model, criterion1, criterion2, criterion3, opt, scheduler, num_e
                         outputs = model(goal_inputs)
                         goal_output = outputs[2] # get the last 2 goal outputs
                         loss3 = criterion3(goal_output, goal_output_tensor)
-                        #pass
 
                     if retrain == 0:
                         #print (str(loss1) + '  ' + str(loss2))
                         loss_part1 = .8 * loss1
-                        loss_part2 = .2 * loss2
+                        #loss_part2 = .2 * loss2
 
-                        loss = loss_part1 + loss_part2 # update using all losses
-                        total_loss1 += loss_part1.item() * gnd_inputs.size(0)
-                        total_loss2 += loss_part2.item() * gnd_inputs.size(0)
+                        if loc_train_counter % loc_frequency == 0:
+                            loss = loss_part1 + loss_part2 # update using all losses
+                            total_loss1 += loss_part1.item() * gnd_inputs.size(0)
+                            total_loss2 += loss_part2.item() * gnd_inputs.size(0)
+                        else:
+                            loss = loss1 # update using just ground loss
+                            total_loss1 += loss.item() * gnd_inputs.size(0)
+                            total_loss2 += 0 * gnd_inputs.size(0)
 
                         #print(loss1, loss2, loss3)
                     elif retrain == 1:
@@ -169,6 +223,7 @@ def train_model(model, criterion1, criterion2, criterion3, opt, scheduler, num_e
 
                 pbar.update(1)
                 sleep(0.01) #delay to print stats
+
             pbar.close()
 
             if phase == 'train': #adjust the learning rate if training
@@ -241,8 +296,8 @@ if __name__ == '__main__':
         goal_w = 10
     else:
         retrain = 0 # initial training
-        ground_w = 6
-        loc_w = 5
+        ground_w = 6 #6
+        loc_w = 5 #5
         goal_w = 1
 
     # create the dataloader for the ground dataset
@@ -287,17 +342,16 @@ if __name__ == '__main__':
     print (ground_dataset_sizes)
     print (len(ground_dataloaders['train']))
     print (localization_dataset_sizes)
-    print (len(localization_dataloaders['val']))
+    print (len(localization_dataloaders['train']))
     print (goal_dataset_sizes)
-    print (len(goal_dataloaders['val']))
+    print (len(goal_dataloaders['train']))
 
     # create the model
     # total outputs is 80 (ground detection) and 66 (localization)
 
     if retrain == 0: # initial training
         m = pretrained_model.Pretrained_Model(
-            shape=(360,640,3), num_outputs1=80, num_outputs2=64, goal_outputs=2, load=retrain)
-        m.build()
+            shape=(360,640,3), num_outputs1=80, num_outputs2=64, goal_outputs=2)
         model = m
 
         if torch.cuda.is_available(): #send the model to the GPU if available
@@ -307,8 +361,7 @@ if __name__ == '__main__':
 
     elif retrain == 1: # retraining for ground detection
         m = pretrained_model.Pretrained_Model(
-            shape=(360,640,3), num_outputs1=80, num_outputs2=64, goal_outputs=2, load=retrain)
-        m.build()
+            shape=(360,640,3), num_outputs1=80, num_outputs2=64, goal_outputs=2)
         model = m
         print ("-----------Retraining model for ground detection--------------")
 
@@ -325,8 +378,7 @@ if __name__ == '__main__':
 
     elif retrain == 2: # retraining for localization
         m = pretrained_model.Pretrained_Model(
-            shape=(360,640,3), num_outputs1=80, num_outputs2=64, goal_outputs=2, load=retrain)
-        m.build()
+            shape=(360,640,3), num_outputs1=80, num_outputs2=64, goal_outputs=2)
         model = m
         print ("-----------Retraining model for localizaiton--------------")
 
@@ -343,8 +395,8 @@ if __name__ == '__main__':
 
     elif retrain == 3: # retraining for goal
         m = pretrained_model.Pretrained_Model(
-            shape=(360,640,3), num_outputs1=80, num_outputs2=64, goal_outputs=2, load=retrain)
-        m.build()
+            shape=(360,640,3), num_outputs1=80, num_outputs2=64, goal_outputs=2)
+        #m.build()
         model = m
         print ("-----------Retraining model for goal--------------")
 
@@ -363,7 +415,7 @@ if __name__ == '__main__':
     ground_criterion = nn.L1Loss()        # use L1 for ground detection
     #localization_criterion = nn.MSELoss() # use mean squared error for localization
     localization_criterion = nn.MSELoss() # use mean squared error for localization
-    goal_criterion = nn.L1Loss()        # use L1 for goal prediction
+    goal_criterion = nn.MSELoss()        # use L1 for goal prediction
 
     exp_lr_scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, verbose=True)
 
