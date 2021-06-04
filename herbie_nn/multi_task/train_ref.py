@@ -37,7 +37,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             if phase == 'train':
                 model.train()  # Set model to training mode
 
-                if retrain == 1 or retrain == 2:
+                if retrain == 1 or retrain == 2 or retrain == 3:
                     model.m.eval()
             else:
                 model.eval()   # Set model to evaluate mode
@@ -51,7 +51,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             loc_iterations = len(loc_dataloaders[phase])
             loc_iterator = iter(loc_dataloaders[phase])
 
-            if retrain == 0:
+            if retrain == 0 or retrain == 1:
                 iterations = ground_iterations
             elif retrain == 2:
                 iterations = loc_iterations
@@ -61,7 +61,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
             for i in range(iterations):
             #for inputs, labels in dataloaders[phase]:
-                loc_freq = 20
+                loc_freq = 4
 
                 if retrain == 0:
                     if i % loc_freq == 0:
@@ -80,8 +80,6 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                     inputs = inputs.to(device)
                     output_tensor = labels.to(device)
 
-                #print(output_tensor.shape)
-
                 # zero the parameter gradients
                 optimizer.zero_grad()
 
@@ -90,7 +88,6 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                     outputs = model(inputs)
                     preds = outputs
 
-                    #print (outputs.shape)
                     if retrain == 0:
                         if i % loc_freq == 0: #localization
                              #outputs = outputs.to(dtype=torch.long)
@@ -123,7 +120,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=tmax, verbose=True)
                 print ("New T_max: " + str(tmax))
 
-            if retrain == 0:
+            if retrain == 0 or retrain == 1:
                 epoch_loss = running_loss / ground_dataset_sizes[phase]
             elif retrain == 2:
                 epoch_loss = running_loss / loc_dataset_sizes[phase]
@@ -155,6 +152,8 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == str(1):
         retrain = 1 # retrain ground
+        g_workers = 11
+        l_workers = 1
     elif len(sys.argv) > 1 and sys.argv[1] == str(2):
         retrain = 2 # retrain localization
         g_workers = 1
@@ -252,20 +251,6 @@ if __name__ == '__main__':
 
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
             model.parameters()), lr=0.005)
-
-    # enable training for specific layers
-    # model.temp2.weight.requires_grad = False
-    # model.temp2.bias.requires_grad = False
-
-    # model.out2.weight.requires_grad = False
-    # model.out2.bias.requires_grad = False
-
-    # model.temp2.weight.requires_grad = False
-    # model.temp2.bias.requires_grad = False
-
-    # model.out2.weight.requires_grad = False
-    # model.out2.bias.requires_grad = False
-    #model = m.build()
 
     # if torch.cuda.is_available(): #send the model to the GPU if available
     #     model.cuda()
