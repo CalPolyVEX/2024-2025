@@ -58,7 +58,7 @@ class CameraReader {
     nvinfer1::ICudaEngine *engine;
     nvinfer1::IExecutionContext *context;
     void **mInputCPU;
-    void *buffers[2];
+    void *buffers[4];
     cudaStream_t stream;
     int inputIndex;
     int outputIndex;

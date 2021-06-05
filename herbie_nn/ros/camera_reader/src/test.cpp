@@ -12,6 +12,10 @@
 #include "NvOnnxParser.h"
 #include "NvInfer.h"
 
+#define NUM_GROUND_OUTPUTS 80
+#define NUM_LOC_OUTPUTS 64
+#define NUM_GOAL_OUTPUTS 2
+
 using namespace std::chrono;
 
 extern void writeNetworkTensorNames(nvinfer1::INetworkDefinition *network);
@@ -159,12 +163,14 @@ void CameraReader::initInference(char* s) {
    nn->context = nn->engine->createExecutionContext();
 
    //allocate space
-   nn->mInputCPU = (void **)malloc(2 * sizeof(void *));
+   nn->mInputCPU = (void **)malloc(4 * sizeof(void *)); //1 input and 3 output = 4 pointers
    cudaHostAlloc((void **)&nn->mInputCPU[0], 3 * 360 * 640 * sizeof(float), cudaHostAllocDefault);
-   cudaHostAlloc((void **)&nn->mInputCPU[1], 1 * 80 * sizeof(float), cudaHostAllocDefault);
+   cudaHostAlloc((void **)&nn->mInputCPU[1], 1 * (NUM_GROUND_OUTPUTS) * sizeof(float), cudaHostAllocDefault);
+   cudaHostAlloc((void **)&nn->mInputCPU[2], 1 * (NUM_LOC_OUTPUTS) * sizeof(float), cudaHostAllocDefault);
+   cudaHostAlloc((void **)&nn->mInputCPU[3], 1 * (NUM_GOAL_OUTPUTS) * sizeof(float), cudaHostAllocDefault);
 
    nn->inputIndex = nn->engine->getBindingIndex("input");
-   nn->outputIndex = nn->engine->getBindingIndex("output");
+   nn->outputIndex = nn->engine->getBindingIndex("ground");
 
    std::cout << nn->engine->getNbLayers() << std::endl;
    std::cout << nn->inputIndex << std::endl;
@@ -172,7 +178,13 @@ void CameraReader::initInference(char* s) {
 
    // create GPU buffers and a stream
    gpuErrchk(cudaMalloc(&nn->buffers[nn->inputIndex], 1 * 3 * 360 * 640 * sizeof(float)));
-   gpuErrchk(cudaMalloc(&nn->buffers[nn->outputIndex], 1 * 80 * sizeof(float)));
+   gpuErrchk(cudaMalloc(&nn->buffers[nn->outputIndex], 1 * (NUM_GROUND_OUTPUTS) * sizeof(float)));
+
+   int loc_index = nn->engine->getBindingIndex("localization");
+   int goal_index = nn->engine->getBindingIndex("goal");
+
+   gpuErrchk(cudaMalloc(&nn->buffers[loc_index], 1 * (NUM_LOC_OUTPUTS) * sizeof(float)));
+   gpuErrchk(cudaMalloc(&nn->buffers[goal_index], 1 * (NUM_GOAL_OUTPUTS) * sizeof(float)));
 
    gpuErrchk(cudaStreamCreate(&nn->stream));
 }
@@ -186,7 +198,7 @@ void CameraReader::inference(struct nn_context* nn) {
 
    nn1.context->executeV2(nn->buffers);
 
-   gpuErrchk( cudaMemcpyAsync(nn->mInputCPU[1], nn->buffers[nn->outputIndex], 1*80*sizeof(float), cudaMemcpyDeviceToHost, nn->stream) );
+   gpuErrchk( cudaMemcpyAsync(nn->mInputCPU[1], nn->buffers[nn->outputIndex], 1*(NUM_GROUND_OUTPUTS)*sizeof(float), cudaMemcpyDeviceToHost, nn->stream) );
 
    cudaStreamSynchronize(nn->stream);
 

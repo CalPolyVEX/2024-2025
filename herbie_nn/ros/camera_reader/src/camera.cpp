@@ -14,7 +14,7 @@
 ros::NodeHandle* nh = NULL; 
 using namespace std::chrono;
 bool g_simulate = false;
-bool publish_360_image = false;
+bool publish_360_image = true;
 
 int CameraReader::init(char* videodev, int width, int height, ros::NodeHandle* nh, bool simulate) {
    n = nh;
@@ -191,7 +191,7 @@ void CameraReader::frame_loop() {
          nhwc_to_nchw((unsigned char*) bgr_frame_360.data, (float *) nn1.mInputCPU[0], 360, 640);
 
          inference(&nn1);
-         inference(&nn2);
+         /* inference(&nn2); */
 
          auto end = high_resolution_clock::now();
          auto duration = duration_cast<microseconds>(end - start) / 1000.0;
@@ -405,7 +405,7 @@ int main(int argc, char **argv) {
      //nh->setParam("/read_see3cam", false);
      nh->setParam("/read_see3cam", true);
      cr.initInference(engine_file);
-     cr.initInference(engine_file1); //create 2 networks
+     //cr.initInference(engine_file1); //create 2 networks
      if (cr.init(videodev,width,height,nh,false) != 0) {
         std::cout << "Error initializing camera" << std::endl;
         return -1;
