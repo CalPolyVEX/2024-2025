@@ -90,6 +90,11 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
                         inputs = inputs.to(device)
                         output_tensor = labels.to(device)
+                elif retrain == 1:
+                    inputs, labels = next(ground_iterator)
+
+                    inputs = inputs.to(device)
+                    output_tensor = labels.to(device)
                 elif retrain == 2:
                     inputs, labels = next(loc_iterator)
 
@@ -181,8 +186,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == str(1):
         retrain = 1 # retrain ground
-        g_workers = 11
+        g_workers = 10
         l_workers = 1
+        go_workers = 1
     elif len(sys.argv) > 1 and sys.argv[1] == str(2):
         retrain = 2 # retrain localization
         g_workers = 1
@@ -190,9 +196,9 @@ if __name__ == '__main__':
         go_workers = 1
     elif len(sys.argv) > 1 and sys.argv[1] == str(3):
         retrain = 3 # retrain goal
-        go_workers = 10
-        l_workers = 1
         g_workers = 1
+        l_workers = 1
+        go_workers = 10
     else:
         retrain = 0 # initial training
         g_workers = 4

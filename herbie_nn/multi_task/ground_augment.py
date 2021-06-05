@@ -72,6 +72,7 @@ def create_datasets(train_file_list,val_file_list):
          A.ISONoise(p=.3),
          A.RandomShadow(p=.4),
          A.MotionBlur(p=.3),
+         A.RandomToneCurve(p=.3),
          ToTensorV2()
 
          # A.RandomBrightnessContrast(p=0.5),
