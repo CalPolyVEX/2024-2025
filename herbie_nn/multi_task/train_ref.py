@@ -117,7 +117,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                     if retrain == 0:
                         if i % loc_freq == 0: #localization
                              #outputs = outputs.to(dtype=torch.long)
-                             loss = criterion[1](outputs[1], output_tensor)
+                             loss = 3 * criterion[1](outputs[1], output_tensor)
                         elif i % goal_freq == 0: #goal
                              loss = criterion[2](outputs[2], output_tensor)
                         else: # ground

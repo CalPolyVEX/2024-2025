@@ -10,8 +10,8 @@ class Pretrained_Model(torch.nn.Module):
         super(Pretrained_Model, self).__init__()
 
         self.shape = shape
-        self.num_outputs1 = num_outputs1
-        self.num_outputs2 = num_outputs2
+        self.num_ground_outputs = num_outputs1
+        self.num_loc_outputs = num_outputs2
         self.goal_outputs = goal_outputs
 
         # instantiate pre-trained model
@@ -20,29 +20,34 @@ class Pretrained_Model(torch.nn.Module):
         self.removed = list(self.m.children())[:-1]
         self.m = torch.nn.Sequential(*self.removed)
 
-        self.temp1 = torch.nn.Linear(1280, 80)
-        self.temp2 = torch.nn.Linear(1280, 128)
-        self.temp3 = torch.nn.Linear(1280, 64)
+        self.ground_out = torch.nn.Linear(1280, self.num_ground_outputs)
+        self.loc_hidden1 = torch.nn.Linear(1280, 128)
+        self.loc_hidden2 = torch.nn.Linear(128, 128)
+        self.goal_hidden = torch.nn.Linear(1280, 64)
 
-        self.lr = torch.nn.LeakyReLU()
+        self.lr = torch.nn.ReLU6()
 
         #self.out1 = torch.nn.Linear(80, self.num_outputs1)
-        self.out2 = torch.nn.Linear(128, self.num_outputs2)
-        self.out3 = torch.nn.Linear(64, self.goal_outputs)
+        self.loc_out = torch.nn.Linear(128, self.num_loc_outputs)
+        self.goal_out = torch.nn.Linear(64, self.goal_outputs)
 
         self.softmax = torch.nn.Softmax(1)
 
     def forward(self, x):
         o1 = self.m(x)
 
-        o4 = self.lr(self.temp1(o1))
-        o5 = self.lr(self.temp2(o1))
-        goal_hidden_out = self.lr(self.temp3(o1))
+        # ground output
+        o4 = self.ground_out(o1)
 
-        o7 = self.out2(o5)
-        goal_out = self.out3(goal_hidden_out)
-
+        # localization output
+        l_out1 = self.lr(self.loc_hidden1(o1))
+        l_out2 = self.lr(self.loc_hidden2(l_out1))
+        o7 = self.loc_out(l_out2)
         o8 = self.softmax(o7) # localization output
+
+        # goal output
+        goal_hidden_out = self.lr(self.goal_hidden(o1))
+        goal_out = self.goal_out(goal_hidden_out)
 
         #return o4,o8,goal_out
         return o4, o8, goal_out
@@ -66,8 +71,8 @@ class Pretrained_Model(torch.nn.Module):
             param.requires_grad = False
 
         # enable training for specific layers
-        model.temp1.weight.requires_grad = True
-        model.temp1.bias.requires_grad = True
+        model.ground_out.weight.requires_grad = True
+        model.ground_out.bias.requires_grad = True
 
         # model.out1.weight.requires_grad = True
         # model.out1.bias.requires_grad = True
@@ -85,11 +90,11 @@ class Pretrained_Model(torch.nn.Module):
             param.requires_grad = False
 
         # enable training for specific layers
-        model.temp2.weight.requires_grad = True
-        model.temp2.bias.requires_grad = True
+        model.loc_hidden1.weight.requires_grad = True
+        model.loc_hidden1.bias.requires_grad = True
 
-        model.out2.weight.requires_grad = True
-        model.out2.bias.requires_grad = True
+        model.loc_out.weight.requires_grad = True
+        model.loc_out.bias.requires_grad = True
 
         print ('--backbone complete--')
 
@@ -104,11 +109,11 @@ class Pretrained_Model(torch.nn.Module):
             param.requires_grad = False
 
         # enable training for specific layers
-        model.temp3.weight.requires_grad = True
-        model.temp3.bias.requires_grad = True
+        model.goal_hidden.weight.requires_grad = True
+        model.goal_hidden.bias.requires_grad = True
 
-        model.out3.weight.requires_grad = True
-        model.out3.bias.requires_grad = True
+        model.goal_out.weight.requires_grad = True
+        model.goal_out.bias.requires_grad = True
 
         print ('--backbone complete--')
 
