@@ -79,6 +79,7 @@ def create_datasets(train_file_list,val_file_list):
          A.MotionBlur(p=.2),
          A.CoarseDropout(max_holes=8, max_height=30, max_width=30, p=.5),
          A.Perspective(p=.3),
+         A.RandomToneCurve(p=.3),
          ToTensorV2(),
       ]
    )

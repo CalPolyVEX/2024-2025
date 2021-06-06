@@ -33,6 +33,11 @@ class GoalDataset(Dataset):
         self.images_filepaths = images_filepaths
         self.transform = transform
 
+        if 'Training' in str(images_filepaths):
+            self.tr = 1
+        else:
+            self.tr = 0
+
     def __len__(self):
         return len(self.images_filepaths)
 
@@ -54,7 +59,8 @@ class GoalDataset(Dataset):
         data_list.append(float(center_y) / 360.0)
 
         # apply the augmentations to the image
-        if self.transform is not None:
+        if self.tr == 1:
+            #print('Training batch')
             aug_found = 0
 
             while aug_found == 0:
@@ -72,9 +78,14 @@ class GoalDataset(Dataset):
                   data_list.append(float(keypoints[0][1])/360.0) #add the y
                   aug_found = 1
 
-        image = image / 255.0
+            image_out = image / 255.0
+        else:
+            #print('Validation batch')
+            image = self.transform(image=image)["image"]
+            image_out = image / 255.0
+
         d = torch.Tensor(data_list) # convert the list of data points to a tensor
-        return image, d #return the image and the list of datapoints
+        return image_out, d #return the image and the list of datapoints
 
 def create_datasets(train_file_list,val_file_list):
    train_transform = A.Compose(
@@ -82,11 +93,12 @@ def create_datasets(train_file_list,val_file_list):
          A.RandomBrightnessContrast(p=0.5),
          A.GaussNoise(p=.2),
          A.ISONoise(p=.15),
-         A.RandomShadow(p=.1),
-         A.MotionBlur(p=.1),
-         A.Perspective(scale=(.05,.1),p=.2),
+         A.RandomShadow(p=.2),
+         A.MotionBlur(p=.2),
+         A.Perspective(scale=(.05,.1),p=.5),
          #A.CoarseDropout(max_holes=8, max_height=30, max_width=30, p=.5),
          A.Cutout(num_holes=8, max_h_size=30, max_w_size=30, p=.5),
+         A.RandomToneCurve(p=.3),
          ToTensorV2(),
       ],
       keypoint_params=A.KeypointParams(format='xy')

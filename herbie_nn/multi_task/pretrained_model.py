@@ -6,73 +6,55 @@ import torch.nn.functional as F
 
 class Pretrained_Model(torch.nn.Module):
 # class Pretrained_Model:
-    def __init__(self, shape, num_outputs1, num_outputs2, load):
+    def __init__(self, shape, num_outputs1, num_outputs2, goal_outputs):
         super(Pretrained_Model, self).__init__()
 
         self.shape = shape
-        self.num_outputs1 = num_outputs1
-        self.num_outputs2 = num_outputs2
+        self.num_ground_outputs = num_outputs1
+        self.num_loc_outputs = num_outputs2
+        self.goal_outputs = goal_outputs
 
         # instantiate pre-trained model
         self.m = timm.create_model('efficientnet_lite0', pretrained=True)
-        #self.m = timm.create_model('hardcorenas_a', pretrained=True)
-        #self.m = timm.create_model('efficientnet_b1', pretrained=True)
 
         self.removed = list(self.m.children())[:-1]
         self.m = torch.nn.Sequential(*self.removed)
 
-        self.temp1 = torch.nn.Linear(1280, 80)
-        self.temp2 = torch.nn.Linear(1280, 80)
+        self.ground_out = torch.nn.Linear(1280, self.num_ground_outputs)
+        self.loc_hidden1 = torch.nn.Linear(1280, 128)
+        self.loc_hidden2 = torch.nn.Linear(128, 128)
+        self.goal_hidden = torch.nn.Linear(1280, 64)
 
-        self.do = torch.nn.Dropout(p=.15)
-        self.lr = torch.nn.LeakyReLU()
+        self.lr = torch.nn.ReLU6()
 
-        self.out1 = torch.nn.Linear(80, self.num_outputs1)
-        self.out2 = torch.nn.Linear(80, self.num_outputs2)
-
-        # self.out1a = torch.nn.Linear(512, 512)
-        #self.out2a = torch.nn.Linear(256, 256)
+        #self.out1 = torch.nn.Linear(80, self.num_outputs1)
+        self.loc_out = torch.nn.Linear(128, self.num_loc_outputs)
+        self.goal_out = torch.nn.Linear(64, self.goal_outputs)
 
         self.softmax = torch.nn.Softmax(1)
 
     def forward(self, x):
         o1 = self.m(x)
 
-        #o2 = F.relu6(self.fc0(o1), inplace=True)
+        # ground output
+        o4 = self.ground_out(o1)
 
-        # o2 = F.relu6(self.fc1(o1), inplace=True)
-        # o3 = F.relu6(self.fc1(o1), inplace=True)
-
-        o4 = self.lr(self.temp1(o1))
-        o5 = self.lr(self.temp2(o1))
-
-        # o6a = F.relu6(self.out1a(o4))
-        # o7a = F.relu6(self.out2a(o5))
-
-        o6 = self.out1(o4)
-        o7 = self.out2(o5)
-
+        # localization output
+        l_out1 = self.lr(self.loc_hidden1(o1))
+        l_out2 = self.lr(self.loc_hidden2(l_out1))
+        o7 = self.loc_out(l_out2)
         o8 = self.softmax(o7) # localization output
 
-        return o6,o8
+        # goal output
+        goal_hidden_out = self.lr(self.goal_hidden(o1))
+        goal_out = self.goal_out(goal_hidden_out)
+
+        #return o4,o8,goal_out
+        return o4, o8, goal_out
 
     def build(self):
-        #self.m = timm.create_model('efficientnet_lite0', pretrained=True)
-
-        # remove the last layer of the pretrained model
-        # 'classifier' is the name of the final layer of the model
-        #num_final_inputs = self.m.classifier.in_features
-        # self.m.classifier[0] = torch.nn.Linear(num_final_inputs, 128)
-        # self.m.out1 = torch.nn.Linear(128, self.num_outputs1)
-
-        # self.m.classifier[1] = torch.nn.Linear(num_final_inputs, 128)
-        # self.m.out2 = torch.nn.Linear(128, self.num_outputs2)
-
         print(self.m)
         self.print_summary()
-
-        # return model
-        return self.m
 
     def print_summary(self):
         if torch.cuda.is_available():
@@ -89,14 +71,11 @@ class Pretrained_Model(torch.nn.Module):
             param.requires_grad = False
 
         # enable training for specific layers
-        model.temp1.weight.requires_grad = True
-        model.temp1.bias.requires_grad = True
+        model.ground_out.weight.requires_grad = True
+        model.ground_out.bias.requires_grad = True
 
-        model.out1.weight.requires_grad = True
-        model.out1.bias.requires_grad = True
-
-        # model.out1a.weight.requires_grad = True
-        # model.out1a.bias.requires_grad = True
+        # model.out1.weight.requires_grad = True
+        # model.out1.bias.requires_grad = True
 
         print ('--backbone complete--')
 
@@ -111,14 +90,30 @@ class Pretrained_Model(torch.nn.Module):
             param.requires_grad = False
 
         # enable training for specific layers
-        model.temp2.weight.requires_grad = True
-        model.temp2.bias.requires_grad = True
+        model.loc_hidden1.weight.requires_grad = True
+        model.loc_hidden1.bias.requires_grad = True
 
-        model.out2.weight.requires_grad = True
-        model.out2.bias.requires_grad = True
+        model.loc_out.weight.requires_grad = True
+        model.loc_out.bias.requires_grad = True
 
-        # model.out2a.weight.requires_grad = True
-        # model.out2a.bias.requires_grad = True
+        print ('--backbone complete--')
+
+        return model
+
+    @staticmethod
+    def set_fixed_goal(model):
+        print ("--setting fixed goal--")
+
+        # freeze everything in the model
+        for param in model.parameters():
+            param.requires_grad = False
+
+        # enable training for specific layers
+        model.goal_hidden.weight.requires_grad = True
+        model.goal_hidden.bias.requires_grad = True
+
+        model.goal_out.weight.requires_grad = True
+        model.goal_out.bias.requires_grad = True
 
         print ('--backbone complete--')
 
@@ -126,7 +121,7 @@ class Pretrained_Model(torch.nn.Module):
 
 if __name__ == '__main__':
     m = Pretrained_Model(shape=(360,640,3), num_outputs1=80, num_outputs2=64,
-        load=False)
+        goal_outputs=2)
     m = m.to(device='cuda')
     # model = m.build()
     print (m)
