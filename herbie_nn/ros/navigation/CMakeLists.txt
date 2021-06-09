@@ -13,6 +13,8 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_sensor_msgs
   sensor_msgs
   std_msgs
+  image_transport
+  cv_bridge
 )
 
 roslint_cpp()

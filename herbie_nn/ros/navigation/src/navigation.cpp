@@ -5,13 +5,10 @@
 #include <tf2_ros/transform_listener.h>
 #include <tf2_sensor_msgs/tf2_sensor_msgs.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <tf2/LinearMath/Quaternion.h>
-#include <nav_msgs/Odometry.h>
-#include <geometry_msgs/Twist.h>
-#include <geometry_msgs/TwistWithCovarianceStamped.h>
-#include <std_msgs/Int32MultiArray.h>
-#include <std_msgs/ByteMultiArray.h>
 #include <std_msgs/Float64MultiArray.h>
+#include <cv_bridge/cv_bridge.h>
+#include <sensor_msgs/image_encodings.h>
+#include <image_transport/image_transport.h>
 #include <ros/console.h>
 #include <iostream>
 #include <boost/thread.hpp>
@@ -19,23 +16,15 @@
 
 using namespace std;
 
-ros::NodeHandle *nh;
-ros::Subscriber sub_, sub_cmd_vel, sub_planner_cmd_vel;
-ros::Subscriber nn_data_sub;
-ros::Subscriber control_board_sub;
-ros::Publisher pub_, loop_closure_pub;
-ros::Publisher twist_pub;
-
-Navigation::Navigation() : tf_listener_(tf_buffer_) {
-  last_set_speed_time = ros::Time::now();
-
-  //publish Odometry messages to this topic
-  pub_ = nh->advertise<nav_msgs::Odometry>("/roboclaw_odom", 1);
-
+Navigation::Navigation() : it(nh) {
   //subscriber for neural network data
-  nn_data_sub = nh->subscribe("/nn_data", 1, &Navigation::cmd_vel_callback, this);
+  nn_data_sub = nh.subscribe("/nn_data", 1, &Navigation::nn_data_callback, this);
   
-  ROS_INFO("Connecting to Herbie control board");
+  //subscriber for 640x360 image
+  image_transport::TransportHints hints("compressed");
+  //image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &ObstacleDetection::run_network, this, hints);
+  img_sub = it.subscribe("/see3cam_cu20/image_raw", 1, &Navigation::img_callback, this, hints);
+
 //   nh->param<std::string>("dev1", dev_name, "/dev/herbie");
 //   nh->param<int>("baud1", baud_rate, 230400);
 //   nh->param<int>("address1", address, 128);
@@ -45,30 +34,43 @@ Navigation::Navigation() : tf_listener_(tf_buffer_) {
 //   nh->param<double>("base_width1", BASE_WIDTH, 0.280988);
 //   nh->param<double>("acc_lim1", ACC_LIM, 0.1);
 
-  nh->setParam("/autonomous_mode", false);
-
-  left_counter = 0;
-  right_counter = 0;
+  nh.setParam("/autonomous_mode", false);
 }
 
-void Navigation::cmd_vel_callback(const std_msgs::Float64MultiArray::ConstPtr& nn) {
+void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
+    cv_bridge::CvImageConstPtr cv_ptr;
 
+    try {
+      cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::BGR8);
+    } catch (cv_bridge::Exception& e) {
+      ROS_ERROR("cv_bridge exception: %s", e.what());
+    }
+    
+    cout << "received image" << endl;
+}
 
+void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& nn_msg) {
+   ground = (double*) &(nn_msg->data[0]);
+   loc = (double*) &(nn_msg->data[80]);
+   goal = (double*) &(nn_msg->data[144]);
+
+   for (int i=0; i<80; i++) {
+      cout << ground[i];
+   }
+   cout << endl;
 }
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "navigation_node");
-  ros::NodeHandle n;
-  nh = &n;
 
-  Navigation n_pub;
+  Navigation nav_node;
 
   //since the diagnostics callback is part of the odom_pub object, 
   //bind the callback using boost:bind and boost:function
 //   boost::function<void(const ros::TimerEvent&)> diag_callback;
 //   diag_callback=boost::bind(&OdometryPublisher::safety_callback,&odom_pub,_1);
 
-  ROS_INFO("Starting motor drive");
+  ROS_INFO("Starting navigation");
 
   ros::spin();
   ros::waitForShutdown();
