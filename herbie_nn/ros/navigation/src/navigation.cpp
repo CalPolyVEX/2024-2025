@@ -11,6 +11,7 @@
 #include <geometry_msgs/TwistWithCovarianceStamped.h>
 #include <std_msgs/Int32MultiArray.h>
 #include <std_msgs/ByteMultiArray.h>
+#include <std_msgs/Float64MultiArray.h>
 #include <ros/console.h>
 #include <iostream>
 #include <boost/thread.hpp>
@@ -20,7 +21,7 @@ using namespace std;
 
 ros::NodeHandle *nh;
 ros::Subscriber sub_, sub_cmd_vel, sub_planner_cmd_vel;
-ros::Subscriber sub_stop;
+ros::Subscriber nn_data_sub;
 ros::Subscriber control_board_sub;
 ros::Publisher pub_, loop_closure_pub;
 ros::Publisher twist_pub;
@@ -28,36 +29,12 @@ ros::Publisher twist_pub;
 Navigation::Navigation() : tf_listener_(tf_buffer_) {
   last_set_speed_time = ros::Time::now();
 
-  actual_vel_mutex.unlock();
-  last_set_speed_time_mutex.unlock();
-  desired_vel_mutex.unlock();
-  update_encoder_mutex.unlock();
-  herbie_board_queue_mutex.unlock();
-  
-  //encoder Int32MultiArray messages are received from the Arduino on this topic
-  //sub_ = nh->subscribe("/encoder_service", 1, &OdometryPublisher::encoder_message_callback, this);
-
   //publish Odometry messages to this topic
   pub_ = nh->advertise<nav_msgs::Odometry>("/roboclaw_odom", 1);
 
-  //publish Twist messages to this topic
-//   twist_pub = nh->advertise<geometry_msgs::TwistWithCovarianceStamped>("/roboclaw_twist", 1);
-
-  //publish Odometry messages to this topic
-//   loop_closure_pub = nh->advertise<std_msgs::Int32MultiArray>("/update_loop_closure_lcd", 1);
-
-  //listen for Twist messages on /cmd_vel
-//   sub_cmd_vel = nh->subscribe("/cmd_vel", 2, &OdometryPublisher::cmd_vel_callback, this);
+  //subscriber for neural network data
+  nn_data_sub = nh->subscribe("/nn_data", 1, &Navigation::cmd_vel_callback, this);
   
-  //listen for Twist messages on /cmd_vel
-//   sub_planner_cmd_vel = nh->subscribe("/planner/cmd_vel", 2, &OdometryPublisher::planner_cmd_vel_callback, this);
-
-  //listen for Empty messages on /robot_stop
-//   sub_stop = nh->subscribe("/robot_stop", 2, &OdometryPublisher::stop_toggle_callback, this);
-
-  //listen for messages to send to the control board
-//   control_board_sub = nh->subscribe("/control_board", 5, &OdometryPublisher::control_board_callback, this);
-
   ROS_INFO("Connecting to Herbie control board");
 //   nh->param<std::string>("dev1", dev_name, "/dev/herbie");
 //   nh->param<int>("baud1", baud_rate, 230400);
@@ -70,17 +47,13 @@ Navigation::Navigation() : tf_listener_(tf_buffer_) {
 
   nh->setParam("/autonomous_mode", false);
 
-//   if (address > 0x87 || address < 0x80) {
-//     ROS_INFO("Address out of range");
-//   }
-
-  for (int i=0;i<INTEGRAL_ARRAY_SIZE;i++) {
-    left_integral[i] = 0;
-    right_integral[i] = 0;
-  }
-
   left_counter = 0;
   right_counter = 0;
+}
+
+void Navigation::cmd_vel_callback(const std_msgs::Float64MultiArray::ConstPtr& nn) {
+
+
 }
 
 int main(int argc, char** argv) {
