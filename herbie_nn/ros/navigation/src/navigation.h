@@ -10,6 +10,7 @@
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/Float64MultiArray.h>
 #include <image_transport/image_transport.h>
+#include <opencv2/imgproc/imgproc.hpp>
 
 #include <ros/console.h>
 #include <boost/thread.hpp>
@@ -24,15 +25,20 @@ class Navigation {
 
   ros::Subscriber nn_data_sub;
   image_transport::Subscriber img_sub;
+  image_transport::Publisher image_pub_;
 
   double* ground;
   double* loc;
   double* goal;
+  cv::Mat new_image;
 
   public:
     Navigation(); 
     void nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& nn_msg);
     void img_callback(const sensor_msgs::ImageConstPtr& msg);
+    void compute_farthest(float* coord);
+    void connect_boundary();
+    void draw_loc_prob();
 };
 
 #endif
