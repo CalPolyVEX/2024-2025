@@ -46,18 +46,24 @@ class LocalizationDataset(Dataset):
 
         # get the first number in the filename which represents
         # which node in the graph this file belongs to
-        img_name_fields = img_name_fields.split('_')[0]
+        img_name_fields = img_name_fields.split('_')
 
         # add the data points to the 'data_list'
         data_list = []
         for l in range(64):  # 64 is the number of nodes
-            if l == int(img_name_fields):  # if the correct intersection
+            if l == int(img_name_fields[0]):  # if the correct intersection
                 data_list.append(float(1.0))
             else:
                 data_list.append(float(0.0))
 
-        # data_list.append(float(0.0))
-        # data_list.append(float(0.0))
+        # append turn classification
+        turn_list = []
+        if img_name_fields[2] == 'straight': # straight percentage
+            turn_list.append(float(int(img_name_fields[4])/100.0))
+            turn_list.append(float(0.0))
+        else:
+            turn_list.append(float(0.0))
+            turn_list.append(float(int(img_name_fields[4])/100.0))
 
         # apply the augmentations to the image
         if self.transform is not None:
@@ -66,7 +72,8 @@ class LocalizationDataset(Dataset):
 
         #print (data_list)
         d = torch.Tensor(data_list) # convert the list of data points to a tensor
-        return image, d #return the image and the list of datapoints
+        t = torch.Tensor(turn_list) # convert the turn list
+        return image, d, t #return the image and the list of datapoints
 
 def create_datasets(train_file_list,val_file_list):
    # apply transforms to the training dataset
@@ -78,7 +85,7 @@ def create_datasets(train_file_list,val_file_list):
          A.RandomShadow(p=.3),
          A.MotionBlur(p=.2),
          A.CoarseDropout(max_holes=8, max_height=30, max_width=30, p=.5),
-         A.Perspective(p=.3),
+         A.Perspective(p=.4),
          A.RandomToneCurve(p=.3),
          ToTensorV2(),
       ]

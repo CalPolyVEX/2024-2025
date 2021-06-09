@@ -40,6 +40,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
                 if retrain == 1 or retrain == 2 or retrain == 3:
                     model.m.eval()
+                    model.m.percent_hidden1.eval()
+                    model.m.percent_hidden2.eval()
+                    model.m.percent_out.eval()
             else:
                 model.eval()   # Set model to evaluate mode
 
@@ -68,14 +71,17 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             for i in range(iterations):
             #for inputs, labels in dataloaders[phase]:
                 loc_freq = 4
+                turn_freq = 5
                 goal_freq = 7
 
                 if retrain == 0:
+                    # if i % loc_freq == 0 or i % turn_freq == 0: # localization batch
                     if i % loc_freq == 0: # localization batch
-                        inputs, labels = next(loc_iterator)
+                        inputs, labels, turn_labels = next(loc_iterator)
 
                         inputs = inputs.to(device)
                         output_tensor = labels.to(device)
+                        output_turns = turn_labels.to(device)
                     elif i % goal_freq == 0: # goal batch
                         try:
                             inputs, labels = next(goal_iterator)
@@ -96,10 +102,12 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                     inputs = inputs.to(device)
                     output_tensor = labels.to(device)
                 elif retrain == 2:
-                    inputs, labels = next(loc_iterator)
+                    inputs, labels, turn_labels = next(loc_iterator)
+                    #inputs, labels = next(loc_iterator)
 
                     inputs = inputs.to(device)
                     output_tensor = labels.to(device)
+                    output_turns = turn_labels.to(device)
                 elif retrain == 3:
                     inputs, labels = next(goal_iterator)
 
@@ -116,18 +124,17 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
                     if retrain == 0:
                         if i % loc_freq == 0: #localization
-                             #outputs = outputs.to(dtype=torch.long)
                              loss = 3 * criterion[1](outputs[1], output_tensor)
                         elif i % goal_freq == 0: #goal
-                             loss = criterion[2](outputs[2], output_tensor)
+                             loss = criterion[3](outputs[3], output_tensor)
                         else: # ground
                              loss = criterion[0](outputs[0], output_tensor)
                     elif retrain == 1:
                         loss = criterion[0](outputs[0], output_tensor)
                     elif retrain == 2:
-                        loss = criterion[1](outputs[1], output_tensor)
+                        loss = 3 * criterion[1](outputs[1], output_tensor)
                     elif retrain == 3:
-                        loss = criterion[2](outputs[2], output_tensor)
+                        loss = criterion[3](outputs[3], output_tensor)
 
                     # backward + optimize only if in training phase
                     if phase == 'train':
@@ -245,8 +252,11 @@ if __name__ == '__main__':
     goal_dataset_sizes = {x: len(goal_image_datasets[x]) for x in ['train', 'val']}
 
     #dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
+    print ("ground dataset: ", end = '')
     print (ground_dataset_sizes)
+    print ("localization dataset: ", end = '')
     print (loc_dataset_sizes)
+    print ("goal dataset: ", end = '')
     print (goal_dataset_sizes)
 
     #create the model
@@ -283,7 +293,7 @@ if __name__ == '__main__':
         m = pretrained_model.Pretrained_Model(
             shape=(360,640,3), num_outputs1=80, num_outputs2=64, goal_outputs=2)
         model = m
-        print ("-----------Retraining model for localizaiton--------------")
+        print ("-----------Retraining model for localization--------------")
 
         checkpoint = torch.load('test.pt')
         model.load_state_dict(checkpoint['model_state_dict'])
@@ -314,12 +324,13 @@ if __name__ == '__main__':
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
             model.parameters()), lr=0.005)
 
-    #configure the training
-    criterion = [nn.L1Loss(), nn.MSELoss(), nn.L1Loss()]
+    #configure the losses: ground boundary, localization, turn classification, goal
+    criterion = [nn.L1Loss(), nn.MSELoss(), nn.L1Loss(), nn.L1Loss()]
+
     # optimizer = optim.AdamW(model.parameters(), lr=0.005)
     exp_lr_scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, verbose=True)
 
     #train the model
-    #model = train_model(model, criterion, optimizer, exp_lr_scheduler, num_epochs=480)
-    model = train_model(model, criterion, optimizer, exp_lr_scheduler, num_epochs=203)
+    model = train_model(model, criterion, optimizer, exp_lr_scheduler, num_epochs=480)
+    #model = train_model(model, criterion, optimizer, exp_lr_scheduler, num_epochs=203)
 
