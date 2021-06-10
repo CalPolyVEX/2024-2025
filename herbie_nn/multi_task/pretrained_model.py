@@ -21,16 +21,19 @@ class Pretrained_Model(torch.nn.Module):
         self.removed = list(self.m.children())[:-1]
         self.m = torch.nn.Sequential(*self.removed)
         self.r6 = torch.nn.ReLU6()
+        self.lr = torch.nn.LeakyReLU()
 
+        #self.ground_hidden1 = torch.nn.Linear(1280, 128)
+        #self.ground_hidden2 = torch.nn.Linear(128, 128)
         self.ground_out = torch.nn.Linear(1280, self.num_ground_outputs)
 
         self.loc_hidden1 = torch.nn.Linear(1280, 128)
         self.loc_hidden2 = torch.nn.Linear(128, 128)
         self.loc_out = torch.nn.Linear(128, self.num_loc_outputs)
 
-        self.percent_hidden1 = torch.nn.Linear(1280, 2)
-        self.percent_hidden2 = torch.nn.Linear(2, 2)
-        self.percent_out = torch.nn.Linear(2, self.percent_outputs)
+        self.turn_hidden1 = torch.nn.Linear(1280, 32)
+        #self.turn_hidden2 = torch.nn.Linear(128, 128)
+        self.turn_out = torch.nn.Linear(32, self.percent_outputs)
 
         self.goal_hidden = torch.nn.Linear(1280, 64)
         self.goal_out = torch.nn.Linear(64, self.goal_outputs)
@@ -41,21 +44,24 @@ class Pretrained_Model(torch.nn.Module):
         backbone_out = self.m(x)
 
         # ground output
+        # gr_h_out1 = self.r6(self.ground_hidden1(backbone_out))
+        #gr_h_out2 = self.r6(self.ground_hidden2(gr_h_out1))
+        #o4 = self.ground_out(gr_h_out1)
         o4 = self.ground_out(backbone_out)
 
         # localization output
-        l_out1 = self.r6(self.loc_hidden1(backbone_out))
-        l_out2 = self.r6(self.loc_hidden2(l_out1))
+        l_out1 = self.lr(self.loc_hidden1(backbone_out))
+        l_out2 = self.lr(self.loc_hidden2(l_out1))
         o7 = self.loc_out(l_out2)
         o8 = self.softmax(o7) # localization output
 
-        # percent output
-        p_hidden_out1 = self.r6(self.percent_hidden1(backbone_out))
-        p_hidden_out2 = self.r6(self.percent_hidden2(p_hidden_out1))
-        p_out = self.percent_out(p_hidden_out2)
+        # turn output
+        p_hidden_out1 = self.lr(self.turn_hidden1(backbone_out))
+        #p_hidden_out2 = self.r6(self.turn_hidden2(p_hidden_out1))
+        p_out = self.turn_out(p_hidden_out1)
 
         # goal output
-        goal_hidden_out = self.r6(self.goal_hidden(backbone_out))
+        goal_hidden_out = self.lr(self.goal_hidden(backbone_out))
         goal_out = self.goal_out(goal_hidden_out)
 
         #return o4,o8,goal_out
