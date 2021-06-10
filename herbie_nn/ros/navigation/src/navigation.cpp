@@ -19,6 +19,7 @@ using namespace std;
 
 #define NUM_GROUND 80
 #define NUM_LOC 64
+#define NUM_TURN 2
 #define NUM_GOAL 2
 
 Navigation::Navigation() : it(nh) {
@@ -54,7 +55,8 @@ void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
 void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& nn_msg) {
    ground = (double*) &(nn_msg->data[0]);
    loc = (double*) &(nn_msg->data[NUM_GROUND]);
-   goal = (double*) &(nn_msg->data[NUM_GROUND + NUM_LOC]);
+   turn = (double*) &(nn_msg->data[NUM_GROUND + NUM_LOC]);
+   goal = (double*) &(nn_msg->data[NUM_GROUND + NUM_TURN + NUM_LOC]);
 
    //draw the ground boundary points
    for (int i=0; i<NUM_GROUND; i++) {
@@ -66,23 +68,70 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
          cv::LINE_8 );
    }
 
+   //connect the boundary points with lines
+   connect_boundary();
+
    float coord[2];
    compute_farthest(coord);
 
-   //draw the highest point
-   cv::circle( new_image,
-      cv::Point(coord[0], coord[1]),
-      4,
-      cv::Scalar( 0, 255, 0),
-      cv::FILLED,
-      cv::LINE_8 );
-
-   // connect_boundary();
+   //draw the localization probability graph
    draw_loc_prob();
+
+   draw_goal();
+
+   write_text();
 
    //publish message
    sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", new_image).toImageMsg();
    image_pub_.publish(pub_msg);
+}
+
+void Navigation::write_text() {
+   char str[100];
+
+   if (turn[0] > .7) {
+      sprintf (str, "turn: %.3f", (float) turn[0]);
+      cv::putText(new_image, //target image
+               str, //text
+               cv::Point(430, 30), //top-left position
+               cv::FONT_HERSHEY_DUPLEX,
+               .9,
+               CV_RGB(0, 0, 255), //font color
+               2);
+   }
+
+   //print the localization
+   sprintf (str, "loc: %d (%.3f)", cur_loc, cur_loc_prob);
+   cv::putText(new_image, //target image
+            str, //text
+            cv::Point(430, 60), //top-left position
+            cv::FONT_HERSHEY_DUPLEX,
+            .8,
+            CV_RGB(0, 185, 0), //font color
+            2);
+}
+
+void Navigation::draw_goal() {
+   goal_cur_index = (goal_cur_index+1) % 4;
+
+   goal_x[goal_cur_index] = int(640 * goal[0]);
+   goal_y[goal_cur_index] = int(360 * goal[1]);
+
+   float total_x=0;
+   float total_y=0;
+   for (int i=0; i<4; i++) {
+      total_x += goal_x[i];
+      total_y += goal_y[i];
+   }
+   total_x /= 4;
+   total_y /= 4;
+
+   cv::circle( new_image,
+      cv::Point(int(total_x), int(total_y)),
+      3,
+      cv::Scalar( 0, 255, 0),
+      cv::FILLED,
+      cv::LINE_8 );
 }
 
 void Navigation::draw_loc_prob() {
@@ -92,9 +141,20 @@ void Navigation::draw_loc_prob() {
    for (int i=0; i<NUM_LOC; i++) {
       int height = loc[i] * (base-top);
       if (i > 29) {
-         cv::line(new_image, cv::Point(i*3, base-1), cv::Point(i*3, base-height-1), cv::Scalar(0, 255, 0), 2);
+         cv::line(new_image, cv::Point(i*3, base-1), cv::Point(i*3, base-height-1), cv::Scalar(0, 255, 0), 3);
       } else {
-         cv::line(new_image, cv::Point(i*3, base-1), cv::Point(i*3, base-height-1), cv::Scalar(255, 128, 0), 2);
+         cv::line(new_image, cv::Point(i*3, base-1), cv::Point(i*3, base-height-1), cv::Scalar(255, 128, 0), 3);
+      }
+   }
+
+   //find the highest localization node
+   float max_loc=0;
+   int loc_index = 0;
+   for (int i=0; i<NUM_LOC; i++) {
+      if (loc[i] > max_loc) {
+         max_loc = loc[i];
+         cur_loc = i;
+         cur_loc_prob = loc[i];
       }
    }
 }
@@ -108,12 +168,15 @@ void Navigation::compute_farthest(float* coord) {
       float x = i*8;
       float y = ground[i] * 360;
 
+      //compute the distance accounting for the aspect ratio of 640/360 = 1.77
       float distance = sqrt(pow(320-x,2) + pow(1.77*(360-y),2));
 
       if (distance > max_distance) {
          max_distance = distance;
          highest_index = i;
       }
+
+      //find the highest point in the image
       // if (ground[i] < highest_val) {
       //    highest_val = ground[i];
       //    highest_index = i;
@@ -122,6 +185,14 @@ void Navigation::compute_farthest(float* coord) {
 
    coord[0] = highest_index*8;
    coord[1] = ground[highest_index] * 360;
+
+   //draw the farthest point
+   // cv::circle( new_image,
+   //    cv::Point(coord[0], coord[1]),
+   //    4,
+   //    cv::Scalar( 0, 255, 0),
+   //    cv::FILLED,
+   //    cv::LINE_8 );
 }
 
 void Navigation::connect_boundary() {
@@ -130,7 +201,7 @@ void Navigation::connect_boundary() {
       int y1 = ground[i]*360;
       int x2 = (i+1)*8;
       int y2 = ground[i+1]*360;
-      cv::line(new_image, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 255, 255), 2);
+      cv::line(new_image, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 0, 255), 2);
    }
 }
 

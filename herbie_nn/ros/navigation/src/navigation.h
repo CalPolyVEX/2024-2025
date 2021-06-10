@@ -29,8 +29,14 @@ class Navigation {
 
   double* ground;
   double* loc;
+  double* turn;
   double* goal;
   cv::Mat new_image;
+  int cur_loc;  //the index of the current location
+  float cur_loc_prob; //the probability of the current location
+  float goal_x[4];
+  float goal_y[4];
+  int goal_cur_index = 0;
 
   public:
     Navigation(); 
@@ -39,6 +45,8 @@ class Navigation {
     void compute_farthest(float* coord);
     void connect_boundary();
     void draw_loc_prob();
+    void draw_goal();
+    void write_text();
 };
 
 #endif
