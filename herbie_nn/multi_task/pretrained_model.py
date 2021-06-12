@@ -27,16 +27,16 @@ class Pretrained_Model(torch.nn.Module):
         #self.ground_hidden2 = torch.nn.Linear(128, 128)
         self.ground_out = torch.nn.Linear(1280, self.num_ground_outputs)
 
-        self.loc_hidden1 = torch.nn.Linear(1280, 128)
-        self.loc_hidden2 = torch.nn.Linear(128, 128)
-        self.loc_out = torch.nn.Linear(128, self.num_loc_outputs)
+        self.loc_hidden1 = torch.nn.Linear(1280, 80)
+        self.loc_hidden2 = torch.nn.Linear(80, 80)
+        self.loc_out = torch.nn.Linear(80, self.num_loc_outputs)
 
-        self.turn_hidden1 = torch.nn.Linear(1280, 32)
+        self.turn_hidden1 = torch.nn.Linear(1280, 16)
         #self.turn_hidden2 = torch.nn.Linear(128, 128)
-        self.turn_out = torch.nn.Linear(32, self.percent_outputs)
+        self.turn_out = torch.nn.Linear(16, self.percent_outputs)
 
-        self.goal_hidden = torch.nn.Linear(1280, 64)
-        self.goal_out = torch.nn.Linear(64, self.goal_outputs)
+        self.goal_hidden = torch.nn.Linear(1280, 32)
+        self.goal_out = torch.nn.Linear(32, self.goal_outputs)
 
         self.softmax = torch.nn.Softmax(1)
 
@@ -111,15 +111,6 @@ class Pretrained_Model(torch.nn.Module):
         model.loc_out.weight.requires_grad = True
         model.loc_out.bias.requires_grad = True
 
-        # model.percent_out.weight.requires_grad = True
-        # model.percent_out.bias.requires_grad = True
-
-        # model.percent_hidden1.weight.requires_grad = True
-        # model.percent_hidden1.bias.requires_grad = True
-
-        # model.percent_hidden2.weight.requires_grad = True
-        # model.percent_hidden2.bias.requires_grad = True
-
         print ('--backbone complete--')
 
         return model
@@ -138,6 +129,25 @@ class Pretrained_Model(torch.nn.Module):
 
         model.goal_out.weight.requires_grad = True
         model.goal_out.bias.requires_grad = True
+
+        print ('--backbone complete--')
+
+        return model
+
+    @staticmethod
+    def set_fixed_turn(model):
+        print ("--setting fixed turn--")
+
+        # freeze everything in the model
+        for param in model.parameters():
+            param.requires_grad = False
+
+        # enable training for specific layers
+        model.turn_hidden1.weight.requires_grad = True
+        model.turn_hidden1.bias.requires_grad = True
+
+        model.turn_out.weight.requires_grad = True
+        model.turn_out.bias.requires_grad = True
 
         print ('--backbone complete--')
 

@@ -39,7 +39,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             if phase == 'train':
                 model.train()  # Set model to training mode
 
-                if retrain == 1 or retrain == 2 or retrain == 3:
+                if retrain == 1 or retrain == 2 or retrain == 3 or retrain == 4:
                     model.m.eval()
                     # model.m.percent_hidden1.eval()
                     # model.m.percent_hidden2.eval()
@@ -73,6 +73,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
             # Iterate over data.
             pbar = tqdm(total=iterations,desc=phase,ncols=70)
+
+            total_loss = [0] * 4  # accumulate the losses
+            total_iter = [0] * 4  # count the iterations of each
 
             for i in range(iterations):
             #for inputs, labels in dataloaders[phase]:
@@ -144,12 +147,20 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                     if retrain == 0:
                         if i % loc_freq == 0: #localization
                              loss = 3.5 * criterion[1](outputs[1], output_tensor)
+                             total_loss[1] += loss.item() * inputs.size(0)
+                             total_iter[1] += 1
                         elif i % goal_freq == 0: #goal
                              loss = criterion[3](outputs[3], output_tensor)
+                             total_loss[3] += loss.item() * inputs.size(0)
+                             total_iter[3] += 1
                         elif i % turn_freq == 0: #turn
                              loss = criterion[2](outputs[2], output_tensor)
+                             total_loss[2] += loss.item() * inputs.size(0)
+                             total_iter[2] += 1
                         else: # ground
                              loss = criterion[0](outputs[0], output_tensor)
+                             total_loss[0] += loss.item() * inputs.size(0)
+                             total_iter[0] += 1
                     elif retrain == 1:
                         loss = criterion[0](outputs[0], output_tensor)
                     elif retrain == 2:
@@ -191,7 +202,15 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             elif retrain == 4:
                 epoch_loss = running_loss / turn_dataset_sizes[phase]
 
-            print('{} Loss: {:.4f}'.format(phase, epoch_loss))
+            print('{} Loss: {:.4f}'.format(phase, epoch_loss), end = '')
+
+            #print (ground_dataset_sizes[phase], total_iter[0])
+            for i in range(len(total_loss)):
+               total_loss[i] /= float(ground_dataset_sizes[phase])
+               #total_loss[i] *= (total_iter[i] / float(ground_dataset_sizes[phase]/32))
+
+            print('  ({:.4f}, {:.4f}, {:.4f}, {:.4f})'.format(total_loss[0], \
+                total_loss[1], total_loss[2], total_loss[3]))
 
             # deep copy the model
             if phase == 'val' and epoch_loss < best_loss:
@@ -218,19 +237,28 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == str(1):
         retrain = 1 # retrain ground
-        g_workers = 10
+        g_workers = 9
         l_workers = 1
+        turn_workers = 1
         go_workers = 1
     elif len(sys.argv) > 1 and sys.argv[1] == str(2):
         retrain = 2 # retrain localization
         g_workers = 1
-        l_workers = 10
+        l_workers = 9
+        turn_workers = 1
         go_workers = 1
     elif len(sys.argv) > 1 and sys.argv[1] == str(3):
         retrain = 3 # retrain goal
         g_workers = 1
         l_workers = 1
-        go_workers = 10
+        turn_workers = 1
+        go_workers = 9
+    elif len(sys.argv) > 1 and sys.argv[1] == str(4):
+        retrain = 4 # retrain goal
+        g_workers = 1
+        l_workers = 1
+        turn_workers = 9
+        go_workers = 1
     else:
         retrain = 0 # initial training
         g_workers = 3
@@ -327,7 +355,7 @@ if __name__ == '__main__':
         model = pretrained_model.Pretrained_Model.set_fixed_ground(model)
 
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
-            model.parameters()), lr=0.003)
+            model.parameters()), lr=0.002)
 
     elif retrain == 2:
         # retrain the localization head
@@ -345,7 +373,7 @@ if __name__ == '__main__':
         model = pretrained_model.Pretrained_Model.set_fixed_localization(model)
 
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
-            model.parameters()), lr=0.003)
+            model.parameters()), lr=0.002)
 
     elif retrain == 3:
         # retrain the goal head
@@ -363,7 +391,25 @@ if __name__ == '__main__':
         model = pretrained_model.Pretrained_Model.set_fixed_goal(model)
 
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
-            model.parameters()), lr=0.003)
+            model.parameters()), lr=0.002)
+
+    elif retrain == 4:
+        # retrain the turn head
+        m = pretrained_model.Pretrained_Model(
+            shape=(360,640,3), num_outputs1=80, num_outputs2=64, goal_outputs=2)
+        model = m
+        print ("-----------Retraining model for turn--------------")
+
+        checkpoint = torch.load('test.pt')
+        model.load_state_dict(checkpoint['model_state_dict'])
+
+        if torch.cuda.is_available(): #send the model to the GPU if available
+           model.cuda()
+
+        model = pretrained_model.Pretrained_Model.set_fixed_turn(model)
+
+        optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
+            model.parameters()), lr=0.002)
 
     #configure the losses: ground boundary, localization, turn classification, goal
     criterion = [nn.L1Loss(), nn.MSELoss(), nn.L1Loss(), nn.L1Loss()]
