@@ -17,13 +17,18 @@ class Pretrained_Model(torch.nn.Module):
 
         # instantiate pre-trained model
         self.m = timm.create_model('efficientnet_lite0', pretrained=True)
+        self.m1 = timm.create_model('efficientnet_lite0', pretrained=True)
 
         self.removed = list(self.m.children())[:-1]
         self.m = torch.nn.Sequential(*self.removed)
+
+        self.removed1 = list(self.m1.children())[:-1]
+        self.m1 = torch.nn.Sequential(*self.removed1)
+
         self.r6 = torch.nn.ReLU6()
         self.lr = torch.nn.LeakyReLU()
 
-        self.feature_num = 1024
+        self.feature_num = 1280
         self.feature_hidden = torch.nn.Linear(1280, self.feature_num)
         #self.feature_bn = torch.nn.BatchNorm1d(num_features=self.feature_num)
 
@@ -31,7 +36,8 @@ class Pretrained_Model(torch.nn.Module):
         self.ground_hidden2 = torch.nn.Linear(100, 100)
         self.ground_bn1 = torch.nn.BatchNorm1d(num_features=100)
         self.ground_bn2 = torch.nn.BatchNorm1d(num_features=100)
-        self.ground_out = torch.nn.Linear(100, self.num_ground_outputs)
+        #self.ground_out = torch.nn.Linear(100, self.num_ground_outputs)
+        self.ground_out = torch.nn.Linear(1280, self.num_ground_outputs)
 
         self.loc_hidden1 = torch.nn.Linear(self.feature_num, 256)
         self.loc_hidden2 = torch.nn.Linear(256, 256)
@@ -54,16 +60,18 @@ class Pretrained_Model(torch.nn.Module):
         self.sig1 = torch.nn.Sigmoid()
 
     def forward(self, x):
-        # backbone_out = self.m(x)
+        backbone_out = self.m(x)
+        backbone_out1 = self.m1(x)
         #backbone_out = self.lr(self.feature_bn(self.feature_hidden(self.m(x))))
-        backbone_out = self.lr(self.feature_hidden(self.m(x)))
+        # backbone_out = self.lr(self.feature_hidden(self.m(x)))
 
         # ground output
         # gr_h_out1 = self.lr(self.ground_bn1(self.ground_hidden1(backbone_out)))
         # gr_h_out2 = self.lr(self.ground_bn2(self.ground_hidden2(gr_h_out1)))
-        gr_h_out1 = self.lr(self.ground_hidden1(backbone_out))
-        gr_h_out2 = self.lr(self.ground_hidden2(gr_h_out1))
-        o4 = self.ground_out(gr_h_out2)
+
+        # gr_h_out1 = self.lr(self.ground_hidden1(backbone_out))
+        # gr_h_out2 = self.lr(self.ground_hidden2(gr_h_out1))
+        o4 = self.ground_out(backbone_out1)
 
         # localization output
         l_out1 = self.lr(self.loc_bn1(self.loc_hidden1(backbone_out)))
