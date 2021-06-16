@@ -52,10 +52,8 @@ class TurnDataset(Dataset):
         turn_list = []
         if img_name_fields[0] == 'nturn': # not a turn image
             turn_list.append(float(0.0))
-            turn_list.append(float(0.0))
         else:
             turn_list.append(float(1.0))
-            turn_list.append(float(0.0))
 
         # apply the augmentations to the image
         if self.transform is not None:

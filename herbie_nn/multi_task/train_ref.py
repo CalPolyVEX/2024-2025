@@ -1,5 +1,5 @@
 import copy
-import os, time, sys
+import os, time, sys, random
 import ground_augment
 import localization_augment
 import goal_augment
@@ -18,6 +18,7 @@ from torch.utils.data import Dataset, DataLoader
 import torchvision.models as models
 from tqdm import tqdm
 from time import sleep
+from torchinfo import summary
 
 cudnn.benchmark = True
 
@@ -39,7 +40,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             if phase == 'train':
                 model.train()  # Set model to training mode
 
-                if retrain == 1 or retrain == 2 or retrain == 3 or retrain == 4:
+                if retrain >= 1 and retrain <= 4:
                     model.m.eval()
                     # model.m.percent_hidden1.eval()
                     # model.m.percent_hidden2.eval()
@@ -62,7 +63,10 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             turn_iterations = len(turn_dataloaders[phase])
             turn_iterator = iter(turn_dataloaders[phase])
 
-            if retrain == 0 or retrain == 1:
+            if retrain == 0:
+                iterations = ground_iterations # account for the other training iterations
+                #iterations = ground_iterations # account for the other training iterations
+            elif retrain == 1:
                 iterations = ground_iterations
             elif retrain == 2:
                 iterations = loc_iterations
@@ -77,20 +81,59 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             total_loss = [0] * 4  # accumulate the losses
             total_iter = [0] * 4  # count the iterations of each
 
+            train_counter = 0
+
             for i in range(iterations):
             #for inputs, labels in dataloaders[phase]:
-                loc_freq = 3 #4
+                ground_weight = 5
+                loc_weight = 2
+                turn_weight = 2
+                goal_weight = 1
+
+                assert (ground_weight+loc_weight+turn_weight+goal_weight) == 10
+
+                ground_train = 0
+                loc_train = 0
+                turn_train = 0
+                goal_train = 0
+
+                if train_counter < ground_weight:
+                    ground_train = 1
+                elif train_counter < (ground_weight + loc_weight):
+                    loc_train = 1
+                elif train_counter < (ground_weight + loc_weight + turn_weight):
+                    turn_train = 1
+                else:
+                    goal_train = 1
+
+                train_counter += 1
+
+                if train_counter == 10:
+                    train_counter = 0
+
+                loc_freq = 4 #4
                 turn_freq = 7
-                goal_freq = 5 #7
+                goal_freq = 9 #7
+
+                ground_flag = 0
+                loc_flag = 0
+                turn_flag = 0
+                goal_flag = 0
 
                 if retrain == 0:
-                    if i % loc_freq == 0: # localization batch
+                    #if i % loc_freq == 0: # localization batch
+                    if loc_train == 1: # localization batch
                         inputs, labels, turn_labels = next(loc_iterator)
 
                         inputs = inputs.to(device)
                         output_tensor = labels.to(device)
-                        #output_turns = turn_labels.to(device)
-                    elif i % turn_freq == 0: # turn batch
+                        # output_tensor = labels.to(device, dtype=torch.int64)
+                        loc_flag = 1
+
+                        if phase == 'train':
+                            model = pretrained_model.Pretrained_Model.set_train_loc(model)
+                    #elif i % turn_freq == 0: # turn batch
+                    elif turn_train == 1: # turn batch
                         try:
                             inputs, labels = next(turn_iterator)
                         except:
@@ -99,7 +142,12 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
                         inputs = inputs.to(device)
                         output_tensor = labels.to(device)
-                    elif i % goal_freq == 0: # goal batch
+                        turn_flag = 1
+
+                        if phase == 'train':
+                            model = pretrained_model.Pretrained_Model.set_train_turn(model)
+                    #elif i % goal_freq == 0: # goal batch
+                    elif goal_train == 1: # goal batch
                         try:
                             inputs, labels = next(goal_iterator)
                         except:
@@ -108,16 +156,29 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
                         inputs = inputs.to(device)
                         output_tensor = labels.to(device)
+                        goal_flag = 1
+
+                        if phase == 'train':
+                            model = pretrained_model.Pretrained_Model.set_train_goal(model)
                     else: # ground batch
-                        inputs, labels = next(ground_iterator)
+                        try:
+                            inputs, labels = next(ground_iterator)
+                        except:
+                            ground_iterator = iter(ground_dataloaders[phase])
+                            inputs, labels = next(ground_iterator)
 
                         inputs = inputs.to(device)
                         output_tensor = labels.to(device)
+                        ground_flag = 1
+
+                        if phase == 'train':
+                            model = pretrained_model.Pretrained_Model.set_train_ground(model)
                 elif retrain == 1:
                     inputs, labels = next(ground_iterator)
 
                     inputs = inputs.to(device)
                     output_tensor = labels.to(device)
+                    ground_flag = 1
                 elif retrain == 2:
                     inputs, labels, turn_labels = next(loc_iterator)
                     #inputs, labels = next(loc_iterator)
@@ -125,16 +186,19 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                     inputs = inputs.to(device)
                     output_tensor = labels.to(device)
                     #output_turns = turn_labels.to(device)
+                    loc_flag = 1
                 elif retrain == 3:
                     inputs, labels = next(goal_iterator)
 
                     inputs = inputs.to(device)
                     output_tensor = labels.to(device)
+                    goal_flag = 1
                 elif retrain == 4:
                     inputs, labels = next(turn_iterator)
 
                     inputs = inputs.to(device)
                     output_tensor = labels.to(device)
+                    turn_flag = 1
 
                 # zero the parameter gradients
                 optimizer.zero_grad()
@@ -145,30 +209,47 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                     preds = outputs
 
                     if retrain == 0:
-                        if i % loc_freq == 0: #localization
-                             loss = 3.5 * criterion[1](outputs[1], output_tensor)
+                        #if i % loc_freq == 0: #localization
+                        if loc_train == 1: #localization
+                             # loss = 3.5 * criterion[1](outputs[1], output_tensor)
+                             loss = criterion[1](outputs[1], output_tensor)
+                             #loss = criterion[1](outputs[1], output_tensor)
+                             #_, labels_targets = torch.max(output_tensor, dim=1)
+                             # print (labels_targets.shape)
+                             # print (outputs[1].shape)
+                             #loss = criterion[1](outputs[1], labels_targets)
                              total_loss[1] += loss.item() * inputs.size(0)
                              total_iter[1] += 1
-                        elif i % goal_freq == 0: #goal
-                             loss = criterion[3](outputs[3], output_tensor)
-                             total_loss[3] += loss.item() * inputs.size(0)
-                             total_iter[3] += 1
-                        elif i % turn_freq == 0: #turn
+                             assert loc_flag == 1
+                        #elif i % turn_freq == 0: #turn
+                        elif turn_train == 1: #turn
                              loss = criterion[2](outputs[2], output_tensor)
                              total_loss[2] += loss.item() * inputs.size(0)
                              total_iter[2] += 1
+                             assert turn_flag == 1
+                        #elif i % goal_freq == 0: #goal
+                        elif goal_train == 1: #goal
+                             loss = criterion[3](outputs[3], output_tensor)
+                             total_loss[3] += loss.item() * inputs.size(0)
+                             total_iter[3] += 1
+                             assert goal_flag == 1
                         else: # ground
                              loss = criterion[0](outputs[0], output_tensor)
                              total_loss[0] += loss.item() * inputs.size(0)
                              total_iter[0] += 1
+                             assert ground_flag == 1
                     elif retrain == 1:
                         loss = criterion[0](outputs[0], output_tensor)
+                        assert ground_flag == 1
                     elif retrain == 2:
-                        loss = 3 * criterion[1](outputs[1], output_tensor)
+                        loss = criterion[1](outputs[1], output_tensor)
+                        assert loc_flag == 1
                     elif retrain == 3:
                         loss = criterion[3](outputs[3], output_tensor)
+                        assert goal_flag == 1
                     elif retrain == 4:
                         loss = criterion[2](outputs[2], output_tensor)
+                        assert turn_flag == 1
 
                     # backward + optimize only if in training phase
                     if phase == 'train':
@@ -193,7 +274,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=tmax, verbose=True)
                 print ("New T_max: " + str(tmax))
 
-            if retrain == 0 or retrain == 1:
+            if retrain == 0:
+                epoch_loss = running_loss / (2*ground_dataset_sizes[phase])
+            elif retrain == 1:
                 epoch_loss = running_loss / ground_dataset_sizes[phase]
             elif retrain == 2:
                 epoch_loss = running_loss / loc_dataset_sizes[phase]
@@ -206,11 +289,13 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
             #print (ground_dataset_sizes[phase], total_iter[0])
             for i in range(len(total_loss)):
-               total_loss[i] /= float(ground_dataset_sizes[phase])
+               total_loss[i] /= float(2*ground_dataset_sizes[phase])
                #total_loss[i] *= (total_iter[i] / float(ground_dataset_sizes[phase]/32))
 
             print('  ({:.4f}, {:.4f}, {:.4f}, {:.4f})'.format(total_loss[0], \
                 total_loss[1], total_loss[2], total_loss[3]))
+            print('iterations:  ({:.4f}, {:.4f}, {:.4f}, {:.4f})'.format(total_iter[0], \
+                total_iter[1], total_iter[2], total_iter[3]))
 
             # deep copy the model
             if phase == 'val' and epoch_loss < best_loss:
@@ -237,28 +322,28 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == str(1):
         retrain = 1 # retrain ground
-        g_workers = 9
-        l_workers = 1
-        turn_workers = 1
-        go_workers = 1
+        g_workers = 12
+        l_workers = 0
+        turn_workers = 0
+        go_workers = 0
     elif len(sys.argv) > 1 and sys.argv[1] == str(2):
         retrain = 2 # retrain localization
-        g_workers = 1
-        l_workers = 9
-        turn_workers = 1
-        go_workers = 1
+        g_workers = 0
+        l_workers = 12
+        turn_workers = 0
+        go_workers = 0
     elif len(sys.argv) > 1 and sys.argv[1] == str(3):
         retrain = 3 # retrain goal
-        g_workers = 1
-        l_workers = 1
-        turn_workers = 1
-        go_workers = 9
+        g_workers = 0
+        l_workers = 0
+        turn_workers = 0
+        go_workers = 12
     elif len(sys.argv) > 1 and sys.argv[1] == str(4):
-        retrain = 4 # retrain goal
-        g_workers = 1
-        l_workers = 1
-        turn_workers = 9
-        go_workers = 1
+        retrain = 4 # retrain turn
+        g_workers = 0
+        l_workers = 0
+        turn_workers = 12
+        go_workers = 0
     else:
         retrain = 0 # initial training
         g_workers = 3
@@ -333,11 +418,12 @@ if __name__ == '__main__':
         m = pretrained_model.Pretrained_Model(shape=(360,640,3), num_outputs1=80,
             num_outputs2=64, goal_outputs=2)
         model = m
+        summary(model, input_size=(1, 3, 360, 640))
 
         if torch.cuda.is_available(): #send the model to the GPU if available
            model.cuda()
 
-        optimizer = optim.AdamW(model.parameters(), lr=0.003)
+        optimizer = optim.AdamW(model.parameters(), lr=0.002)
 
     elif retrain == 1:
         # retrain the ground detection
@@ -352,10 +438,12 @@ if __name__ == '__main__':
         if torch.cuda.is_available(): #send the model to the GPU if available
            model.cuda()
 
+        summary(model, input_size=(1, 3, 360, 640))
+
         model = pretrained_model.Pretrained_Model.set_fixed_ground(model)
 
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
-            model.parameters()), lr=0.002)
+            model.parameters()), lr=0.003)
 
     elif retrain == 2:
         # retrain the localization head
@@ -373,7 +461,7 @@ if __name__ == '__main__':
         model = pretrained_model.Pretrained_Model.set_fixed_localization(model)
 
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
-            model.parameters()), lr=0.002)
+            model.parameters()), lr=0.001)
 
     elif retrain == 3:
         # retrain the goal head
@@ -391,7 +479,7 @@ if __name__ == '__main__':
         model = pretrained_model.Pretrained_Model.set_fixed_goal(model)
 
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
-            model.parameters()), lr=0.002)
+            model.parameters()), lr=0.001)
 
     elif retrain == 4:
         # retrain the turn head
@@ -409,9 +497,10 @@ if __name__ == '__main__':
         model = pretrained_model.Pretrained_Model.set_fixed_turn(model)
 
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
-            model.parameters()), lr=0.002)
+            model.parameters()), lr=0.001)
 
     #configure the losses: ground boundary, localization, turn classification, goal
+    #criterion = [nn.L1Loss(), nn.MSELoss(), nn.L1Loss(), nn.L1Loss()]
     criterion = [nn.L1Loss(), nn.MSELoss(), nn.L1Loss(), nn.L1Loss()]
 
     # optimizer = optim.AdamW(model.parameters(), lr=0.005)
