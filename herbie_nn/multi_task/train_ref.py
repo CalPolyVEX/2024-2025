@@ -40,11 +40,13 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             if phase == 'train':
                 model.train()  # Set model to training mode
 
-                if retrain >= 1 and retrain <= 4:
+                # for states 2,3,4 freeze the backbone
+                if retrain >= 2 and retrain <= 4:
                     model.m.eval()
-                    # model.m.percent_hidden1.eval()
-                    # model.m.percent_hidden2.eval()
-                    # model.m.percent_out.eval()
+                elif retrain == 1: # training the ground boundary
+                    model.m.eval()
+                elif retrain == 0: # free the ground boundary backbone
+                    model.m1.eval()
             else:
                 model.eval()   # Set model to evaluate mode
 
@@ -85,23 +87,20 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
             for i in range(iterations):
             #for inputs, labels in dataloaders[phase]:
-                ground_weight = 5
-                loc_weight = 2
-                turn_weight = 2
-                goal_weight = 1
+                loc_weight = 4
+                turn_weight = 4
+                goal_weight = 2
 
-                assert (ground_weight+loc_weight+turn_weight+goal_weight) == 10
+                assert (loc_weight+turn_weight+goal_weight) == 10
 
                 ground_train = 0
                 loc_train = 0
                 turn_train = 0
                 goal_train = 0
 
-                if train_counter < ground_weight:
-                    ground_train = 1
-                elif train_counter < (ground_weight + loc_weight):
+                if train_counter < loc_weight:
                     loc_train = 1
-                elif train_counter < (ground_weight + loc_weight + turn_weight):
+                elif train_counter < (loc_weight + turn_weight):
                     turn_train = 1
                 else:
                     goal_train = 1
@@ -111,17 +110,12 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 if train_counter == 10:
                     train_counter = 0
 
-                loc_freq = 4 #4
-                turn_freq = 7
-                goal_freq = 9 #7
-
                 ground_flag = 0
                 loc_flag = 0
                 turn_flag = 0
                 goal_flag = 0
 
                 if retrain == 0:
-                    #if i % loc_freq == 0: # localization batch
                     if loc_train == 1: # localization batch
                         inputs, labels, turn_labels = next(loc_iterator)
 
@@ -132,7 +126,6 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
                         if phase == 'train':
                             model = pretrained_model.Pretrained_Model.set_train_loc(model)
-                    #elif i % turn_freq == 0: # turn batch
                     elif turn_train == 1: # turn batch
                         try:
                             inputs, labels = next(turn_iterator)
@@ -146,7 +139,6 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
                         if phase == 'train':
                             model = pretrained_model.Pretrained_Model.set_train_turn(model)
-                    #elif i % goal_freq == 0: # goal batch
                     elif goal_train == 1: # goal batch
                         try:
                             inputs, labels = next(goal_iterator)
@@ -160,19 +152,6 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
                         if phase == 'train':
                             model = pretrained_model.Pretrained_Model.set_train_goal(model)
-                    else: # ground batch
-                        try:
-                            inputs, labels = next(ground_iterator)
-                        except:
-                            ground_iterator = iter(ground_dataloaders[phase])
-                            inputs, labels = next(ground_iterator)
-
-                        inputs = inputs.to(device)
-                        output_tensor = labels.to(device)
-                        ground_flag = 1
-
-                        if phase == 'train':
-                            model = pretrained_model.Pretrained_Model.set_train_ground(model)
                 elif retrain == 1:
                     inputs, labels = next(ground_iterator)
 
@@ -233,13 +212,10 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                              total_loss[3] += loss.item() * inputs.size(0)
                              total_iter[3] += 1
                              assert goal_flag == 1
-                        else: # ground
-                             loss = criterion[0](outputs[0], output_tensor)
-                             total_loss[0] += loss.item() * inputs.size(0)
-                             total_iter[0] += 1
-                             assert ground_flag == 1
                     elif retrain == 1:
                         loss = criterion[0](outputs[0], output_tensor)
+                        total_loss[0] += loss.item() * inputs.size(0)
+                        total_iter[0] += 1
                         assert ground_flag == 1
                     elif retrain == 2:
                         loss = criterion[1](outputs[1], output_tensor)
@@ -275,7 +251,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 print ("New T_max: " + str(tmax))
 
             if retrain == 0:
-                epoch_loss = running_loss / (2*ground_dataset_sizes[phase])
+                epoch_loss = running_loss / (ground_dataset_sizes[phase])
             elif retrain == 1:
                 epoch_loss = running_loss / ground_dataset_sizes[phase]
             elif retrain == 2:
@@ -287,10 +263,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
             print('{} Loss: {:.4f}'.format(phase, epoch_loss), end = '')
 
-            #print (ground_dataset_sizes[phase], total_iter[0])
+            # compute the total loss for each output head
             for i in range(len(total_loss)):
-               total_loss[i] /= float(2*ground_dataset_sizes[phase])
-               #total_loss[i] *= (total_iter[i] / float(ground_dataset_sizes[phase]/32))
+               total_loss[i] /= float(ground_dataset_sizes[phase])
 
             print('  ({:.4f}, {:.4f}, {:.4f}, {:.4f})'.format(total_loss[0], \
                 total_loss[1], total_loss[2], total_loss[3]))
@@ -320,8 +295,10 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
     return model
 
 if __name__ == '__main__':
+    # if there is no argument, then the state is 0 (train the 3 output heads)
+    # if the argument is 1, then train the ground branch
     if len(sys.argv) > 1 and sys.argv[1] == str(1):
-        retrain = 1 # retrain ground
+        retrain = 1 # train ground
         g_workers = 12
         l_workers = 0
         turn_workers = 0
@@ -346,10 +323,10 @@ if __name__ == '__main__':
         go_workers = 0
     else:
         retrain = 0 # initial training
-        g_workers = 3
-        l_workers = 3
-        go_workers = 3
-        turn_workers = 3
+        g_workers = 0
+        l_workers = 4
+        go_workers = 4
+        turn_workers = 4
 
     # create the dataloader for the ground dataset
     ground_train_fp, ground_val_fp = ground_augment.ground_setup_dir()
@@ -430,7 +407,7 @@ if __name__ == '__main__':
         m = pretrained_model.Pretrained_Model(
             shape=(360,640,3), num_outputs1=80, num_outputs2=64, goal_outputs=2)
         model = m
-        print ("-----------Retraining model for ground detection--------------")
+        print ("-----------Training model for ground detection--------------")
 
         checkpoint = torch.load('test.pt')
         model.load_state_dict(checkpoint['model_state_dict'])
@@ -440,7 +417,8 @@ if __name__ == '__main__':
 
         summary(model, input_size=(1, 3, 360, 640))
 
-        model = pretrained_model.Pretrained_Model.set_fixed_ground(model)
+        model = pretrained_model.Pretrained_Model.set_train_ground(model)
+        model.m.eval() # set the backbone of the other output heads to eval
 
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
             model.parameters()), lr=0.003)

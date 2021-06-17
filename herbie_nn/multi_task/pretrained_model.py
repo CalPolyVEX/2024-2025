@@ -15,28 +15,20 @@ class Pretrained_Model(torch.nn.Module):
         self.goal_outputs = goal_outputs
         self.turn_outputs = 1
 
-        # instantiate pre-trained model
+        # instantiate pre-trained model for multiple output heads
         self.m = timm.create_model('efficientnet_lite0', pretrained=True)
-        self.m1 = timm.create_model('efficientnet_lite0', pretrained=True)
-
         self.removed = list(self.m.children())[:-1]
         self.m = torch.nn.Sequential(*self.removed)
 
+        # ground boundary backbone
+        self.m1 = timm.create_model('efficientnet_lite0', pretrained=True)
         self.removed1 = list(self.m1.children())[:-1]
         self.m1 = torch.nn.Sequential(*self.removed1)
 
         self.r6 = torch.nn.ReLU6()
         self.lr = torch.nn.LeakyReLU()
-
         self.feature_num = 1280
-        self.feature_hidden = torch.nn.Linear(1280, self.feature_num)
-        #self.feature_bn = torch.nn.BatchNorm1d(num_features=self.feature_num)
 
-        self.ground_hidden1 = torch.nn.Linear(self.feature_num, 100)
-        self.ground_hidden2 = torch.nn.Linear(100, 100)
-        self.ground_bn1 = torch.nn.BatchNorm1d(num_features=100)
-        self.ground_bn2 = torch.nn.BatchNorm1d(num_features=100)
-        #self.ground_out = torch.nn.Linear(100, self.num_ground_outputs)
         self.ground_out = torch.nn.Linear(1280, self.num_ground_outputs)
 
         self.loc_hidden1 = torch.nn.Linear(self.feature_num, 256)
@@ -66,11 +58,6 @@ class Pretrained_Model(torch.nn.Module):
         # backbone_out = self.lr(self.feature_hidden(self.m(x)))
 
         # ground output
-        # gr_h_out1 = self.lr(self.ground_bn1(self.ground_hidden1(backbone_out)))
-        # gr_h_out2 = self.lr(self.ground_bn2(self.ground_hidden2(gr_h_out1)))
-
-        # gr_h_out1 = self.lr(self.ground_hidden1(backbone_out))
-        # gr_h_out2 = self.lr(self.ground_hidden2(gr_h_out1))
         o4 = self.ground_out(backbone_out1)
 
         # localization output
@@ -104,32 +91,12 @@ class Pretrained_Model(torch.nn.Module):
     @staticmethod
     def enable_ground_head(model, status):
         #disable localization head training
-        model.ground_hidden1.weight.requires_grad = status
-        model.ground_hidden1.bias.requires_grad = status
-
-        model.ground_hidden2.weight.requires_grad = status
-        model.ground_hidden2.bias.requires_grad = status
-
-        model.ground_bn1.weight.requires_grad = status
-        model.ground_bn1.bias.requires_grad = status
-
-        model.ground_bn2.weight.requires_grad = status
-        model.ground_bn2.bias.requires_grad = status
-
         model.ground_out.weight.requires_grad = status
         model.ground_out.bias.requires_grad = status
 
         if status == False:
-            model.ground_hidden1.eval()
-            model.ground_hidden2.eval()
-            model.ground_bn1.eval()
-            model.ground_bn2.eval()
             model.ground_out.eval()
         else:
-            model.ground_hidden1.train()
-            model.ground_hidden2.train()
-            model.ground_bn1.train()
-            model.ground_bn2.train()
             model.ground_out.train()
 
         return model
@@ -294,20 +261,6 @@ class Pretrained_Model(torch.nn.Module):
         # freeze everything in the model
         for param in model.parameters():
             param.requires_grad = False
-
-        # enable training for specific layers
-        model.ground_hidden1.weight.requires_grad = True
-        model.ground_hidden1.bias.requires_grad = True
-
-        model.ground_hidden2.weight.requires_grad = True
-        model.ground_hidden2.bias.requires_grad = True
-
-        # batch normalization layers
-        model.ground_bn1.weight.requires_grad = True
-        model.ground_bn1.bias.requires_grad = True
-
-        model.ground_bn2.weight.requires_grad = True
-        model.ground_bn2.bias.requires_grad = True
 
         model.ground_out.weight.requires_grad = True
         model.ground_out.bias.requires_grad = True
