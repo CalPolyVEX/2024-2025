@@ -46,14 +46,16 @@ class TurnDataset(Dataset):
 
         # get the first number in the filename which represents
         # which node in the graph this file belongs to
-        img_name_fields = img_name_fields.split('_')
+        img_name_fields_splitted = img_name_fields.split('_')
 
         # append turn classification
         turn_list = []
-        if img_name_fields[0] == 'nturn': # not a turn image
-            turn_list.append(float(0.0))
+        if str(img_name_fields_splitted[0]) == 'nturn': # not a turn image
+            turn_list.append(0.0)
+            # print(img_name_fields)
+            # print(img_name_fields_splitted)
         else:
-            turn_list.append(float(1.0))
+            turn_list.append(1.0)
 
         # apply the augmentations to the image
         if self.transform is not None:
@@ -74,7 +76,7 @@ def create_datasets(train_file_list,val_file_list):
          A.RandomShadow(p=.3),
          A.MotionBlur(p=.2),
          A.CoarseDropout(max_holes=8, max_height=30, max_width=30, p=.5),
-         A.Perspective(p=.4),
+         #A.Perspective(p=.4),
          A.RandomToneCurve(p=.3),
          ToTensorV2(),
       ]

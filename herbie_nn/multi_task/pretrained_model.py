@@ -26,7 +26,11 @@ class Pretrained_Model(torch.nn.Module):
         self.m1 = torch.nn.Sequential(*self.removed1)
 
         self.r6 = torch.nn.ReLU6()
-        self.lr = torch.nn.LeakyReLU()
+        self.lr1 = torch.nn.LeakyReLU()
+        self.lr2 = torch.nn.LeakyReLU()
+        self.lr3 = torch.nn.LeakyReLU()
+        self.lr4 = torch.nn.LeakyReLU()
+        self.lr5 = torch.nn.LeakyReLU()
         self.feature_num = 1280
 
         self.ground_out = torch.nn.Linear(1280, self.num_ground_outputs)
@@ -58,25 +62,27 @@ class Pretrained_Model(torch.nn.Module):
         # backbone_out = self.lr(self.feature_hidden(self.m(x)))
 
         # ground output
-        o4 = self.ground_out(backbone_out1)
+        ground_output_val = self.ground_out(backbone_out1)
 
         # localization output
-        l_out1 = self.lr(self.loc_bn1(self.loc_hidden1(backbone_out)))
-        l_out2 = self.lr(self.loc_bn2(self.loc_hidden2(l_out1)))
+        l_out1 = self.lr1(self.loc_bn1(self.loc_hidden1(backbone_out)))
+        l_out2 = self.lr2(self.loc_bn2(self.loc_hidden2(l_out1)))
         o7 = self.loc_out(l_out2)
-        o8 = self.softmax(o7) # localization output
+        loc_output = self.softmax(o7) # localization output
         #o8 = self.sig1(o7) # localization output
 
         # turn output
-        turn_hidden_out1 = self.lr(self.turn_bn1(self.turn_hidden1(backbone_out)))
-        turn_hidden_out2 = self.lr(self.turn_bn2(self.turn_hidden2(turn_hidden_out1)))
-        turn_out = self.sig(self.turn_out(turn_hidden_out2))
+        turn_hidden_out1 = self.lr3(self.turn_bn1(self.turn_hidden1(backbone_out)))
+        # turn_hidden_out1 = self.lr3(self.turn_hidden1(backbone_out))
+        # turn_hidden_out2 = self.lr(self.turn_bn2(self.turn_hidden2(turn_hidden_out1)))
+        turn_hidden_out2 = self.lr4(self.turn_hidden2(turn_hidden_out1))
+        turn_out_val = self.sig(self.turn_out(turn_hidden_out2))
 
         # goal output
-        goal_hidden_out = self.lr(self.goal_bn1(self.goal_hidden(backbone_out)))
-        goal_out = self.goal_out(goal_hidden_out)
+        goal_hidden_out = self.lr5(self.goal_bn1(self.goal_hidden(backbone_out)))
+        goal_out_val = self.goal_out(goal_hidden_out)
 
-        return o4, o8, turn_out, goal_out
+        return ground_output_val, loc_output, turn_out_val, goal_out_val
 
     def build(self):
         print(self.m)
@@ -340,8 +346,8 @@ class Pretrained_Model(torch.nn.Module):
         model.turn_bn1.weight.requires_grad = True
         model.turn_bn1.bias.requires_grad = True
 
-        model.turn_bn2.weight.requires_grad = True
-        model.turn_bn2.bias.requires_grad = True
+        # model.turn_bn2.weight.requires_grad = True
+        # model.turn_bn2.bias.requires_grad = True
 
         model.turn_out.weight.requires_grad = True
         model.turn_out.bias.requires_grad = True

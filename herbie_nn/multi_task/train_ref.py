@@ -29,7 +29,11 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
     best_loss = 100000.0
     tmax_factor = 1.5 # with warm restart, multiply the max factor by this amount
-    tmax = 10 # after tmax iterations, the learning rate is reset
+
+    if retrain == 0 or retrain == 1:
+        tmax = 20 # after tmax iterations, the learning rate is reset
+    else:
+        tmax = 10 # after tmax iterations, the learning rate is reset
 
     for epoch in range(num_epochs):
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
@@ -41,12 +45,16 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 model.train()  # Set model to training mode
 
                 # for states 2,3,4 freeze the backbone
-                if retrain >= 2 and retrain <= 4:
+                if (retrain == 2) or (retrain ==3) or (retrain == 4):
                     model.m.eval()
                 elif retrain == 1: # training the ground boundary
                     model.m.eval()
-                elif retrain == 0: # free the ground boundary backbone
+                elif retrain == 0: # freeze the ground boundary backbone
                     model.m1.eval()
+                    model.ground_out.eval()
+
+                    # testing - freeze the backbone of the triple output
+                    # model.m.eval()
             else:
                 model.eval()   # Set model to evaluate mode
 
@@ -66,8 +74,7 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
             turn_iterator = iter(turn_dataloaders[phase])
 
             if retrain == 0:
-                iterations = ground_iterations # account for the other training iterations
-                #iterations = ground_iterations # account for the other training iterations
+                iterations = int(1.5 * loc_iterations) # account for the other training iterations
             elif retrain == 1:
                 iterations = ground_iterations
             elif retrain == 2:
@@ -85,30 +92,29 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
             train_counter = 0
 
+            # generate training schedule
+            training_schedule_length = 20
+            training_schedule = [1,2,1,2,3,1,2,1,2,3, \
+                                 1,2,1,2,3,1,2,1,2,3]
+
+            assert len(training_schedule) == training_schedule_length
+
             for i in range(iterations):
-            #for inputs, labels in dataloaders[phase]:
-                loc_weight = 4
-                turn_weight = 4
-                goal_weight = 2
+                if i % training_schedule_length == 0:
+                    train_counter = 0
 
-                assert (loc_weight+turn_weight+goal_weight) == 10
-
-                ground_train = 0
                 loc_train = 0
                 turn_train = 0
                 goal_train = 0
 
-                if train_counter < loc_weight:
+                if training_schedule[train_counter] == 1:
                     loc_train = 1
-                elif train_counter < (loc_weight + turn_weight):
+                elif training_schedule[train_counter] == 2:
                     turn_train = 1
                 else:
                     goal_train = 1
 
                 train_counter += 1
-
-                if train_counter == 10:
-                    train_counter = 0
 
                 ground_flag = 0
                 loc_flag = 0
@@ -121,24 +127,24 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
                         inputs = inputs.to(device)
                         output_tensor = labels.to(device)
-                        # output_tensor = labels.to(device, dtype=torch.int64)
                         loc_flag = 1
 
-                        if phase == 'train':
-                            model = pretrained_model.Pretrained_Model.set_train_loc(model)
+                        # if phase == 'train':
+                        #     model = pretrained_model.Pretrained_Model.set_train_loc(model)
                     elif turn_train == 1: # turn batch
                         try:
                             inputs, labels = next(turn_iterator)
                         except:
                             turn_iterator = iter(turn_dataloaders[phase])
                             inputs, labels = next(turn_iterator)
+                            print('---error---')
 
                         inputs = inputs.to(device)
                         output_tensor = labels.to(device)
                         turn_flag = 1
 
-                        if phase == 'train':
-                            model = pretrained_model.Pretrained_Model.set_train_turn(model)
+                        # if phase == 'train':
+                        #     model = pretrained_model.Pretrained_Model.set_train_turn(model)
                     elif goal_train == 1: # goal batch
                         try:
                             inputs, labels = next(goal_iterator)
@@ -150,8 +156,8 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                         output_tensor = labels.to(device)
                         goal_flag = 1
 
-                        if phase == 'train':
-                            model = pretrained_model.Pretrained_Model.set_train_goal(model)
+                        # if phase == 'train':
+                        #     model = pretrained_model.Pretrained_Model.set_train_goal(model)
                 elif retrain == 1:
                     inputs, labels = next(ground_iterator)
 
@@ -160,11 +166,9 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                     ground_flag = 1
                 elif retrain == 2:
                     inputs, labels, turn_labels = next(loc_iterator)
-                    #inputs, labels = next(loc_iterator)
 
                     inputs = inputs.to(device)
                     output_tensor = labels.to(device)
-                    #output_turns = turn_labels.to(device)
                     loc_flag = 1
                 elif retrain == 3:
                     inputs, labels = next(goal_iterator)
@@ -188,25 +192,18 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                     preds = outputs
 
                     if retrain == 0:
-                        #if i % loc_freq == 0: #localization
                         if loc_train == 1: #localization
                              # loss = 3.5 * criterion[1](outputs[1], output_tensor)
                              loss = criterion[1](outputs[1], output_tensor)
-                             #loss = criterion[1](outputs[1], output_tensor)
-                             #_, labels_targets = torch.max(output_tensor, dim=1)
-                             # print (labels_targets.shape)
-                             # print (outputs[1].shape)
-                             #loss = criterion[1](outputs[1], labels_targets)
                              total_loss[1] += loss.item() * inputs.size(0)
                              total_iter[1] += 1
                              assert loc_flag == 1
-                        #elif i % turn_freq == 0: #turn
                         elif turn_train == 1: #turn
+                             #loss = .3 * criterion[2](outputs[2], output_tensor)
                              loss = criterion[2](outputs[2], output_tensor)
                              total_loss[2] += loss.item() * inputs.size(0)
                              total_iter[2] += 1
                              assert turn_flag == 1
-                        #elif i % goal_freq == 0: #goal
                         elif goal_train == 1: #goal
                              loss = criterion[3](outputs[3], output_tensor)
                              total_loss[3] += loss.item() * inputs.size(0)
@@ -217,14 +214,20 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                         total_loss[0] += loss.item() * inputs.size(0)
                         total_iter[0] += 1
                         assert ground_flag == 1
-                    elif retrain == 2:
+                    elif retrain == 2: # retrain localization
                         loss = criterion[1](outputs[1], output_tensor)
+                        total_loss[1] += loss.item() * inputs.size(0)
+                        total_iter[1] += 1
                         assert loc_flag == 1
-                    elif retrain == 3:
+                    elif retrain == 3: # retrain goal
                         loss = criterion[3](outputs[3], output_tensor)
+                        total_loss[3] += loss.item() * inputs.size(0)
+                        total_iter[3] += 1
                         assert goal_flag == 1
-                    elif retrain == 4:
+                    elif retrain == 4: # retrain turn
                         loss = criterion[2](outputs[2], output_tensor)
+                        total_loss[2] += loss.item() * inputs.size(0)
+                        total_iter[2] += 1
                         assert turn_flag == 1
 
                     # backward + optimize only if in training phase
@@ -251,21 +254,38 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 print ("New T_max: " + str(tmax))
 
             if retrain == 0:
-                epoch_loss = running_loss / (ground_dataset_sizes[phase])
+                epoch_loss = running_loss / (1.5*loc_dataset_sizes[phase])
+
+                # compute the total loss for each output head
+                for i in range(len(total_loss)):
+                    total_loss[i] /= float(1.5*loc_dataset_sizes[phase])
             elif retrain == 1:
                 epoch_loss = running_loss / ground_dataset_sizes[phase]
+
+                # compute the total loss for each output head
+                for i in range(len(total_loss)):
+                    total_loss[i] /= float(ground_dataset_sizes[phase])
             elif retrain == 2:
                 epoch_loss = running_loss / loc_dataset_sizes[phase]
+
+                # compute the total loss for each output head
+                for i in range(len(total_loss)):
+                    total_loss[i] /= float(loc_dataset_sizes[phase])
             elif retrain == 3:
                 epoch_loss = running_loss / goal_dataset_sizes[phase]
+
+                # compute the total loss for each output head
+                for i in range(len(total_loss)):
+                    total_loss[i] /= float(goal_dataset_sizes[phase])
             elif retrain == 4:
                 epoch_loss = running_loss / turn_dataset_sizes[phase]
 
+                # compute the total loss for each output head
+                for i in range(len(total_loss)):
+                    total_loss[i] /= float(turn_dataset_sizes[phase])
+
             print('{} Loss: {:.4f}'.format(phase, epoch_loss), end = '')
 
-            # compute the total loss for each output head
-            for i in range(len(total_loss)):
-               total_loss[i] /= float(ground_dataset_sizes[phase])
 
             print('  ({:.4f}, {:.4f}, {:.4f}, {:.4f})'.format(total_loss[0], \
                 total_loss[1], total_loss[2], total_loss[3]))
@@ -395,12 +415,12 @@ if __name__ == '__main__':
         m = pretrained_model.Pretrained_Model(shape=(360,640,3), num_outputs1=80,
             num_outputs2=64, goal_outputs=2)
         model = m
-        summary(model, input_size=(1, 3, 360, 640))
+        #summary(model, input_size=(1, 3, 360, 640))
 
         if torch.cuda.is_available(): #send the model to the GPU if available
            model.cuda()
 
-        optimizer = optim.AdamW(model.parameters(), lr=0.002)
+        optimizer = optim.AdamW(model.parameters(), lr=0.0005)
 
     elif retrain == 1:
         # retrain the ground detection
@@ -415,13 +435,13 @@ if __name__ == '__main__':
         if torch.cuda.is_available(): #send the model to the GPU if available
            model.cuda()
 
-        summary(model, input_size=(1, 3, 360, 640))
+        #summary(model, input_size=(1, 3, 360, 640))
 
         model = pretrained_model.Pretrained_Model.set_train_ground(model)
         model.m.eval() # set the backbone of the other output heads to eval
 
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
-            model.parameters()), lr=0.003)
+            model.parameters()), lr=0.0007)
 
     elif retrain == 2:
         # retrain the localization head
@@ -437,9 +457,10 @@ if __name__ == '__main__':
            model.cuda()
 
         model = pretrained_model.Pretrained_Model.set_fixed_localization(model)
+        model = pretrained_model.Pretrained_Model.set_train_loc(model)
 
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
-            model.parameters()), lr=0.001)
+            model.parameters()), lr=0.0003)
 
     elif retrain == 3:
         # retrain the goal head
@@ -455,9 +476,10 @@ if __name__ == '__main__':
            model.cuda()
 
         model = pretrained_model.Pretrained_Model.set_fixed_goal(model)
+        model = pretrained_model.Pretrained_Model.set_train_goal(model)
 
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
-            model.parameters()), lr=0.001)
+            model.parameters()), lr=0.003)
 
     elif retrain == 4:
         # retrain the turn head
@@ -473,16 +495,20 @@ if __name__ == '__main__':
            model.cuda()
 
         model = pretrained_model.Pretrained_Model.set_fixed_turn(model)
+        model = pretrained_model.Pretrained_Model.set_train_turn(model)
 
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
-            model.parameters()), lr=0.001)
+            model.parameters()), lr=0.0003)
 
     #configure the losses: ground boundary, localization, turn classification, goal
     #criterion = [nn.L1Loss(), nn.MSELoss(), nn.L1Loss(), nn.L1Loss()]
-    criterion = [nn.L1Loss(), nn.MSELoss(), nn.L1Loss(), nn.L1Loss()]
+    criterion = [nn.L1Loss(), nn.MSELoss(), nn.MSELoss(), nn.L1Loss()]
 
     # optimizer = optim.AdamW(model.parameters(), lr=0.005)
-    exp_lr_scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, verbose=True)
+    if retrain == 0 or retrain == 1:
+        exp_lr_scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=20, verbose=True)
+    else:
+        exp_lr_scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, verbose=True)
 
     #train the model
     model = train_model(model, criterion, optimizer, exp_lr_scheduler, num_epochs=480)
