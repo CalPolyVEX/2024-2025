@@ -49,12 +49,18 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                     model.m.eval()
                 elif retrain == 1: # training the ground boundary
                     model.m.eval()
+                    model = pretrained_model.Pretrained_Model.set_train_ground(model)
                 elif retrain == 0: # freeze the ground boundary backbone
                     model.m1.eval()
                     model.ground_out.eval()
 
-                    # testing - freeze the backbone of the triple output
-                    # model.m.eval()
+                if retrain == 2:
+                    model = pretrained_model.Pretrained_Model.set_train_loc(model)
+                elif retrain == 3:
+                    model = pretrained_model.Pretrained_Model.set_train_goal(model)
+                elif retrain == 4:
+                    model = pretrained_model.Pretrained_Model.set_train_turn(model)
+
             else:
                 model.eval()   # Set model to evaluate mode
 
@@ -460,7 +466,7 @@ if __name__ == '__main__':
         model = pretrained_model.Pretrained_Model.set_train_loc(model)
 
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
-            model.parameters()), lr=0.0003)
+            model.parameters()), lr=0.002)
 
     elif retrain == 3:
         # retrain the goal head
@@ -502,7 +508,10 @@ if __name__ == '__main__':
 
     #configure the losses: ground boundary, localization, turn classification, goal
     #criterion = [nn.L1Loss(), nn.MSELoss(), nn.L1Loss(), nn.L1Loss()]
-    criterion = [nn.L1Loss(), nn.MSELoss(), nn.MSELoss(), nn.L1Loss()]
+    if retrain == 4:
+        criterion = [nn.L1Loss(), nn.MSELoss(), nn.MSELoss(), nn.L1Loss()]
+    else:
+        criterion = [nn.L1Loss(), nn.MSELoss(), nn.MSELoss(), nn.L1Loss()]
 
     # optimizer = optim.AdamW(model.parameters(), lr=0.005)
     if retrain == 0 or retrain == 1:

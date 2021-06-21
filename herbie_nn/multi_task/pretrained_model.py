@@ -54,12 +54,13 @@ class Pretrained_Model(torch.nn.Module):
         self.softmax = torch.nn.Softmax(1)
         self.sig = torch.nn.Sigmoid()
         self.sig1 = torch.nn.Sigmoid()
+        self.do1 = torch.nn.Dropout(p=.2)
+        self.do2 = torch.nn.Dropout(p=.2)
+        self.do3 = torch.nn.Dropout(p=.2)
 
     def forward(self, x):
         backbone_out = self.m(x)
         backbone_out1 = self.m1(x)
-        #backbone_out = self.lr(self.feature_bn(self.feature_hidden(self.m(x))))
-        # backbone_out = self.lr(self.feature_hidden(self.m(x)))
 
         # ground output
         ground_output_val = self.ground_out(backbone_out1)
@@ -67,19 +68,21 @@ class Pretrained_Model(torch.nn.Module):
         # localization output
         l_out1 = self.lr1(self.loc_bn1(self.loc_hidden1(backbone_out)))
         l_out2 = self.lr2(self.loc_bn2(self.loc_hidden2(l_out1)))
+        # l_out1 = self.lr1((self.loc_hidden1(self.do1(backbone_out))))
+        # l_out2 = self.lr2((self.loc_hidden2(l_out1)))
         o7 = self.loc_out(l_out2)
         loc_output = self.softmax(o7) # localization output
         #o8 = self.sig1(o7) # localization output
 
         # turn output
         turn_hidden_out1 = self.lr3(self.turn_bn1(self.turn_hidden1(backbone_out)))
-        # turn_hidden_out1 = self.lr3(self.turn_hidden1(backbone_out))
-        # turn_hidden_out2 = self.lr(self.turn_bn2(self.turn_hidden2(turn_hidden_out1)))
+        # turn_hidden_out1 = self.lr3((self.turn_hidden1(self.do2(backbone_out))))
         turn_hidden_out2 = self.lr4(self.turn_hidden2(turn_hidden_out1))
         turn_out_val = self.sig(self.turn_out(turn_hidden_out2))
 
         # goal output
         goal_hidden_out = self.lr5(self.goal_bn1(self.goal_hidden(backbone_out)))
+        # goal_hidden_out = self.lr5((self.goal_hidden(self.do3(backbone_out))))
         goal_out_val = self.goal_out(goal_hidden_out)
 
         return ground_output_val, loc_output, turn_out_val, goal_out_val
@@ -182,6 +185,10 @@ class Pretrained_Model(torch.nn.Module):
         model.goal_bn1.weight.requires_grad = status
         model.goal_bn1.bias.requires_grad = status
 
+        # if status == False:
+        #     model.goal_bn1.running_mean.requires_grad = status
+        #     model.goal_bn1.running_var.requires_grad = status
+
         model.goal_out.weight.requires_grad = status
         model.goal_out.bias.requires_grad = status
 
@@ -257,6 +264,22 @@ class Pretrained_Model(torch.nn.Module):
 
         #disable goal head
         model = Pretrained_Model.enable_goal_head(model, True)
+
+        return model
+
+    @staticmethod
+    def set_train_no_output_heads(model):
+        #enable ground head
+        model = Pretrained_Model.enable_ground_head(model, False)
+
+        #disable localization head training
+        model = Pretrained_Model.enable_loc_head(model, False)
+
+        #disable turn head
+        model = Pretrained_Model.enable_turn_head(model, False)
+
+        #disable goal head
+        model = Pretrained_Model.enable_goal_head(model, False)
 
         return model
 
