@@ -6,6 +6,7 @@
 #include <tf2_sensor_msgs/tf2_sensor_msgs.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <std_msgs/Float64MultiArray.h>
+#include <geometry_msgs/Twist.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
 #include <image_transport/image_transport.h>
@@ -19,8 +20,17 @@ using namespace std;
 
 #define NUM_GROUND 80
 #define NUM_LOC 64
-#define NUM_TURN 2
+#define NUM_TURN 1
 #define NUM_GOAL 2
+#define GOAL_AVG_COUNT 3
+
+#define LEFT_OBSTACLE_X 256
+#define LEFT_OBSTACLE_Y 229
+#define RIGHT_OBSTACLE_X 384
+#define RIGHT_OBSTACLE_Y 229
+
+#define MAX_LINEAR .6
+#define MAX_ANGULAR .8
 
 Navigation::Navigation() : it(nh) {
   //subscriber for neural network data
@@ -31,6 +41,7 @@ Navigation::Navigation() : it(nh) {
   img_sub = it.subscribe("/see3cam_cu20/image_raw", 1, &Navigation::img_callback, this, hints);
 
   image_pub_ = it.advertise("/image_converter/output_video", 1);
+  twist_pub_ = nh.advertise<geometry_msgs::Twist>("/twist_cmd", 1);
 
 //   nh->param<double>("ticks_per_meter1", TICKS_PER_METER, 4467);
 
@@ -70,6 +81,8 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
 
    //connect the boundary points with lines
    connect_boundary();
+   draw_lines();
+   avoid_obstacles();
 
    float coord[2];
    compute_farthest(coord);
@@ -89,7 +102,7 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
 void Navigation::write_text() {
    char str[100];
 
-   if (turn[0] > .7) {
+   if (turn[0] > .4) {
       sprintf (str, "turn: %.3f", (float) turn[0]);
       cv::putText(new_image, //target image
                str, //text
@@ -101,33 +114,45 @@ void Navigation::write_text() {
    }
 
    //print the localization
-   sprintf (str, "loc: %d (%.3f)", cur_loc, cur_loc_prob);
-   cv::putText(new_image, //target image
-            str, //text
-            cv::Point(430, 60), //top-left position
-            cv::FONT_HERSHEY_DUPLEX,
-            .8,
-            CV_RGB(0, 185, 0), //font color
-            2);
+   sprintf(str, "loc: %d (%.3f)", cur_loc, cur_loc_prob);
+
+   if (cur_loc < 30) {
+      cv::putText(new_image, //target image
+               str, //text
+               cv::Point(430, 60), //top-left position
+               cv::FONT_HERSHEY_DUPLEX,
+               .8,
+               cv::Scalar(255, 128, 0), //font color
+               2);
+   } else {
+      cv::putText(new_image, //target image
+               str, //text
+               cv::Point(430, 60), //top-left position
+               cv::FONT_HERSHEY_DUPLEX,
+               .8,
+               cv::Scalar(0, 255, 0), //font color
+               2);
+   }
 }
 
 void Navigation::draw_goal() {
-   goal_cur_index = (goal_cur_index+1) % 4;
+   goal_cur_index = (goal_cur_index+1) % GOAL_AVG_COUNT;
 
    goal_x[goal_cur_index] = int(640 * goal[0]);
    goal_y[goal_cur_index] = int(360 * goal[1]);
 
    float total_x=0;
    float total_y=0;
-   for (int i=0; i<4; i++) {
+   for (int i=0; i<GOAL_AVG_COUNT; i++) {
       total_x += goal_x[i];
       total_y += goal_y[i];
    }
-   total_x /= 4;
-   total_y /= 4;
+
+   cur_goal_x = total_x / GOAL_AVG_COUNT;
+   cur_goal_y = total_y / GOAL_AVG_COUNT;
 
    cv::circle( new_image,
-      cv::Point(int(total_x), int(total_y)),
+      cv::Point(int(cur_goal_x), int(cur_goal_y)),
       3,
       cv::Scalar( 0, 255, 0),
       cv::FILLED,
@@ -203,6 +228,104 @@ void Navigation::connect_boundary() {
       int y2 = ground[i+1]*360;
       cv::line(new_image, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 0, 255), 2);
    }
+}
+
+void Navigation::draw_lines()
+{
+   cv::Point front_left_boundary = cv::Point(LEFT_OBSTACLE_X, LEFT_OBSTACLE_Y);
+   cv::Point front_right_boundary = cv::Point(RIGHT_OBSTACLE_X, RIGHT_OBSTACLE_Y);
+
+   // 3 foot lines in front of robot
+   cv::line(new_image, cv::Point(212, 359), front_left_boundary, cv::Scalar(0, 255, 255), 2); //left trapezoid side
+
+   // 3 foot right trapezoid side
+   cv::line(new_image, cv::Point(428, 359), front_right_boundary, cv::Scalar(0, 255, 255), 2);
+
+   // 2 foot lines in front of robot
+   cv::line(new_image, cv::Point(212, 359), cv::Point(241, 275), cv::Scalar(255, 0, 0), 4); //left trapezoid side
+
+   // 2 foot right trapezoid side
+   cv::line(new_image, cv::Point(428, 359), cv::Point(399, 275), cv::Scalar(255, 0, 0), 4);
+
+   // vertical line down middle
+   // cv::line(new_image, cv::Point(320, 0), cv::Point(320, 359), cv::Scalar(255, 255, 0), 1);
+}
+
+void Navigation::avoid_obstacles()
+{
+   geometry_msgs::Twist t_cmd;
+
+   //compute linear velocity attraction to goal point
+   float goal_velocity = .005 * (LEFT_OBSTACLE_Y - cur_goal_y);
+
+   if (goal_velocity > MAX_LINEAR) {
+      goal_velocity = MAX_LINEAR;
+   } else if (goal_velocity < -MAX_LINEAR) {
+      goal_velocity = -MAX_LINEAR;
+   }
+
+   //compute forward distance to obstacle
+   int boundary_index = LEFT_OBSTACLE_X / 8;
+   int min_forward_distance = 360;
+   while ((boundary_index*8) >= LEFT_OBSTACLE_X && (boundary_index*8) <= RIGHT_OBSTACLE_X) {
+      int y_ground = ground[boundary_index]*360;
+      int cur_distance = LEFT_OBSTACLE_Y - y_ground;
+
+      if (cur_distance < min_forward_distance) {
+         min_forward_distance = cur_distance;
+      }
+
+
+      cv::circle(new_image,
+                 cv::Point(int(boundary_index*8), int(LEFT_OBSTACLE_Y)),
+                 3,
+                 cv::Scalar(0, 255, 255),
+                 cv::FILLED,
+                 cv::LINE_8);
+      boundary_index++;
+   }
+
+   cout << setprecision(3) << "linear_vel: " << goal_velocity;
+   cout << " goal_distance: " << min_forward_distance;
+   t_cmd.linear.x = goal_velocity;
+
+   //compute angular velocity attraction to goal point
+   float ang_velocity = .015 * (320.0 - cur_goal_x);
+   cout << setprecision(3) << "  ang_vel: " << ang_velocity << endl;
+
+   int num_obstacle_points = 10;
+
+   //compute Y force on left side
+   int left_start_x = LEFT_OBSTACLE_X-8*(num_obstacle_points-1);
+   for (int i=left_start_x; i <= LEFT_OBSTACLE_X; i+=8) {
+      // cv::circle(new_image,
+      //            cv::Point(int(i), int(LEFT_OBSTACLE_Y)),
+      //            3,
+      //            cv::Scalar(0, 255, 255),
+      //            cv::FILLED,
+      //            cv::LINE_8);
+
+      int x1 = i;
+      int y1 = ground[i/8]*360;
+      cv::line(new_image, cv::Point(x1, y1), cv::Point(LEFT_OBSTACLE_X, LEFT_OBSTACLE_Y), cv::Scalar(0, 0, 255), 2);
+   }
+
+   //compute Y force on right side
+   int right_start_x = RIGHT_OBSTACLE_X+8*(num_obstacle_points-1);
+   for (int i=right_start_x; i >= RIGHT_OBSTACLE_X; i-=8) {
+      // cv::circle(new_image,
+      //            cv::Point(int(i), int(RIGHT_OBSTACLE_Y)),
+      //            3,
+      //            cv::Scalar(0, 255, 255),
+      //            cv::FILLED,
+      //            cv::LINE_8);
+
+      int x1 = i;
+      int y1 = ground[i/8]*360;
+      cv::line(new_image, cv::Point(x1, y1), cv::Point(RIGHT_OBSTACLE_X, RIGHT_OBSTACLE_Y), cv::Scalar(0, 0, 255), 2);
+   }
+
+   twist_pub_.publish(t_cmd);
 }
 
 int main(int argc, char** argv) {
