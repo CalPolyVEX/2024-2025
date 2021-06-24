@@ -1,0 +1,97 @@
+#!/usr/bin/expect
+#This script uses the program 'expect' for automation
+set timeout 1000
+
+#do not print to the screen
+stty -echo
+send_user -- "sudo password: "
+expect_user -re "(.*)\n"
+send_user "\n"
+stty echo
+set pass $expect_out(1,string)
+
+send_user -- "Cal Poly username: "
+expect_user -re "(.*)\n"
+send_user ""
+set cp_user $expect_out(1,string)
+
+stty -echo
+send_user -- "Cal Poly wifi password: "
+expect_user -re "(.*)\n"
+send_user "\n"
+stty echo
+set cp_pass $expect_out(1,string)
+
+#ssh into the local machine again
+#this makes using expect easier
+spawn ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no nvidia@localhost
+expect "word: "
+send "$pass\r" 
+
+#expect the password prompt
+set prompt {\$ $}  
+set sudo_prompt {\$ :}  
+expect -re $prompt 
+
+#send the ifconfig command
+send "sudo ifconfig wlan0 up\r" 
+expect "nvidia:"
+send "$pass\r" 
+expect -re $prompt 
+
+#create a new connection named CP_WIFI
+send "sudo nmcli con add type wifi ifname wlan0 con-name CP_WIFI ssid SecureMustangWireless\r"
+expect "added."
+
+#run nmcli to start editing the connection properties
+send "sudo nmcli con edit id CP_WIFI\r"
+expect "cli>"
+
+log_user 0
+send "set ipv4.method auto\r"
+expect "cli>"
+
+send "set 802-1x.eap peap\r"
+expect "cli>"
+
+send "set 802-1x.phase2-auth mschapv2\r"
+expect "cli>"
+
+#set the username
+send "set 802-1x.identity $cp_user\r"
+expect "cli>"
+
+#set the password
+send "set 802-1x.password $cp_pass\r"
+expect "cli>"
+log_user 1
+
+send "set 802-11-wireless.mode infrastructure\r"
+expect "cli>"
+
+send "set 802-11-wireless-security.key-mgmt wpa-eap\r"
+expect "cli>"
+
+#save the properties and wait 1 second
+send "save\r"
+expect "cli>"
+sleep 1
+
+#activate the connection
+send "activate\r"
+expect "activated"
+send "\r"
+expect "cli>"
+
+#send "save\r"
+#expect "cli>"
+sleep 1
+
+send "quit\r" 
+
+set timeout 1
+expect "no" { send "yes\r" }
+expect -re $prompt
+send "exit\r" 
+
+#puts "The output is '$expect_out(buffer)'."

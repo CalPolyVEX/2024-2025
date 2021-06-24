@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<launch>
+   <!-- This launch file publishes a stream of compressed images from the raw video input -->
+   <node name="republish" pkg="image_transport" type="republish" args="raw in:=/see3cam_cu20/image_raw compressed out:=/see3cam_cu20" />
+</launch>

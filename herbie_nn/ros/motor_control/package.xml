@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>motor_control</name>
+  <version>0.0.0</version>
+  <description>Motor control package for Herbie 2</description>
+
+  <maintainer email="jseng@calpoly.edu">John Seng</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>dynamic_reconfigure</depend>
+  <depend>geometry_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>tf2_py</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_sensor_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <build_depend>rtabmap_ros</build_depend>
+
+  <export>
+  </export>
+</package>

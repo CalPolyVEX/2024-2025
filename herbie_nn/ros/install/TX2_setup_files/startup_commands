@@ -1,0 +1,14 @@
+sudo sh -c "echo -1 > /sys/module/usbcore/parameters/autosuspend"
+sudo rfkill block all
+sudo systemctl stop wpa_supplicant.service
+export ROS_IP=127.0.0.1
+sudo chmod g+rw /dev/ttyS0
+
+mkdir /tmp/ramdisk
+sudo chmod 777 /tmp/ramdisk
+sudo mount -t tmpfs -o size=1024m myramdisk /tmp/ramdisk
+
+cp ~/.ros/rtabmap.db /tmp/ramdisk
+rm nohup.out
+#to boot graphical
+#sudo systemctl set-default graphical.target

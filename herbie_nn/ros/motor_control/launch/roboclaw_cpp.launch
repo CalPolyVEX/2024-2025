@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<launch>
+
+    <arg name="dev" default="/dev/herbie"/>
+    <arg name="baud" default="230400"/>
+    <arg name="address" default="128"/>
+    <arg name="max_abs_linear_speed" default=".50"/>
+    <arg name="max_abs_angular_speed" default=".170"/>
+<!-- Wheels max acceleration m/s^2 (TODO: split in angular and linear acceleration) -->
+    <arg name="acc_lim" default="1"/>
+
+    <!-- Herbie 2:  1425.2*2 = 2850.4 ticks/rev ; 8 inch wheel * 3.14 = 25.12 inch/rev -->
+    <arg name="ticks_per_meter" default="4467.37491"/>
+    <arg name="base_width" default="0.280988"/>
+    <arg name="run_diag" default="true"/>
+
+    <node if="$(arg run_diag)" pkg="motor_control" type="pub_odometry" name="roboclaw_node">
+        <param name="dev1" value="$(arg dev)"/>
+        <param name="baud1" value="$(arg baud)"/>
+        <param name="address1" value="$(arg address)"/>
+        <param name="max_abs_linear_speed1" value="$(arg max_abs_linear_speed)"/>
+	<param name="max_abs_angular_speed1" value="$(arg max_abs_angular_speed)"/>
+	<param name="acc_lim1" value="$(arg acc_lim)"/>
+        <param name="ticks_per_meter1" value="$(arg ticks_per_meter)"/>
+        <param name="base_width1" value="$(arg base_width)"/>
+    </node>
+
+</launch>
