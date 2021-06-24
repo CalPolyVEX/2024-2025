@@ -26,6 +26,7 @@ class Navigation {
   ros::Subscriber nn_data_sub;
   image_transport::Subscriber img_sub;
   image_transport::Publisher image_pub_;
+  ros::Publisher twist_pub_;
 
   double* ground;
   double* loc;
@@ -36,6 +37,7 @@ class Navigation {
   float cur_loc_prob; //the probability of the current location
   float goal_x[4];
   float goal_y[4];
+  float cur_goal_x, cur_goal_y;
   int goal_cur_index = 0;
 
   public:
@@ -47,6 +49,8 @@ class Navigation {
     void draw_loc_prob();
     void draw_goal();
     void write_text();
+    void draw_lines();
+    void avoid_obstacles();
 };
 
 #endif

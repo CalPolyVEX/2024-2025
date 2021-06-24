@@ -12,7 +12,7 @@
     <param name="/rtabmap/rtabmap/Mem/IncrementalMemory" value="false" />
     <param name="/rtabmap/rtabmap/RGBD/CreateOccupancyGrid" value="false" />
 
-    <arg name="rtabmap_flags" default="" />
+    <arg name="rtabmap_flags" default="--UseCache true" />
 
     <arg name="zed_namespace"             default="zed2" />
 

@@ -37,7 +37,7 @@ my_env["PATH"] = "/opt/ros/melodic/bin:/home/jseng/.local/bin:/usr/local/sbin:/u
 
 for i in range(len(l)):
    #process = subprocess.Popen(["roslaunch", "jet_launcher", "zed_rtabmap_compressed_offline.launch"], env=my_env, close_fds=True)
-   process = subprocess.Popen(["roslaunch", "jet_launcher", "herbie2_zed_rtabmap.launch", "rt_args:=-delete_db_on_start"], env=my_env, close_fds=True)
+   process = subprocess.Popen(["roslaunch", "jet_launcher", "herbie2_zed_rtabmap.launch", "rt_args:=--delete_db_on_start"], env=my_env, close_fds=True)
    print process
    time.sleep(15)
    print process.pid
