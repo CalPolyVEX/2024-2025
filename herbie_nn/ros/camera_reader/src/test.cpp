@@ -14,6 +14,7 @@
 
 #define NUM_GROUND_OUTPUTS 80
 #define NUM_LOC_OUTPUTS 64
+#define NUM_TURN_OUTPUTS 1
 #define NUM_GOAL_OUTPUTS 2
 
 using namespace std::chrono;
@@ -163,11 +164,12 @@ void CameraReader::initInference(char* s) {
    nn->context = nn->engine->createExecutionContext();
 
    //allocate space
-   nn->mInputCPU = (void **)malloc(4 * sizeof(void *)); //1 input and 3 output = 4 pointers
+   nn->mInputCPU = (void **)malloc(5 * sizeof(void *)); //1 input and 4 output = 5 pointers
    cudaHostAlloc((void **)&nn->mInputCPU[0], 3 * 360 * 640 * sizeof(float), cudaHostAllocDefault);
    cudaHostAlloc((void **)&nn->mInputCPU[1], 1 * (NUM_GROUND_OUTPUTS) * sizeof(float), cudaHostAllocDefault);
    cudaHostAlloc((void **)&nn->mInputCPU[2], 1 * (NUM_LOC_OUTPUTS) * sizeof(float), cudaHostAllocDefault);
-   cudaHostAlloc((void **)&nn->mInputCPU[3], 1 * (NUM_GOAL_OUTPUTS) * sizeof(float), cudaHostAllocDefault);
+   cudaHostAlloc((void **)&nn->mInputCPU[3], 1 * (NUM_TURN_OUTPUTS) * sizeof(float), cudaHostAllocDefault);
+   cudaHostAlloc((void **)&nn->mInputCPU[4], 1 * (NUM_GOAL_OUTPUTS) * sizeof(float), cudaHostAllocDefault);
 
    nn->inputIndex = nn->engine->getBindingIndex("input");
    nn->outputIndex = nn->engine->getBindingIndex("ground");
@@ -181,9 +183,11 @@ void CameraReader::initInference(char* s) {
    gpuErrchk(cudaMalloc(&nn->buffers[nn->outputIndex], 1 * (NUM_GROUND_OUTPUTS) * sizeof(float)));
 
    int loc_index = nn->engine->getBindingIndex("localization");
+   int turn_index = nn->engine->getBindingIndex("turn");
    int goal_index = nn->engine->getBindingIndex("goal");
 
    gpuErrchk(cudaMalloc(&nn->buffers[loc_index], 1 * (NUM_LOC_OUTPUTS) * sizeof(float)));
+   gpuErrchk(cudaMalloc(&nn->buffers[turn_index], 1 * (NUM_TURN_OUTPUTS) * sizeof(float)));
    gpuErrchk(cudaMalloc(&nn->buffers[goal_index], 1 * (NUM_GOAL_OUTPUTS) * sizeof(float)));
 
    gpuErrchk(cudaStreamCreate(&nn->stream));
