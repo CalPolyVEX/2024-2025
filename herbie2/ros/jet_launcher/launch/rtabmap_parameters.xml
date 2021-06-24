@@ -9,7 +9,14 @@
 <param name="/rtabmap/rtabmap/Grid/RangeMax"         value="5.0"   />  
 <param name="/rtabmap/rtabmap/Mem/DepthAsMask"       value="true"  />  
 
+<param name="/rtabmap/rtabmap/Rtabmap/UseCache"       value="true"  />  
+<param name="/rtabmap/rtabmap/Rtabmap/BuildCache"     value="false"  />  
+
 <param name="/rtabmap/rtabmap/Kp/DetectorStrategy"   value="8"     /> <!-- use GFTT/ORB -->  
+<param name="/rtabmap/rtabmap/SuperPoint/ModelPath"   value="/mnt/temp/superpoint.pt"     />
+<param name="/rtabmap/rtabmap/SuperPoint/Threshold"   value=".02"     />
+<param name="/rtabmap/rtabmap/SuperPoint/Cuda"   value="true"     />
+
 
 <!-- <param name="/rtabmap/rtabmap/Kp/DetectorStrategy"   value="10"    /> <!-1- use ORB Octree -1-> -->  
 <!-- <param name="/rtabmap/rtabmap/Vis/FeatureType"       value="10"    /> <!-1- use ORB Octree -1-> -->  

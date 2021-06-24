@@ -103,7 +103,7 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 
-set (TENSORFLOW_BUILD TRUE) #if building the nodes that use tensorflow
+set (TENSORFLOW_BUILD FALSE) #if building the nodes that use tensorflow
 
 if (TENSORFLOW_BUILD)
     catkin_package(

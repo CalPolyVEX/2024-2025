@@ -528,10 +528,24 @@ class JoystickNode:
                     p = Int32MultiArray()
                     p.data = self.create_servo_packet(0,100)
                     self.herbie_board_pub.publish(p)
+                    p = Int32MultiArray()
+                    p.data = self.create_servo_packet(1,100)
+                    self.herbie_board_pub.publish(p)
                     servo_toggle = 1
-                else:
+                elif servo_toggle == 1:
                     p = Int32MultiArray()
                     p.data = self.create_servo_packet(0,1900)
+                    self.herbie_board_pub.publish(p)
+                    p = Int32MultiArray()
+                    p.data = self.create_servo_packet(1,1900)
+                    self.herbie_board_pub.publish(p)
+                    servo_toggle = 2
+                else:
+                    p = Int32MultiArray()
+                    p.data = self.create_servo_packet(0,1000)
+                    self.herbie_board_pub.publish(p)
+                    p = Int32MultiArray()
+                    p.data = self.create_servo_packet(1,1000)
                     self.herbie_board_pub.publish(p)
                     servo_toggle = 0
 

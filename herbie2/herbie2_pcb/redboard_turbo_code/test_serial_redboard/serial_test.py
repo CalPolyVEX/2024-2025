@@ -60,7 +60,7 @@ def create_motor_packet(speed_left, speed_right):
     packet[6] = (crc >> 8) & 0xFF; #send the high byte of the crc
     packet[7] = crc & 0xFF; #send the low byte of the crc
 
-    #hex_bytes = binascii.hexlify(packet) 
+    #hex_bytes = binascii.hexlify(packet)
     #print(hex_bytes) # b'0a160a04' which is twice as long as in_bytes
 
     return packet
@@ -76,7 +76,7 @@ def main():
             for i in range(50):
                 cur_time = int(round(time.time() * 1000))
                 # p = create_motor_packet(j,i)
-                p = create_motor_packet(10,i)
+                p = create_motor_packet(240,i)
                 ser.write(p)     # write a string
                 packet = ser.read(13)
                 last_time = cur_time
