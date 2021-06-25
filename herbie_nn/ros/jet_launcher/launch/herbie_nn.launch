@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+   <!-- Start the roboclaw and Arduino nodes -->
+   <include file="$(find jet_launcher)/launch/basic.launch"/>
+
+   <!-- Start the gamepad node-->
+   <node pkg="jet_launcher" type="joystick.py" name="joystick_node" required="true"/>
+
+   <include file="$(find camera_reader)/launch/camera_reader.launch"/> --> 
+   <include file="$(find jet_launcher)/launch/robot_localization.launch"/>
+   <include file="$(find navigation)/launch/navigation.launch"/> --> 
+</launch>

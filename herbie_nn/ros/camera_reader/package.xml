@@ -2,8 +2,8 @@
 <package>
   <name>camera_reader</name>
   <version>1.0.0</version>
-  <description>I2C driver for a BNO055 IMU. Tested on Jetson TX2.</description>
-  <maintainer email="dheera@dheera.net">dheera</maintainer>
+  <description>Node to capture camera images for Herbie</description>
+  <maintainer email="jseng@calpoly.edu">jseng</maintainer>
   <license>MIT</license>
   <buildtool_depend>catkin</buildtool_depend>
   <run_depend>roscpp</run_depend>

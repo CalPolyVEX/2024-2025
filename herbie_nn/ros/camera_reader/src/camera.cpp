@@ -11,6 +11,11 @@
 #include <std_msgs/Float64MultiArray.h>
 #include <std_msgs/Empty.h>
 
+#define NUM_GROUND 80
+#define NUM_LOC 64
+#define NUM_TURN 1
+#define NUM_GOAL 2
+
 ros::NodeHandle* nh = NULL; 
 using namespace std::chrono;
 bool g_simulate = false;
@@ -33,9 +38,9 @@ int CameraReader::init(char* videodev, int width, int height, ros::NodeHandle* n
     *
     * [1]: https://linuxtv.org/downloads/v4l-dvb-apis/uapi/v4l/pixfmt-v4l2.html#c.v4l2_pix_format
     */
-      if (helper_init_cam(videodev, width, height, V4L2_PIX_FMT_UYVY, IO_METHOD_USERPTR) < 0)
-      {
-         /* if (helper_init_cam(videodev, width, height, V4L2_PIX_FMT_UYVY, IO_METHOD_MMAP) < 0) { */
+      /* if (helper_init_cam(videodev, width, height, V4L2_PIX_FMT_UYVY, IO_METHOD_USERPTR) < 0) */
+      /* { */
+         if (helper_init_cam(videodev, width, height, V4L2_PIX_FMT_UYVY, IO_METHOD_MMAP) < 0) {
          return EXIT_FAILURE;
       }
    } else {
@@ -47,7 +52,7 @@ int CameraReader::init(char* videodev, int width, int height, ros::NodeHandle* n
    bgr_frame = Mat(height, width, CV_8UC3);         //full HD resolution
    bgr_frame_360 = Mat(height/3, width/3, CV_8UC3); //640x360 resolution
 
-   ground_pub = nh->advertise<std_msgs::Float64MultiArray>("/ground_boundary", 1000);
+   nn_data = nh->advertise<std_msgs::Float64MultiArray>("/nn_data", 1);
    image_debug_toggle_ = nh->subscribe("/image_pub_toggle", 1, &CameraReader::image_pub_toggle_cb, this);
 
    return 0;
@@ -65,6 +70,9 @@ void CameraReader::nhwc_to_nchw(unsigned char* src, float* dest, int nn_height, 
    //convert NHWC to NCHW with 3 channels
    int num_pixels = nn_height * nn_width;
    unsigned char* temp_src;
+   float div_255 = 1.00000 / 255.00000;
+   
+   /* auto start = high_resolution_clock::now(); */
 
    for (int i = 0; i < 3; i++)
    {
@@ -72,12 +80,16 @@ void CameraReader::nhwc_to_nchw(unsigned char* src, float* dest, int nn_height, 
 
       for (int h = 0; h < num_pixels; h++)
       {
-         *dest = ((float)*temp_src) / 255.0; //B
+         *dest = ((float)*temp_src) * div_255; //B
 
          dest++; //move over 1 pixel
          temp_src += 3;
       }
    }
+
+   /* auto end = high_resolution_clock::now(); */ 
+   /* auto duration = duration_cast<microseconds>(end - start) / 1000.0; */ 
+   /* std::cout << "--" << duration.count() << std::endl; */ 
 
    return;
 }
@@ -117,14 +129,14 @@ void CameraReader::simulate_callback(const sensor_msgs::ImageConstPtr &msg)
    std::cout << "--" << duration.count() << std::endl;
 
    //publish vector test
-   vector<double> vec1;
+   vector<double> nn_vec;
    std_msgs::Float64MultiArray ground_msg;
 
    //push ground boundary data into vector
    int col_counter = 0;
-   for (int i = 0; i < 80; i++)
+   for (int i = 0; i < NUM_GROUND; i++)
    {
-      vec1.push_back(((float *)nn1.mInputCPU[1])[i]);
+      nn_vec.push_back(((float *)nn1.mInputCPU[1])[i]);
 
       //draw circle on 640x360 image
       if (publish_360_image) {
@@ -134,17 +146,35 @@ void CameraReader::simulate_callback(const sensor_msgs::ImageConstPtr &msg)
       col_counter += 8;
    }
 
+   //add localization data
+   for (int i = 0; i < NUM_LOC; i++)
+   {
+      nn_vec.push_back(((float *)nn1.mInputCPU[2])[i]);
+   }
+
+   //add turn data
+   for (int i = 0; i < NUM_TURN; i++)
+   {
+      nn_vec.push_back(((float *)nn1.mInputCPU[3])[i]);
+   }
+   
+   //add goal data
+   for (int i = 0; i < NUM_GOAL; i++)
+   {
+      nn_vec.push_back(((float *)nn1.mInputCPU[4])[i]);
+   }
+
    // set up dimensions
    ground_msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
-   ground_msg.layout.dim[0].size = vec1.size();
+   ground_msg.layout.dim[0].size = nn_vec.size();
    ground_msg.layout.dim[0].stride = 1;
-   ground_msg.layout.dim[0].label = "x"; // or whatever name you typically use to index vec1
+   ground_msg.layout.dim[0].label = "x"; // or whatever name you typically use to index nn_vec
 
    // copy in the data
    ground_msg.data.clear();
-   ground_msg.data.insert(ground_msg.data.end(), vec1.begin(), vec1.end());
-   vec1.clear();
-   ground_pub.publish(ground_msg);
+   ground_msg.data.insert(ground_msg.data.end(), nn_vec.begin(), nn_vec.end());
+   nn_vec.clear();
+   nn_data.publish(ground_msg);
 
    //////////////////////
    //publish the image
@@ -155,12 +185,13 @@ void CameraReader::simulate_callback(const sensor_msgs::ImageConstPtr &msg)
 }
 
 void CameraReader::frame_loop() {
+   array<double,NUM_GROUND+NUM_LOC+NUM_TURN+NUM_GOAL> nn_vec;
+   std_msgs::Float64MultiArray msg;
+
    while(ros::ok()) {
-      //usleep(200);
+      //usleep(2000);
       bool read_cam=true;
 
-      /* n->getParam("/read_see3cam", read_cam); */
-      /* if (read_cam == true) { */ 
       if (read_cam == true) { 
          //Get a new image from the camera
          if (helper_get_cam_frame(&ptr_cam_frame, &bytes_used) < 0) {
@@ -172,17 +203,14 @@ void CameraReader::frame_loop() {
           * member 'data' to point to the data obtained from the V4L2 helper.
           */
          uyvy_frame.data = ptr_cam_frame;
-         /* if(uyvy_frame.empty()) { */
-         /*    cout << "Img load failed" << endl; */
-         /*    break; */
-         /* } */
 
-         auto start = high_resolution_clock::now();
+         //auto start = high_resolution_clock::now();
 
 #ifdef ARM_CPU
          //if this CPU supports NEON
          asm_foo((unsigned char*) uyvy_frame.data, (unsigned char*) bgr_frame_360.data);
 #else
+         //if not NEON, then use the standard image resize from OpenCV
          cvtColor(uyvy_frame, bgr_frame, COLOR_YUV2BGR_UYVY);
          resize(bgr_frame, bgr_frame_360, bgr_frame_360.size(), 0, 0);
 #endif
@@ -193,41 +221,50 @@ void CameraReader::frame_loop() {
          inference(&nn1);
          /* inference(&nn2); */
 
-         auto end = high_resolution_clock::now();
-         auto duration = duration_cast<microseconds>(end - start) / 1000.0;
-         std::cout << "--" << duration.count() << std::endl;
-
-         //publish vector test
-         array<double,80> vec1;
-         std_msgs::Float64MultiArray msg;
+         /* auto end = high_resolution_clock::now(); */
+         /* auto duration = duration_cast<microseconds>(end - start) / 1000.0; */
+         /* std::cout << "--" << duration.count() << std::endl; */
 
          //push ground boundary data into vector
-         int col_counter = 0;
-         for (int i = 0; i < 80; i++)
+         int nn_vec_index = 0;
+         for (int i = 0; i < NUM_GROUND; i++)
          {
-            //vec1.push_back(((float*) nn1.mInputCPU[1])[i]);
-            vec1[i] = ((float *)nn1.mInputCPU[1])[i];
+            nn_vec[nn_vec_index] = ((float *)nn1.mInputCPU[1])[i];
+            nn_vec_index++;
+         }
+         
+         //add localization data
+         for (int i = 0; i < NUM_LOC; i++)
+         {
+            nn_vec[nn_vec_index] = ((float *)nn1.mInputCPU[2])[i];
+            nn_vec_index++;
+         }
 
-            //draw circle on 640x360 image
-            if (publish_360_image)
-            {
-               circle(bgr_frame_360, Point(col_counter, (int)(((float *)nn1.mInputCPU[1])[i] * 360.0)), 2, Scalar(0, 0, 255), -1);
-            }
+         //add turn data
+         for (int i = 0; i < NUM_TURN; i++)
+         {
+            nn_vec[nn_vec_index] = ((float *)nn1.mInputCPU[3])[i];
+            nn_vec_index++;
+         }
 
-            col_counter += 8;
+         //add goal data
+         for (int i = 0; i < NUM_GOAL; i++)
+         {
+            nn_vec[nn_vec_index] = ((float *)nn1.mInputCPU[4])[i];
+            nn_vec_index++;
          }
 
          // set up dimensions
          msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
-         msg.layout.dim[0].size = 80; //array size
+         msg.layout.dim[0].size = NUM_GROUND + NUM_LOC + NUM_TURN + NUM_GOAL; //array size
          msg.layout.dim[0].stride = 1;
-         msg.layout.dim[0].label = "ground_y_percent"; // or whatever name you typically use to index vec1
+         msg.layout.dim[0].label = "neural_network_data"; // name of the data
 
          // copy in the data
          msg.data.clear();
-         msg.data.insert(msg.data.end(), vec1.begin(), vec1.end());
-         // vec1.clear();
-         ground_pub.publish(msg);
+         msg.data.insert(msg.data.end(), nn_vec.begin(), nn_vec.end());
+         // nn_vec.clear();
+         nn_data.publish(msg);
 
          //////////////////////
          //publish the image

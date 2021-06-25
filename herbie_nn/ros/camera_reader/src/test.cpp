@@ -182,13 +182,13 @@ void CameraReader::initInference(char* s) {
    gpuErrchk(cudaMalloc(&nn->buffers[nn->inputIndex], 1 * 3 * 360 * 640 * sizeof(float)));
    gpuErrchk(cudaMalloc(&nn->buffers[nn->outputIndex], 1 * (NUM_GROUND_OUTPUTS) * sizeof(float)));
 
-   int loc_index = nn->engine->getBindingIndex("localization");
-   int turn_index = nn->engine->getBindingIndex("turn");
-   int goal_index = nn->engine->getBindingIndex("goal");
+   nn->loc_index = nn->engine->getBindingIndex("localization");
+   nn->turn_index = nn->engine->getBindingIndex("turn");
+   nn->goal_index = nn->engine->getBindingIndex("goal");
 
-   gpuErrchk(cudaMalloc(&nn->buffers[loc_index], 1 * (NUM_LOC_OUTPUTS) * sizeof(float)));
-   gpuErrchk(cudaMalloc(&nn->buffers[turn_index], 1 * (NUM_TURN_OUTPUTS) * sizeof(float)));
-   gpuErrchk(cudaMalloc(&nn->buffers[goal_index], 1 * (NUM_GOAL_OUTPUTS) * sizeof(float)));
+   gpuErrchk(cudaMalloc(&nn->buffers[nn->loc_index], 1 * (NUM_LOC_OUTPUTS) * sizeof(float)));
+   gpuErrchk(cudaMalloc(&nn->buffers[nn->turn_index], 1 * (NUM_TURN_OUTPUTS) * sizeof(float)));
+   gpuErrchk(cudaMalloc(&nn->buffers[nn->goal_index], 1 * (NUM_GOAL_OUTPUTS) * sizeof(float)));
 
    gpuErrchk(cudaStreamCreate(&nn->stream));
 }
@@ -202,7 +202,17 @@ void CameraReader::inference(struct nn_context* nn) {
 
    nn1.context->executeV2(nn->buffers);
 
+   //copy ground data
    gpuErrchk( cudaMemcpyAsync(nn->mInputCPU[1], nn->buffers[nn->outputIndex], 1*(NUM_GROUND_OUTPUTS)*sizeof(float), cudaMemcpyDeviceToHost, nn->stream) );
+
+   //copy localization data
+   gpuErrchk( cudaMemcpyAsync(nn->mInputCPU[2], nn->buffers[nn->loc_index], 1*(NUM_LOC_OUTPUTS)*sizeof(float), cudaMemcpyDeviceToHost, nn->stream) );
+
+   //copy turn data
+   gpuErrchk( cudaMemcpyAsync(nn->mInputCPU[3], nn->buffers[nn->turn_index], 1*(NUM_TURN_OUTPUTS)*sizeof(float), cudaMemcpyDeviceToHost, nn->stream) );
+
+   //copy goal data
+   gpuErrchk( cudaMemcpyAsync(nn->mInputCPU[4], nn->buffers[nn->goal_index], 1*(NUM_GOAL_OUTPUTS)*sizeof(float), cudaMemcpyDeviceToHost, nn->stream) );
 
    cudaStreamSynchronize(nn->stream);
 

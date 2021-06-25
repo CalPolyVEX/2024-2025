@@ -32,18 +32,23 @@ using namespace std;
 #define MAX_LINEAR .6
 #define MAX_ANGULAR .8
 
+int sim_mode = 0;
+
 Navigation::Navigation() : it(nh) {
   //subscriber for neural network data
   nn_data_sub = nh.subscribe("/nn_data", 1, &Navigation::nn_data_callback, this);
   
   //subscriber for 640x360 image
   image_transport::TransportHints hints("compressed");
-  img_sub = it.subscribe("/see3cam_cu20/image_raw", 1, &Navigation::img_callback, this, hints);
+
+  if (sim_mode == 0) {
+     img_sub = it.subscribe("/see3cam_cu20/image_raw_live", 1, &Navigation::img_callback, this, hints);
+  } else {
+     img_sub = it.subscribe("/see3cam_cu20/image_raw", 1, &Navigation::img_callback, this, hints);
+  }
 
   image_pub_ = it.advertise("/image_converter/output_video", 1);
   twist_pub_ = nh.advertise<geometry_msgs::Twist>("/twist_cmd", 1);
-
-//   nh->param<double>("ticks_per_meter1", TICKS_PER_METER, 4467);
 
   nh.setParam("/autonomous_mode", false);
 }
@@ -275,7 +280,6 @@ void Navigation::avoid_obstacles()
          min_forward_distance = cur_distance;
       }
 
-
       cv::circle(new_image,
                  cv::Point(int(boundary_index*8), int(LEFT_OBSTACLE_Y)),
                  3,
@@ -330,6 +334,12 @@ void Navigation::avoid_obstacles()
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "navigation_node");
+
+  if (argc == 2 && strcmp(argv[1], "-sim") == 0) {
+     sim_mode = 1;
+  } else {
+     sim_mode = 0;
+  }
 
   Navigation nav_node;
 

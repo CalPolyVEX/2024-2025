@@ -42,7 +42,7 @@ class CameraReader {
   image_transport::Publisher image_pub_;
   image_transport::Subscriber image_sub_;
   ros::Subscriber image_debug_toggle_;
-  ros::Publisher ground_pub;
+  ros::Publisher nn_data;
 
   /*
    * Re-using the frame matrix(ces) instead of creating new ones (i.e., declaring 'Mat frame'
@@ -62,6 +62,9 @@ class CameraReader {
     cudaStream_t stream;
     int inputIndex;
     int outputIndex;
+    int loc_index; 
+    int turn_index;
+    int goal_index;
   };
 
   struct nn_context nn1;
@@ -86,7 +89,7 @@ class CameraReader {
 
   CameraReader() : it_(nh_) {
     image_transport::TransportHints hints("compressed");
-    image_pub_ = it_.advertise("/see3cam_cu20/image_raw1", 1);
+    image_pub_ = it_.advertise("/see3cam_cu20/image_raw_live", 10);
     image_sub_ = it_.subscribe("/see3cam_cu20/image_raw", 1, &CameraReader::simulate_callback, this, hints);
   }
 

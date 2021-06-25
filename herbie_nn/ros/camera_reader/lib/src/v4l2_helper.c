@@ -21,7 +21,8 @@
 #include <linux/videodev2.h>
 #include "v4l2_helper.h"
 
-#define NUM_BUFFS	4
+#define NUM_BUFFS	2
+//#define NUM_BUFFS	4
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
 
