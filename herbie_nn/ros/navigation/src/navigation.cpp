@@ -42,7 +42,11 @@ Navigation::Navigation() : it(nh) {
   image_transport::TransportHints hints("compressed");
 
   if (sim_mode == 0) {
-     img_sub = it.subscribe("/see3cam_cu20/image_raw_live", 1, &Navigation::img_callback, this, hints);
+#ifdef __x86_64__
+     img_sub = it.subscribe("/see3cam_cu20/image_raw", 1, &Navigation::img_callback, this, hints);
+#else
+     img_sub = it.subscribe("/see3cam_cu20/image_raw1", 1, &Navigation::img_callback, this, hints);
+#endif
   } else {
      img_sub = it.subscribe("/see3cam_cu20/image_raw", 1, &Navigation::img_callback, this, hints);
   }

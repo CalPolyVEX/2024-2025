@@ -35,7 +35,7 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
 )
 
-set(Torch_DIR /home/jseng/pt-env/lib/python3.6/site-packages/torch/share/cmake/Torch)
+set(Torch_DIR /home/jseng/pt-env/lib/python3.8/site-packages/torch/share/cmake/Torch)
 find_package(Torch REQUIRED)
 
 roslint_cpp()
