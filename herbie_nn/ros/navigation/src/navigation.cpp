@@ -51,6 +51,8 @@ Navigation::Navigation() : it(nh) {
   twist_pub_ = nh.advertise<geometry_msgs::Twist>("/twist_cmd", 1);
 
   nh.setParam("/autonomous_mode", false);
+
+  new_image = cv::Mat(360, 640, CV_8UC3);
 }
 
 void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
@@ -65,7 +67,11 @@ void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
    //  cout << "received image" << endl;
 
    //resize image to IMG_HEIGHT x IMG_WIDTH
-   cv::resize(cv_ptr->image, new_image, cv::Size(640,360), CV_INTER_LINEAR);
+   if (cv_ptr->image.rows == 360 && cv_ptr->image.cols == 640) {
+      memcpy(new_image.data, cv_ptr->image.data, 640*360*3);
+   } else {
+      cv::resize(cv_ptr->image, new_image, cv::Size(640,360), CV_INTER_LINEAR);
+   }
 }
 
 void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& nn_msg) {
