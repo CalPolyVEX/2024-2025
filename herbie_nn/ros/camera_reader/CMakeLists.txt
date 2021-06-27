@@ -35,7 +35,11 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
 )
 
-set(Torch_DIR /home/jseng/pt-env/lib/python3.6/site-packages/torch/share/cmake/Torch)
+if ("x86_64" STREQUAL ${CMAKE_HOST_SYSTEM_PROCESSOR})
+   set(Torch_DIR /home/jseng/pt-env/lib/python3.8/site-packages/torch/share/cmake/Torch)
+else()
+   set(Torch_DIR /home/jseng/pt-env/lib/python3.6/site-packages/torch/share/cmake/Torch)
+endif()
 find_package(Torch REQUIRED)
 
 roslint_cpp()

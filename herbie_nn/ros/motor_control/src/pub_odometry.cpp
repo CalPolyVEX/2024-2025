@@ -23,7 +23,7 @@ ros::NodeHandle *nh;
 ros::Subscriber sub_, sub_cmd_vel, sub_planner_cmd_vel;
 ros::Subscriber sub_stop;
 ros::Subscriber control_board_sub;
-ros::Publisher pub_, loop_closure_pub;
+ros::Publisher pub_;
 ros::Publisher twist_pub;
 
 OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
@@ -36,17 +36,11 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   update_encoder_mutex.unlock();
   herbie_board_queue_mutex.unlock();
   
-  //encoder Int32MultiArray messages are received from the Arduino on this topic
-  //sub_ = nh->subscribe("/encoder_service", 1, &OdometryPublisher::encoder_message_callback, this);
-
   //publish Odometry messages to this topic
   pub_ = nh->advertise<nav_msgs::Odometry>("/roboclaw_odom", 1);
 
   //publish Twist messages to this topic
   twist_pub = nh->advertise<geometry_msgs::TwistWithCovarianceStamped>("/roboclaw_twist", 1);
-
-  //publish Odometry messages to this topic
-  loop_closure_pub = nh->advertise<std_msgs::Int32MultiArray>("/update_loop_closure_lcd", 1);
 
   //listen for Twist messages on /cmd_vel
   sub_cmd_vel = nh->subscribe("/cmd_vel", 2, &OdometryPublisher::cmd_vel_callback, this);
@@ -238,6 +232,8 @@ void OdometryPublisher::serial_loop() {
   my_serial->flushInput();
 
   while (ros::ok()) {
+    //this loop waits for serial data to be received from the Herbie PCB (which is
+    //sent at 30Hz
     x = my_serial->read(data,RECEIVE_PACKET_SIZE);
     if ((check_receive_crc(data,RECEIVE_PACKET_SIZE) == 1) && (data[0] == 0xFF)) {
       /* std::cout << "valid packet received" << std::endl; */
@@ -264,15 +260,13 @@ void OdometryPublisher::serial_loop() {
       encoder_message_callback(left_encoder, right_encoder); 
     }
 
-    //send test LED messages to the Herbie board
+    //periodically blink an LED on the Herbie PCB to indicate this loop is running
     led_counter++;
 
     if ((led_counter & 63) == 0) {
        unsigned char x = 2;
        create_control_board_msg(7,(void*) &x);
-    }
-
-    if ((led_counter & 63) == 2) {
+    } else if ((led_counter & 63) == 2) {
        unsigned char x = 2;
        create_control_board_msg(8,(void*) &x);
     }

@@ -9,22 +9,6 @@ extern ros::Subscriber sub_, sub_stop;
 extern ros::Publisher pub_, loop_closure_pub;
 extern ros::Publisher twist_pub;
 
-/* void OdometryPublisher::rtabmap_info_callback(const rtabmap_ros::Info::ConstPtr& info) { */
-/*   //this function is called when a message is published to /rtabmap/info */
-/*   std_msgs::Int32MultiArray a; */
-
-/*   a.data.clear(); */
-
-/*   a.data.push_back(info->loopClosureId); */
-/*   a.data.push_back(info->proximityDetectionId); */
-
-/*   if (rtabmap_started == 0) { */
-/*     rtabmap_started = 1; */
-/*   } */
-
-/*   loop_closure_pub.publish(a); */
-/* } */
-
 void OdometryPublisher::publish_odometry_message(double vx, double vth) {
   //publish a new odometry message
   tf2::Quaternion odom_quat;

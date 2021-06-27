@@ -42,15 +42,22 @@ Navigation::Navigation() : it(nh) {
   image_transport::TransportHints hints("compressed");
 
   if (sim_mode == 0) {
-     img_sub = it.subscribe("/see3cam_cu20/image_raw_live", 1, &Navigation::img_callback, this, hints);
+#ifdef __x86_64__
+     img_sub = it.subscribe("/see3cam_cu20/image_raw", 1, &Navigation::img_callback, this, hints);
+#else
+     //if on ARM, read from the live camera
+     img_sub = it.subscribe("/see3cam_cu20/image_raw_live", 1, &Navigation::img_callback, this);
+#endif
   } else {
      img_sub = it.subscribe("/see3cam_cu20/image_raw", 1, &Navigation::img_callback, this, hints);
   }
 
-  image_pub_ = it.advertise("/image_converter/output_video", 1);
+  image_pub_ = it.advertise("/nav_output_video", 1);
   twist_pub_ = nh.advertise<geometry_msgs::Twist>("/twist_cmd", 1);
 
   nh.setParam("/autonomous_mode", false);
+
+  new_image = cv::Mat(360, 640, CV_8UC3);
 }
 
 void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
@@ -62,10 +69,12 @@ void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
       ROS_ERROR("cv_bridge exception: %s", e.what());
     }
     
-   //  cout << "received image" << endl;
-
    //resize image to IMG_HEIGHT x IMG_WIDTH
-   cv::resize(cv_ptr->image, new_image, cv::Size(640,360), CV_INTER_LINEAR);
+   if (cv_ptr->image.rows == 360 && cv_ptr->image.cols == 640) {
+      memcpy(new_image.data, cv_ptr->image.data, 640*360*3);
+   } else {
+      cv::resize(cv_ptr->image, new_image, cv::Size(640,360), CV_INTER_LINEAR);
+   }
 }
 
 void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& nn_msg) {
@@ -289,19 +298,42 @@ void Navigation::avoid_obstacles()
       boundary_index++;
    }
 
+   //compute repulsive linear velocity - any obstacles will generate a negative
+   //velocity force
+   float mean = 0;
+   float sd = 2;
+   float obst_linear;
+
+   if (min_forward_distance < 0) {
+      min_forward_distance = 0.0;   
+   }
+   
+   //the obstacle repulsive force is expressed as a Gaussian function
+   obst_linear = (1.0 / (sd * sqrt(2 * 3.14159))) * exp(-0.5 * pow((min_forward_distance-mean)/sd, 2));
+   obst_linear *= 5.0;
+
    cout << setprecision(3) << "linear_vel: " << goal_velocity;
-   cout << " goal_distance: " << min_forward_distance;
-   t_cmd.linear.x = goal_velocity;
+   // cout << " goal_distance: " << min_forward_distance;
+   cout << setprecision(3) << " obst_linear: " << obst_linear;
+   t_cmd.linear.x = goal_velocity - obst_linear;
+
+   if (t_cmd.linear.x < 0) {
+      t_cmd.linear.x = 0;
+   }
 
    //compute angular velocity attraction to goal point
-   float ang_velocity = .015 * (320.0 - cur_goal_x);
+   float ang_velocity = .003 * (320.0 - cur_goal_x);
    cout << setprecision(3) << "  ang_vel: " << ang_velocity << endl;
+
+   t_cmd.angular.z = ang_velocity;
 
    int num_obstacle_points = 10;
 
    //compute Y force on left side
-   int left_start_x = LEFT_OBSTACLE_X-8*(num_obstacle_points-1);
-   for (int i=left_start_x; i <= LEFT_OBSTACLE_X; i+=8) {
+   float closest_left_distance = 10000;
+   int min_left_x, min_left_y, min_right_x, min_right_y;
+   int left_start_x = LEFT_OBSTACLE_X - (8*(num_obstacle_points-1));
+   for (int i=left_start_x; i <= (LEFT_OBSTACLE_X+16); i+=8) {
       // cv::circle(new_image,
       //            cv::Point(int(i), int(LEFT_OBSTACLE_Y)),
       //            3,
@@ -311,12 +343,25 @@ void Navigation::avoid_obstacles()
 
       int x1 = i;
       int y1 = ground[i/8]*360;
-      cv::line(new_image, cv::Point(x1, y1), cv::Point(LEFT_OBSTACLE_X, LEFT_OBSTACLE_Y), cv::Scalar(0, 0, 255), 2);
+      float distance = sqrt(pow((x1-LEFT_OBSTACLE_X), 2) + pow((y1-LEFT_OBSTACLE_Y), 2));
+
+      if (distance < closest_left_distance) {
+         min_left_x = x1;
+         min_left_y = y1;
+         closest_left_distance = distance;
+      }
    }
+   cv::line(new_image, cv::Point(min_left_x, min_left_y), cv::Point(LEFT_OBSTACLE_X, LEFT_OBSTACLE_Y), cv::Scalar(0, 0, 255), 2);
+
+   float left_mean = 0;
+   float left_sd = 40;
+   float ang_force_left = (1.0 / (left_sd * sqrt(2 * 3.14159))) * exp(-0.5 * pow((closest_left_distance-left_mean)/left_sd, 2));
+   ang_force_left *= -15.0;
 
    //compute Y force on right side
-   int right_start_x = RIGHT_OBSTACLE_X+8*(num_obstacle_points-1);
-   for (int i=right_start_x; i >= RIGHT_OBSTACLE_X; i-=8) {
+   float closest_right_distance = 10000;
+   int right_start_x = RIGHT_OBSTACLE_X + (8*(num_obstacle_points-1));
+   for (int i=right_start_x; i >= (RIGHT_OBSTACLE_X-16); i-=8) {
       // cv::circle(new_image,
       //            cv::Point(int(i), int(RIGHT_OBSTACLE_Y)),
       //            3,
@@ -326,8 +371,23 @@ void Navigation::avoid_obstacles()
 
       int x1 = i;
       int y1 = ground[i/8]*360;
-      cv::line(new_image, cv::Point(x1, y1), cv::Point(RIGHT_OBSTACLE_X, RIGHT_OBSTACLE_Y), cv::Scalar(0, 0, 255), 2);
+      float distance = sqrt(pow((x1-RIGHT_OBSTACLE_X), 2) + pow((y1-RIGHT_OBSTACLE_Y), 2));
+
+      if (distance < closest_right_distance) {
+         min_right_x = x1;
+         min_right_y = y1;
+         closest_right_distance = distance;
+      }
    }
+   cv::line(new_image, cv::Point(min_right_x, min_right_y), cv::Point(RIGHT_OBSTACLE_X, RIGHT_OBSTACLE_Y), cv::Scalar(0, 0, 255), 2);
+
+   float right_mean = 0;
+   float right_sd = 40;
+   float ang_force_right = (1.0 / (right_sd * sqrt(2 * 3.14159))) * exp(-0.5 * pow((closest_right_distance-right_mean)/right_sd, 2));
+   ang_force_right *= 15.0;
+
+   t_cmd.angular.x = ang_force_left + ang_force_right;
+   t_cmd.angular.y = ang_force_right;
 
    twist_pub_.publish(t_cmd);
 }
