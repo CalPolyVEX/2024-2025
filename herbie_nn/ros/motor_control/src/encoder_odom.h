@@ -121,7 +121,7 @@ class OdometryPublisher {
     void setmotor(int duty_cyclel, int dutycycler);
     void serial_loop();
     int check_receive_crc(unsigned char* data, int len);
-    unsigned short compute_crc(unsigned char* data, int len);
+    inline unsigned short compute_crc(unsigned char* data, int len) __attribute__((always_inline));
     void create_control_board_msg(int num, void* arg);
 };
 

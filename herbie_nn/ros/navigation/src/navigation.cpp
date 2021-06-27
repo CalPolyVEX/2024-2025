@@ -45,7 +45,7 @@ Navigation::Navigation() : it(nh) {
 #ifdef __x86_64__
      img_sub = it.subscribe("/see3cam_cu20/image_raw", 1, &Navigation::img_callback, this, hints);
 #else
-     img_sub = it.subscribe("/see3cam_cu20/image_raw1", 1, &Navigation::img_callback, this, hints);
+     img_sub = it.subscribe("/see3cam_cu20/image_raw_live", 1, &Navigation::img_callback, this, hints);
 #endif
   } else {
      img_sub = it.subscribe("/see3cam_cu20/image_raw", 1, &Navigation::img_callback, this, hints);

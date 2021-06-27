@@ -217,7 +217,6 @@ class JoystickNode:
       self.robot_stop_pub = rospy.Publisher('/robot_stop', Empty, queue_size=1)
       self.autonomous_pub = rospy.Publisher('/autonomous', Int8, queue_size=1)
       self.autonomous_led_pub = rospy.Publisher('/read_encoder_cmd', Int8, queue_size=1)
-      self.initial_pose_pub = rospy.Publisher('/rtabmap/initialpose', PoseWithCovarianceStamped, queue_size=1)
       self.herbie_board_pub = rospy.Publisher('/control_board', Int32MultiArray, queue_size=5)
 
       rospy.sleep(1)
@@ -364,8 +363,6 @@ class JoystickNode:
       #do not print SDL messages
       sys.stdout = open(os.devnull, "w")
       sys.stderr = open(os.devnull, "w")
-      # sys.stdout = os.devnull
-      # sys.stderr = os.devnull
 
       #while not rospy.is_shutdown():
       while True:

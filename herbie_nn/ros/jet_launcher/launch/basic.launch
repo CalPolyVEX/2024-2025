@@ -1,9 +1,7 @@
 <?xml version="1.0"?>
 
-<!-- Launch the roboclaw node and the Arduino node -->
+<!-- Launch the Herbie PCB -->
 
 <launch>
-   <include file="$(find motor_control)/launch/roboclaw_cpp.launch"/>
-   <!-- <include file="$(find arduino)/launch/arduino.launch"/> -->
-   <!-- <include file="$(find motor_control)/launch/test_serial.launch"/> -->
+   <include file="$(find motor_control)/launch/herbie_pcb.launch"/>
 </launch>
