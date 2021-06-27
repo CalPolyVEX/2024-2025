@@ -45,16 +45,23 @@ Navigation::Navigation() : it(nh) {
 #ifdef __x86_64__
      img_sub = it.subscribe("/see3cam_cu20/image_raw", 1, &Navigation::img_callback, this, hints);
 #else
+<<<<<<< HEAD
      img_sub = it.subscribe("/see3cam_cu20/image_raw_live", 1, &Navigation::img_callback, this, hints);
+=======
+     //if on ARM, read from the live camera
+     img_sub = it.subscribe("/see3cam_cu20/image_raw_live", 1, &Navigation::img_callback, this);
+>>>>>>> a5dcb98ddd9dcbbfdf4a35a71cda0f8b8f695420
 #endif
   } else {
      img_sub = it.subscribe("/see3cam_cu20/image_raw", 1, &Navigation::img_callback, this, hints);
   }
 
-  image_pub_ = it.advertise("/image_converter/output_video", 1);
+  image_pub_ = it.advertise("/nav_output_video", 1);
   twist_pub_ = nh.advertise<geometry_msgs::Twist>("/twist_cmd", 1);
 
   nh.setParam("/autonomous_mode", false);
+
+  new_image = cv::Mat(360, 640, CV_8UC3);
 }
 
 void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
@@ -66,10 +73,12 @@ void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
       ROS_ERROR("cv_bridge exception: %s", e.what());
     }
     
-   //  cout << "received image" << endl;
-
    //resize image to IMG_HEIGHT x IMG_WIDTH
-   cv::resize(cv_ptr->image, new_image, cv::Size(640,360), CV_INTER_LINEAR);
+   if (cv_ptr->image.rows == 360 && cv_ptr->image.cols == 640) {
+      memcpy(new_image.data, cv_ptr->image.data, 640*360*3);
+   } else {
+      cv::resize(cv_ptr->image, new_image, cv::Size(640,360), CV_INTER_LINEAR);
+   }
 }
 
 void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& nn_msg) {
