@@ -15,9 +15,8 @@ from datetime import datetime
 from pretrained_model import Pretrained_Model
 from std_msgs.msg import Float64MultiArray
 
-
 class image_inference:
-    def __init__(self, model_name="traced_efficientnetlite.pt", unlabeled=False):
+    def __init__(self, model_name="inference.pt", unlabeled=False):
         self.device = torch.device(
             "cuda:0" if torch.cuda.is_available() else "cpu")
         print(self.device)
@@ -44,6 +43,7 @@ class image_inference:
         self.point_list = []
         self.goal_list_x = [0] * 5
         self.goal_list_y = [0] * 5
+        self.turn_times = 0
 
     def connect_boundary(self, points, img):
         for i in range(len(points)-1):
@@ -63,6 +63,7 @@ class image_inference:
 
         loc_list = []
         loc_counter = 0
+
         for c in range(64):
             val = float(output[1].data[0][c])
             if val > .2:
@@ -75,11 +76,31 @@ class image_inference:
 
         #   loc_var = np.var(loc_list)
 
-        straight_percent = output[2].data[0][0]
-        turn_percent = output[2].data[0][1]
+        # turn detection
+        turn_index = 0
+        if loc_counter > 1:
+            m = 0
+            for c in range(30,64): # only search through the turn nodes
+                val = float(output[1].data[0][c])
+                if val > m:
+                    m = val
+                    turn_index = c
 
-        # self.straight_percentage = int(100 * float(output[1].data[0][64]))
-        # self.turn_percentage = int(100 * float(output[1].data[0][65]))
+            self.turn_times += 1
+            cv2.putText(img, 'turn: ' + "{:.3f}".format(turn_index),
+                        (430, 110),
+                        font,
+                        .8,
+                        (255, 0, 255),
+                        lineType)
+            cv2.putText(img, 'count: ' + "{:.3f}".format(self.turn_times),
+                        (430, 140),
+                        font,
+                        .8,
+                        (255, 0, 255),
+                        lineType)
+        else:
+            self.turn_times = 0
 
         cv2.putText(img, str(max_index) + '  ' + "{:.3f}".format((max_val)),
                     (430, 50),
@@ -103,7 +124,15 @@ class image_inference:
         #       lineType)
 
         cv2.putText(img, 'counter: ' + "{:.3f}".format(loc_counter),
-                    (430, 140),
+                    (430, 80),
+                    font,
+                    .8,
+                    (255, 0, 255),
+                    lineType)
+
+        turn = float(output[2].data[0][0])
+        cv2.putText(img, 'turn: ' + "{:.3f}".format(turn),
+                    (430, 150),
                     font,
                     .8,
                     (255, 0, 255),
@@ -210,6 +239,8 @@ class image_inference:
             nn_data_list.append(float(output[0].data[0][p]))
         for p in range(64):  # localization data
             nn_data_list.append(float(output[1].data[0][p]))
+        for p in range(1):  # turn data
+            nn_data_list.append(float(output[2].data[0][p]))
         for p in range(2):  # goal data
             nn_data_list.append(float(output[3].data[0][p]))
 

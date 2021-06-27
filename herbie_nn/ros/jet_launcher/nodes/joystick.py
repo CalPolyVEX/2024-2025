@@ -243,7 +243,7 @@ class JoystickNode:
          if button2==1 and button3==1:
             ready = 1
             for i in range(3):
-               #blink the LED 3 on the Herbie board 3 times
+               #blink the yellow LED 3 on the Herbie board 3 times
                p = Int32MultiArray()
                p.data = self.create_led_packet(3,1) #led on
                self.herbie_board_pub.publish(p)
@@ -277,12 +277,6 @@ class JoystickNode:
          /zed_node/depth/depth_registered /zed_node/rgb/camera_info \
          /tf /tf_static /ekf_node/odom /roboclaw_twist /cmd_vel /scan_filtered \
          __name:=my_bag_recorder"
-      # the following block is for stereo mapping
-      # rec_topics = "rosbag record \
-      #    /zed_node/right/image_rect_color /zed_node/left/image_rect_color \
-      #    /zed_node/right/camera_info /zed_node/left/camera_info \
-      #    /tf /tf_static /ekf_node/odom /roboclaw_twist /cmd_vel /scan_filtered \
-      #    __name:=my_bag_recorder"
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
 
    def record_bag_debugging(self):
@@ -295,11 +289,8 @@ class JoystickNode:
       self.herbie_board_pub.publish(p)
 
       rec_topics = "rosbag record \
-         /zed/data_throttled_image /zed/data_throttled_camera_info /laser_scan_filtered \
          /tf /tf_static /ekf_node/odom /obstacles_cloud \
-         /passthrough/output /gps/fix \
-         /planner/move_base/local_planner/local_costmap \
-         /planner/move_base/local_planner/local_costmap_updates /autonomous /map \
+         /autonomous /map \
          __name:=my_bag_recorder"
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
 
@@ -312,11 +303,8 @@ class JoystickNode:
       p.data = self.create_string_packet('Recording...')
       self.herbie_board_pub.publish(p)
 
-      rec_topics = "rosbag record /image_converter/output_video /planner/move_base/status \
-         /zed/data_throttled_image /zed/data_throttled_camera_info /laser_scan_filtered \
+      rec_topics = "rosbag record /image_converter/output_video /nn_data \
          /tf /tf_static /ekf_node/odom \
-         /planner/move_base/local_planner/local_costmap \
-         /planner/move_base/local_planner/local_costmap_updates /map \
          __name:=my_bag_recorder"
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
 
@@ -357,14 +345,13 @@ class JoystickNode:
       JoyButtons = pygame.joystick.Joystick(0).get_numbuttons()
       rospy.logdebug("Number of buttons: %d", JoyButtons)
 
-      r_time = rospy.Rate(10)
+      r_time = rospy.Rate(10) #run the loop at 10Hz
       vel_msg = Twist()
 
       #do not print SDL messages
       sys.stdout = open(os.devnull, "w")
       sys.stderr = open(os.devnull, "w")
 
-      #while not rospy.is_shutdown():
       while True:
          pygame.event.pump()
 
@@ -420,7 +407,7 @@ class JoystickNode:
 
             self.motor_command_pub.publish(vel_msg)
 
-         #press button 2 to begin recording rosbag
+         #press button 2 to begin recording rosbag ###########################
          button2 = pygame.joystick.Joystick(0).get_button(1)
          if button2 == 1:
             button2_hold += 1
@@ -461,7 +448,7 @@ class JoystickNode:
             if button2_hold != 0:
                 button2_hold = 0
 
-         #press button 3 to stop robot
+         #press button 3 to stop robot #######################################
          button3 = pygame.joystick.Joystick(0).get_button(2)
          if robot_stop == 0 and button3 == 1:
             robot_stop = 1
@@ -476,7 +463,7 @@ class JoystickNode:
          else:
             robot_stop = 0
 
-         #press button 4 to send navigation goal
+         #press button 4 to send navigation goal #############################
          button4 = pygame.joystick.Joystick(0).get_button(3)
          if autonomous == 0 and button4 == 1:
             autonomous = 1
@@ -497,23 +484,7 @@ class JoystickNode:
             autonomous = 0
             button4_hold = 0
 
-         #hold button 6 to reset initial pose
-         button6 = pygame.joystick.Joystick(0).get_button(5)
-         if button6 == 1:
-            print "--test--"
-
-            button6_hold += 1
-
-            #if button 6 is held down, send an initial pose to rtabmap
-            if button6_hold == 20:
-                init = PoseWithCovarianceStamped()
-                self.initial_pose_pub.publish(init)
-                print "------sending initial pose---------"
-                button6_hold = 0
-         else:
-            button6_hold = 0
-
-         #press button 8 to toggle servo position
+         #press button 8 to toggle servo position ############################
          button8 = pygame.joystick.Joystick(0).get_button(7)
          if button8 == 1:
             print "--change servo position--"
@@ -551,7 +522,6 @@ class JoystickNode:
             button8_hold = 0
 
          r_time.sleep()
-
 
 
 if __name__ == "__main__":

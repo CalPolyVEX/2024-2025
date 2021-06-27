@@ -23,7 +23,7 @@ ros::NodeHandle *nh;
 ros::Subscriber sub_, sub_cmd_vel, sub_planner_cmd_vel;
 ros::Subscriber sub_stop;
 ros::Subscriber control_board_sub;
-ros::Publisher pub_, loop_closure_pub;
+ros::Publisher pub_;
 ros::Publisher twist_pub;
 
 OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
@@ -41,9 +41,6 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
 
   //publish Twist messages to this topic
   twist_pub = nh->advertise<geometry_msgs::TwistWithCovarianceStamped>("/roboclaw_twist", 1);
-
-  //publish Odometry messages to this topic
-  loop_closure_pub = nh->advertise<std_msgs::Int32MultiArray>("/update_loop_closure_lcd", 1);
 
   //listen for Twist messages on /cmd_vel
   sub_cmd_vel = nh->subscribe("/cmd_vel", 2, &OdometryPublisher::cmd_vel_callback, this);
