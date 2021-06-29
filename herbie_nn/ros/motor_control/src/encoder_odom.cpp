@@ -365,7 +365,7 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
     cur_right_motor = -MAX_MOTOR_SPEED;
 }
 
-void OdometryPublisher::stop_toggle_callback(const std_msgs::Empty::ConstPtr&) {
+void OdometryPublisher::autonomous_mode_callback(const std_msgs::Int8::ConstPtr&) {
   //stop ^= 1;
   planner ^= 1;
 

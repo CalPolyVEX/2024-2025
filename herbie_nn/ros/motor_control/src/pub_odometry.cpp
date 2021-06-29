@@ -20,7 +20,7 @@
 using namespace std;
 
 ros::NodeHandle *nh;
-ros::Subscriber sub_, sub_cmd_vel, sub_planner_cmd_vel;
+ros::Subscriber sub_, sub_cmd_vel, sub_planner_cmd_vel, autonomous_sub;
 ros::Subscriber sub_stop;
 ros::Subscriber control_board_sub;
 ros::Publisher pub_;
@@ -48,8 +48,8 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   //listen for Twist messages on /cmd_vel
   sub_planner_cmd_vel = nh->subscribe("/nav_cmd_vel", 2, &OdometryPublisher::planner_cmd_vel_callback, this);
 
-  //listen for Empty messages on /robot_stop
-  sub_stop = nh->subscribe("/robot_stop", 2, &OdometryPublisher::stop_toggle_callback, this);
+  //listen for Int8 messages on /autonomous
+  autonomous_sub = nh->subscribe("/autonomous", 2, &OdometryPublisher::autonomous_mode_callback, this);
 
   //listen for messages to send to the control board
   control_board_sub = nh->subscribe("/control_board", 5, &OdometryPublisher::control_board_callback, this);
@@ -260,17 +260,25 @@ void OdometryPublisher::serial_loop() {
       encoder_message_callback(left_encoder, right_encoder); 
     }
 
-    //periodically blink an LED on the Herbie PCB to indicate this loop is running
+    //periodically blink green LED on the Herbie PCB to indicate this loop is running
     led_counter++;
 
     if ((led_counter & 63) == 0) {
-       unsigned char x = 2;
-       create_control_board_msg(7,(void*) &x);
+       unsigned char x = 2; //LED 2 = green LED
+       create_control_board_msg(7,(void*) &x); //turn on LED
     } else if ((led_counter & 63) == 2) {
-       unsigned char x = 2;
-       create_control_board_msg(8,(void*) &x);
+       unsigned char x = 2; //LED 2 = green LED
+       create_control_board_msg(8,(void*) &x); //turn off LED
     }
 
+    //periodically blink yellow LED to indicate autonomous mode
+    if ((led_counter & 15) == 0 && (planner == 1)) {
+       unsigned char x = 3; //LED 3 = yellow LED
+       create_control_board_msg(7,(void*) &x); //turn on LED
+    } else if ((led_counter & 15) == 0 && (planner == 0)) {
+       unsigned char x = 3; //LED 3 = yellow LED
+       create_control_board_msg(8,(void*) &x); //turn off LED
+    }
     ros::spinOnce();
   }
 }

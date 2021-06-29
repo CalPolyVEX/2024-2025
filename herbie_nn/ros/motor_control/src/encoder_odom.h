@@ -9,6 +9,7 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/Int32MultiArray.h>
+#include <std_msgs/Int8.h>
 #include <std_msgs/ByteMultiArray.h>
 #include <geometry_msgs/Twist.h>
 #include <geometry_msgs/TwistWithCovarianceStamped.h>
@@ -107,7 +108,7 @@ class OdometryPublisher {
     void encoder_message_callback(int left_encoder, int right_encoder);
     void cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
     void planner_cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
-    void stop_toggle_callback(const std_msgs::Empty::ConstPtr&);
+    void autonomous_mode_callback(const std_msgs::Int8::ConstPtr&);
     void safety_callback(const ros::TimerEvent& ev);
     void control_board_callback(const std_msgs::Int32MultiArray::ConstPtr& board_msg);
 
