@@ -6,7 +6,7 @@ using namespace std;
 
 extern ros::NodeHandle *nh;
 extern ros::Subscriber sub_, sub_stop;
-extern ros::Publisher pub_, loop_closure_pub;
+extern ros::Publisher pub_;
 extern ros::Publisher twist_pub;
 
 void OdometryPublisher::publish_odometry_message(double vx, double vth) {

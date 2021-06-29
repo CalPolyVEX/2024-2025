@@ -45,19 +45,15 @@ Navigation::Navigation() : it(nh) {
 #ifdef __x86_64__
      img_sub = it.subscribe("/see3cam_cu20/image_raw", 1, &Navigation::img_callback, this, hints);
 #else
-<<<<<<< HEAD
-     img_sub = it.subscribe("/see3cam_cu20/image_raw_live", 1, &Navigation::img_callback, this, hints);
-=======
-     //if on ARM, read from the live camera
+     //if on ARM, read live from the camera
      img_sub = it.subscribe("/see3cam_cu20/image_raw_live", 1, &Navigation::img_callback, this);
->>>>>>> a5dcb98ddd9dcbbfdf4a35a71cda0f8b8f695420
 #endif
   } else {
      img_sub = it.subscribe("/see3cam_cu20/image_raw", 1, &Navigation::img_callback, this, hints);
   }
 
   image_pub_ = it.advertise("/nav_output_video", 1);
-  twist_pub_ = nh.advertise<geometry_msgs::Twist>("/twist_cmd", 1);
+  twist_pub_ = nh.advertise<geometry_msgs::Twist>("/nav_cmd_vel", 1);
 
   nh.setParam("/autonomous_mode", false);
 
@@ -305,7 +301,7 @@ void Navigation::avoid_obstacles()
    //compute repulsive linear velocity - any obstacles will generate a negative
    //velocity force
    float mean = 0;
-   float sd = 2;
+   float sd = 3;
    float obst_linear;
 
    if (min_forward_distance < 0) {
@@ -314,7 +310,7 @@ void Navigation::avoid_obstacles()
    
    //the obstacle repulsive force is expressed as a Gaussian function
    obst_linear = (1.0 / (sd * sqrt(2 * 3.14159))) * exp(-0.5 * pow((min_forward_distance-mean)/sd, 2));
-   obst_linear *= 5.0;
+   obst_linear *= 3.0;
 
    cout << setprecision(3) << "linear_vel: " << goal_velocity;
    // cout << " goal_distance: " << min_forward_distance;

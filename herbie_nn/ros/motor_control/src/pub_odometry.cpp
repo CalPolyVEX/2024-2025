@@ -46,7 +46,7 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   sub_cmd_vel = nh->subscribe("/cmd_vel", 2, &OdometryPublisher::cmd_vel_callback, this);
   
   //listen for Twist messages on /cmd_vel
-  sub_planner_cmd_vel = nh->subscribe("/planner/cmd_vel", 2, &OdometryPublisher::planner_cmd_vel_callback, this);
+  sub_planner_cmd_vel = nh->subscribe("/nav_cmd_vel", 2, &OdometryPublisher::planner_cmd_vel_callback, this);
 
   //listen for Empty messages on /robot_stop
   sub_stop = nh->subscribe("/robot_stop", 2, &OdometryPublisher::stop_toggle_callback, this);
