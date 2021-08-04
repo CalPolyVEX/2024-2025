@@ -43,6 +43,7 @@ class CameraReader {
   image_transport::Subscriber image_sub_;
   ros::Subscriber image_debug_toggle_;
   ros::Publisher nn_data;
+  ros::Publisher camera_error_pub;
 
   /*
    * Re-using the frame matrix(ces) instead of creating new ones (i.e., declaring 'Mat frame'

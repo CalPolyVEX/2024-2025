@@ -25,6 +25,7 @@
 //#define NUM_BUFFS	4
 #define CLEAR(x) memset(&(x), 0, sizeof(x))
 
+int camera_error = 0;
 
 struct buffer {
 	void   *start;
@@ -588,7 +589,8 @@ int helper_deinit_cam()
 
 int helper_get_cam_frame(unsigned char **pointer_to_cam_data, int *size)
 {
-	static unsigned char max_timeout_retries = 10;
+	//static unsigned char max_timeout_retries = 10;
+	static unsigned char max_timeout_retries = 2;
 	unsigned char timeout_retries = 0;
 
 	if (!is_initialised)
@@ -624,6 +626,7 @@ int helper_get_cam_frame(unsigned char **pointer_to_cam_data, int *size)
 
 		if (0 == r) {
 			fprintf(stderr, "select timeout\n");
+                        camera_error = 1;
 			timeout_retries++;
 
 			if (timeout_retries == max_timeout_retries)

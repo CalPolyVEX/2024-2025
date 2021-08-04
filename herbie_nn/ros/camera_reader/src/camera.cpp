@@ -16,6 +16,7 @@
 #define NUM_TURN 1
 #define NUM_GOAL 2
 
+extern int camera_error;
 ros::NodeHandle* nh = NULL; 
 using namespace std::chrono;
 bool g_simulate = false;
@@ -53,6 +54,7 @@ int CameraReader::init(char* videodev, int width, int height, ros::NodeHandle* n
    bgr_frame_360 = Mat(height/3, width/3, CV_8UC3); //640x360 resolution
 
    nn_data = nh->advertise<std_msgs::Float64MultiArray>("/nn_data", 1);
+   camera_error_pub = nh->advertise<std_msgs::Empty>("/camera_error", 1);
    image_debug_toggle_ = nh->subscribe("/image_pub_toggle", 1, &CameraReader::image_pub_toggle_cb, this);
 
    return 0;
@@ -193,8 +195,17 @@ void CameraReader::frame_loop() {
       bool read_cam=true;
 
       if (read_cam == true) { 
+
          //Get a new image from the camera
          if (helper_get_cam_frame(&ptr_cam_frame, &bytes_used) < 0) {
+            //check if there is an error with the camera
+            while(ros::ok()) {
+               if (camera_error == 1) {
+                  std_msgs::Empty empty_msg;
+                  camera_error_pub.publish(empty_msg);
+               }
+               usleep(100000);
+            }
             break;
          }
 

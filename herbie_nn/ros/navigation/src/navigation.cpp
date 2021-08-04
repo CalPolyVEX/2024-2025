@@ -16,6 +16,8 @@
 #include <cmath>
 #include "navigation.h"
 
+#include <lemon/list_graph.h>
+
 using namespace std;
 
 #define NUM_GROUND 80
