@@ -17,6 +17,7 @@
 #include <iostream>
 #include <cmath>
 #include <queue>
+#include <lemon/list_graph.h>
 
 class Navigation {
   ros::NodeHandle nh;
@@ -39,6 +40,7 @@ class Navigation {
   float goal_y[4];
   float cur_goal_x, cur_goal_y;
   int goal_cur_index = 0;
+  lemon::ListGraph main_map;
 
   public:
     Navigation(); 
@@ -51,6 +53,7 @@ class Navigation {
     void write_text();
     void draw_lines();
     void avoid_obstacles();
+    void graph_init();
 };
 
 #endif

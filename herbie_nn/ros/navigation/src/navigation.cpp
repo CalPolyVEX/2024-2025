@@ -404,6 +404,7 @@ int main(int argc, char** argv) {
   }
 
   Navigation nav_node;
+  nav_node.graph_init();
 
   //since the diagnostics callback is part of the odom_pub object, 
   //bind the callback using boost:bind and boost:function
