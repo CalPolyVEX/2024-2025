@@ -17,9 +17,17 @@
 #include <iostream>
 #include <cmath>
 #include <queue>
-#include <lemon/list_graph.h>
+
+#include <lemon/smart_graph.h>
 
 class Navigation {
+  struct Arc
+  {
+     std::string sourceID;
+     std::string targetID;
+     double cost;
+  };
+
   ros::NodeHandle nh;
   image_transport::ImageTransport it;
   // boost::mutex actual_vel_mutex;
@@ -40,7 +48,8 @@ class Navigation {
   float goal_y[4];
   float cur_goal_x, cur_goal_y;
   int goal_cur_index = 0;
-  lemon::ListGraph main_map;
+
+  std::vector<std::string> nodes;
 
   public:
     Navigation(); 
@@ -54,6 +63,7 @@ class Navigation {
     void draw_lines();
     void avoid_obstacles();
     void graph_init();
+    void path_to_next_goal();
 };
 
 #endif
