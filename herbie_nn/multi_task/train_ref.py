@@ -47,12 +47,19 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 # for states 2,3,4 freeze the backbone
                 if (retrain == 2) or (retrain ==3) or (retrain == 4):
                     model.m.eval()
+
+                    #freeze the ground backbone
+                    model.m1.eval()
+                    model.ground_out.eval()
                 elif retrain == 1: # training the ground boundary
                     model.m.eval()
                     model = pretrained_model.Pretrained_Model.set_train_ground(model)
                 elif retrain == 0: # freeze the ground boundary backbone
                     model.m1.eval()
                     model.ground_out.eval()
+
+                    if epoch < 5: #in the first few epochs, freeze the pretrained layers
+                        model.m.eval()
 
                 if retrain == 2:
                     model = pretrained_model.Pretrained_Model.set_train_loc(model)
@@ -100,8 +107,10 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
             # generate training schedule
             training_schedule_length = 20
-            training_schedule = [1,2,1,2,3,1,2,1,2,3, \
-                                 1,2,1,2,3,1,2,1,2,3]
+            # training_schedule = [1,2,1,2,3,1,2,1,2,3, \
+            #                      1,2,1,2,3,1,2,1,2,3]
+            training_schedule = [1,2,3,1,2,3,1,2,3,1, \
+                                 2,3,1,2,3,1,2,3,1,2]
 
             assert len(training_schedule) == training_schedule_length
 
@@ -426,7 +435,8 @@ if __name__ == '__main__':
         if torch.cuda.is_available(): #send the model to the GPU if available
            model.cuda()
 
-        optimizer = optim.AdamW(model.parameters(), lr=0.0005)
+        #optimizer = optim.AdamW(model.parameters(), lr=0.0005)
+        optimizer = optim.AdamW(model.parameters(), lr=0.0003)
 
     elif retrain == 1:
         # retrain the ground detection
@@ -520,6 +530,6 @@ if __name__ == '__main__':
         exp_lr_scheduler = lr_scheduler.CosineAnnealingLR(optimizer, T_max=10, verbose=True)
 
     #train the model
-    model = train_model(model, criterion, optimizer, exp_lr_scheduler, num_epochs=480)
-    #model = train_model(model, criterion, optimizer, exp_lr_scheduler, num_epochs=203)
+    #model = train_model(model, criterion, optimizer, exp_lr_scheduler, num_epochs=480)
+    model = train_model(model, criterion, optimizer, exp_lr_scheduler, num_epochs=203)
 

@@ -32,6 +32,7 @@ class GoalDataset(Dataset):
     def __init__(self, images_filepaths, transform=None):
         self.images_filepaths = images_filepaths
         self.transform = transform
+        self.img_counter = 0
 
         if 'Training' in str(images_filepaths):
             self.tr = 1
@@ -63,10 +64,20 @@ class GoalDataset(Dataset):
             #print('Training batch')
             aug_found = 0
 
+            transform_cutout = A.Compose([
+                A.CoarseDropout(max_holes=8, max_height=50, max_width=50, p=.5)
+            ])
+            transformed_cutout = transform_cutout(image=image)
+            image = transformed_cutout['image']
+            #cv2.imwrite("test" + str(self.img_counter) + '.jpg', image)
+            #self.img_counter += 1
+            #print ("test write")
+
             while aug_found == 0:
                keypoints = [(center_x, center_y)]
                transformed = self.transform(image=image, keypoints=keypoints)
                keypoints = transformed['keypoints']
+               #transformed = self.transform(image=image) #try without keypoints
 
                #if after transformation there is a single keypoint,
                #then use the new image and keypoint
@@ -78,10 +89,26 @@ class GoalDataset(Dataset):
                   data_list.append(float(keypoints[0][1])/360.0) #add the y
                   aug_found = 1
 
+                  # cv2.imwrite("test-" + str(int(keypoints[0][0])) + '-' + \
+                  #    str(int(keypoints[0][1])) + '-' + str(self.img_counter) + '.jpg', image)
+                  # self.img_counter += 1
+                  # print ("test write")
+
+            tensor_train_transform = A.Compose([
+                ToTensorV2()
+            ])
+            transformed_train_image = tensor_train_transform(image=image)
+            image = transformed_train_image['image']
+
             image_out = image / 255.0
         else:
             #print('Validation batch')
-            image = self.transform(image=image)["image"]
+            val_transform = A.Compose([
+                ToTensorV2()
+            ])
+            transformed_val_image = val_transform(image=image)
+            image = transformed_val_image['image']
+            # image = self.transform(image=image)["image"]
             image_out = image / 255.0
 
         d = torch.Tensor(data_list) # convert the list of data points to a tensor
@@ -96,10 +123,8 @@ def create_datasets(train_file_list,val_file_list):
          A.RandomShadow(p=.2),
          A.MotionBlur(p=.2),
          A.Perspective(scale=(.05,.1),p=.5),
-         #A.CoarseDropout(max_holes=8, max_height=30, max_width=30, p=.5),
-         A.Cutout(num_holes=8, max_h_size=30, max_w_size=30, p=.5),
          A.RandomToneCurve(p=.3),
-         ToTensorV2(),
+         # ToTensorV2(),
       ],
       keypoint_params=A.KeypointParams(format='xy')
    )
