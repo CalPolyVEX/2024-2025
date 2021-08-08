@@ -17,11 +17,13 @@ class Pretrained_Model(torch.nn.Module):
 
         # instantiate pre-trained model for multiple output heads
         self.m = timm.create_model('efficientnet_lite0', pretrained=True)
+        # self.m = timm.create_model('efficientnet_es', pretrained=True)
         self.removed = list(self.m.children())[:-1]
         self.m = torch.nn.Sequential(*self.removed)
 
         # ground boundary backbone
         self.m1 = timm.create_model('efficientnet_lite0', pretrained=True)
+        # self.m1 = timm.create_model('mixnet_m', pretrained=True)
         self.removed1 = list(self.m1.children())[:-1]
         self.m1 = torch.nn.Sequential(*self.removed1)
 
@@ -32,8 +34,10 @@ class Pretrained_Model(torch.nn.Module):
         self.lr4 = torch.nn.LeakyReLU()
         self.lr5 = torch.nn.LeakyReLU()
         self.feature_num = 1280
+        # self.feature_num = 1536
 
         self.ground_out = torch.nn.Linear(1280, self.num_ground_outputs)
+        # self.ground_out = torch.nn.Linear(1536, self.num_ground_outputs)
 
         self.loc_hidden1 = torch.nn.Linear(self.feature_num, 256)
         self.loc_hidden2 = torch.nn.Linear(256, 256)
@@ -47,9 +51,9 @@ class Pretrained_Model(torch.nn.Module):
         self.turn_bn2 = torch.nn.BatchNorm1d(num_features=128)
         self.turn_out = torch.nn.Linear(128, self.turn_outputs)
 
-        self.goal_hidden = torch.nn.Linear(self.feature_num, 8)
-        self.goal_bn1 = torch.nn.BatchNorm1d(num_features=8)
-        self.goal_out = torch.nn.Linear(8, self.goal_outputs)
+        self.goal_hidden = torch.nn.Linear(self.feature_num, 64)
+        self.goal_bn1 = torch.nn.BatchNorm1d(num_features=64)
+        self.goal_out = torch.nn.Linear(64, self.goal_outputs)
 
         self.softmax = torch.nn.Softmax(1)
         self.sig = torch.nn.Sigmoid()
