@@ -1,4 +1,4 @@
-.text
+.section .text
 .globl convert_nhwc_asm
 .type convert_nhwc_asm, @function
 

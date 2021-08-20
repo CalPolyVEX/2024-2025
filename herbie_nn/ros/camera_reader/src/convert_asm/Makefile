@@ -4,5 +4,5 @@ default:  main.c test_convert.S
 
 arm:  main.c test_convert.S
 	#gcc -march=armv8-a+simd main.c test_convert.S
-	gcc main.c test_convert.S -O2
+	gcc main.c ../test_convert.S -O2
 	

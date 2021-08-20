@@ -68,9 +68,9 @@ void CameraReader::image_pub_toggle_cb(const std_msgs::Empty::ConstPtr&) {
    }
 }
 
-void CameraReader::nhwc_to_nchw(unsigned char* src, float* dest, int nn_height, int nn_width) {
+void CameraReader::nhwc_to_nchw(unsigned char* src, float* dest) {
    //convert NHWC to NCHW with 3 channels
-   int num_pixels = nn_height * nn_width;
+   int num_pixels = 360 * 640; //nn_height * nn_width
    unsigned char* temp_src;
    float div_255 = 1.00000 / 255.00000;
    
@@ -121,7 +121,7 @@ void CameraReader::simulate_callback(const sensor_msgs::ImageConstPtr &msg)
    resize(cv_ptr->image, bgr_frame_360, bgr_frame_360.size(), 0, 0);
 
    //convert to nchw
-   nhwc_to_nchw((unsigned char *)bgr_frame_360.data, (float *)nn1.mInputCPU[0], 360, 640);
+   nhwc_to_nchw((unsigned char *)bgr_frame_360.data, (float *)nn1.mInputCPU[0]);
 
    auto start = high_resolution_clock::now();
 
@@ -225,14 +225,17 @@ void CameraReader::frame_loop() {
 #ifdef ARM_CPU
          //if this CPU supports NEON
          asm_foo((unsigned char*) uyvy_frame.data, (unsigned char*) bgr_frame_360.data);
+         
+         //convert to nchw
+         convert_nhwc_asm((unsigned char*) bgr_frame_360.data, (float *) nn1.mInputCPU[0]);
 #else
          //if not NEON, then use the standard image resize from OpenCV
          cvtColor(uyvy_frame, bgr_frame, COLOR_YUV2BGR_UYVY);
          resize(bgr_frame, bgr_frame_360, bgr_frame_360.size(), 0, 0);
-#endif
-
+         
          //convert to nchw
-         nhwc_to_nchw((unsigned char*) bgr_frame_360.data, (float *) nn1.mInputCPU[0], 360, 640);
+         nhwc_to_nchw((unsigned char*) bgr_frame_360.data, (float *) nn1.mInputCPU[0]);
+#endif
          
          auto start = high_resolution_clock::now();
 
@@ -277,7 +280,7 @@ void CameraReader::frame_loop() {
 
          // set up dimensions
          msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
-         msg.layout.dim[0].size = NUM_GROUND + NUM_LOC + NUM_TURN + NUM_GOAL; //array size
+         msg.layout.dim[0].size = NUM_GROUND + NUM_LOC + NUM_TURN + NUM_GOAL + 1; //array size
          msg.layout.dim[0].stride = 1;
          msg.layout.dim[0].label = "neural_network_data"; // name of the data
 
