@@ -41,11 +41,14 @@ class Navigation {
   double* loc;
   double* turn;
   double* goal;
+  double inference_time;
   cv::Mat new_image;
   int cur_loc;  //the index of the current location
   float cur_loc_prob; //the probability of the current location
   float goal_x[4];
   float goal_y[4];
+  float last_goal_x[4];
+  float last_goal_y[4];
   float cur_goal_x, cur_goal_y;
   int goal_cur_index = 0;
 

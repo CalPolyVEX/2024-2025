@@ -31,6 +31,8 @@ using namespace std;
 #define RIGHT_OBSTACLE_X 384
 #define RIGHT_OBSTACLE_Y 229
 
+#define STOP_OBSTACLE_Y 295 
+
 #define MAX_LINEAR .6
 #define MAX_ANGULAR .8
 
@@ -84,6 +86,7 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    loc = (double*) &(nn_msg->data[NUM_GROUND]);
    turn = (double*) &(nn_msg->data[NUM_GROUND + NUM_LOC]);
    goal = (double*) &(nn_msg->data[NUM_GROUND + NUM_TURN + NUM_LOC]);
+   inference_time = (double) nn_msg->data[NUM_GROUND + NUM_TURN + NUM_LOC + 1];
 
    //draw the ground boundary points
    for (int i=0; i<NUM_GROUND; i++) {
@@ -149,6 +152,16 @@ void Navigation::write_text() {
                cv::Scalar(0, 255, 0), //font color
                2);
    }
+
+   //write the inference time
+   sprintf (str, "nn (ms): %.2f", inference_time*100.0);
+   cv::putText(new_image, //target image
+         str, //text
+         cv::Point(430, 90), //top-left position
+         cv::FONT_HERSHEY_DUPLEX,
+         .8,
+         cv::Scalar(0, 255, 0), //font color
+         2);
 }
 
 void Navigation::draw_goal() {
@@ -167,12 +180,40 @@ void Navigation::draw_goal() {
    cur_goal_x = total_x / GOAL_AVG_COUNT;
    cur_goal_y = total_y / GOAL_AVG_COUNT;
 
-   cv::circle( new_image,
-      cv::Point(int(cur_goal_x), int(cur_goal_y)),
-      3,
-      cv::Scalar( 0, 255, 0),
-      cv::FILLED,
-      cv::LINE_8 );
+   last_goal_x[goal_cur_index] = cur_goal_x;  //store the average goal positions
+   last_goal_y[goal_cur_index] = cur_goal_y;
+
+   //compute the variance of the goal 
+   total_x = 0;
+   float mean_x, variance;
+   for(int i=0; i<GOAL_AVG_COUNT; i++) {
+      total_x += last_goal_x[i];
+   }
+   mean_x = total_x / GOAL_AVG_COUNT;
+
+   variance = 0;
+   for(int i=0; i<GOAL_AVG_COUNT; i++) {
+      variance += pow(mean_x-last_goal_x[i], 2);
+   }
+   variance /= GOAL_AVG_COUNT;
+
+   /* std::cout << variance << std::endl; */
+
+   if (variance > 50) {
+      cv::circle( new_image,
+            cv::Point(int(cur_goal_x), int(cur_goal_y)),
+            3,
+            cv::Scalar( 0, 0, 255),
+            cv::FILLED,
+            cv::LINE_8 );
+   } else {
+      cv::circle( new_image,
+            cv::Point(int(cur_goal_x), int(cur_goal_y)),
+            3,
+            cv::Scalar( 0, 255, 0),
+            cv::FILLED,
+            cv::LINE_8 );
+   }
 }
 
 void Navigation::draw_loc_prob() {
@@ -283,9 +324,17 @@ void Navigation::avoid_obstacles()
    //compute forward distance to obstacle
    int boundary_index = LEFT_OBSTACLE_X / 8;
    int min_forward_distance = 360;
+
+   //for all the point between the top of the trapezoid
    while ((boundary_index*8) >= LEFT_OBSTACLE_X && (boundary_index*8) <= RIGHT_OBSTACLE_X) {
       int y_ground = ground[boundary_index]*360;
-      int cur_distance = LEFT_OBSTACLE_Y - y_ground;
+
+      if (y_ground > LEFT_OBSTACLE_Y) {
+         y_ground = LEFT_OBSTACLE_Y;
+      }
+      
+      //get the distance from obstacle to the Y coordinate of the trapezoid
+      int cur_distance = LEFT_OBSTACLE_Y - y_ground; 
 
       if (cur_distance < min_forward_distance) {
          min_forward_distance = cur_distance;
@@ -303,7 +352,7 @@ void Navigation::avoid_obstacles()
    //compute repulsive linear velocity - any obstacles will generate a negative
    //velocity force
    float mean = 0;
-   float sd = 3;
+   float sd = 6;
    float obst_linear;
 
    if (min_forward_distance < 0) {
@@ -312,12 +361,29 @@ void Navigation::avoid_obstacles()
    
    //the obstacle repulsive force is expressed as a Gaussian function
    obst_linear = (1.0 / (sd * sqrt(2 * 3.14159))) * exp(-0.5 * pow((min_forward_distance-mean)/sd, 2));
-   obst_linear *= 3.0;
+   obst_linear *= 4.0;
 
    cout << setprecision(3) << "linear_vel: " << goal_velocity;
    // cout << " goal_distance: " << min_forward_distance;
    cout << setprecision(3) << " obst_linear: " << obst_linear;
-   t_cmd.linear.x = goal_velocity - obst_linear;
+
+   //set the linear velocity to 0 if there is an obstacle
+   int obstacle_stop = 0;
+   for(int i=30; i<50; i++) { //look through ground boundary points 30 to 49
+      int ground_y = ground[i]*360;
+
+      if (ground_y > STOP_OBSTACLE_Y) {
+         obstacle_stop = 1;
+         break;
+      }
+   }
+   
+   //set the linear velocity
+   if (obstacle_stop == 0) { //if there is an obstacle, come to a full stop
+      t_cmd.linear.x = goal_velocity - obst_linear;
+   } else {
+      t_cmd.linear.x = 0;
+   }
 
    if (t_cmd.linear.x < 0) {
       t_cmd.linear.x = 0;
@@ -387,6 +453,8 @@ void Navigation::avoid_obstacles()
    float right_sd = 40;
    float ang_force_right = (1.0 / (right_sd * sqrt(2 * 3.14159))) * exp(-0.5 * pow((closest_right_distance-right_mean)/right_sd, 2));
    ang_force_right *= 15.0;
+
+   std::cout << "ang left: " << ang_force_left << "  ang right: " << ang_force_right << std::endl;
 
    t_cmd.angular.x = ang_force_left + ang_force_right;
    t_cmd.angular.y = ang_force_right;

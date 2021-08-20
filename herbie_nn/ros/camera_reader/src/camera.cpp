@@ -116,7 +116,6 @@ void CameraReader::simulate_callback(const sensor_msgs::ImageConstPtr &msg)
 
    uyvy_frame.data = cv_ptr->image.data; //incoming image should be 1920x1080
 
-   auto start = high_resolution_clock::now();
 
    //resize the incoming image to 640x360
    resize(cv_ptr->image, bgr_frame_360, bgr_frame_360.size(), 0, 0);
@@ -124,11 +123,13 @@ void CameraReader::simulate_callback(const sensor_msgs::ImageConstPtr &msg)
    //convert to nchw
    nhwc_to_nchw((unsigned char *)bgr_frame_360.data, (float *)nn1.mInputCPU[0], 360, 640);
 
+   auto start = high_resolution_clock::now();
+
    inference(&nn1); //run the inference
 
    auto end = high_resolution_clock::now();
    auto duration = duration_cast<microseconds>(end - start) / 1000.0;
-   std::cout << "--" << duration.count() << std::endl;
+   /* std::cout << "--" << duration.count() << std::endl; */
 
    //publish vector test
    vector<double> nn_vec;
@@ -141,9 +142,9 @@ void CameraReader::simulate_callback(const sensor_msgs::ImageConstPtr &msg)
       nn_vec.push_back(((float *)nn1.mInputCPU[1])[i]);
 
       //draw circle on 640x360 image
-      if (publish_360_image) {
-         circle(bgr_frame_360, Point(col_counter, (int)(((float *)nn1.mInputCPU[1])[i] * 360.0)), 2, Scalar(0, 0, 255), -1);
-      }
+      /* if (publish_360_image) { */
+      /*    circle(bgr_frame_360, Point(col_counter, (int)(((float *)nn1.mInputCPU[1])[i] * 360.0)), 2, Scalar(0, 0, 255), -1); */
+      /* } */
 
       col_counter += 8;
    }
@@ -166,6 +167,9 @@ void CameraReader::simulate_callback(const sensor_msgs::ImageConstPtr &msg)
       nn_vec.push_back(((float *)nn1.mInputCPU[4])[i]);
    }
 
+   //add the inference time
+   nn_vec.push_back((float)duration.count());
+
    // set up dimensions
    ground_msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
    ground_msg.layout.dim[0].size = nn_vec.size();
@@ -187,7 +191,9 @@ void CameraReader::simulate_callback(const sensor_msgs::ImageConstPtr &msg)
 }
 
 void CameraReader::frame_loop() {
-   array<double,NUM_GROUND+NUM_LOC+NUM_TURN+NUM_GOAL> nn_vec;
+   //create the neural network vector - the last element of the vector
+   //is the inference time
+   array<double,NUM_GROUND+NUM_LOC+NUM_TURN+NUM_GOAL+1> nn_vec; 
    std_msgs::Float64MultiArray msg;
 
    while(ros::ok()) {
@@ -215,7 +221,6 @@ void CameraReader::frame_loop() {
           */
          uyvy_frame.data = ptr_cam_frame;
 
-         //auto start = high_resolution_clock::now();
 
 #ifdef ARM_CPU
          //if this CPU supports NEON
@@ -228,12 +233,14 @@ void CameraReader::frame_loop() {
 
          //convert to nchw
          nhwc_to_nchw((unsigned char*) bgr_frame_360.data, (float *) nn1.mInputCPU[0], 360, 640);
+         
+         auto start = high_resolution_clock::now();
 
          inference(&nn1);
          /* inference(&nn2); */
 
-         /* auto end = high_resolution_clock::now(); */
-         /* auto duration = duration_cast<microseconds>(end - start) / 1000.0; */
+         auto end = high_resolution_clock::now(); 
+         auto duration = duration_cast<microseconds>(end - start) / 1000.0; 
          /* std::cout << "--" << duration.count() << std::endl; */
 
          //push ground boundary data into vector
@@ -264,6 +271,9 @@ void CameraReader::frame_loop() {
             nn_vec[nn_vec_index] = ((float *)nn1.mInputCPU[4])[i];
             nn_vec_index++;
          }
+
+         //add the inference time
+         nn_vec[nn_vec_index] = (float)duration.count();
 
          // set up dimensions
          msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
