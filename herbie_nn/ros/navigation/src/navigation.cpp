@@ -24,7 +24,7 @@ using namespace std;
 #define NUM_LOC 64
 #define NUM_TURN 1
 #define NUM_GOAL 2
-#define GOAL_AVG_COUNT 3
+#define GOAL_AVG_COUNT 4
 
 #define LEFT_OBSTACLE_X 256
 #define LEFT_OBSTACLE_Y 229
@@ -39,6 +39,9 @@ using namespace std;
 int sim_mode = 0;
 
 Navigation::Navigation() : it(nh) {
+  //subscriber for pose
+  odom_data_sub = nh.subscribe("/camera/odom/sample", 1, &Navigation::odom_callback, this);
+
   //subscriber for neural network data
   nn_data_sub = nh.subscribe("/nn_data", 1, &Navigation::nn_data_callback, this);
   
@@ -121,7 +124,7 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
 void Navigation::write_text() {
    char str[100];
 
-   if (turn[0] > .4) {
+   if (turn[0] > .6) {
       sprintf (str, "turn: %.3f", (float) turn[0]);
       cv::putText(new_image, //target image
                str, //text
@@ -158,6 +161,16 @@ void Navigation::write_text() {
    cv::putText(new_image, //target image
          str, //text
          cv::Point(430, 90), //top-left position
+         cv::FONT_HERSHEY_DUPLEX,
+         .8,
+         cv::Scalar(0, 255, 0), //font color
+         2);
+   
+   //write the heading
+   sprintf (str, "heading: %.2f", actual_heading);
+   cv::putText(new_image, //target image
+         str, //text
+         cv::Point(430, 120), //top-left position
          cv::FONT_HERSHEY_DUPLEX,
          .8,
          cv::Scalar(0, 255, 0), //font color
@@ -199,14 +212,14 @@ void Navigation::draw_goal() {
 
    /* std::cout << variance << std::endl; */
 
-   if (variance > 50) {
+   if (variance > 70) { //moving goal, draw it as red
       cv::circle( new_image,
             cv::Point(int(cur_goal_x), int(cur_goal_y)),
             3,
             cv::Scalar( 0, 0, 255),
             cv::FILLED,
             cv::LINE_8 );
-   } else {
+   } else {  //the goal is stable, draw it as green
       cv::circle( new_image,
             cv::Point(int(cur_goal_x), int(cur_goal_y)),
             3,

@@ -26,6 +26,44 @@ lemon::SmartDigraph main_map;
 lemon::SmartDigraph::NodeMap<std::string> nodeMap(main_map);
 lemon::SmartDigraph::ArcMap<double> costMap(main_map); 
 
+void Navigation::odom_callback(const nav_msgs::Odometry::ConstPtr& msg) { 
+   float w = msg->pose.pose.orientation.w; 
+   float x = msg->pose.pose.orientation.x; 
+   float y = msg->pose.pose.orientation.y; 
+   float z = msg->pose.pose.orientation.z; 
+
+   heading_counter++;
+
+   if ((heading_counter & 3) == 0) { //compute the heading every 32 odometry messages
+      heading_counter = 0;
+      convert_to_heading(w, x, y, z); 
+   }
+}
+
+void Navigation::convert_to_heading(float w, float x, float y, float z) {
+   float t3, t4, heading;
+
+   // convert the quaternion to a heading
+   /* w = msg.pose.pose.orientation.w; */
+   /* x = msg.pose.pose.orientation.x; */
+   /* y = msg.pose.pose.orientation.y; */
+   /* z = msg.pose.pose.orientation.z; */
+   t3 = +2.0 * (w * z + x * y);
+   t4 = +1.0 - 2.0 * (y * y + z * z);
+   heading = 57.2958 * atan2(t3, t4);
+
+   // this code handles the wrap-around of the heading from +180 to -180
+   if (last_heading > 175 && heading < -175) {
+      heading_offset += 360.0;
+   } else if (last_heading < -175 && heading > 175) {
+      heading_offset -= 360.0;
+   }
+
+   actual_heading = heading + heading_offset;
+            
+   last_heading = heading;  // move to next
+}
+
 int getIndex(vector<std::string> v, std::string K)
 {
     auto it = find(v.begin(), v.end(), K);
