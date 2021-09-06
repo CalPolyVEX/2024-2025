@@ -273,7 +273,7 @@ class JoystickNode:
       self.herbie_board_pub.publish(p)
 
       rec_topics = "rosbag record \
-         /zed_node/rgb/image_rect_color \
+         /zed_node/rgb/image_rect_color /see3cam_cu20/image_raw_live/compressed \
          /zed_node/depth/depth_registered /zed_node/rgb/camera_info \
          /tf /tf_static /ekf_node/odom /roboclaw_twist /cmd_vel /scan_filtered \
          __name:=my_bag_recorder"

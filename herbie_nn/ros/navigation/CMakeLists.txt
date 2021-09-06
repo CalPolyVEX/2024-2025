@@ -28,11 +28,12 @@ catkin_package(
 )
 
 include_directories(
-  ${catkin_INCLUDE_DIRS}
+  ${catkin_INCLUDE_DIRS} 
 )
 
 add_executable(navigation
   src/navigation.cpp
+  src/graph.cpp
   src/navigation.h)
 
 add_dependencies(navigation ${PROJECT_NAME}_gencfg)

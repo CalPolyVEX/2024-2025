@@ -11,6 +11,7 @@
 #include <geometry_msgs/TwistWithCovarianceStamped.h>
 #include <std_msgs/Int32MultiArray.h>
 #include <std_msgs/ByteMultiArray.h>
+#include <std_msgs/Empty.h>
 #include <ros/console.h>
 #include <serial/serial.h>
 #include <iostream>
@@ -23,6 +24,7 @@ ros::NodeHandle *nh;
 ros::Subscriber sub_, sub_cmd_vel, sub_planner_cmd_vel, autonomous_sub;
 ros::Subscriber sub_stop;
 ros::Subscriber control_board_sub;
+ros::Subscriber camera_error_sub;
 ros::Publisher pub_;
 ros::Publisher twist_pub;
 
@@ -53,6 +55,9 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
 
   //listen for messages to send to the control board
   control_board_sub = nh->subscribe("/control_board", 5, &OdometryPublisher::control_board_callback, this);
+  
+  //listen for camera initialization errors
+  camera_error_sub = nh->subscribe("/camera_error", 1, &OdometryPublisher::camera_error_callback, this);
 
   ROS_INFO("Connecting to Herbie control board");
   nh->param<std::string>("dev1", dev_name, "/dev/herbie");
@@ -154,7 +159,7 @@ void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
 }
 
 void OdometryPublisher::control_board_callback(const std_msgs::Int32MultiArray::ConstPtr& board_msg) {
-   //this function handles command that are sent to the Herbie control board
+   //this function handles commands that are sent to the Herbie control board
    //the packets are stored in a queue and the function setmotor() will send 
    //out the packets to the board (every packet must be at least 8 bytes long)
    
@@ -217,6 +222,19 @@ void OdometryPublisher::safety_callback(const ros::TimerEvent& ev) {
 
   //read_voltage(&voltage);
   //ROS_INFO("Voltage: %f", (float) voltage / 10.0);
+}
+
+void OdometryPublisher::camera_error_callback(const std_msgs::Empty::ConstPtr& board_msg) {
+  create_control_board_msg(0,(void*) 0); //clear screen
+  char buf[10];
+  char s[32];
+  buf[0] = 0; //set the col
+  buf[1] = 0; //set the row
+  create_control_board_msg(1,(void*) buf); //set cursor to top
+  create_control_board_msg(2,(void*) "Camera error"); //send camera error message
+
+  unsigned char x = 2; //LED 2 = green LED
+  create_control_board_msg(7,(void*) &x); //turn on LED
 }
 
 void OdometryPublisher::serial_loop() {

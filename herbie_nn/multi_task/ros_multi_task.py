@@ -14,6 +14,7 @@ from torchvision import transforms
 from datetime import datetime
 from pretrained_model import Pretrained_Model
 from std_msgs.msg import Float64MultiArray
+from sensor_msgs.msg import LaserScan
 
 class image_inference:
     def __init__(self, model_name="inference.pt", unlabeled=False):
@@ -36,14 +37,45 @@ class image_inference:
         self.data_pub = rospy.Publisher(
             '/nn_data', Float64MultiArray, queue_size=1)
 
+        self.scan_pub = rospy.Publisher('scan', LaserScan, queue_size=50)
+
         self.preprocess = transforms.Compose([
             transforms.ToTensor(),
         ])
 
         self.point_list = []
+        self.goal_x = 0
+        self.goal_y = 0
+        self.last_find_x = 0
+        self.last_find_y = 0
+        self.last_find_left = 0
+        self.last_find_right = 0
         self.goal_list_x = [0] * 5
         self.goal_list_y = [0] * 5
         self.turn_times = 0
+
+    def publish_laserscan(self):
+        current_time = rospy.Time.now()
+        num_readings = len(self.point_list)
+        laser_frequency = 20
+
+        scan = LaserScan()
+
+        scan.header.stamp = current_time
+        scan.header.frame_id = 'camera_link'
+        scan.angle_min = -1.57
+        scan.angle_max = 1.57
+        scan.angle_increment = 3.14 / num_readings
+        scan.time_increment = (1.0 / laser_frequency) / (num_readings)
+        scan.range_min = 0.0
+        scan.range_max = 5.0
+
+        scan.ranges = []
+        scan.intensities = []
+        for i in range(0, num_readings):
+            scan.ranges.append(5.0 * self.point_list[i][1] / 360.0)  # fake data
+
+        self.scan_pub.publish(scan)
 
     def connect_boundary(self, points, img):
         for i in range(len(points)-1):
@@ -87,18 +119,18 @@ class image_inference:
                     turn_index = c
 
             self.turn_times += 1
-            cv2.putText(img, 'turn: ' + "{:.3f}".format(turn_index),
-                        (430, 110),
-                        font,
-                        .8,
-                        (255, 0, 255),
-                        lineType)
-            cv2.putText(img, 'count: ' + "{:.3f}".format(self.turn_times),
-                        (430, 140),
-                        font,
-                        .8,
-                        (255, 0, 255),
-                        lineType)
+            # cv2.putText(img, 'turn: ' + "{:.3f}".format(turn_index),
+            #             (430, 110),
+            #             font,
+            #             .8,
+            #             (255, 0, 255),
+            #             lineType)
+            # cv2.putText(img, 'count: ' + "{:.3f}".format(self.turn_times),
+            #             (430, 140),
+            #             font,
+            #             .8,
+            #             (255, 0, 255),
+            #             lineType)
         else:
             self.turn_times = 0
 
@@ -123,13 +155,6 @@ class image_inference:
         #       (255,0,255),
         #       lineType)
 
-        cv2.putText(img, 'counter: ' + "{:.3f}".format(loc_counter),
-                    (430, 80),
-                    font,
-                    .8,
-                    (255, 0, 255),
-                    lineType)
-
         turn = float(output[2].data[0][0])
         cv2.putText(img, 'turn: ' + "{:.3f}".format(turn),
                     (430, 150),
@@ -137,6 +162,47 @@ class image_inference:
                     .8,
                     (255, 0, 255),
                     lineType)
+
+    def find_left_right(self,y,img):
+        if y < self.goal_y:
+            return
+
+        if self.last_find_x == 0:
+            start_search_x = int(self.goal_x / 8)
+        else:
+            start_search_x = self.last_find_x
+
+        left = 0
+        for i in range(start_search_x,0,-1):
+            if self.point_list[i][1] > y:
+                left = self.point_list[i][0]
+                break
+
+        if left == 0:
+            left == self.last_find_left
+
+        right = 639
+        for i in range(start_search_x,80):
+            if self.point_list[i][1] > y:
+                right = self.point_list[i][0]
+                break
+
+        if left == 0:
+            left == self.last_find_right
+
+        distance = right - left
+        self.last_find_x = int((left+right) / 2 / 8)
+        self.last_find_left = left
+        self.last_find_right = right
+
+        print(y, left, right, distance)
+
+        # draw center dot
+        cv2.circle(img, (int((left+right)/2), y),
+                    3, (0, 0, 255), -1)
+
+        # horizontal line down middle
+        cv2.line(img, (300, y), (340, y), (255, 255, 0), 1)
 
     def navigation_lines(self, img):
         # 3 foot lines in front of robot
@@ -203,6 +269,22 @@ class image_inference:
                 c*8), round(float(output[0].data[0][c]) * (360-1))), 1, (0, 255, 0), -1)
             self.point_list.append(
                 (c*8, round(float(output[0].data[0][c]) * (360-1))))
+
+        #find the left/right
+        self.publish_laserscan()
+        self.goal_x = int(640 * float(output[3].data[0][0]))
+        self.goal_y = int(360 * float(output[3].data[0][1]))
+        self.last_find_x = 0
+        self.find_left_right(110, image_np_360)
+        self.find_left_right(120, image_np_360)
+        self.find_left_right(130, image_np_360)
+        self.find_left_right(140, image_np_360)
+        self.find_left_right(150, image_np_360)
+        self.find_left_right(170, image_np_360)
+        self.find_left_right(200, image_np_360)
+        self.find_left_right(240, image_np_360)
+        self.find_left_right(280, image_np_360)
+        self.find_left_right(340, image_np_360)
 
         font = cv2.FONT_HERSHEY_SIMPLEX
         fontScale = .7

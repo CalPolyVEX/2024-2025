@@ -111,6 +111,7 @@ class OdometryPublisher {
     void autonomous_mode_callback(const std_msgs::Int8::ConstPtr&);
     void safety_callback(const ros::TimerEvent& ev);
     void control_board_callback(const std_msgs::Int32MultiArray::ConstPtr& board_msg);
+    void camera_error_callback(const std_msgs::Empty::ConstPtr& board_msg);
 
     //motor control and odometry functions
     void run_pid();

@@ -24,6 +24,7 @@
  
 #ifdef ARM_CPU
   extern "C" void asm_foo(unsigned char* in, unsigned char* out);
+  extern "C" void convert_nhwc_asm(unsigned char* in, float* out);
 #endif
 
 using namespace std;
@@ -43,6 +44,7 @@ class CameraReader {
   image_transport::Subscriber image_sub_;
   ros::Subscriber image_debug_toggle_;
   ros::Publisher nn_data;
+  ros::Publisher camera_error_pub;
 
   /*
    * Re-using the frame matrix(ces) instead of creating new ones (i.e., declaring 'Mat frame'
@@ -73,7 +75,7 @@ class CameraReader {
 
   public:
   int init(char* videodev, int width, int height, ros::NodeHandle* nh, bool simulate);
-  void nhwc_to_nchw(unsigned char* src, float* dest, int nn_height, int nn_width);
+  void nhwc_to_nchw(unsigned char* src, float* dest);
   void frame_loop();
   void simulate_callback(const sensor_msgs::ImageConstPtr& msg);
   int close_camera();
