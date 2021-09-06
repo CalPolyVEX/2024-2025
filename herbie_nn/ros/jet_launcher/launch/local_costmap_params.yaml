@@ -1,0 +1,20 @@
+local_costmap:
+  global_frame: base_link
+  robot_base_frame: base_link
+  update_frequency: 10.0
+  publish_frequency: 10.0
+
+  #set if you want the voxel map published
+  publish_voxel_map: false
+
+  #set to true if you want to initialize the costmap from a static map
+  static_map: false
+
+  rolling_window: true
+  width: 15.0
+  height: 15.0
+  resolution: 0.05
+
+  map_type: costmap
+  unknown_threshold: 10
+  mark_threshold: 0
