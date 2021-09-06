@@ -20,6 +20,8 @@
 #include <map>
 #include <list>
 
+extern int sim_mode;
+
 using namespace std;
 
 lemon::SmartDigraph main_map;
@@ -34,8 +36,12 @@ void Navigation::odom_callback(const nav_msgs::Odometry::ConstPtr& msg) {
 
    heading_counter++;
 
-   if ((heading_counter & 3) == 0) { //compute the heading every 32 odometry messages
-      heading_counter = 0;
+   if (sim_mode == 1) { //the T265 publishes odometry at 200Hz, so slow it down
+      if ((heading_counter & 3) == 0) { //compute the heading every 32 odometry messages
+         heading_counter = 0;
+         convert_to_heading(w, x, y, z); 
+      }
+   } else { //if not in sim mode, then odometry is published at 30Hz
       convert_to_heading(w, x, y, z); 
    }
 }

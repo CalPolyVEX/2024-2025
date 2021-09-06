@@ -74,6 +74,7 @@ class Navigation {
     void path_to_next_goal();
     void odom_callback(const nav_msgs::Odometry::ConstPtr& msg); 
     void convert_to_heading(float w, float x, float y, float z);
+    float compute_obstacle_force(int coord, int side);
 };
 
 #endif
