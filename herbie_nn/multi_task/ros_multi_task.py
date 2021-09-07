@@ -15,6 +15,9 @@ from datetime import datetime
 from pretrained_model import Pretrained_Model
 from std_msgs.msg import Float64MultiArray
 from sensor_msgs.msg import LaserScan
+from sensor_msgs.msg import PointCloud2
+import sensor_msgs.point_cloud2 as pcl2
+import std_msgs.msg
 
 class image_inference:
     def __init__(self, model_name="inference.pt", unlabeled=False):
@@ -38,6 +41,7 @@ class image_inference:
             '/nn_data', Float64MultiArray, queue_size=1)
 
         self.scan_pub = rospy.Publisher('scan', LaserScan, queue_size=50)
+        self.pointcloud_pub = rospy.Publisher('point_cloud', PointCloud2, queue_size=50)
 
         self.preprocess = transforms.Compose([
             transforms.ToTensor(),
@@ -53,6 +57,19 @@ class image_inference:
         self.goal_list_x = [0] * 5
         self.goal_list_y = [0] * 5
         self.turn_times = 0
+
+    def publish_pointcloud(self):
+        cloud_points = [[1.0, 1.0, 0.0],[1.0, 2.0, 0.0],[2,0,0]]
+
+        #header
+        header = std_msgs.msg.Header()
+        header.stamp = rospy.Time.now()
+        header.frame_id = 'see3_cam'
+        #create pcl from points
+        scaled_polygon_pcl = pcl2.create_cloud_xyz32(header, cloud_points)
+
+        #publish    
+        self.pointcloud_pub.publish(scaled_polygon_pcl)
 
     def publish_laserscan(self):
         current_time = rospy.Time.now()
@@ -271,7 +288,8 @@ class image_inference:
                 (c*8, round(float(output[0].data[0][c]) * (360-1))))
 
         #find the left/right
-        self.publish_laserscan()
+        #self.publish_laserscan()
+        self.publish_pointcloud()
         self.goal_x = int(640 * float(output[3].data[0][0]))
         self.goal_y = int(360 * float(output[3].data[0][1]))
         self.last_find_x = 0
