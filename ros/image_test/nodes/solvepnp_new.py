@@ -128,6 +128,7 @@ class camera_transform:
 
       #remove the second column because it is a plane
       self.A = np.delete(self.A,1,1)
+      #self.A = np.delete(self.A,2,1)
 
       #compute the inverse of the A matrix
       self.r_t_inv = np.linalg.inv(self.A)
@@ -173,4 +174,8 @@ if __name__ == '__main__':
 
    print ("0,72")
    ans = c.compute(467,245)
+   print ([x/.0254 for x in ans])
+
+   print ("-37.75,115")
+   ans = c.compute(297,196)
    print ([x/.0254 for x in ans])
