@@ -14,7 +14,7 @@ class camera_transform:
 
       #The objectpoints array has the coordinates that are measured on the ground (inches)
       #
-      #The order of the points is X,Y,Z where +X is towards the right of the robot
+      #The order of the points is X,Y,Z where +X is towards the left of the robot
       #+Y is down and +Z is towards the front of the robot
       self.objectPoints = np.array([[
         [0,0,12],
@@ -45,7 +45,19 @@ class camera_transform:
         [-24,0,36],
         [-24,0,48],
         [-24,0,60],
-        [-24,0,72]
+        [-24,0,72],
+
+
+        [-36,0,12],
+        [-36,0,24],
+        [-36,0,36],
+        [-36,0,48],
+        [-36,0,60],
+        [36,0,12],
+        [36,0,24],
+        [36,0,36],
+        [36,0,48],
+        [36,0,60]
         ]],
         dtype=np.float64)
       self.objectPoints = .0254*self.objectPoints #convert to meters
@@ -84,8 +96,19 @@ class camera_transform:
         [450,215],
         [424,189],
         [405,171],
-        [391,156]
+        [391,156],
 
+
+        [568,288],
+        [529,246],
+        [492,213],
+        [463,188],
+        [440,171],
+        [47,283],
+        [87,241],
+        [123,210],
+        [152,186],
+        [175,169]
         ]],
         dtype=np.float64)
       self.imagePoints = self.imagePoints / self.image_scaling #scale to 480x270
@@ -162,8 +185,12 @@ if __name__ == '__main__':
    ans = c.compute(310,354)
    print ([x/.0254 for x in ans])
 
-   print ("-45,36")
-   ans = c.compute(19,315)
+   print ("24,72")
+   ans = c.compute(231,156)
+   print ([x/.0254 for x in ans])
+
+   print ("-24,72")
+   ans = c.compute(391,156)
    print ([x/.0254 for x in ans])
 
    print ("0,24")
@@ -176,4 +203,12 @@ if __name__ == '__main__':
 
    print ("-12,12")
    ans = c.compute(441,336)
+   print ([x/.0254 for x in ans])
+
+   print ("-36,48")
+   ans = c.compute(463,188)
+   print ([x/.0254 for x in ans])
+
+   print ("36,48")
+   ans = c.compute(152,186)
    print ([x/.0254 for x in ans])
