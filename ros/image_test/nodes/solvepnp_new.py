@@ -39,7 +39,7 @@ class camera_transform:
         dtype=np.float64)
       self.objectPoints = .0254*self.objectPoints #convert to meters
 
-      print self.objectPoints.shape
+      print (self.objectPoints.shape)
 
       #The imagepoints array has the coordinates of the corresponding points as they
       #appear in the image.  The order of the points is col,row where the origin is
@@ -67,7 +67,7 @@ class camera_transform:
         dtype=np.float64)
       self.imagePoints = self.imagePoints / self.image_scaling #scale to 480x270
 
-      print self.imagePoints.shape
+      print (self.imagePoints.shape)
 
       #self.new_imagePoints = np.ascontiguousarray(self.imagePoints[:,:2]).reshape((N,1,2))
 
@@ -99,8 +99,8 @@ class camera_transform:
 
       #set the 2,2 element back to 1 in the camera matrix
       self.cameraMatrix[2,2] = 1
-      print "Camera Matrix:"
-      print self.cameraMatrix
+      print ("Camera Matrix:")
+      print (self.cameraMatrix)
 
       #distortion coefficients
       #3.6mm lens
@@ -131,21 +131,21 @@ class camera_transform:
 
       #compute the inverse of the A matrix
       self.r_t_inv = np.linalg.inv(self.A)
-      print "r_t_inv Matrix:"
-      print "------------copy from here-----------------"
+      print ("r_t_inv Matrix:")
+      print ("------------copy from here-----------------")
       counter = 0;
       for x in np.nditer(self.r_t_inv, order = 'C'):
           if counter == 0:
-              print "{",
+              print ("{", end="")
           counter += 1
           if counter != 3:
-              print x,
-              print ",",
+              print (x, end="")
+              print (",", end="")
           else:
-              print x,
-              print "},"
+              print (x, end="")
+              print ("},")
               counter = 0
-      print "------------end copy from here-----------------"
+      print ("------------end copy from here-----------------")
 
    def compute(self,x,y):
       imagepoint = np.array([x,y,1],dtype=np.float64)
@@ -158,19 +158,19 @@ class camera_transform:
 
 if __name__ == '__main__':
    c = camera_transform()
-   print "---testing---"
-   print "0,15"
+   print ("---testing---")
+   print ("0,15")
    ans = c.compute(470,532)
-   print [x/.0254 for x in ans]
+   print ([x/.0254 for x in ans])
 
-   print "-45,36"
+   print ("-45,36")
    ans = c.compute(19,315)
-   print [x/.0254 for x in ans]
+   print ([x/.0254 for x in ans])
 
-   print "0,18"
+   print ("0,18")
    ans = c.compute(470,488)
-   print [x/.0254 for x in ans]
+   print ([x/.0254 for x in ans])
 
-   print "0,72"
+   print ("0,72")
    ans = c.compute(467,245)
-   print [x/.0254 for x in ans]
+   print ([x/.0254 for x in ans])
