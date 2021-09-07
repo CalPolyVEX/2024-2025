@@ -10,16 +10,16 @@ import glob
 
 
 # ChAruco board variables
-CHARUCOBOARD_ROWCOUNT = 9
-CHARUCOBOARD_COLCOUNT = 6 
+CHARUCOBOARD_ROWCOUNT = 6
+CHARUCOBOARD_COLCOUNT = 9 
 ARUCO_DICT = aruco.Dictionary_get(aruco.DICT_5X5_1000)
 
 # Create constants to be passed into OpenCV and Aruco methods
 CHARUCO_BOARD = aruco.CharucoBoard_create(
         squaresX=CHARUCOBOARD_COLCOUNT,
         squaresY=CHARUCOBOARD_ROWCOUNT,
-        squareLength=0.028,
-        markerLength=0.022,
+        squareLength=0.080,
+        markerLength=0.062,
         dictionary=ARUCO_DICT)
 
 # Create the arrays and variables we'll use to store info like corners and IDs from images processed
@@ -31,11 +31,12 @@ image_size = None # Determined at runtime
 # I'm using a set of images taken with the camera with the naming convention:
 # 'camera-pic-of-charucoboard-<NUMBER>.jpg'
 # All images used should be the same size, which if taken with the same camera shouldn't be a problem
-images = glob.glob('./IMG_*.JPG')
+images = glob.glob('./*.jpg')
 print(images)
 
 # Loop through images glob'ed
 for iname in images:
+    print(iname)
     # Open the image
     img = cv2.imread(iname)
     # Grayscale the image
@@ -65,7 +66,7 @@ for iname in images:
         corners_all.append(charuco_corners)
         ids_all.append(charuco_ids)
 
-        print (charuco_ids)
+        # print (charuco_ids)
         
         # Draw the Charuco board we've detected to show our calibrator the board was properly detected
         img = aruco.drawDetectedCornersCharuco(
