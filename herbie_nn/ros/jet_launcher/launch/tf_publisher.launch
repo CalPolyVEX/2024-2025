@@ -3,13 +3,11 @@
 <launch>
 
    <node pkg="tf2_ros" type="static_transform_publisher" name="see3cam_broadcaster" args=".13 0 .22 0 0 0 1 base_link see3_cam" />
-   <node pkg="tf2_ros" type="static_transform_publisher" name="zed2_broadcaster" args=".165 0 .5842 0 0 0 1 base_link zed2_camera_center" />
+   <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="zed2_broadcaster" args=".165 0 .5842 0 0 0 1 base_link zed2_camera_center" /> -->
 
    <node pkg="tf2_ros" type="static_transform_publisher" name="imu_link_broadcaster" args="0 0 0.2286 0 0 0 1 base_link imu" />
 
-   <node pkg="tf2_ros" type="static_transform_publisher" name="laser_link_broadcaster" args=".1778 0 0.3048 0 0 1 0 base_link laser" />
-
-   <node pkg="tf2_ros" type="static_transform_publisher" name="roboclaw_link_broadcaster" args=".13 0 0 0 0 1 0 base_link roboclaw_center" />
+   <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="laser_link_broadcaster" args=".1778 0 0.3048 0 0 1 0 base_link laser" /> -->
 
 
    <!-- old -->
