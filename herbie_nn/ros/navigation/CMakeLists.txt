@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   image_transport
   cv_bridge
+  pcl_conversions
 )
 
 roslint_cpp()
@@ -34,6 +35,7 @@ include_directories(
 add_executable(navigation
   src/navigation.cpp
   src/graph.cpp
+  src/move_base.cpp
   src/navigation.h)
 
 add_dependencies(navigation ${PROJECT_NAME}_gencfg)

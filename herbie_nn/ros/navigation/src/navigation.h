@@ -19,6 +19,9 @@
 #include <queue>
 
 #include <lemon/smart_graph.h>
+#include <move_base_msgs/MoveBaseAction.h>
+#include <actionlib/client/simple_action_client.h>
+typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
 class Navigation {
   struct Arc
@@ -37,6 +40,7 @@ class Navigation {
   image_transport::Subscriber img_sub;
   image_transport::Publisher image_pub_;
   ros::Publisher twist_pub_;
+  ros::Publisher pointcloud_pub_;
 
   double* ground;
   double* loc;
@@ -59,6 +63,8 @@ class Navigation {
 
   std::vector<std::string> nodes;
 
+  MoveBaseClient* ac;
+
   public:
     Navigation(); 
     void nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& nn_msg);
@@ -75,6 +81,10 @@ class Navigation {
     void odom_callback(const nav_msgs::Odometry::ConstPtr& msg); 
     void convert_to_heading(float w, float x, float y, float z);
     float compute_obstacle_force(int coord, int side);
+
+    //move base functions
+    void send_goal();
+    void publish_pointcloud();
 };
 
 #endif

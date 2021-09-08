@@ -66,9 +66,15 @@ Navigation::Navigation() : it(nh) {
   image_pub_ = it.advertise("/nav_output_video", 1);
   twist_pub_ = nh.advertise<geometry_msgs::Twist>("/nav_cmd_vel", 1);
 
+  // point cloud publisher
+  pointcloud_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/point_cloud", 1);
+
   nh.setParam("/autonomous_mode", false);
 
   new_image = cv::Mat(360, 640, CV_8UC3);
+  
+  //tell the action client that we want to spin a thread by default
+  ac = new MoveBaseClient("move_base", true);
 }
 
 void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
@@ -119,6 +125,9 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    draw_goal();
 
    write_text();
+
+   //publish pointcloud
+   publish_pointcloud();
 
    //publish message
    sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", new_image).toImageMsg();

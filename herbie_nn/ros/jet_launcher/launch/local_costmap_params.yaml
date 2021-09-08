@@ -1,8 +1,8 @@
 local_costmap:
   global_frame: base_link
   robot_base_frame: base_link
-  update_frequency: 10.0
-  publish_frequency: 10.0
+  update_frequency: 15.0
+  publish_frequency: 15.0
 
   #set if you want the voxel map published
   publish_voxel_map: false

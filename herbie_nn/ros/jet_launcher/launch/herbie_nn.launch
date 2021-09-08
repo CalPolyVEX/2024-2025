@@ -6,7 +6,9 @@
    <!-- Start the gamepad node-->
    <node pkg="jet_launcher" type="joystick.py" name="joystick_node" required="true"/>
 
-   <include file="$(find camera_reader)/launch/camera_reader.launch"/> --> 
+   <include file="$(find camera_reader)/launch/camera_reader.launch"/>  
    <include file="$(find jet_launcher)/launch/robot_localization.launch"/>
-   <include file="$(find navigation)/launch/navigation.launch"/> --> 
+   <include file="$(find navigation)/launch/navigation.launch"/> 
+
+   <include file="$(find jet_launcher)/launch/move_base.launch"/> 
 </launch>
