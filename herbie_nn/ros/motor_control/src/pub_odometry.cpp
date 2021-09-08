@@ -44,11 +44,11 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   //publish Twist messages to this topic
   twist_pub = nh->advertise<geometry_msgs::TwistWithCovarianceStamped>("/roboclaw_twist", 1);
 
-  //listen for Twist messages on /cmd_vel
-  sub_cmd_vel = nh->subscribe("/cmd_vel", 2, &OdometryPublisher::cmd_vel_callback, this);
+  //listen for Twist messages on /manual_cmd_vel
+  sub_cmd_vel = nh->subscribe("/manual_cmd_vel", 2, &OdometryPublisher::cmd_vel_callback, this);
   
   //listen for Twist messages on /cmd_vel
-  sub_planner_cmd_vel = nh->subscribe("/nav_cmd_vel", 2, &OdometryPublisher::planner_cmd_vel_callback, this);
+  sub_planner_cmd_vel = nh->subscribe("/cmd_vel", 2, &OdometryPublisher::planner_cmd_vel_callback, this);
 
   //listen for Int8 messages on /autonomous
   autonomous_sub = nh->subscribe("/autonomous", 2, &OdometryPublisher::autonomous_mode_callback, this);

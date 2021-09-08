@@ -47,6 +47,12 @@ Navigation::Navigation() : it(nh) {
   }
 
   //subscriber for neural network data
+  autonomous_sub = nh.subscribe("/autonomous", 1, &Navigation::autonomous_mode_callback, this);
+
+  //subscriber for neural network data
+  nav_goal_sub = nh.subscribe("/nav_goal", 1, &Navigation::send_goal, this);
+
+  //subscriber for neural network data
   nn_data_sub = nh.subscribe("/nn_data", 1, &Navigation::nn_data_callback, this);
   
   //subscriber for 640x360 image
@@ -74,7 +80,8 @@ Navigation::Navigation() : it(nh) {
   new_image = cv::Mat(360, 640, CV_8UC3);
   
   //tell the action client that we want to spin a thread by default
-  ac = new MoveBaseClient("move_base", true);
+  //ac = new MoveBaseClient("move_base", true);
+  tfListener = new tf2_ros::TransformListener(tfBuffer);
 }
 
 void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
@@ -567,7 +574,7 @@ void Navigation::avoid_obstacles()
 
    t_cmd.angular.z += ang_force_left + ang_force_right;
 
-   twist_pub_.publish(t_cmd);
+   //twist_pub_.publish(t_cmd);
 }
 
 int main(int argc, char** argv) {
@@ -581,6 +588,17 @@ int main(int argc, char** argv) {
 
   Navigation nav_node;
   nav_node.graph_init();
+  MoveBaseClient ac("move_base", true);
+  
+//  tf2_ros::TransformListener tfListener(tfBuffer);
+
+  //nav_node.set_action_client(&ac, &tfListener, &tfBuffer);
+  nav_node.set_action_client(&ac);
+
+  //wait for the action server to come up
+  while(!ac.waitForServer(ros::Duration(5.0))){
+     ROS_INFO("Waiting for the move_base action server to come up");
+  }
 
   //since the diagnostics callback is part of the odom_pub object, 
   //bind the callback using boost:bind and boost:function

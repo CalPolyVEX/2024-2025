@@ -213,11 +213,12 @@ class JoystickNode:
       rospy.on_shutdown(self.shutdown)
       rospy.loginfo("Connecting to joystick")
 
-      self.motor_command_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=2)
+      self.motor_command_pub = rospy.Publisher('/manual_cmd_vel', Twist, queue_size=2)
       self.robot_stop_pub = rospy.Publisher('/robot_stop', Empty, queue_size=1)
       self.autonomous_pub = rospy.Publisher('/autonomous', Int8, queue_size=1)
       self.autonomous_led_pub = rospy.Publisher('/read_encoder_cmd', Int8, queue_size=1)
       self.herbie_board_pub = rospy.Publisher('/control_board', Int32MultiArray, queue_size=5)
+      self.nav_goal_pub = rospy.Publisher('/nav_goal', Empty, queue_size=1)
 
       rospy.sleep(1)
 
@@ -474,10 +475,10 @@ class JoystickNode:
          elif autonomous == 1 and button4 == 1:
             button4_hold += 1
 
-            if button4_hold == 20:
+            if button4_hold == 3:
                #cancel all goals
                autonomous_command = Int8()
-               autonomous_command.data = 2 #cancel all goals
+               autonomous_command.data = 0 #cancel all goals
                self.autonomous_pub.publish(autonomous_command)
                button4_hold = 0
          else:
@@ -520,6 +521,21 @@ class JoystickNode:
                 button8_hold = 0
          else:
             button8_hold = 0
+
+         #press button 7 to send navigation goal ############################
+         button7 = pygame.joystick.Joystick(0).get_button(6)
+         if button7 == 1:
+            print "--sending goal--"
+
+            button7_hold += 1
+
+            if button7_hold == 5:
+                p = Empty()
+                self.nav_goal_pub.publish(p)
+
+                button7_hold = 0
+         else:
+            button7_hold = 0
 
          r_time.sleep()
 

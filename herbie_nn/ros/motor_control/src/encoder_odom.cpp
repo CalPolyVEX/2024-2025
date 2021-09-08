@@ -35,7 +35,7 @@ void OdometryPublisher::publish_odometry_message(double vx, double vth) {
   nav_msgs::Odometry odom;
   odom.header.stamp = current_time;
   odom.header.frame_id = "odom";
-  odom.child_frame_id = "roboclaw_center";
+  odom.child_frame_id = "base_link";
 
   //set the position
   odom.pose.pose.position.x = cur_x;
@@ -69,7 +69,7 @@ void OdometryPublisher::publish_odometry_message(double vx, double vth) {
   //create the Twist message
   geometry_msgs::TwistWithCovarianceStamped t;
   t.header.stamp = current_time;
-  t.header.frame_id = "roboclaw_center";
+  t.header.frame_id = "base_link";
 
   t.twist.twist.linear.x = vx;
   t.twist.twist.linear.y = 0;
@@ -365,9 +365,10 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
     cur_right_motor = -MAX_MOTOR_SPEED;
 }
 
-void OdometryPublisher::autonomous_mode_callback(const std_msgs::Int8::ConstPtr&) {
+void OdometryPublisher::autonomous_mode_callback(const std_msgs::Int8::ConstPtr& msg) {
   //stop ^= 1;
-  planner ^= 1;
+  /* planner ^= 1; */
+  planner = msg->data;
 
   if (planner == 1) { //running in autonomous mode
     nh->setParam("/autonomous_mode", true);

@@ -9,6 +9,8 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/Float64MultiArray.h>
+#include <std_msgs/Int8.h>
+#include <std_msgs/Empty.h>
 #include <image_transport/image_transport.h>
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -21,6 +23,7 @@
 #include <lemon/smart_graph.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
+
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
 class Navigation {
@@ -37,6 +40,8 @@ class Navigation {
 
   ros::Subscriber nn_data_sub;
   ros::Subscriber odom_data_sub;
+  ros::Subscriber nav_goal_sub;
+  ros::Subscriber autonomous_sub;
   image_transport::Subscriber img_sub;
   image_transport::Publisher image_pub_;
   ros::Publisher twist_pub_;
@@ -63,7 +68,10 @@ class Navigation {
 
   std::vector<std::string> nodes;
 
-  MoveBaseClient* ac;
+  MoveBaseClient* a;
+  //MoveBaseClient ac("move_base", true);
+  tf2_ros::Buffer tfBuffer;
+  tf2_ros::TransformListener* tfListener;
 
   public:
     Navigation(); 
@@ -83,8 +91,11 @@ class Navigation {
     float compute_obstacle_force(int coord, int side);
 
     //move base functions
-    void send_goal();
+    void send_goal(const std_msgs::Empty::ConstPtr& msg);
+    /* void set_action_client(MoveBaseClient* ac, tf2_ros::TransformListener* tfl, tf2_ros::Buffer* tfb); */
+    void set_action_client(MoveBaseClient* ac);
     void publish_pointcloud();
+    void autonomous_mode_callback(const std_msgs::Int8::ConstPtr& msg);
 };
 
 #endif

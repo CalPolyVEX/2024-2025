@@ -21,30 +21,77 @@ extern int sim_mode;
 using namespace std;
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
-void Navigation::send_goal() { 
-   //tell the action client that we want to spin a thread by default
-   //MoveBaseClient ac("move_base", true);
+void convert_image_to_world(int col, int row, double* x, double* y) {
+   /*          imagepoint = np.array([x,y,1],dtype=np.float64) */
+   /*          ans = np.matmul(r_t_inv, imagepoint) */
 
-   //wait for the action server to come up
-   while(!ac->waitForServer(ros::Duration(5.0))){
-      ROS_INFO("Waiting for the move_base action server to come up");
-   }
+   /*          w = ans.item(2) */
+   /*          ans = ans / w */
+   /*          ans = ans.tolist()[0:2] #answer is in meters */
+   //do matrix multiply
+   //0,0 0,1 0,2   x
+   //1,0 1,1 1,2   y
+   //2,0 2,1 2,2   1
+   //
+   double r_t_inv[3][3] = {{-0.00297077239028572,-4.4139112416322384e-05,0.9313145025868853},
+             {2.3482445189653307e-05,-0.0024911437766359894,1.1922101009254173},
+             {-5.526553689847709e-05,0.004262116239831571,-0.19803144040722234}};
 
-   move_base_msgs::MoveBaseGoal goal;
+   double a = (r_t_inv[0][0] * col) + (r_t_inv[0][1] * row) + (r_t_inv[0][2] * 1); 
+   double b = (r_t_inv[1][0] * col) + (r_t_inv[1][1] * row) + (r_t_inv[1][2] * 1); 
+   double c = (r_t_inv[2][0] * col) + (r_t_inv[2][1] * row) + (r_t_inv[2][2] * 1); 
+
+   a = a / c;
+   b = b / c;
+
+   *x = b;
+   *y = a;
+}
+
+void Navigation::set_action_client(MoveBaseClient* ac) {
+/* void Navigation::set_action_client(MoveBaseClient* ac, tf2_ros::TransformListener* tfl, tf2_ros::Buffer* tfb) { */
+   a = ac;
+   /* tf_listener = tfl; */
+   /* tf_buffer = tfb; */
+}
+
+void Navigation::send_goal(const std_msgs::Empty::ConstPtr& msg) {
+   a->cancelAllGoals();
+
+   //get the transform from odom to base_link since the planner only takes goals in 
+   //the odom frame
+   geometry_msgs::TransformStamped transformStamped;
+   transformStamped = tfBuffer.lookupTransform("odom", "base_link", ros::Time(0));
+
+   move_base_msgs::MoveBaseGoal cur_goal;
 
    //we'll send a goal to the robot to move 1 meter forward
-   goal.target_pose.header.frame_id = "base_link";
-   goal.target_pose.header.stamp = ros::Time::now();
+   cur_goal.target_pose.header.frame_id = "odom";
+   cur_goal.target_pose.header.stamp = ros::Time::now();
 
-   goal.target_pose.pose.position.x = 1.0;
-   goal.target_pose.pose.orientation.w = 1.0;
+   //compute the goal
+   int goal_x = int(640 * goal[0]); //get the x and y of the goal
+   int goal_y = int(360 * goal[1]);
 
+   int boundary_index = int(goal_x / 8);
+   double goal_dist = ground[boundary_index];
+   int ground_y_coord = int(goal_dist * 360.0); //the y-coordinate of the ground at the goal
+
+   double x,y;
+   convert_image_to_world(goal_x, ground_y_coord, &x, &y);
+
+   cur_goal.target_pose.pose.position.x = transformStamped.transform.translation.x + x - .05;
+   cur_goal.target_pose.pose.position.y = transformStamped.transform.translation.y + y;
+   /* cur_goal.target_pose.pose.position.x = x - .05; */
+   /* cur_goal.target_pose.pose.position.y = y; */
+   cur_goal.target_pose.pose.orientation.w = 1.0;
+   
    ROS_INFO("Sending goal");
-   ac->sendGoal(goal);
+   a->sendGoal(cur_goal);
 
-   ac->waitForResult();
+   //a->waitForResult();
 
-   if(ac->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+   if(a->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
       ROS_INFO("Hooray, the base moved 1 meter forward");
    else
       ROS_INFO("The base failed to move forward 1 meter for some reason");
@@ -85,28 +132,11 @@ void Navigation::publish_pointcloud() {
       double next_x = (i+1)*8;
       double next_y = ground[i+1] * 360;
 
-      /*          imagepoint = np.array([x,y,1],dtype=np.float64) */
-      /*          ans = np.matmul(r_t_inv, imagepoint) */
+      double a,b;
+      double next_a, next_b;
 
-      /*          w = ans.item(2) */
-      /*          ans = ans / w */
-      /*          ans = ans.tolist()[0:2] #answer is in meters */
-      //do matrix multiply
-      //0,0 0,1 0,2   x
-      //1,0 1,1 1,2   y
-      //2,0 2,1 2,2   1
-      double a = (r_t_inv[0][0] * x) + (r_t_inv[0][1] * y) + (r_t_inv[0][2] * 1); 
-      double b = (r_t_inv[1][0] * x) + (r_t_inv[1][1] * y) + (r_t_inv[1][2] * 1); 
-      double c = (r_t_inv[2][0] * x) + (r_t_inv[2][1] * y) + (r_t_inv[2][2] * 1); 
-
-      double next_a = (r_t_inv[0][0] * next_x) + (r_t_inv[0][1] * next_y) + (r_t_inv[0][2] * 1); 
-      double next_b = (r_t_inv[1][0] * next_x) + (r_t_inv[1][1] * next_y) + (r_t_inv[1][2] * 1); 
-      double next_c = (r_t_inv[2][0] * next_x) + (r_t_inv[2][1] * next_y) + (r_t_inv[2][2] * 1); 
-
-      a = a / c;
-      b = b / c;
-      next_a = next_a / next_c;
-      next_b = next_b / next_c;
+      convert_image_to_world(x, y, &b, &a);
+      convert_image_to_world(next_x, next_y, &next_b, &next_a);
 
       *out_x = b; //positive x-axis is forward from robot
       *out_y = a; //positive y-axis is to the left of robot
@@ -217,3 +247,13 @@ void Navigation::publish_pointcloud() {
         /* scaled_polygon_pcl = pcl2.create_cloud_xyz32(header, cloud_points) */
 
 }
+
+void Navigation::autonomous_mode_callback(const std_msgs::Int8::ConstPtr& msg) {
+   if (msg->data == 0) {
+      //cancel goals
+      a->cancelAllGoals();
+   }
+}
+
+
+

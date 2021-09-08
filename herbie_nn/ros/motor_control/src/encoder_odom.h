@@ -108,7 +108,7 @@ class OdometryPublisher {
     void encoder_message_callback(int left_encoder, int right_encoder);
     void cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
     void planner_cmd_vel_callback(const geometry_msgs::Twist::ConstPtr& twist);
-    void autonomous_mode_callback(const std_msgs::Int8::ConstPtr&);
+    void autonomous_mode_callback(const std_msgs::Int8::ConstPtr& msg);
     void safety_callback(const ros::TimerEvent& ev);
     void control_board_callback(const std_msgs::Int32MultiArray::ConstPtr& board_msg);
     void camera_error_callback(const std_msgs::Empty::ConstPtr& board_msg);
