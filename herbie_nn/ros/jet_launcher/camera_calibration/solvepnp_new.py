@@ -14,28 +14,51 @@ class camera_transform:
 
       #The objectpoints array has the coordinates that are measured on the ground (inches)
       #
-      #The order of the points is X,Y,Z where +X is towards the right of the robot
+      #The order of the points is X,Y,Z where +X is towards the left of the robot
       #+Y is down and +Z is towards the front of the robot
       self.objectPoints = np.array([[
-        [0,0,15],
-        [0,0,18],
+        [0,0,12],
         [0,0,24],
         [0,0,36],
+        [0,0,48],
         [0,0,60],
-        [0,0,96],
-        [0,0,120],
-        [0,0,168],
-        [46.5,0,49],
-        [46.5,0,84],
-        [29,0,20],
-        [18,0,18],
-        [47,0,141],
-        [-45,0,36],
-        [-18,0,18],
-        [-6,0,18],
-        [-45,0,48],
-        [-45,0,78],
-        [-37.75,0,115]]],
+        [12,0,12],
+        [12,0,24],
+        [12,0,36],
+        [12,0,48],
+        [12,0,60],
+        [-12,0,12],
+        [-12,0,24],
+        [-12,0,36],
+        [-12,0,48],
+        [-12,0,60],
+
+
+        [24,0,12],
+        [24,0,24],
+        [24,0,36],
+        [24,0,48],
+        [24,0,60],
+        [24,0,72],
+        [-24,0,12],
+        [-24,0,24],
+        [-24,0,36],
+        [-24,0,48],
+        [-24,0,60],
+        [-24,0,72],
+
+
+        [-36,0,12],
+        [-36,0,24],
+        [-36,0,36],
+        [-36,0,48],
+        [-36,0,60],
+        [36,0,12],
+        [36,0,24],
+        [36,0,36],
+        [36,0,48],
+        [36,0,60]
+        ]],
         dtype=np.float64)
       self.objectPoints = .0254*self.objectPoints #convert to meters
 
@@ -45,75 +68,73 @@ class camera_transform:
       #appear in the image.  The order of the points is col,row where the origin is
       #the upper left
       self.imagePoints = np.array([[
-        [470,532],
-        [470,488],
-        [471,417],
-        [470,330],
-        [472,251],
-        [472,207],
-        [471,190],
-        [472,174],
-        [873,280],
-        [746,220],
-        [926,401],
-        [839,442],
-        [649,184],
-        [19,315],
-        [108,446],
-        [325,477],
-        [76,282],
-        [184,229],
-        [297,196]]],
+        [310,354],
+        [310,266],
+        [310,216],
+        [310,187],
+        [310,168],
+        [177,333],
+        [212,260],
+        [234,213],
+        [249,185],
+        [261,166],
+        [441,336],
+        [406,260],
+        [382,215],
+        [368,187],
+        [357,168],
+
+
+        [91,310],
+        [136,254],
+        [172,213],
+        [199,187],
+        [217,169],
+        [231,156],
+        [526,311],
+        [484,254],
+        [450,215],
+        [424,189],
+        [405,171],
+        [391,156],
+
+
+        [568,288],
+        [529,246],
+        [492,213],
+        [463,188],
+        [440,171],
+        [47,283],
+        [87,241],
+        [123,210],
+        [152,186],
+        [175,169]
+        ]],
         dtype=np.float64)
       self.imagePoints = self.imagePoints / self.image_scaling #scale to 480x270
 
       print (self.imagePoints.shape)
 
-      #self.new_imagePoints = np.ascontiguousarray(self.imagePoints[:,:2]).reshape((N,1,2))
-
-      #assert len(self.imagePoints) == len(self.objectPoints)
+      assert len(self.imagePoints) == len(self.objectPoints)
 
       #intrinsic matrix
-      #3.6mm lens
-      # self.cameraMatrix = np.array([[1258.513767, 0.000000, 949.143263],
-      #                         [0.000000, 1260.515476, 587.553871],
-      #                         [0.000000, 0.000000, 1.000000]])
-
-      #1.8mm lens
-      # self.cameraMatrix = np.array([[2733.727422, 0.000000, 995.635599],
-      #                               [0.000000, 2653.464732, 563.684444],
-      #                               [0.000000, 0.000000, 1.000000]])
-
-      #2.5mm lens
-      # self.cameraMatrix = np.array([[2643.752237, 0.000000, 966.715934],
-      #                               [0.000000, 2589.388168, 549.378039],
-      #                               [0.000000, 0.000000, 1.000000]])
-
       #2.8mm lens
-      self.cameraMatrix = np.array([[625.988136, 0.000000,   487.889539],
-                            [0.000000,   869.697237, 247.887212],
+      self.cameraMatrix = np.array([[336.57498971 , 0.000000, 312.10160575],
+                            [0.000000,   335.25594161, 181.58579683],
                             [0.000000,   0.000000,   1.000000]])
 
       #scale the camera matrix to 480x270, so divide by 4
-      self.cameraMatrix = self.cameraMatrix / self.image_scaling
+      #self.cameraMatrix = self.cameraMatrix / self.image_scaling
 
       #set the 2,2 element back to 1 in the camera matrix
-      self.cameraMatrix[2,2] = 1
+      #self.cameraMatrix[2,2] = 1
       print ("Camera Matrix:")
       print (self.cameraMatrix)
 
       #distortion coefficients
-      #3.6mm lens
-      #self.distCoeffs = np.array([[-0.350545], [0.098685], [-0.004605], [-0.001945], [0.000000]])
-
-      #2.5mm lens
-      #self.distCoeffs = np.array([[-1.131540], [1.561072], [0.021116], [-0.088527], [0.000000]])
-
       #2.8mm lens
-      self.distCoeffs = np.array([[-0.360448], [0.088215], [0.000181], [-0.001589], [0.000000]])
-
-
-      #self.distCoeffs = np.array([[0], [0], [0], [0], [0.000000]])
+      #self.distCoeffs = np.array([[-0.360448], [0.088215], [0.000181], [-0.001589], [0.000000]])
+      self.distCoeffs = np.array([[-0.35182242], [0.10972241], [0.00142039], [-0.00209606], [-0.01479889]])
 
       self.retval, self.rvec, self.tvec = cv2.solvePnP(self.objectPoints, self.imagePoints, self.cameraMatrix, self.distCoeffs, flags=cv2.SOLVEPNP_ITERATIVE)
       #self.retval, self.rvec, self.tvec, self.inliers = cv2.solvePnPRansac(self.objectPoints, self.imagePoints, self.cameraMatrix, self.distCoeffs, flags=cv2.SOLVEPNP_EPNP)
@@ -160,22 +181,34 @@ class camera_transform:
 if __name__ == '__main__':
    c = camera_transform()
    print ("---testing---")
-   print ("0,15")
-   ans = c.compute(470,532)
+   print ("0,12")
+   ans = c.compute(310,354)
    print ([x/.0254 for x in ans])
 
-   print ("-45,36")
-   ans = c.compute(19,315)
+   print ("24,72")
+   ans = c.compute(231,156)
    print ([x/.0254 for x in ans])
 
-   print ("0,18")
-   ans = c.compute(470,488)
+   print ("-24,72")
+   ans = c.compute(391,156)
    print ([x/.0254 for x in ans])
 
-   print ("0,72")
-   ans = c.compute(467,245)
+   print ("0,24")
+   ans = c.compute(310,266)
    print ([x/.0254 for x in ans])
 
-   print ("-37.75,115")
-   ans = c.compute(297,196)
+   print ("12,60")
+   ans = c.compute(261,166)
+   print ([x/.0254 for x in ans])
+
+   print ("-12,12")
+   ans = c.compute(441,336)
+   print ([x/.0254 for x in ans])
+
+   print ("-36,48")
+   ans = c.compute(463,188)
+   print ([x/.0254 for x in ans])
+
+   print ("36,48")
+   ans = c.compute(152,186)
    print ([x/.0254 for x in ans])
