@@ -8,9 +8,13 @@ local_costmap:
   publish_voxel_map: false
 
   rolling_window: true
-  width: 15.0
-  height: 15.0
+  width: 5.0
+  height: 5.0
   resolution: 0.05
+
+  plugins: 
+      - {name: obstacles,        type: "costmap_2d::ObstacleLayer"}
+      - {name: inflation_layer,  type: "costmap_2d::InflationLayer"}
 
   unknown_threshold: 10
   mark_threshold: 0
