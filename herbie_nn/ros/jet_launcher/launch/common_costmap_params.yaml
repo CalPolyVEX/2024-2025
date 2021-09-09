@@ -24,4 +24,4 @@ obstacles:
 
 inflation_layer:
     inflation_radius: 0.3 # adjust the inflation for your system setup
-    cost_scaling_factor: 10.0
+    cost_scaling_factor: 4.0

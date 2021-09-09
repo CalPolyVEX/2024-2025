@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(navigation)
-#set(CMAKE_CXX_FLAGS "-Wall -Werror -Wextra -pedantic")
-set(CMAKE_CXX_FLAGS "")
+#set(CMAKE_CXX_FLAGS "-g -Wall -Werror -Wextra")
+set(CMAKE_CXX_FLAGS "-g -Wall -Wextra")
+#set(CMAKE_CXX_FLAGS "")
 
 find_package(catkin REQUIRED COMPONENTS
   dynamic_reconfigure

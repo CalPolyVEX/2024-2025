@@ -2,7 +2,7 @@ local_costmap:
   global_frame: odom
   robot_base_frame: base_link
   update_frequency: 15.0
-  publish_frequency: 15.0
+  publish_frequency: 5.0
 
   #set if you want the voxel map published
   publish_voxel_map: false

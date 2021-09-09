@@ -36,7 +36,7 @@ class Navigation {
 
   ros::NodeHandle nh;
   image_transport::ImageTransport it;
-  // boost::mutex actual_vel_mutex;
+  boost::mutex update_goal_mutex;
 
   ros::Subscriber nn_data_sub;
   ros::Subscriber odom_data_sub;
@@ -61,6 +61,13 @@ class Navigation {
   float last_goal_y[6];
   float cur_goal_x, cur_goal_y;
   int goal_cur_index = 0;
+
+  //variable for localization
+  int localization_tracking[100];
+  int localization_value[100];
+  int localization_index = 0;
+
+  //variables for heading
   float heading_offset = 0;
   float last_heading = 0;
   float actual_heading = 0;
@@ -69,7 +76,6 @@ class Navigation {
   std::vector<std::string> nodes;
 
   MoveBaseClient* a;
-  //MoveBaseClient ac("move_base", true);
   tf2_ros::Buffer tfBuffer;
   tf2_ros::TransformListener* tfListener;
 
@@ -92,11 +98,11 @@ class Navigation {
 
     //move base functions
     void send_goal(const std_msgs::Empty::ConstPtr& msg);
-    /* void set_action_client(MoveBaseClient* ac, tf2_ros::TransformListener* tfl, tf2_ros::Buffer* tfb); */
     void set_action_client(MoveBaseClient* ac);
     void publish_pointcloud();
     void autonomous_mode_callback(const std_msgs::Int8::ConstPtr& msg);
     void update_goal_transform();
+    void update_goal_callback(const ros::TimerEvent& ev);
 };
 
 #endif

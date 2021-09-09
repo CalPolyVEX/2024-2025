@@ -37,6 +37,7 @@ using namespace std;
 #define MAX_ANGULAR .8
 
 int sim_mode = 0;
+ros::NodeHandle* h;
 
 Navigation::Navigation() : it(nh) {
   //subscriber for pose
@@ -82,6 +83,7 @@ Navigation::Navigation() : it(nh) {
   //tell the action client that we want to spin a thread by default
   //ac = new MoveBaseClient("move_base", true);
   tfListener = new tf2_ros::TransformListener(tfBuffer);
+  h = &nh;
 }
 
 void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
@@ -254,14 +256,14 @@ void Navigation::draw_loc_prob() {
    int base = 70;
    int top = 20;
 
-   for (int i=0; i<NUM_LOC; i++) {
-      int height = loc[i] * (base-top);
-      if (i > 29) {
-         cv::line(new_image, cv::Point(i*3, base-1), cv::Point(i*3, base-height-1), cv::Scalar(0, 255, 0), 3);
-      } else {
-         cv::line(new_image, cv::Point(i*3, base-1), cv::Point(i*3, base-height-1), cv::Scalar(255, 128, 0), 3);
-      }
-   }
+   /* for (int i=0; i<NUM_LOC; i++) { */
+   /*    int height = loc[i] * (base-top); */
+   /*    if (i > 29) { */
+   /*       cv::line(new_image, cv::Point(i*3, base-1), cv::Point(i*3, base-height-1), cv::Scalar(0, 255, 0), 3); */
+   /*    } else { */
+   /*       cv::line(new_image, cv::Point(i*3, base-1), cv::Point(i*3, base-height-1), cv::Scalar(255, 128, 0), 3); */
+   /*    } */
+   /* } */
 
    //find the highest localization node
    float max_loc=0;
@@ -272,6 +274,14 @@ void Navigation::draw_loc_prob() {
          cur_loc = i;
          cur_loc_prob = loc[i];
       }
+   }
+
+   localization_tracking[localization_index] = cur_loc;
+   localization_value[localization_index] = cur_loc_prob;
+   localization_index = (localization_index + 1); 
+
+   if (localization_index == 100) {
+      localization_index = 0;
    }
 }
 
@@ -591,9 +601,6 @@ int main(int argc, char** argv) {
   nav_node.graph_init();
   MoveBaseClient ac("move_base", true);
   
-//  tf2_ros::TransformListener tfListener(tfBuffer);
-
-  //nav_node.set_action_client(&ac, &tfListener, &tfBuffer);
   nav_node.set_action_client(&ac);
 
   //wait for the action server to come up
@@ -603,8 +610,11 @@ int main(int argc, char** argv) {
 
   //since the diagnostics callback is part of the odom_pub object, 
   //bind the callback using boost:bind and boost:function
-//   boost::function<void(const ros::TimerEvent&)> diag_callback;
-//   diag_callback=boost::bind(&OdometryPublisher::safety_callback,&odom_pub,_1);
+  boost::function<void(const ros::TimerEvent&)> goal_callback;
+  goal_callback=boost::bind(&Navigation::update_goal_callback,&nav_node,_1);
+
+  //run diagnostics function at 5Hz (.2 seconds)
+  ros::Timer diag_timer = h->createTimer(ros::Duration(3.0), goal_callback); 
 
   ROS_INFO("Starting navigation");
 

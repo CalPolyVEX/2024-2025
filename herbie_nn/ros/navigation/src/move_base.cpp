@@ -58,6 +58,8 @@ void Navigation::set_action_client(MoveBaseClient* ac) {
 //update the transform from base_link to the goal
 void Navigation::update_goal_transform() {
    //compute the goal
+   update_goal_mutex.lock();
+
    int goal_x = int(640 * goal[0]); //get the x and y of the goal
    int goal_y = int(360 * goal[1]);
 
@@ -74,7 +76,7 @@ void Navigation::update_goal_transform() {
 
    transformStamped.header.frame_id = "base_link";
    transformStamped.child_frame_id = "goal";
-   transformStamped.transform.translation.x = x;
+   transformStamped.transform.translation.x = x - .30;
    transformStamped.transform.translation.y = y;
    transformStamped.transform.translation.z = 0.0;
    tf2::Quaternion q;
@@ -86,10 +88,17 @@ void Navigation::update_goal_transform() {
 
    transformStamped.header.stamp = ros::Time::now();
    tfb.sendTransform(transformStamped);
+
+   update_goal_mutex.unlock();
 }
 
 void Navigation::send_goal(const std_msgs::Empty::ConstPtr& msg) {
-   a->cancelAllGoals();
+   update_goal_mutex.lock();
+
+   if (a->getState() == actionlib::SimpleClientGoalState::ACTIVE) {
+      a->cancelGoal();
+   }
+   /* ros::Duration(.3).sleep();  // Sleep for one second */
    
    //get the transform from odom to base_link since the planner only takes goals in 
    //the odom frame
@@ -110,15 +119,10 @@ void Navigation::send_goal(const std_msgs::Empty::ConstPtr& msg) {
    cur_goal.target_pose.pose.orientation.y = transformStamped.transform.rotation.y;
    cur_goal.target_pose.pose.orientation.z = transformStamped.transform.rotation.z;
 
-   ROS_INFO("Sending goal");
+   /* ROS_INFO("Sending goal"); */
    a->sendGoal(cur_goal);
 
-   //a->waitForResult();
-
-   /* if(a->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) */
-   /*    ROS_INFO("Hooray, the base moved 1 meter forward"); */
-   /* else */
-   /*    ROS_INFO("The base failed to move forward 1 meter for some reason"); */
+   update_goal_mutex.unlock();
 }
 
 void Navigation::publish_pointcloud() {
@@ -144,22 +148,22 @@ void Navigation::publish_pointcloud() {
    sensor_msgs::PointCloud2Iterator<uint8_t> out_g(cloud_msg, "g");
    sensor_msgs::PointCloud2Iterator<uint8_t> out_b(cloud_msg, "b");
 
-   double r_t_inv[3][3] = {{-0.00297077239028572,-4.4139112416322384e-05,0.9313145025868853},
-             {2.3482445189653307e-05,-0.0024911437766359894,1.1922101009254173},
-             {-5.526553689847709e-05,0.004262116239831571,-0.19803144040722234}};
+   double a,b;
+   double x,y;
+   double next_a, next_b;
+
+   x = 0;
+   y = ground[0] * 360;
+   convert_image_to_world(x, y, &b, &a);
 
    for (int i=0; i<(numpoints-1); i++)
    {
-      double x = i*8;
-      double y = ground[i] * 360;
+      /* double x = i*8; */
+      /* double y = ground[i] * 360; */
 
       double next_x = (i+1)*8;
       double next_y = ground[i+1] * 360;
 
-      double a,b;
-      double next_a, next_b;
-
-      convert_image_to_world(x, y, &b, &a);
       convert_image_to_world(next_x, next_y, &next_b, &next_a);
 
       *out_x = b; //positive x-axis is forward from robot
@@ -229,47 +233,14 @@ void Navigation::publish_pointcloud() {
       ++out_r;
       ++out_g;
       ++out_b;
+
+      a = next_a;
+      b = next_b;
+      x = next_x;
+      y = next_y;
    }
 
    pointcloud_pub_.publish(cloud_msg);
-
-   /* new_point_list = [] */
-   /*    for i in range(len(self.point_list)-1): */
-   /*       diff_x = (self.point_list[i+1][0] - self.point_list[i][0]) */
-   /*       diff_y = (self.point_list[i+1][1] - self.point_list[i][1]) */
-
-   /*       new_x = self.point_list[i][0] + .333 * diff_x */
-   /*          new_y = self.point_list[i][1] + .333 * diff_y */
-
-   /*          new_x2 = self.point_list[i][0] + .667 * diff_x */
-   /*          new_y2 = self.point_list[i][1] + .667 * diff_y */
-
-   /*          new_point_list.append(self.point_list[i]) */
-   /*          new_point_list.append((new_x,new_y)) */
-   /*          new_point_list.append((new_x2,new_y2)) */
-
-   /*      cloud_points = [] */
-   /*      #for p in self.point_list: */
-   /*      for p in new_point_list: */
-   /*          x = p[0] */
-   /*          y = p[1] */
-   /*          imagepoint = np.array([x,y,1],dtype=np.float64) */
-   /*          ans = np.matmul(r_t_inv, imagepoint) */
-
-   /*          w = ans.item(2) */
-   /*          ans = ans / w */
-   /*          ans = ans.tolist()[0:2] #answer is in meters */
-   /*          cloud_points.append([ans[1], ans[0], 0]) */
-
-        //#cloud_points = [[1.0, 1.0, 0.0],[1.0, 2.0, 0.0],[2,0,0]]
-
-        //header
-        /* header = std_msgs.msg.Header() */
-        /* header.stamp = rospy.Time.now() */
-        /* header.frame_id = 'see3_cam' */
-        //create pcl from points
-        /* scaled_polygon_pcl = pcl2.create_cloud_xyz32(header, cloud_points) */
-
 }
 
 void Navigation::autonomous_mode_callback(const std_msgs::Int8::ConstPtr& msg) {
@@ -279,5 +250,17 @@ void Navigation::autonomous_mode_callback(const std_msgs::Int8::ConstPtr& msg) {
    }
 }
 
+void Navigation::update_goal_callback(const ros::TimerEvent& ev) {
+   bool autonomous_mode;
 
+   /* std::cout << "running" << std::endl; */
+   /* std::cout << nodes[1] << std::endl; */
+
+   nh.getParam("/autonomous_mode", autonomous_mode);
+
+   if (autonomous_mode == true) {
+      std_msgs::Empty m;
+      send_goal((const std_msgs::Empty::ConstPtr&)m);
+   }
+}
 
