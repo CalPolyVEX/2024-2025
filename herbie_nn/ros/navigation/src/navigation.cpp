@@ -121,10 +121,11 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    //connect the boundary points with lines
    connect_boundary();
    draw_lines();
-   avoid_obstacles();
+   //avoid_obstacles();
+   update_goal_transform();
 
    float coord[2];
-   compute_farthest(coord);
+   //compute_farthest(coord);
 
    //draw the localization probability graph
    draw_loc_prob();

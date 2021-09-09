@@ -6,7 +6,7 @@ transform_tolerance: 0.3
 obstacle_range: 7
 max_obstacle_height: 2.0
 raytrace_range: 7.2
-footprint: [[-0.325, -0.325], [-0.325, 0.325], [0.325, 0.325], [0.46, 0.0], [0.325, -0.325]]
+footprint: [[-0.195, -0.195], [-0.195, 0.195], [0.195, 0.195], [0.2, 0.0], [0.195, -0.195]]
 #robot_radius: 0.46
 footprint_padding: 0.05
 lethal_cost_threshold: 150
@@ -23,5 +23,5 @@ obstacles:
              expected_update_rate: 0.2}
 
 inflation_layer:
-    inflation_radius: 0.4 # adjust the inflation for your system setup
+    inflation_radius: 0.3 # adjust the inflation for your system setup
     cost_scaling_factor: 10.0

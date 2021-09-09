@@ -96,6 +96,7 @@ class Navigation {
     void set_action_client(MoveBaseClient* ac);
     void publish_pointcloud();
     void autonomous_mode_callback(const std_msgs::Int8::ConstPtr& msg);
+    void update_goal_transform();
 };
 
 #endif

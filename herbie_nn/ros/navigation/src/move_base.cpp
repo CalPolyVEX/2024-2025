@@ -55,20 +55,8 @@ void Navigation::set_action_client(MoveBaseClient* ac) {
    /* tf_buffer = tfb; */
 }
 
-void Navigation::send_goal(const std_msgs::Empty::ConstPtr& msg) {
-   a->cancelAllGoals();
-
-   //get the transform from odom to base_link since the planner only takes goals in 
-   //the odom frame
-   geometry_msgs::TransformStamped transformStamped;
-   transformStamped = tfBuffer.lookupTransform("odom", "base_link", ros::Time(0));
-
-   move_base_msgs::MoveBaseGoal cur_goal;
-
-   //we'll send a goal to the robot to move 1 meter forward
-   cur_goal.target_pose.header.frame_id = "odom";
-   cur_goal.target_pose.header.stamp = ros::Time::now();
-
+//update the transform from base_link to the goal
+void Navigation::update_goal_transform() {
    //compute the goal
    int goal_x = int(640 * goal[0]); //get the x and y of the goal
    int goal_y = int(360 * goal[1]);
@@ -80,21 +68,57 @@ void Navigation::send_goal(const std_msgs::Empty::ConstPtr& msg) {
    double x,y;
    convert_image_to_world(goal_x, ground_y_coord, &x, &y);
 
-   cur_goal.target_pose.pose.position.x = transformStamped.transform.translation.x + x - .05;
-   cur_goal.target_pose.pose.position.y = transformStamped.transform.translation.y + y;
-   /* cur_goal.target_pose.pose.position.x = x - .05; */
-   /* cur_goal.target_pose.pose.position.y = y; */
-   cur_goal.target_pose.pose.orientation.w = 1.0;
+   //testing
+   static tf2_ros::TransformBroadcaster tfb;
+   geometry_msgs::TransformStamped transformStamped;
+
+   transformStamped.header.frame_id = "base_link";
+   transformStamped.child_frame_id = "goal";
+   transformStamped.transform.translation.x = x;
+   transformStamped.transform.translation.y = y;
+   transformStamped.transform.translation.z = 0.0;
+   tf2::Quaternion q;
+   q.setRPY(0, 0, 0);
+   transformStamped.transform.rotation.x = q.x();
+   transformStamped.transform.rotation.y = q.y();
+   transformStamped.transform.rotation.z = q.z();
+   transformStamped.transform.rotation.w = q.w();
+
+   transformStamped.header.stamp = ros::Time::now();
+   tfb.sendTransform(transformStamped);
+}
+
+void Navigation::send_goal(const std_msgs::Empty::ConstPtr& msg) {
+   a->cancelAllGoals();
    
+   //get the transform from odom to base_link since the planner only takes goals in 
+   //the odom frame
+   geometry_msgs::TransformStamped transformStamped;
+   transformStamped = tfBuffer.lookupTransform("odom", "goal", ros::Time(0), ros::Duration(.5));
+
+   move_base_msgs::MoveBaseGoal cur_goal;
+
+   //we'll send a goal to the robot to move 1 meter forward
+   cur_goal.target_pose.header.frame_id = "odom";
+   cur_goal.target_pose.header.stamp = ros::Time::now();
+
+   cur_goal.target_pose.pose.position.x = transformStamped.transform.translation.x;
+   cur_goal.target_pose.pose.position.y = transformStamped.transform.translation.y;
+   cur_goal.target_pose.pose.position.z = 0;
+   cur_goal.target_pose.pose.orientation.w = transformStamped.transform.rotation.w;
+   cur_goal.target_pose.pose.orientation.x = transformStamped.transform.rotation.x;
+   cur_goal.target_pose.pose.orientation.y = transformStamped.transform.rotation.y;
+   cur_goal.target_pose.pose.orientation.z = transformStamped.transform.rotation.z;
+
    ROS_INFO("Sending goal");
    a->sendGoal(cur_goal);
 
    //a->waitForResult();
 
-   if(a->getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
-      ROS_INFO("Hooray, the base moved 1 meter forward");
-   else
-      ROS_INFO("The base failed to move forward 1 meter for some reason");
+   /* if(a->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) */
+   /*    ROS_INFO("Hooray, the base moved 1 meter forward"); */
+   /* else */
+   /*    ROS_INFO("The base failed to move forward 1 meter for some reason"); */
 }
 
 void Navigation::publish_pointcloud() {
