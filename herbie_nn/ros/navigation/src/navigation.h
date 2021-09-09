@@ -62,7 +62,11 @@ class Navigation {
   float cur_goal_x, cur_goal_y;
   int goal_cur_index = 0;
 
-  //variable for localization
+  //variables for turn
+  double turn_tracking[50];
+  int turn_index = 0;
+
+  //variables for localization
   int localization_tracking[100];
   int localization_value[100];
   int localization_index = 0;

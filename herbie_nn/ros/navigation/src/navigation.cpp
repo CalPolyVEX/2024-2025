@@ -126,7 +126,7 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    //avoid_obstacles();
    update_goal_transform();
 
-   float coord[2];
+   //float coord[2];
    //compute_farthest(coord);
 
    //draw the localization probability graph
@@ -276,12 +276,21 @@ void Navigation::draw_loc_prob() {
       }
    }
 
+   //tracking the localization values from the neural network
    localization_tracking[localization_index] = cur_loc;
    localization_value[localization_index] = cur_loc_prob;
    localization_index = (localization_index + 1); 
 
    if (localization_index == 100) {
       localization_index = 0;
+   }
+   
+   //tracking the turn probability from the neural network
+   turn_tracking[turn_index] = turn[0];
+   turn_index = (turn_index + 1); 
+
+   if (turn_index == 50) {
+      turn_index = 0;
    }
 }
 

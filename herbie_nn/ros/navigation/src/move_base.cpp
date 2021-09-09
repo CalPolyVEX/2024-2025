@@ -49,10 +49,7 @@ void convert_image_to_world(int col, int row, double* x, double* y) {
 }
 
 void Navigation::set_action_client(MoveBaseClient* ac) {
-/* void Navigation::set_action_client(MoveBaseClient* ac, tf2_ros::TransformListener* tfl, tf2_ros::Buffer* tfb) { */
    a = ac;
-   /* tf_listener = tfl; */
-   /* tf_buffer = tfb; */
 }
 
 //update the transform from base_link to the goal
@@ -76,7 +73,7 @@ void Navigation::update_goal_transform() {
 
    transformStamped.header.frame_id = "base_link";
    transformStamped.child_frame_id = "goal";
-   transformStamped.transform.translation.x = x - .30;
+   transformStamped.transform.translation.x = x - .30; //move back .30 meters from the boundary
    transformStamped.transform.translation.y = y;
    transformStamped.transform.translation.z = 0.0;
    tf2::Quaternion q;
@@ -98,7 +95,6 @@ void Navigation::send_goal(const std_msgs::Empty::ConstPtr& msg) {
    if (a->getState() == actionlib::SimpleClientGoalState::ACTIVE) {
       a->cancelGoal();
    }
-   /* ros::Duration(.3).sleep();  // Sleep for one second */
    
    //get the transform from odom to base_link since the planner only takes goals in 
    //the odom frame
@@ -158,81 +154,33 @@ void Navigation::publish_pointcloud() {
 
    for (int i=0; i<(numpoints-1); i++)
    {
-      /* double x = i*8; */
-      /* double y = ground[i] * 360; */
-
       double next_x = (i+1)*8;
       double next_y = ground[i+1] * 360;
+      double scale = 0.0;
 
       convert_image_to_world(next_x, next_y, &next_b, &next_a);
 
-      *out_x = b; //positive x-axis is forward from robot
-      *out_y = a; //positive y-axis is to the left of robot
-      *out_z = 0.2; //positive z-axis is up from the robot
+      //this loop computes the interpolated point cloud points
+      for (int j=0; j<4; j++) {
+         *out_x = b + ((next_b - b) * scale); //positive x-axis is forward from robot
+         *out_y = a + ((next_a - a) * scale); //positive y-axis is to the left of robot
+         *out_z = 0.2; //positive z-axis is up from the robot
 
-      // store colors
-      *out_r = 255;
-      *out_g = 255;
-      *out_b = 255;
+         // store colors
+         *out_r = 255;
+         *out_g = 255;
+         *out_b = 255;
 
-      //increment
-      ++out_x;
-      ++out_y;
-      ++out_z;
-      ++out_r;
-      ++out_g;
-      ++out_b;
+         //increment
+         ++out_x;
+         ++out_y;
+         ++out_z;
+         ++out_r;
+         ++out_g;
+         ++out_b;
 
-      *out_x = b + ((next_b - b) * .25); //positive x-axis is forward from robot
-      *out_y = a + ((next_a - a) * .25); //positive y-axis is to the left of robot
-      *out_z = 0.2; //positive z-axis is up from the robot
-
-      // store colors
-      *out_r = 255;
-      *out_g = 255;
-      *out_b = 255;
-
-      //increment
-      ++out_x;
-      ++out_y;
-      ++out_z;
-      ++out_r;
-      ++out_g;
-      ++out_b;
-
-      *out_x = b + ((next_b - b) * .5); //positive x-axis is forward from robot
-      *out_y = a + ((next_a - a) * .5); //positive y-axis is to the left of robot
-      *out_z = 0.2; //positive z-axis is up from the robot
-
-      // store colors
-      *out_r = 255;
-      *out_g = 255;
-      *out_b = 255;
-
-      //increment
-      ++out_x;
-      ++out_y;
-      ++out_z;
-      ++out_r;
-      ++out_g;
-      ++out_b;
-
-      *out_x = b + ((next_b - b) * .75); //positive x-axis is forward from robot
-      *out_y = a + ((next_a - a) * .75); //positive y-axis is to the left of robot
-      *out_z = 0.2; //positive z-axis is up from the robot
-
-      // store colors
-      *out_r = 255;
-      *out_g = 255;
-      *out_b = 255;
-
-      //increment
-      ++out_x;
-      ++out_y;
-      ++out_z;
-      ++out_r;
-      ++out_g;
-      ++out_b;
+         scale += 1.0/4.0;
+      }
 
       a = next_a;
       b = next_b;
@@ -252,9 +200,6 @@ void Navigation::autonomous_mode_callback(const std_msgs::Int8::ConstPtr& msg) {
 
 void Navigation::update_goal_callback(const ros::TimerEvent& ev) {
    bool autonomous_mode;
-
-   /* std::cout << "running" << std::endl; */
-   /* std::cout << nodes[1] << std::endl; */
 
    nh.getParam("/autonomous_mode", autonomous_mode);
 

@@ -339,7 +339,7 @@ int main(int argc, char **argv) {
    int width=1920, height=1080;
    int build_flag=0, load_flag=0, sim_flag=0;
    char videodev[50], onnx_file[200], engine_file[200];
-   char engine_file1[200] = "/home/jseng/ue4/herbie_nn/ground_detection/c_test/build/test_model.engine";
+   char engine_file1[200] = "/home/jseng/test_model.engine";
    videodev[0] = 0;
 
    while (1)
