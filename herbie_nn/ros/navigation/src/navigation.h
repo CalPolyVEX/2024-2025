@@ -9,8 +9,10 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/Float64MultiArray.h>
+#include <std_msgs/Int32MultiArray.h>
 #include <std_msgs/Int8.h>
 #include <std_msgs/Empty.h>
+#include <geometry_msgs/Twist.h>
 #include <image_transport/image_transport.h>
 #include <opencv2/imgproc/imgproc.hpp>
 
@@ -46,6 +48,7 @@ class Navigation {
   image_transport::Publisher image_pub_;
   ros::Publisher twist_pub_;
   ros::Publisher pointcloud_pub_;
+  ros::Publisher control_board_pub_;
 
   double* ground;
   double* loc;
@@ -63,12 +66,14 @@ class Navigation {
   int goal_cur_index = 0;
 
   //variables for turn
-  double turn_tracking[50];
+  #define TURN_ARRAY_SIZE 50
+  double turn_tracking[TURN_ARRAY_SIZE];
   int turn_index = 0;
 
   //variables for localization
-  int localization_tracking[100];
-  int localization_value[100];
+  #define LOCALIZATION_ARRAY_SIZE 200
+  int localization_tracking[LOCALIZATION_ARRAY_SIZE];
+  int localization_value[LOCALIZATION_ARRAY_SIZE];
   int localization_index = 0;
 
   //variables for heading
@@ -107,6 +112,12 @@ class Navigation {
     void autonomous_mode_callback(const std_msgs::Int8::ConstPtr& msg);
     void update_goal_transform();
     void update_goal_callback(const ros::TimerEvent& ev);
+    int compute_localization();
+    int compute_turn_prob();
+
+    //control board functions
+    void create_control_board_msg(int num, void* arg);
+    unsigned short compute_crc(unsigned char* data, int len);
 };
 
 #endif

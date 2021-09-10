@@ -1,19 +1,9 @@
 //6/16/19 This is used to publish odometry messages when
 //each encoder message arrives
 
-#include <geometry_msgs/TransformStamped.h>
-#include <tf2_ros/transform_listener.h>
-#include <tf2_sensor_msgs/tf2_sensor_msgs.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <std_msgs/Float64MultiArray.h>
-#include <geometry_msgs/Twist.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
 #include <image_transport/image_transport.h>
-#include <ros/console.h>
-#include <iostream>
-#include <boost/thread.hpp>
-#include <cmath>
 #include "navigation.h"
 
 #include <lemon/list_graph.h>
@@ -47,10 +37,10 @@ Navigation::Navigation() : it(nh) {
      odom_data_sub = nh.subscribe("/ekf_node/odom", 1, &Navigation::odom_callback, this);
   }
 
-  //subscriber for neural network data
+  //subscriber for autonomous mode signal
   autonomous_sub = nh.subscribe("/autonomous", 1, &Navigation::autonomous_mode_callback, this);
 
-  //subscriber for neural network data
+  //subscriber for navigation goal
   nav_goal_sub = nh.subscribe("/nav_goal", 1, &Navigation::send_goal, this);
 
   //subscriber for neural network data
@@ -75,15 +65,17 @@ Navigation::Navigation() : it(nh) {
 
   // point cloud publisher
   pointcloud_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/point_cloud", 1);
+  
+  // control board publisher
+  control_board_pub_ = nh.advertise<std_msgs::Int32MultiArray>("/control_board", 1);
 
   nh.setParam("/autonomous_mode", false);
 
   new_image = cv::Mat(360, 640, CV_8UC3);
   
   //tell the action client that we want to spin a thread by default
-  //ac = new MoveBaseClient("move_base", true);
   tfListener = new tf2_ros::TransformListener(tfBuffer);
-  h = &nh;
+  h = &nh; //set the ROS node handle
 }
 
 void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
@@ -281,7 +273,7 @@ void Navigation::draw_loc_prob() {
    localization_value[localization_index] = cur_loc_prob;
    localization_index = (localization_index + 1); 
 
-   if (localization_index == 100) {
+   if (localization_index == LOCALIZATION_ARRAY_SIZE) {
       localization_index = 0;
    }
    
@@ -289,9 +281,59 @@ void Navigation::draw_loc_prob() {
    turn_tracking[turn_index] = turn[0];
    turn_index = (turn_index + 1); 
 
-   if (turn_index == 50) {
+   if (turn_index == TURN_ARRAY_SIZE) {
       turn_index = 0;
    }
+}
+
+int Navigation::compute_localization() {
+   //localization from the neural network is updated at 20Hz
+   float confidence_threshold = .90;
+   int temp_index = localization_index - 1;
+
+   if (temp_index < 0) {
+      temp_index += LOCALIZATION_ARRAY_SIZE;
+   }
+
+   int estimate = localization_tracking[temp_index];
+
+   for (int i=0; i<6; i++) {
+      if ((localization_tracking[temp_index] != estimate) || (localization_value[temp_index] < confidence_threshold)) {
+         return -1;
+      }
+
+      temp_index -= 15;
+
+      if (temp_index < 0) {
+         temp_index += LOCALIZATION_ARRAY_SIZE;
+      }
+   }
+
+   return estimate; //the localization estimate
+}
+
+int Navigation::compute_turn_prob() {
+   //turn probability from the neural network is updated at 20Hz
+   float confidence_threshold = .90;
+   int temp_index = turn_index - 1;
+
+   if (temp_index < 0) {
+      temp_index += TURN_ARRAY_SIZE;
+   }
+
+   for (int i=0; i<4; i++) {
+      if (turn_tracking[temp_index] < confidence_threshold) {
+         return 0;
+      }
+
+      temp_index -= 2;
+
+      if (temp_index < 0) {
+         temp_index += TURN_ARRAY_SIZE;
+      }
+   }
+
+   return 1; //a turn
 }
 
 void Navigation::compute_farthest(float* coord) {
@@ -617,12 +659,12 @@ int main(int argc, char** argv) {
      ROS_INFO("Waiting for the move_base action server to come up");
   }
 
-  //since the diagnostics callback is part of the odom_pub object, 
+  //since the goal callback is part of the nav_node object, 
   //bind the callback using boost:bind and boost:function
   boost::function<void(const ros::TimerEvent&)> goal_callback;
   goal_callback=boost::bind(&Navigation::update_goal_callback,&nav_node,_1);
 
-  //run diagnostics function at 5Hz (.2 seconds)
+  //run the goal update function every 3 seconds
   ros::Timer diag_timer = h->createTimer(ros::Duration(3.0), goal_callback); 
 
   ROS_INFO("Starting navigation");

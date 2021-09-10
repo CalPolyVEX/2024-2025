@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(navigation)
-#set(CMAKE_CXX_FLAGS "-g -Wall -Werror -Wextra")
-set(CMAKE_CXX_FLAGS "-g -Wall -Wextra")
-#set(CMAKE_CXX_FLAGS "")
+#set(CMAKE_CXX_FLAGS "-g -Wall -Wextra")
+set(CMAKE_CXX_FLAGS "")
 
 find_package(catkin REQUIRED COMPONENTS
   dynamic_reconfigure
@@ -37,6 +36,7 @@ add_executable(navigation
   src/navigation.cpp
   src/graph.cpp
   src/move_base.cpp
+  src/control_board.cpp
   src/navigation.h)
 
 add_dependencies(navigation ${PROJECT_NAME}_gencfg)

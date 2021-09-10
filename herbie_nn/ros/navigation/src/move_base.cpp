@@ -1,18 +1,7 @@
 //6/16/19 This file contains functions for the graph map
 
-#include <geometry_msgs/TransformStamped.h>
-#include <tf2_ros/transform_listener.h>
-#include <tf2_sensor_msgs/tf2_sensor_msgs.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <geometry_msgs/Twist.h>
-#include <ros/console.h>
-#include <iostream>
-#include <boost/thread.hpp>
-#include <cmath>
 #include "navigation.h"
 
-#include <move_base_msgs/MoveBaseAction.h>
-#include <actionlib/client/simple_action_client.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <sensor_msgs/PointCloud2.h>
 
@@ -92,19 +81,20 @@ void Navigation::update_goal_transform() {
 void Navigation::send_goal(const std_msgs::Empty::ConstPtr& msg) {
    update_goal_mutex.lock();
 
+   //if there is an active goal, then cancel it
    if (a->getState() == actionlib::SimpleClientGoalState::ACTIVE) {
       a->cancelGoal();
    }
    
-   //get the transform from odom to base_link since the planner only takes goals in 
+   //get the transform from odom to goal since the planner only takes goals in 
    //the odom frame
    geometry_msgs::TransformStamped transformStamped;
    transformStamped = tfBuffer.lookupTransform("odom", "goal", ros::Time(0), ros::Duration(.5));
 
    move_base_msgs::MoveBaseGoal cur_goal;
 
-   //we'll send a goal to the robot to move 1 meter forward
-   cur_goal.target_pose.header.frame_id = "odom";
+   //fill in the fields of the goal
+   cur_goal.target_pose.header.frame_id = "odom";  //goal must be in the odom frame
    cur_goal.target_pose.header.stamp = ros::Time::now();
 
    cur_goal.target_pose.pose.position.x = transformStamped.transform.translation.x;
