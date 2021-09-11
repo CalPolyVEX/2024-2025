@@ -49,7 +49,7 @@ void Navigation::create_control_board_msg(int num, void* arg) {
    buf[1] = num;  //this is the command number
 
    if (num == 7 || num == 8) { //led on/off
-      buf[2] = *((char*)arg); //led num
+      buf[2] = *((char*)(arg)); //led num
       buf[3] = 0;
       buf[4] = 0;
       buf[5] = 0;
@@ -60,7 +60,7 @@ void Navigation::create_control_board_msg(int num, void* arg) {
       buf[5] = 0;
    } else if (num == 1) { //set cursor to starting position
       char col = *((char*) arg);
-      char row = *(((char*) arg) + 1);
+      char row = *((char*) (arg + 1));
 
       buf[2] = col;
       buf[3] = row;

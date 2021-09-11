@@ -4,11 +4,71 @@
 
 #include <pcl_conversions/pcl_conversions.h>
 #include <sensor_msgs/PointCloud2.h>
+#include <boost/foreach.hpp>
 
 extern int sim_mode;
 
 using namespace std;
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
+
+int Navigation::call_make_plan(double goal_x, double goal_y, double* pose_x, double* pose_y) {
+   ros::ServiceClient serviceClient = nh.serviceClient<nav_msgs::GetPlan>(service_name);
+   nav_msgs::GetPlan srv;
+
+   //get the transform of the base_link
+   geometry_msgs::TransformStamped transformStamped;
+   transformStamped = tfBuffer.lookupTransform("odom", "base_link", ros::Time(0), ros::Duration(.5));
+
+   //Request service: plan route
+   srv.request.start.header.frame_id ="odom";
+   srv.request.start.pose.position.x = transformStamped.transform.translation.x;
+   srv.request.start.pose.position.y = transformStamped.transform.translation.y;
+   srv.request.start.pose.position.z = 0;
+   srv.request.start.pose.orientation.w = transformStamped.transform.rotation.w;
+   srv.request.start.pose.orientation.x = transformStamped.transform.rotation.x;
+   srv.request.start.pose.orientation.y = transformStamped.transform.rotation.y;
+   srv.request.start.pose.orientation.z = transformStamped.transform.rotation.z;
+
+   srv.request.goal.header.frame_id = "odom";
+   srv.request.goal.pose.position.x = goal_x;//End point coordinates
+   srv.request.goal.pose.position.y = goal_y;
+   srv.request.goal.pose.orientation.w = 1.0;
+   srv.request.tolerance = 0.5;//If the goal cannot be reached, the most recent constraint
+
+   if (!serviceClient) {
+      ROS_FATAL("Persistent service connection to %s failed",
+            serviceClient.getService().c_str());
+      return -1;
+   }
+   ROS_INFO("connect to %s",serviceClient.getService().c_str());
+   
+   //Perform the actual path planner call
+   if (serviceClient.call(srv)) {
+      //srv.response.plan.poses is the container to save the result, traverse and take out
+      if (! srv.response.plan.poses.empty()) {
+         ROS_INFO("Found a plan");
+         int index = srv.response.plan.poses.size() - 1;
+         geometry_msgs::PoseStamped p;
+         p = srv.response.plan.poses.at(index);
+         *pose_x = p.pose.position.x;
+         *pose_y = p.pose.position.y; 
+
+         /* boost::forEach(const geometry_msgs::PoseStamped &p, srv.response.plan.poses) { */
+         /*    ROS_INFO("x = %f, y = %f", p.pose.position.x, p.pose.position.y); */
+         /* } */
+         return 1; //found a plan
+      }
+      else {
+         ROS_WARN("Got empty plan");
+         return 0;
+      }
+   }
+   else {
+      ROS_ERROR("Failed to call service %s - is the robot moving?",
+            serviceClient.getService().c_str());
+      return -1;
+   }
+}
 
 void convert_image_to_world(int col, int row, double* x, double* y) {
    /*          imagepoint = np.array([x,y,1],dtype=np.float64) */
@@ -62,7 +122,7 @@ void Navigation::update_goal_transform() {
 
    transformStamped.header.frame_id = "base_link";
    transformStamped.child_frame_id = "goal";
-   transformStamped.transform.translation.x = x - .30; //move back .30 meters from the boundary
+   transformStamped.transform.translation.x = x - .60; //move back .60 meters from the boundary
    transformStamped.transform.translation.y = y;
    transformStamped.transform.translation.z = 0.0;
    tf2::Quaternion q;
@@ -91,22 +151,30 @@ void Navigation::send_goal(const std_msgs::Empty::ConstPtr& msg) {
    geometry_msgs::TransformStamped transformStamped;
    transformStamped = tfBuffer.lookupTransform("odom", "goal", ros::Time(0), ros::Duration(.5));
 
-   move_base_msgs::MoveBaseGoal cur_goal;
+   double pose_x, pose_y;
+   int found_plan = 0;
 
-   //fill in the fields of the goal
-   cur_goal.target_pose.header.frame_id = "odom";  //goal must be in the odom frame
-   cur_goal.target_pose.header.stamp = ros::Time::now();
+   found_plan = call_make_plan(transformStamped.transform.translation.x, transformStamped.transform.translation.y, &pose_x, &pose_y);
 
-   cur_goal.target_pose.pose.position.x = transformStamped.transform.translation.x;
-   cur_goal.target_pose.pose.position.y = transformStamped.transform.translation.y;
-   cur_goal.target_pose.pose.position.z = 0;
-   cur_goal.target_pose.pose.orientation.w = transformStamped.transform.rotation.w;
-   cur_goal.target_pose.pose.orientation.x = transformStamped.transform.rotation.x;
-   cur_goal.target_pose.pose.orientation.y = transformStamped.transform.rotation.y;
-   cur_goal.target_pose.pose.orientation.z = transformStamped.transform.rotation.z;
+   if (found_plan == 1) {
 
-   /* ROS_INFO("Sending goal"); */
-   a->sendGoal(cur_goal);
+      move_base_msgs::MoveBaseGoal cur_goal;
+
+      //fill in the fields of the goal
+      cur_goal.target_pose.header.frame_id = "odom";  //goal must be in the odom frame
+      cur_goal.target_pose.header.stamp = ros::Time::now();
+
+      cur_goal.target_pose.pose.position.x = pose_x;
+      cur_goal.target_pose.pose.position.y = pose_y;
+      cur_goal.target_pose.pose.position.z = 0;
+      cur_goal.target_pose.pose.orientation.w = transformStamped.transform.rotation.w;
+      cur_goal.target_pose.pose.orientation.x = transformStamped.transform.rotation.x;
+      cur_goal.target_pose.pose.orientation.y = transformStamped.transform.rotation.y;
+      cur_goal.target_pose.pose.orientation.z = transformStamped.transform.rotation.z;
+
+      /* ROS_INFO("Sending goal"); */
+      a->sendGoal(cur_goal);
+   }
 
    update_goal_mutex.unlock();
 }

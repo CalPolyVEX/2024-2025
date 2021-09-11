@@ -274,9 +274,12 @@ class JoystickNode:
       self.herbie_board_pub.publish(p)
 
       rec_topics = "rosbag record \
-         /zed_node/rgb/image_rect_color /see3cam_cu20/image_raw_live/compressed \
-         /zed_node/depth/depth_registered /zed_node/rgb/camera_info \
-         /tf /tf_static /ekf_node/odom /roboclaw_twist /cmd_vel /scan_filtered \
+         /nav_output_video/compressed /see3cam_cu20/image_raw_live/compressed /point_cloud \
+         /move_base/local_costmap/costmap /move_base/global_costmap/costmap \
+         /tf /tf_static /ekf_node/odom /roboclaw_twist /cmd_vel \
+         /move_base/TrajectoryPlannerROS/global_plan \
+         /move_base/TrajectoryPlannerROS/local_plan \
+         /move_base/local_costmap/footprint \
          __name:=my_bag_recorder"
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
 

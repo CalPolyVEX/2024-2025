@@ -22,6 +22,8 @@
 #include <cmath>
 #include <queue>
 
+#include <nav_msgs/GetPlan.h>
+
 #include <lemon/smart_graph.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
@@ -69,6 +71,7 @@ class Navigation {
   #define TURN_ARRAY_SIZE 50
   double turn_tracking[TURN_ARRAY_SIZE];
   int turn_index = 0;
+  int turn_counter = 0;
 
   //variables for localization
   #define LOCALIZATION_ARRAY_SIZE 200
@@ -87,6 +90,8 @@ class Navigation {
   MoveBaseClient* a;
   tf2_ros::Buffer tfBuffer;
   tf2_ros::TransformListener* tfListener;
+  std::string service_name = "move_base/make_plan";
+  /* ros::ServiceClient serviceClient = nh.serviceClient<nav_msgs::GetPlan>(service_name, true); */
 
   public:
     Navigation(); 
@@ -114,6 +119,7 @@ class Navigation {
     void update_goal_callback(const ros::TimerEvent& ev);
     int compute_localization();
     int compute_turn_prob();
+    int call_make_plan(double goal_x, double goal_y, double* pose_x, double* pose_y);  //call the planner to test if a plan is found
 
     //control board functions
     void create_control_board_msg(int num, void* arg);

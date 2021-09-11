@@ -1,6 +1,13 @@
-TrajectoryPlannerROS:
-  max_vel_x: 0.45
+base_global_planner: "global_planner/GlobalPlanner"
+base_local_planner: "dwa_local_planner/DWAPlannerROS"
+
+DWAPlannerROS:
+  max_vel_x: 0.55
   min_vel_x: 0.1
+
+  max_vel_y: 0.0
+  min_vel_y: 0.0
+
   max_vel_theta: 1.0
   min_in_place_vel_theta: 0.4
 
@@ -9,3 +16,19 @@ TrajectoryPlannerROS:
   acc_lim_y: 2.5
 
   holonomic_robot: false
+
+  sim_time: 5.0
+  pdist_scale: .6
+  occdist_scale: .02
+  dwa: true
+
+  neutral_cost: 66
+  cost_factor: .55
+
+  vx_sample: 20
+  vy_sample: 0
+  vth_sample: 40
+
+GlobalPlanner:
+  neutral_cost: 66
+  cost_factor: .55

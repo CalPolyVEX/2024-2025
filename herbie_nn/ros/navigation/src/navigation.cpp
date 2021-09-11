@@ -76,6 +76,7 @@ Navigation::Navigation() : it(nh) {
   //tell the action client that we want to spin a thread by default
   tfListener = new tf2_ros::TransformListener(tfBuffer);
   h = &nh; //set the ROS node handle
+  //serviceClient = nh.serviceClient<nav_msgs::GetPlan>(service_name, true);
 }
 
 void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
@@ -134,6 +135,19 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    //publish message
    sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", new_image).toImageMsg();
    image_pub_.publish(pub_msg);
+
+   turn_counter++;
+   if (turn_counter > 15) {
+      turn_counter = 0;
+
+      if (compute_turn_prob() == 1) {
+         create_control_board_msg(0,0);
+         char msg[] = "Turn";
+         create_control_board_msg(2,msg);
+      } else {
+         create_control_board_msg(0,0);
+      }
+   }
 }
 
 void Navigation::write_text() {
