@@ -1,14 +1,34 @@
 <?xml version="1.0"?>
 <launch>
+   <arg name="debug" default="1"/>
+
    <!-- Start the roboclaw and Arduino nodes -->
    <include file="$(find jet_launcher)/launch/basic.launch"/>
 
    <!-- Start the gamepad node-->
    <node pkg="jet_launcher" type="joystick.py" name="joystick_node" required="true"/>
 
-   <include file="$(find camera_reader)/launch/camera_reader.launch"/>  
+   <group if="$(eval arg('debug') == 0)">
+     <!-- Start the camera reader node -->
+     <include file="$(find camera_reader)/launch/camera_reader.launch">  
+       <arg name="debug" value="0" />
+     </include>
+     <include file="$(find navigation)/launch/navigation.launch">  
+       <arg name="debug" value="0" />
+     </include>
+   </group>
+
+   <group if="$(eval arg('debug') == 1)">
+     <!-- Start the camera reader node -->
+     <include file="$(find camera_reader)/launch/camera_reader.launch">  
+       <arg name="debug" value="1" />
+     </include>
+     <include file="$(find navigation)/launch/navigation.launch">  
+       <arg name="debug" value="1" />
+     </include>
+   </group>
+
    <include file="$(find jet_launcher)/launch/robot_localization.launch"/>
-   <include file="$(find navigation)/launch/navigation.launch"/> 
 
    <include file="$(find jet_launcher)/launch/move_base.launch"/> 
 </launch>

@@ -17,7 +17,7 @@ DWAPlannerROS:
 
   holonomic_robot: false
 
-  sim_time: 5.0
+  sim_time: 4.5
   pdist_scale: .6
   occdist_scale: .02
   dwa: true

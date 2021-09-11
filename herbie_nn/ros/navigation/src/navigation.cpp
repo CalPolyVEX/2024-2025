@@ -4,6 +4,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
 #include <image_transport/image_transport.h>
+#include <getopt.h>
 #include "navigation.h"
 
 #include <lemon/list_graph.h>
@@ -27,6 +28,7 @@ using namespace std;
 #define MAX_ANGULAR .8
 
 int sim_mode = 0;
+int debug_mode = 1;
 ros::NodeHandle* h;
 
 Navigation::Navigation() : it(nh) {
@@ -76,7 +78,6 @@ Navigation::Navigation() : it(nh) {
   //tell the action client that we want to spin a thread by default
   tfListener = new tf2_ros::TransformListener(tfBuffer);
   h = &nh; //set the ROS node handle
-  //serviceClient = nh.serviceClient<nav_msgs::GetPlan>(service_name, true);
 }
 
 void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
@@ -103,38 +104,38 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    goal = (double*) &(nn_msg->data[NUM_GROUND + NUM_TURN + NUM_LOC]);
    inference_time = (double) nn_msg->data[NUM_GROUND + NUM_TURN + NUM_LOC + 1];
 
-   //draw the ground boundary points
-   for (int i=0; i<NUM_GROUND; i++) {
-      cv::circle( new_image,
-         cv::Point(i*8, int(ground[i] * 360)),
-         2,
-         cv::Scalar( 0, 0, 255 ),
-         cv::FILLED,
-         cv::LINE_8 );
-   }
-
-   //connect the boundary points with lines
-   connect_boundary();
-   draw_lines();
-   //avoid_obstacles();
    update_goal_transform();
-
-   //float coord[2];
-   //compute_farthest(coord);
-
    //draw the localization probability graph
    draw_loc_prob();
 
-   draw_goal();
+   //connect the boundary points with lines
+   if (debug_mode) {
+      //draw the ground boundary points
+      for (int i=0; i<NUM_GROUND; i++) {
+         cv::circle( new_image,
+               cv::Point(i*8, int(ground[i] * 360)),
+               2,
+               cv::Scalar( 0, 0, 255 ),
+               cv::FILLED,
+               cv::LINE_8 );
+      }
 
-   write_text();
+      connect_boundary();
+      draw_lines();
+      draw_goal();
+      write_text();
+   }
+
+   //avoid_obstacles();
 
    //publish pointcloud
    publish_pointcloud();
 
    //publish message
-   sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", new_image).toImageMsg();
-   image_pub_.publish(pub_msg);
+   if(debug_mode) {
+      sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", new_image).toImageMsg();
+      image_pub_.publish(pub_msg);
+   }
 
    turn_counter++;
    if (turn_counter > 15) {
@@ -654,13 +655,43 @@ void Navigation::avoid_obstacles()
 }
 
 int main(int argc, char** argv) {
+  int c;
+
+  while(1) {
+     static struct option long_options[] =
+     {
+        /* These options set a flag. */
+        //{"load",   no_argument,      &verbose_flag, 0},
+        {"sim",   no_argument, &sim_mode, 1},
+        {"nodebug", no_argument, &debug_mode, 0},
+        /* These options don’t set a flag.
+           We distinguish them by their indices. */
+        {"accelerator", required_argument, 0, 'a'},
+        {"build",   required_argument, 0, 'b'},
+        {"device",  required_argument, 0, 'd'},
+        {"width",   required_argument, 0, 'w'},
+        {"height",  required_argument, 0, 'h'},
+        {"load",    required_argument, 0, 'l'},
+        {0, 0, 0, 0}
+     };
+     /* getopt_long stores the option index here. */
+     int option_index = 0;
+
+     c = getopt_long (argc, argv, "a:b:d:w:h:l:",
+           long_options, &option_index);
+
+     /* Detect the end of the options. */
+     if (c == -1)
+        break;
+  }
+
   ros::init(argc, argv, "navigation_node");
 
-  if (argc == 2 && strcmp(argv[1], "-sim") == 0) {
-     sim_mode = 1;
-  } else {
-     sim_mode = 0;
-  }
+  /* if (argc == 2 && strcmp(argv[1], "-sim") == 0) { */
+  /*    sim_mode = 1; */
+  /* } else { */
+  /*    sim_mode = 0; */
+  /* } */
 
   Navigation nav_node;
   nav_node.graph_init();

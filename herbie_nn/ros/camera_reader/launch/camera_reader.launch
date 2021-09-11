@@ -1,3 +1,12 @@
+<?xml version="1.0"?>
 <launch>
+  <arg name="debug" default="1"/>
+
+  <group if="$(eval arg('debug') == 0)">
+    <node ns="camera_reader" name="camera_reader_node" pkg="camera_reader" type="camera_reader_node" respawn="false" required="true" args="-l /home/jseng/test_model.engine -d /dev/video0 --nodebug"/>
+  </group>
+
+  <group if="$(eval arg('debug') == 1)">
     <node ns="camera_reader" name="camera_reader_node" pkg="camera_reader" type="camera_reader_node" respawn="false" required="true" args="-l /home/jseng/test_model.engine -d /dev/video0"/>
+  </group>
 </launch>

@@ -20,7 +20,7 @@ extern int camera_error;
 ros::NodeHandle* nh = NULL; 
 using namespace std::chrono;
 bool g_simulate = false;
-bool publish_360_image = true;
+int publish_360_image = 1;
 
 int CameraReader::init(char* videodev, int width, int height, ros::NodeHandle* nh, bool simulate) {
    n = nh;
@@ -61,10 +61,10 @@ int CameraReader::init(char* videodev, int width, int height, ros::NodeHandle* n
 }
 
 void CameraReader::image_pub_toggle_cb(const std_msgs::Empty::ConstPtr&) {
-   if (publish_360_image == false) {
-      publish_360_image = true;
+   if (publish_360_image == 0) {
+      publish_360_image = 1;
    } else {
-      publish_360_image = false;
+      publish_360_image = 0;
    }
 }
 
@@ -184,7 +184,7 @@ void CameraReader::simulate_callback(const sensor_msgs::ImageConstPtr &msg)
 
    //////////////////////
    //publish the image
-   if (publish_360_image) {
+   if (publish_360_image == 1) {
       sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_frame_360).toImageMsg();
       image_pub_.publish(pub_msg);
    }
@@ -292,9 +292,12 @@ void CameraReader::frame_loop() {
 
          //////////////////////
          //publish the image
-         if (publish_360_image) {
+         if (publish_360_image == 1) {
             sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_frame_360).toImageMsg();
             image_pub_.publish(pub_msg);
+         } else {
+            /* std::cout << "no debug" << std::endl; */
+            /* exit(0); */
          }
 
          /*
@@ -349,6 +352,7 @@ int main(int argc, char **argv) {
          /* These options set a flag. */
          //{"load",   no_argument,      &verbose_flag, 0},
          {"sim",   no_argument, &sim_flag, 1},
+         {"nodebug", no_argument, &publish_360_image, 0},
          /* These options don’t set a flag.
             We distinguish them by their indices. */
          {"accelerator", required_argument, 0, 'a'},

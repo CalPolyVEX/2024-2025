@@ -1,10 +1,7 @@
-//6/16/19 This file contains functions for the graph map
-
 #include "navigation.h"
 
 #include <pcl_conversions/pcl_conversions.h>
 #include <sensor_msgs/PointCloud2.h>
-#include <boost/foreach.hpp>
 
 extern int sim_mode;
 
@@ -35,11 +32,6 @@ int Navigation::call_make_plan(double goal_x, double goal_y, double* pose_x, dou
    srv.request.goal.pose.orientation.w = 1.0;
    srv.request.tolerance = 0.5;//If the goal cannot be reached, the most recent constraint
 
-   if (!serviceClient) {
-      ROS_FATAL("Persistent service connection to %s failed",
-            serviceClient.getService().c_str());
-      return -1;
-   }
    ROS_INFO("connect to %s",serviceClient.getService().c_str());
    
    //Perform the actual path planner call
@@ -93,8 +85,8 @@ void convert_image_to_world(int col, int row, double* x, double* y) {
    a = a / c;
    b = b / c;
 
-   *x = b;
-   *y = a;
+   *x = b;  //x-axis is away from robot front
+   *y = a;  //y-axis is toward robot left
 }
 
 void Navigation::set_action_client(MoveBaseClient* ac) {
@@ -107,7 +99,6 @@ void Navigation::update_goal_transform() {
    update_goal_mutex.lock();
 
    int goal_x = int(640 * goal[0]); //get the x and y of the goal
-   int goal_y = int(360 * goal[1]);
 
    int boundary_index = int(goal_x / 8);
    double goal_dist = ground[boundary_index];
@@ -125,12 +116,11 @@ void Navigation::update_goal_transform() {
    transformStamped.transform.translation.x = x - .60; //move back .60 meters from the boundary
    transformStamped.transform.translation.y = y;
    transformStamped.transform.translation.z = 0.0;
-   tf2::Quaternion q;
-   q.setRPY(0, 0, 0);
-   transformStamped.transform.rotation.x = q.x();
-   transformStamped.transform.rotation.y = q.y();
-   transformStamped.transform.rotation.z = q.z();
-   transformStamped.transform.rotation.w = q.w();
+
+   transformStamped.transform.rotation.x = 0; //goal should point in same direction as base_link
+   transformStamped.transform.rotation.y = 0;
+   transformStamped.transform.rotation.z = 0;
+   transformStamped.transform.rotation.w = 1;
 
    transformStamped.header.stamp = ros::Time::now();
    tfb.sendTransform(transformStamped);
