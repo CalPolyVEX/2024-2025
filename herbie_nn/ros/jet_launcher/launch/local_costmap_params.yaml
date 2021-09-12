@@ -4,9 +4,6 @@ local_costmap:
   update_frequency: 15.0
   publish_frequency: 5.0
 
-  #set if you want the voxel map published
-  publish_voxel_map: false
-
   rolling_window: true
   width: 5.0
   height: 5.0
@@ -15,6 +12,3 @@ local_costmap:
   plugins: 
       - {name: obstacles,        type: "costmap_2d::ObstacleLayer"}
       - {name: inflation_layer,  type: "costmap_2d::InflationLayer"}
-
-  unknown_threshold: 10
-  mark_threshold: 0

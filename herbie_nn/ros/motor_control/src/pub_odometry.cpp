@@ -281,10 +281,10 @@ void OdometryPublisher::serial_loop() {
     //periodically blink green LED on the Herbie PCB to indicate this loop is running
     led_counter++;
 
-    if ((led_counter & 63) == 0) {
+    if ((led_counter & 31) == 0) {
        unsigned char x = 2; //LED 2 = green LED
        create_control_board_msg(7,(void*) &x); //turn on LED
-    } else if ((led_counter & 63) == 2) {
+    } else if ((led_counter & 31) == 2) {
        unsigned char x = 2; //LED 2 = green LED
        create_control_board_msg(8,(void*) &x); //turn off LED
     }

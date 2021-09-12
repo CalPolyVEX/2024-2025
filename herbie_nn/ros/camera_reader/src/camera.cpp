@@ -116,7 +116,6 @@ void CameraReader::simulate_callback(const sensor_msgs::ImageConstPtr &msg)
 
    uyvy_frame.data = cv_ptr->image.data; //incoming image should be 1920x1080
 
-
    //resize the incoming image to 640x360
    resize(cv_ptr->image, bgr_frame_360, bgr_frame_360.size(), 0, 0);
 
@@ -295,10 +294,7 @@ void CameraReader::frame_loop() {
          if (publish_360_image == 1) {
             sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", bgr_frame_360).toImageMsg();
             image_pub_.publish(pub_msg);
-         } else {
-            /* std::cout << "no debug" << std::endl; */
-            /* exit(0); */
-         }
+         } 
 
          /*
           * Helper function to release camera data. This must be called for every
