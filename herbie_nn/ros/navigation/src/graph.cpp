@@ -1,24 +1,9 @@
-//6/16/19 This file contains functions for the graph map
+//This file contains functions for the graph map
 
-#include <geometry_msgs/TransformStamped.h>
-#include <tf2_ros/transform_listener.h>
-#include <tf2_sensor_msgs/tf2_sensor_msgs.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
-#include <std_msgs/Float64MultiArray.h>
-#include <geometry_msgs/Twist.h>
-#include <cv_bridge/cv_bridge.h>
-#include <sensor_msgs/image_encodings.h>
-#include <image_transport/image_transport.h>
-#include <ros/console.h>
-#include <iostream>
-#include <boost/thread.hpp>
-#include <cmath>
 #include "navigation.h"
 
 #include <lemon/smart_graph.h>
 #include <lemon/dijkstra.h>
-#include <map>
-#include <list>
 
 extern int sim_mode;
 

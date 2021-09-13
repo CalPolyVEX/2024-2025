@@ -366,8 +366,6 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
 }
 
 void OdometryPublisher::autonomous_mode_callback(const std_msgs::Int8::ConstPtr& msg) {
-  //stop ^= 1;
-  /* planner ^= 1; */
   planner = msg->data;
 
   if (planner == 1) { //running in autonomous mode

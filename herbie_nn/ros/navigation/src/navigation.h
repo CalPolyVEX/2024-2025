@@ -21,6 +21,8 @@
 #include <iostream>
 #include <cmath>
 #include <queue>
+#include <map>
+#include <list>
 
 #include <nav_msgs/GetPlan.h>
 
@@ -40,7 +42,6 @@ class Navigation {
 
   ros::NodeHandle nh;
   image_transport::ImageTransport it;
-  boost::mutex update_goal_mutex;
 
   ros::Subscriber nn_data_sub;
   ros::Subscriber odom_data_sub;
@@ -67,6 +68,9 @@ class Navigation {
   float cur_goal_x, cur_goal_y;
   int goal_cur_index = 0;
 
+  //variables for graph
+  std::vector<std::string> nodes;
+
   //variables for turn
   #define TURN_ARRAY_SIZE 50
   double turn_tracking[TURN_ARRAY_SIZE];
@@ -85,13 +89,12 @@ class Navigation {
   float actual_heading = 0;
   int heading_counter = 0;
 
-  std::vector<std::string> nodes;
-
+  //move base variables
   MoveBaseClient* a;
   tf2_ros::Buffer tfBuffer;
   tf2_ros::TransformListener* tfListener;
   std::string service_name = "move_base/make_plan";
-  /* ros::ServiceClient serviceClient = nh.serviceClient<nav_msgs::GetPlan>(service_name, true); */
+  boost::mutex update_goal_mutex;
 
   public:
     Navigation(); 
@@ -104,11 +107,13 @@ class Navigation {
     void write_text();
     void draw_lines();
     void avoid_obstacles();
-    void graph_init();
-    void path_to_next_goal();
+    float compute_obstacle_force(int coord, int side);
+
+    //graph functions
     void odom_callback(const nav_msgs::Odometry::ConstPtr& msg); 
     void convert_to_heading(float w, float x, float y, float z);
-    float compute_obstacle_force(int coord, int side);
+    void graph_init();
+    void path_to_next_goal();
 
     //move base functions
     void send_goal(const std_msgs::Empty::ConstPtr& msg);

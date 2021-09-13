@@ -1,5 +1,4 @@
-//6/16/19 This is used to publish odometry messages when
-//each encoder message arrives
+//This file contains the navigation node
 
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
@@ -146,7 +145,7 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
          char msg[] = "Turn";
          create_control_board_msg(2,msg);
       } else {
-         create_control_board_msg(0,0);
+         /* create_control_board_msg(0,0); */
       }
    }
 }
@@ -331,24 +330,28 @@ int Navigation::compute_turn_prob() {
    //turn probability from the neural network is updated at 20Hz
    float confidence_threshold = .90;
    int temp_index = turn_index - 1;
+   int above_threshold = 0;
 
    if (temp_index < 0) {
       temp_index += TURN_ARRAY_SIZE;
    }
 
-   for (int i=0; i<4; i++) {
-      if (turn_tracking[temp_index] < confidence_threshold) {
-         return 0;
+   for (int i=0; i<6; i++) {
+      if (turn_tracking[temp_index] > confidence_threshold) {
+         above_threshold++;
       }
 
-      temp_index -= 2;
+      temp_index -= 1;
 
       if (temp_index < 0) {
          temp_index += TURN_ARRAY_SIZE;
       }
    }
 
-   return 1; //a turn
+   if (above_threshold > 4)
+      return 1; //a turn
+   else
+      return 0;
 }
 
 void Navigation::compute_farthest(float* coord) {

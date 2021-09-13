@@ -60,7 +60,8 @@ void Navigation::create_control_board_msg(int num, void* arg) {
       buf[5] = 0;
    } else if (num == 1) { //set cursor to starting position
       char col = *((char*) arg);
-      char row = *((char*) (arg + 1));
+      char* row_ptr = (char*) arg;
+      char row = *(row_ptr + 1);
 
       buf[2] = col;
       buf[3] = row;
