@@ -54,7 +54,7 @@ OdometryPublisher::OdometryPublisher() : tf_listener_(tf_buffer_) {
   autonomous_sub = nh->subscribe("/autonomous", 2, &OdometryPublisher::autonomous_mode_callback, this);
 
   //listen for messages to send to the control board
-  control_board_sub = nh->subscribe("/control_board", 5, &OdometryPublisher::control_board_callback, this);
+  control_board_sub = nh->subscribe("/control_board", 50, &OdometryPublisher::control_board_callback, this);
   
   //listen for camera initialization errors
   camera_error_sub = nh->subscribe("/camera_error", 1, &OdometryPublisher::camera_error_callback, this);
@@ -135,9 +135,10 @@ void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
 
   //handle the packets to be sent to the Herbie control board
   herbie_board_queue_mutex.lock();
-  while ((board_queue.size() != 0) && (sent_board_packets < 7)) {
+  while ((board_queue.size() != 0) && (sent_board_packets < 20)) {
      herbie_board_queue_mutex.unlock();
-     usleep(1500);
+     //usleep(1500);
+     usleep(1000);
      struct packet p;
 
      herbie_board_queue_mutex.lock();
@@ -297,6 +298,7 @@ void OdometryPublisher::serial_loop() {
        unsigned char x = 3; //LED 3 = yellow LED
        create_control_board_msg(8,(void*) &x); //turn off LED
     }
+
     ros::spinOnce();
   }
 }

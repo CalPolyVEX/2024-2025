@@ -137,15 +137,31 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    }
 
    turn_counter++;
-   if (turn_counter > 15) {
+   if (turn_counter > 2) {
       turn_counter = 0;
 
+      char coord[2];
+      char lcd_msg[32];
+      coord[0] = 0; //col 0
+      coord[1] = 0; //row 0
+      create_control_board_msg(1,coord);
+      usleep(5);
+
+      //print localization
       if (compute_turn_prob() == 1) {
-         create_control_board_msg(0,0);
-         char msg[] = "Turn";
-         create_control_board_msg(2,msg);
+         sprintf(lcd_msg,"%02d %.2f Turn %3d", cur_loc, cur_loc_prob, (int) (goal[0]*640));
+         create_control_board_msg(2,lcd_msg);
       } else {
-         /* create_control_board_msg(0,0); */
+         sprintf(lcd_msg,"%02d %.2f Strt %3d", cur_loc, cur_loc_prob, (int) (goal[0]*640));
+         create_control_board_msg(2,lcd_msg);
+
+         /* usleep(5); */
+         /* coord[1] = 1; */
+         /* create_control_board_msg(1,coord); */
+         /* usleep(5); */
+         /* sprintf(lcd_msg,"%03d,", (int) (goal[0]*640)); */
+         /* create_control_board_msg(2,lcd_msg); */
+         /* usleep(5); */
       }
    }
 }
