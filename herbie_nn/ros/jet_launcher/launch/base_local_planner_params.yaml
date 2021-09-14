@@ -32,3 +32,16 @@ DWAPlannerROS:
 GlobalPlanner:
   neutral_cost: 66
   cost_factor: .55
+
+
+recovery_behavior_enabled: true
+recovery_behaviors:
+  - name: 'aggressive_reset'
+    type: 'clear_costmap_recovery/ClearCostmapRecovery'
+
+aggressive_reset:
+  reset_distance: 0.0
+  layer_names: ["obstacles"]
+
+planner_patience: 5.0
+#planner_frequency: .5

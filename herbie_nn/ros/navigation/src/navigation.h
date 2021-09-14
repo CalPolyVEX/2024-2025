@@ -125,6 +125,7 @@ class Navigation {
     int compute_localization();
     int compute_turn_prob();
     int call_make_plan(double goal_x, double goal_y, double* pose_x, double* pose_y);  //call the planner to test if a plan is found
+    void execute_turn();
 
     //control board functions
     void create_control_board_msg(int num, void* arg);

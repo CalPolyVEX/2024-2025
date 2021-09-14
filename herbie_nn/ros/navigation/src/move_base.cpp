@@ -42,6 +42,8 @@ int Navigation::call_make_plan(double goal_x, double goal_y, double* pose_x, dou
          int index = srv.response.plan.poses.size() - 1;
          geometry_msgs::PoseStamped p;
          p = srv.response.plan.poses.at(index);
+
+         //set the actual final pose of the plan
          *pose_x = p.pose.position.x;
          *pose_y = p.pose.position.y; 
 
@@ -105,11 +107,19 @@ void Navigation::update_goal_transform() {
    //compute the goal
    update_goal_mutex.lock();
 
-   int goal_x = int(640 * goal[0]); //get the x and y of the goal
+   int goal_x = int(640 * goal[0]); //get the x of the goal
+   int goal_y = int(360 * goal[1]); //get the y of the goal
 
    int boundary_index = int(goal_x / 8);
    double goal_dist = ground[boundary_index];
-   int ground_y_coord = int(goal_dist * 360.0); //the y-coordinate of the ground at the goal
+   int boundary_y = int(goal_dist * 360.0);
+   int ground_y_coord;
+   
+   if (goal_y > boundary_y) { //if the goal is closer than the ground boundary
+      ground_y_coord = goal_y;
+   } else {
+      ground_y_coord = boundary_y;
+   } 
 
    double x,y;
    convert_image_to_world(goal_x, ground_y_coord, &x, &y);
@@ -244,6 +254,9 @@ void Navigation::publish_pointcloud() {
    }
 
    pointcloud_pub_.publish(cloud_msg);
+}
+
+void Navigation::execute_turn() {
 }
 
 void Navigation::autonomous_mode_callback(const std_msgs::Int8::ConstPtr& msg) {
