@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(navigation)
+project(nav_herbie)
 #set(CMAKE_CXX_FLAGS "-g -Wall -Wextra")
 set(CMAKE_CXX_FLAGS "")
 
