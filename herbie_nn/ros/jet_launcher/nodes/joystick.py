@@ -276,10 +276,7 @@ class JoystickNode:
                      if "passthrough" in x[0]:
                         planning_mode = 1
 
-                  if planning_mode == 1:
-                     self.record_bag_debugging()
-                  else:
-                     self.record_bag()
+                  self.record_bag()
 
                else:
                   recording_start = 0

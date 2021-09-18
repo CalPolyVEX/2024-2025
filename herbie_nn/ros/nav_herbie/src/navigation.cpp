@@ -142,27 +142,28 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
 
       char coord[2];
       char lcd_msg[32];
+      double turn_confidence;
       coord[0] = 0; //col 0
       coord[1] = 0; //row 0
       create_control_board_msg(1,coord);
       usleep(5);
 
       //print localization
-      if (compute_turn_prob() == 1) {
-         sprintf(lcd_msg,"%02d %.2f Turn %3d", cur_loc, cur_loc_prob, (int) (goal[0]*640));
+      if (compute_turn_prob(&turn_confidence) == 1) {
+         sprintf(lcd_msg,"%02d %.2f T %.2f  ", cur_loc, cur_loc_prob, turn_confidence);
          create_control_board_msg(2,lcd_msg);
       } else {
-         sprintf(lcd_msg,"%02d %.2f Strt %3d", cur_loc, cur_loc_prob, (int) (goal[0]*640));
+         sprintf(lcd_msg,"%02d %.2f S %.2f  ", cur_loc, cur_loc_prob, turn_confidence);
          create_control_board_msg(2,lcd_msg);
-
-         /* usleep(5); */
-         /* coord[1] = 1; */
-         /* create_control_board_msg(1,coord); */
-         /* usleep(5); */
-         /* sprintf(lcd_msg,"%03d,", (int) (goal[0]*640)); */
-         /* create_control_board_msg(2,lcd_msg); */
-         /* usleep(5); */
       }
+
+      usleep(5);
+      coord[1] = 1;
+      create_control_board_msg(1,coord); //move to second line on LCD
+      usleep(5);
+      sprintf(lcd_msg,"%03d,%03d", (int) (goal[0]*640), (int) (goal[1]*360));
+      create_control_board_msg(2,lcd_msg);
+      usleep(5);
    }
 }
 
@@ -342,8 +343,9 @@ int Navigation::compute_localization() {
    return estimate; //the localization estimate
 }
 
-int Navigation::compute_turn_prob() {
+int Navigation::compute_turn_prob(double* confidence) {
    //turn probability from the neural network is updated at 20Hz
+   double avg_threshold = 0;
    float confidence_threshold = .90;
    int temp_index = turn_index - 1;
    int above_threshold = 0;
@@ -357,12 +359,16 @@ int Navigation::compute_turn_prob() {
          above_threshold++;
       }
 
+      avg_threshold += turn_tracking[temp_index];
+
       temp_index -= 1;
 
       if (temp_index < 0) {
          temp_index += TURN_ARRAY_SIZE;
       }
    }
+
+   *confidence = avg_threshold / 6.0;
 
    if (above_threshold > 4)
       return 1; //a turn

@@ -6,8 +6,8 @@ obstacle_range: 7
 max_obstacle_height: 2.0
 raytrace_range: 7.2
 footprint: [[-0.195, -0.195], [-0.195, 0.195], [0.195, 0.195], [0.195, -0.195]]
-footprint_padding: 0.1
-lethal_cost_threshold: 240
+footprint_padding: 0.15
+lethal_cost_threshold: 200
 
 plugins: 
     - {name: obstacles,        type: "costmap_2d::ObstacleLayer"}
@@ -21,9 +21,9 @@ obstacles:
              expected_update_rate: 0.2}
 
 inflation_layer:
-    inflation_radius: 0.55 # adjust the inflation for your system setup
-    cost_scaling_factor: 1.5
+    inflation_radius: 0.75 # adjust the inflation for your system setup
+    cost_scaling_factor: 1.75
 
 global_inflation_layer:
-    inflation_radius: 0.55 # adjust the inflation for your system setup
-    cost_scaling_factor: 1.5
+    inflation_radius: 0.75 # adjust the inflation for your system setup
+    cost_scaling_factor: 1.75

@@ -135,10 +135,10 @@ void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
 
   //handle the packets to be sent to the Herbie control board
   herbie_board_queue_mutex.lock();
-  while ((board_queue.size() != 0) && (sent_board_packets < 20)) {
+  while ((board_queue.size() != 0) && (sent_board_packets < 7)) {
      herbie_board_queue_mutex.unlock();
      //usleep(1500);
-     usleep(1000);
+     usleep(3100);
      struct packet p;
 
      herbie_board_queue_mutex.lock();
@@ -172,7 +172,11 @@ void OdometryPublisher::control_board_callback(const std_msgs::Int32MultiArray::
    }
 
    herbie_board_queue_mutex.lock();
-   board_queue.push(p);  //push the packet into the queue
+
+   if (board_queue.size() < 30) {
+      board_queue.push(p);  //push the packet into the queue
+   }
+
    herbie_board_queue_mutex.unlock();
 }
 

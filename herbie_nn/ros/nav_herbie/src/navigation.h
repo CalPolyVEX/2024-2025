@@ -23,6 +23,7 @@
 #include <queue>
 #include <map>
 #include <list>
+#include <cstdio>
 
 #include <nav_msgs/GetPlan.h>
 
@@ -123,7 +124,7 @@ class Navigation {
     void update_goal_transform();
     void update_goal_callback(const ros::TimerEvent& ev);
     int compute_localization();
-    int compute_turn_prob();
+    int compute_turn_prob(double* confidence);
     int call_make_plan(double goal_x, double goal_y, double* pose_x, double* pose_y);  //call the planner to test if a plan is found
     void execute_turn();
 

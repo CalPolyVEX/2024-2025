@@ -4,10 +4,10 @@
     <arg name="dev" default="/dev/herbie"/>
     <arg name="baud" default="230400"/>
     <arg name="address" default="128"/>
-    <arg name="max_abs_linear_speed" default=".50"/>
-    <arg name="max_abs_angular_speed" default=".170"/>
+    <arg name="max_abs_linear_speed" default=".70"/>
+    <arg name="max_abs_angular_speed" default="1.0"/>
 <!-- Wheels max acceleration m/s^2 (TODO: split in angular and linear acceleration) -->
-    <arg name="acc_lim" default="1"/>
+    <arg name="acc_lim" default="3"/>
 
     <!-- Herbie 2:  1425.2*2 = 2850.4 ticks/rev ; 8 inch wheel * 3.14 = 25.12 inch/rev -->
     <arg name="ticks_per_meter" default="4467.37491"/>

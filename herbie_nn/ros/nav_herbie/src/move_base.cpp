@@ -105,6 +105,7 @@ void Navigation::set_action_client(MoveBaseClient* ac) {
 //update the transform from base_link to the goal
 void Navigation::update_goal_transform() {
    //compute the goal
+   //
    update_goal_mutex.lock();
 
    int goal_x = int(640 * goal[0]); //get the x of the goal
@@ -130,7 +131,7 @@ void Navigation::update_goal_transform() {
 
    transformStamped.header.frame_id = "base_link";
    transformStamped.child_frame_id = "goal";
-   transformStamped.transform.translation.x = x - .60; //move back .60 meters from the boundary
+   transformStamped.transform.translation.x = x; //move back .60 meters from the boundary
    transformStamped.transform.translation.y = y;
    transformStamped.transform.translation.z = 0.0;
 
@@ -149,9 +150,9 @@ void Navigation::send_goal(const std_msgs::Empty::ConstPtr& msg) {
    update_goal_mutex.lock();
 
    //if there is an active goal, then cancel it
-   if (a->getState() == actionlib::SimpleClientGoalState::ACTIVE) {
-      a->cancelGoal();
-   }
+   /* if (a->getState() == actionlib::SimpleClientGoalState::ACTIVE) { */
+   /*    a->cancelGoal(); */
+   /* } */
    
    //get the transform from odom to goal since the planner only takes goals in 
    //the odom frame
@@ -159,9 +160,12 @@ void Navigation::send_goal(const std_msgs::Empty::ConstPtr& msg) {
    transformStamped = tfBuffer.lookupTransform("odom", "goal", ros::Time(0), ros::Duration(.5));
 
    double pose_x, pose_y;
-   int found_plan = 0;
+   int found_plan = 1;
 
-   found_plan = call_make_plan(transformStamped.transform.translation.x, transformStamped.transform.translation.y, &pose_x, &pose_y);
+   pose_x = transformStamped.transform.translation.x;
+   pose_y = transformStamped.transform.translation.y;
+
+   /* found_plan = call_make_plan(transformStamped.transform.translation.x, transformStamped.transform.translation.y, &pose_x, &pose_y); */
 
    if (found_plan == 1) {
 

@@ -2,28 +2,28 @@ base_global_planner: "global_planner/GlobalPlanner"
 base_local_planner: "dwa_local_planner/DWAPlannerROS"
 
 DWAPlannerROS:
-  max_vel_x: 0.55
+  max_vel_x: 0.95
   min_vel_x: 0.1
 
   max_vel_y: 0.0
   min_vel_y: 0.0
 
   max_vel_theta: 1.0
-  min_in_place_vel_theta: 0.4
+  min_vel_theta: 0.4
 
-  acc_lim_theta: 3.2
-  acc_lim_x: 2.5
+  acc_lim_th: 4.2
+  acc_lim_x: 3.9
   acc_lim_y: 2.5
 
   holonomic_robot: false
 
-  sim_time: 4.3
+  sim_time: 4
   pdist_scale: .6
   occdist_scale: .02
   dwa: true
 
-  neutral_cost: 66
-  cost_factor: .55
+  #neutral_cost: 66
+  #cost_factor: .55
 
   vx_sample: 20
   vy_sample: 0
@@ -32,7 +32,8 @@ DWAPlannerROS:
 GlobalPlanner:
   neutral_cost: 66
   cost_factor: .55
-  default_tolerance: .5
+  default_tolerance: 1.0
+  planner_frequency: .3
 
 
 recovery_behavior_enabled: true
@@ -45,4 +46,3 @@ aggressive_reset:
   layer_names: ["obstacles"]
 
 planner_patience: 5.0
-#planner_frequency: .5
