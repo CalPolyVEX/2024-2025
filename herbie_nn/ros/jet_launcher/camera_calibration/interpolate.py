@@ -9,41 +9,73 @@ from matplotlib import cm
 from IPython.display import Image
 from solvepnp_new import camera_transform
 
-def nearest_neighbor_interpolation(data, x, y, p=0.5):
-    """
-    Nearest Neighbor Weighted Interpolation
-    http://paulbourke.net/miscellaneous/interpolation/
-    http://en.wikipedia.org/wiki/Inverse_distance_weighting
+class Interpolate:
+    def __init__(self):
+        self.c = camera_transform()
+        self.img_points = self.c.imagePoints
+        self.obj_points = self.c.objectPoints
+        self.img_rows = self.img_points[0].shape[0]
+        self.dataset_x = np.zeros([self.img_rows, 3])
+        self.dataset_y = np.zeros([self.img_rows, 3])
+        self.dataset_side = np.full((360,640),-5000)
+        self.dataset_front = np.full((360,640),-5000)
 
-    :param data: numpy.ndarray
-        [[float, float, float], ...]
-    :param p: float=0.5
-        importance of distant samples
-    :return: interpolated data
-    """
-    n = len(data)
-    vals = np.zeros((n, 2), dtype=np.float64)
-    distance = lambda x1, x2, y1, y2: (x2 - x1)**2 + (y2 - y1)**2
-    for i in range(n):
-        vals[i, 0] = data[i, 2] / (distance(data[i, 0], x, data[i, 1], y))**p
-        vals[i, 1] = 1          / (distance(data[i, 0], x, data[i, 1], y))**p
-    z = np.sum(vals[:, 0]) / np.sum(vals[:, 1])
-    return z
+    def nearest_neighbor_interpolation(self,data, x, y, p=0.5):
+        """
+        Nearest Neighbor Weighted Interpolation
+        http://paulbourke.net/miscellaneous/interpolation/
+        http://en.wikipedia.org/wiki/Inverse_distance_weighting
 
-def create_data():
-    c = camera_transform()
-    print(c.imagePoints)
-    img_points = c.imagePoints
-    obj_points = c.objectPoints
-    img_rows = img_points[0].shape[0]
-    dataset = np.zeros([img_rows, 3])
+        :param data: numpy.ndarray
+            [[float, float, float], ...]
+        :param p: float=0.5
+            importance of distant samples
+        :return: interpolated data
+        """
+        n = len(data)
+        vals = np.zeros((n, 2), dtype=np.float64)
+        distance = lambda x1, x2, y1, y2: (x2 - x1)**2 + (y2 - y1)**2
+        for i in range(n):
+            vals[i, 0] = data[i, 2] / (distance(data[i, 0], x, data[i, 1], y))**p
+            vals[i, 1] = 1          / (distance(data[i, 0], x, data[i, 1], y))**p
+        z = np.sum(vals[:, 0]) / np.sum(vals[:, 1])
+        return z
 
-    for i in range(img_rows):
-        img_point = (img_points[0])[i]
-        obj_point = (obj_points[0])[i]
-        dataset[i,0] = img_point[0]
-        dataset[i,1] = img_point[1]
-    print(dataset)
+    def create_data(self):
+        for i in range(self.img_rows):
+            self.img_point = (self.img_points[0])[i]
+            self.obj_point = (self.obj_points[0])[i]
+            self.dataset_x[i,0] = self.img_point[0]
+            self.dataset_x[i,1] = self.img_point[1]
+            self.dataset_x[i,2] = self.obj_point[0]
+
+            self.dataset_side[int(self.dataset_x[i,1]), int(self.dataset_x[i,0])] = self.dataset_x[i,2]
+        print(self.dataset_x)
+
+        for i in range(self.img_rows):
+            self.img_point = (self.img_points[0])[i]
+            self.obj_point = (self.obj_points[0])[i]
+            self.dataset_y[i,0] = self.img_point[0]
+            self.dataset_y[i,1] = self.img_point[1]
+            self.dataset_y[i,2] = self.obj_point[2]
+
+            self.dataset_front[int(self.dataset_y[i,1]), int(self.dataset_y[i,0])] = self.dataset_y[i,2]
+        print(self.dataset_y)
+
+        counter = 0
+        for row in range(360):
+            for col in range(640):
+                if self.dataset_side[row,col] == -5000:
+                    temp = interp.nearest_neighbor_interpolation(self.dataset_x, col, row)
+                    self.dataset_side[row,col] = temp
+                else:
+                    print ('existing')
+
+                if self.dataset_front[row,col] == -5000:
+                    temp = interp.nearest_neighbor_interpolation(self.dataset_y, col, row)
+                    self.dataset_front[row,col] = temp
+            counter += 1
+            print(counter)
 
 
 #sample x,y,z data
@@ -61,5 +93,7 @@ data = np.array([
 [65.90, 31.93, 109.51],
 [76.55, 44.51, 109.91]])
 
-print(nearest_neighbor_interpolation(data, 33.4, 87.93, p=6))
-create_data()
+interp = Interpolate()
+
+print(interp.nearest_neighbor_interpolation(data, 33.4, 87.93))
+interp.create_data()
