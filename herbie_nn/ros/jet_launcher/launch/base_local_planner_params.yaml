@@ -17,7 +17,7 @@ DWAPlannerROS:
 
   holonomic_robot: false
 
-  sim_time: 4.5
+  sim_time: 4.3
   pdist_scale: .6
   occdist_scale: .02
   dwa: true
@@ -32,6 +32,7 @@ DWAPlannerROS:
 GlobalPlanner:
   neutral_cost: 66
   cost_factor: .55
+  default_tolerance: .5
 
 
 recovery_behavior_enabled: true

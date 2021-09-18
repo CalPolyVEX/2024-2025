@@ -3,12 +3,12 @@
   <arg name="debug" default="1"/>
 
   <group if="$(eval arg('debug') == 0)">
-    <node pkg="navigation" type="navigation" name="navigation" args="--nodebug">
+    <node pkg="nav_herbie" type="navigation" name="navigation" args="--nodebug">
     </node>
   </group>
 
   <group if="$(eval arg('debug') == 1)">
-    <node pkg="navigation" type="navigation" name="navigation" args="">
+    <node pkg="nav_herbie" type="navigation" name="navigation" args="">
     </node>
   </group>
 

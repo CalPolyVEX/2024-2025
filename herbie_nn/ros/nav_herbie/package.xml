@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>navigation</name>
+  <name>nav_herbie</name>
   <version>0.0.0</version>
   <description>Navigation package for Herbie 2</description>
 

@@ -13,7 +13,7 @@
      <include file="$(find camera_reader)/launch/camera_reader.launch">  
        <arg name="debug" value="0" />
      </include>
-     <include file="$(find navigation)/launch/navigation.launch">  
+     <include file="$(find nav_herbie)/launch/navigation.launch">  
        <arg name="debug" value="0" />
      </include>
    </group>
@@ -23,7 +23,7 @@
      <include file="$(find camera_reader)/launch/camera_reader.launch">  
        <arg name="debug" value="1" />
      </include>
-     <include file="$(find navigation)/launch/navigation.launch">  
+     <include file="$(find nav_herbie)/launch/navigation.launch">  
        <arg name="debug" value="1" />
      </include>
    </group>
