@@ -1,9 +1,14 @@
 #include "navigation.h"
 
+#include <dynamic_reconfigure/DoubleParameter.h>
+#include <dynamic_reconfigure/Reconfigure.h>
+#include <dynamic_reconfigure/Config.h>
+
 #include <pcl_conversions/pcl_conversions.h>
 #include <sensor_msgs/PointCloud2.h>
 
 extern int sim_mode;
+extern ros::Timer diag_timer;
 
 using namespace std;
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
@@ -149,43 +154,27 @@ void Navigation::update_goal_transform() {
 void Navigation::send_goal(const std_msgs::Empty::ConstPtr& msg) {
    update_goal_mutex.lock();
 
-   //if there is an active goal, then cancel it
-   /* if (a->getState() == actionlib::SimpleClientGoalState::ACTIVE) { */
-   /*    a->cancelGoal(); */
-   /* } */
-   
    //get the transform from odom to goal since the planner only takes goals in 
    //the odom frame
    geometry_msgs::TransformStamped transformStamped;
    transformStamped = tfBuffer.lookupTransform("odom", "goal", ros::Time(0), ros::Duration(.5));
 
-   double pose_x, pose_y;
-   int found_plan = 1;
+   move_base_msgs::MoveBaseGoal cur_goal;
 
-   pose_x = transformStamped.transform.translation.x;
-   pose_y = transformStamped.transform.translation.y;
+   //fill in the fields of the goal
+   cur_goal.target_pose.header.frame_id = "odom";  //goal must be in the odom frame
+   cur_goal.target_pose.header.stamp = ros::Time::now();
 
-   /* found_plan = call_make_plan(transformStamped.transform.translation.x, transformStamped.transform.translation.y, &pose_x, &pose_y); */
+   cur_goal.target_pose.pose.position.x = transformStamped.transform.translation.x;
+   cur_goal.target_pose.pose.position.y = transformStamped.transform.translation.y;
+   cur_goal.target_pose.pose.position.z = 0;
+   cur_goal.target_pose.pose.orientation.w = transformStamped.transform.rotation.w;
+   cur_goal.target_pose.pose.orientation.x = transformStamped.transform.rotation.x;
+   cur_goal.target_pose.pose.orientation.y = transformStamped.transform.rotation.y;
+   cur_goal.target_pose.pose.orientation.z = transformStamped.transform.rotation.z;
 
-   if (found_plan == 1) {
-
-      move_base_msgs::MoveBaseGoal cur_goal;
-
-      //fill in the fields of the goal
-      cur_goal.target_pose.header.frame_id = "odom";  //goal must be in the odom frame
-      cur_goal.target_pose.header.stamp = ros::Time::now();
-
-      cur_goal.target_pose.pose.position.x = pose_x;
-      cur_goal.target_pose.pose.position.y = pose_y;
-      cur_goal.target_pose.pose.position.z = 0;
-      cur_goal.target_pose.pose.orientation.w = transformStamped.transform.rotation.w;
-      cur_goal.target_pose.pose.orientation.x = transformStamped.transform.rotation.x;
-      cur_goal.target_pose.pose.orientation.y = transformStamped.transform.rotation.y;
-      cur_goal.target_pose.pose.orientation.z = transformStamped.transform.rotation.z;
-
-      /* ROS_INFO("Sending goal"); */
-      a->sendGoal(cur_goal);
-   }
+   /* ROS_INFO("Sending goal"); */
+   a->sendGoal(cur_goal);
 
    update_goal_mutex.unlock();
 }
@@ -260,7 +249,48 @@ void Navigation::publish_pointcloud() {
    pointcloud_pub_.publish(cloud_msg);
 }
 
+void Navigation::set_narrow_parameters() {
+   dynamic_reconfigure::ReconfigureRequest srv_req;
+   dynamic_reconfigure::ReconfigureResponse srv_resp;
+   dynamic_reconfigure::DoubleParameter double_param;
+   dynamic_reconfigure::Config conf;
+
+   double_param.name = "sim_time";
+   double_param.value = 2.0;
+   conf.doubles.push_back(double_param);
+
+   srv_req.config = conf;
+
+   ros::service::call("/move_base/DWAPlannerROS/set_parameters", srv_req, srv_resp);
+}
+
 void Navigation::execute_turn() {
+   diag_timer.stop(); //stop the goal update timer
+
+   update_goal_mutex.lock();
+
+   //get the transform from odom to goal since the planner only takes goals in 
+   //the odom frame
+   geometry_msgs::TransformStamped transformStamped;
+   transformStamped = tfBuffer.lookupTransform("odom", "base_link", ros::Time(0), ros::Duration(.5));
+
+   move_base_msgs::MoveBaseGoal cur_goal;
+
+   //fill in the fields of the goal
+   cur_goal.target_pose.header.frame_id = "odom";  //goal must be in the odom frame
+   cur_goal.target_pose.header.stamp = ros::Time::now();
+
+   cur_goal.target_pose.pose.position.x = transformStamped.transform.translation.x + 1.0;
+   cur_goal.target_pose.pose.position.y = transformStamped.transform.translation.y + 1.0;
+   cur_goal.target_pose.pose.position.z = 0;
+   cur_goal.target_pose.pose.orientation.w = transformStamped.transform.rotation.w;
+   cur_goal.target_pose.pose.orientation.x = transformStamped.transform.rotation.x;
+   cur_goal.target_pose.pose.orientation.y = transformStamped.transform.rotation.y;
+   cur_goal.target_pose.pose.orientation.z = transformStamped.transform.rotation.z;
+
+   a->sendGoal(cur_goal);
+
+   update_goal_mutex.unlock();
 }
 
 void Navigation::autonomous_mode_callback(const std_msgs::Int8::ConstPtr& msg) {
