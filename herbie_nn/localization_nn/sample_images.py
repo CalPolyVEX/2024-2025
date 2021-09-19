@@ -12,6 +12,8 @@ import cv2
 import sys, time, queue, os, argparse, math, shutil
 import numpy as np
 import glob
+import random
+import shutil
 from sensor_msgs.msg import CompressedImage
 
 
@@ -20,10 +22,13 @@ class sample_images:
         self.image = None
 
         # how many frames to skip in a straight section before saving an image
-        self.save_freq = 30  # save every 5 photos
+        self.save_freq = 17  # save every 5 photos
 
         # the parent dir and the bagfile
         self.path = './Input_Images'
+        self.training_dir = './Training_Images'
+        self.validation_dir = './Validation_Images'
+
         self.bagfile = bagfile  # the full path to the bag file
 
         self.prev_dir = ""
@@ -41,6 +46,24 @@ class sample_images:
                 print (f)
                 os.remove(f)
 
+    def split(self):
+        validation_percentage = .85
+
+        filelist = glob.glob(self.path + '/*.jpg')
+        random.shuffle(filelist)
+        print (filelist)
+
+        #copy training images
+        training_num = int(len(filelist) * validation_percentage)
+        for i in range(training_num):
+            shutil.copy2(filelist[0], self.training_dir)
+            filelist.pop(0)
+
+        #copy validation images
+        for i in range(len(filelist)):
+            shutil.copy2(filelist[0], self.validation_dir)
+            filelist.pop(0)
+
     def read_bag(self):
         bag = rosbag.Bag(self.bagfile)
         self.file_prefix = self.bagfile.split('/')[-1]
@@ -55,7 +78,7 @@ class sample_images:
         image_num = 0
         saved_image_num = 0       # counter for naming images stored
         current_dir = ""  # directory in which to store images
-        image_topic = '/see3cam_cu20/image_raw/compressed'
+        image_topic = '/see3cam_cu20/image_raw_live/compressed'
 
         for topic, msg, t in bag.read_messages(topics=[image_topic]):
             if topic == image_topic:
@@ -86,6 +109,7 @@ def main(args):
     # create the argument parser
     parser = argparse.ArgumentParser(description='Create image directories from bag files')
     parser.add_argument('-clean', help='Clean the output directories', action='store_true')
+    parser.add_argument('-split', help='Split the data into training and validation', action='store_true')
     parser.add_argument('num', help='Hallway number', type=int)
     parser.add_argument('path', nargs='+', help='Path to 1 or more ROS bag files')
 
@@ -96,18 +120,23 @@ def main(args):
         # parse the arguments
         args = parser.parse_args()
 
-        # process each bag file
-        for bagfile in args.path:
-            #create with argument dictionary
-            dm = sample_images(args.__dict__, bagfile)
+        # if '-clean' flag, just remove the output images
+        if args.split:
+            dm = sample_images(args.__dict__, "")
+            dm.split()
+        else:
+            # process each bag file
+            for bagfile in args.path:
+                #create with argument dictionary
+                dm = sample_images(args.__dict__, bagfile)
 
-            # if '-clean' flag, just remove the output images
-            if args.clean:
-                dm.clean()
-                continue
+                # if '-clean' flag, just remove the output images
+                if args.clean:
+                    dm.clean()
+                    continue
 
-            # process the bag file
-            dm.read_bag()
+                # process the bag file
+                dm.read_bag()
 
 
 if __name__ == '__main__':
