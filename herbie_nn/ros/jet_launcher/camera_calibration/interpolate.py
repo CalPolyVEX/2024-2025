@@ -1,12 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from mpl_toolkits.mplot3d import Axes3D
-import pandas as pd
-from scipy.interpolate import griddata as gd
-from matplotlib import cm
-
-from IPython.display import Image
 from solvepnp_new import camera_transform
 
 class Interpolate:
@@ -78,6 +70,42 @@ class Interpolate:
             print(counter)
 
 
+    def generate_output(self):
+        col_max = 15
+        row_max = 360
+
+        print("float front[360,640] = {")
+        for row in range(row_max):
+            print ("{", end='')
+            for col in range(col_max):
+                print(str(self.dataset_front[row,col]), end='')
+
+                if col != (col_max-1):
+                    print(",", end='')
+
+            print ("}", end='')
+
+            if row != (row_max-1):
+                print (',')
+        print ('};')
+
+        print("float side[360,640] = {")
+        for row in range(row_max):
+            print ("{", end='')
+            for col in range(col_max):
+                print(str(self.dataset_side[row,col]), end='')
+
+                if col != (col_max-1):
+                    print(",", end='')
+
+            print ("}", end='')
+
+            if row != (row_max-1):
+                print (',')
+        print ('};')
+
+
+
 #sample x,y,z data
 data = np.array([
 [33.44, 87.93, 105.88],
@@ -97,3 +125,4 @@ interp = Interpolate()
 
 print(interp.nearest_neighbor_interpolation(data, 33.4, 87.93))
 interp.create_data()
+interp.generate_output()
