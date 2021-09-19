@@ -29,6 +29,7 @@ using namespace std;
 int sim_mode = 0;
 int debug_mode = 1;
 ros::NodeHandle* h;
+ros::Timer diag_timer;
 
 Navigation::Navigation() : it(nh) {
   //subscriber for pose
@@ -164,6 +165,11 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
       sprintf(lcd_msg,"%03d,%03d", (int) (goal[0]*640), (int) (goal[1]*360));
       create_control_board_msg(2,lcd_msg);
       usleep(5);
+   }
+
+   //test turning
+   if (cur_loc == 8 && turn_confidence > .95) {
+      execute_turn();
    }
 }
 
@@ -328,12 +334,12 @@ int Navigation::compute_localization() {
 
    int estimate = localization_tracking[temp_index];
 
-   for (int i=0; i<6; i++) {
+   for (int i=0; i<4; i++) {
       if ((localization_tracking[temp_index] != estimate) || (localization_value[temp_index] < confidence_threshold)) {
          return -1;
       }
 
-      temp_index -= 15;
+      temp_index -= 2;
 
       if (temp_index < 0) {
          temp_index += LOCALIZATION_ARRAY_SIZE;
@@ -735,7 +741,7 @@ int main(int argc, char** argv) {
   goal_callback=boost::bind(&Navigation::update_goal_callback,&nav_node,_1);
 
   //run the goal update function every 3 seconds
-  ros::Timer diag_timer = h->createTimer(ros::Duration(3.0), goal_callback); 
+  diag_timer = h->createTimer(ros::Duration(3.0), goal_callback); 
 
   ROS_INFO("Starting navigation");
 
