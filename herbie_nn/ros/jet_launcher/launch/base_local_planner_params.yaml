@@ -14,6 +14,7 @@ DWAPlannerROS:
   acc_lim_th: 4.2
   acc_lim_x: 3.9
   acc_lim_y: 2.5
+  acc_lim_trans: 2.5
 
   holonomic_robot: false
 
@@ -25,15 +26,14 @@ DWAPlannerROS:
   #neutral_cost: 66
   #cost_factor: .55
 
-  vx_sample: 20
-  vy_sample: 0
-  vth_sample: 40
+  vx_samples: 20
+  vy_samples: 0
+  vth_samples: 40
 
 GlobalPlanner:
   neutral_cost: 66
   cost_factor: .55
   default_tolerance: 1.0
-  planner_frequency: .3
 
 
 recovery_behavior_enabled: true
@@ -46,3 +46,4 @@ aggressive_reset:
   layer_names: ["obstacles"]
 
 planner_patience: 5.0
+planner_frequency: .3

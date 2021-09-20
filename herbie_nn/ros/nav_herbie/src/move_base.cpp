@@ -6,6 +6,7 @@
 
 #include <pcl_conversions/pcl_conversions.h>
 #include <sensor_msgs/PointCloud2.h>
+#include "output.h"
 
 extern int sim_mode;
 extern ros::Timer diag_timer;
@@ -101,6 +102,20 @@ void convert_image_to_world(int col, int row, double* x, double* y) {
 
    *x = b;  //x-axis is away from robot front
    *y = a;  //y-axis is toward robot left
+
+   //testing lookup table
+   /* if (row < 0) */
+   /*    row = 0; */
+   /* else if (row > 359) */
+   /*    row = 359; */
+
+   /* if (col < 0) */
+   /*    col = 0; */
+   /* else if (col > 639) */
+   /*    col = 639; */
+
+   /* *x = front[row][col] * .0254; */
+   /* *y = side[row][col] * .0254; */
 }
 
 void Navigation::set_action_client(MoveBaseClient* ac) {
@@ -282,6 +297,14 @@ void Navigation::set_narrow_parameters() {
    srv_req.config = conf;
 
    ros::service::call("/move_base/DWAPlannerROS/set_parameters", srv_req, srv_resp);
+
+   double_param.name = "planner_frequency";
+   double_param.value = 1.0;
+   conf.doubles.push_back(double_param);
+
+   srv_req.config = conf;
+
+   ros::service::call("/move_base/set_parameters", srv_req, srv_resp);
 }
 
 void Navigation::execute_turn() {
