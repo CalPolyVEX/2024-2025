@@ -151,6 +151,26 @@ void Navigation::update_goal_transform() {
    update_goal_mutex.unlock();
 }
 
+void Navigation::update_turn_transform() {
+   //testing
+   static tf2_ros::TransformBroadcaster tfb;
+   geometry_msgs::TransformStamped transformStamped;
+
+   transformStamped.header.frame_id = "base_link";
+   transformStamped.child_frame_id = "turn";
+   transformStamped.transform.translation.x = 1; 
+   transformStamped.transform.translation.y = 1;
+   transformStamped.transform.translation.z = 0.0;
+
+   transformStamped.transform.rotation.x = 0; 
+   transformStamped.transform.rotation.y = 0;
+   transformStamped.transform.rotation.z = .38268; //sin 22.5 degrees
+   transformStamped.transform.rotation.w = .92388; //cos 22.5 degrees
+
+   transformStamped.header.stamp = ros::Time::now();
+   tfb.sendTransform(transformStamped);
+}
+
 void Navigation::send_goal(const std_msgs::Empty::ConstPtr& msg) {
    update_goal_mutex.lock();
 
@@ -265,6 +285,10 @@ void Navigation::set_narrow_parameters() {
 }
 
 void Navigation::execute_turn() {
+   geometry_msgs::TransformStamped* current_turn_transform;
+
+   current_turn_transform = &(turn_transform_left[8]);
+
    diag_timer.stop(); //stop the goal update timer
 
    update_goal_mutex.lock();
@@ -272,7 +296,7 @@ void Navigation::execute_turn() {
    //get the transform from odom to goal since the planner only takes goals in 
    //the odom frame
    geometry_msgs::TransformStamped transformStamped;
-   transformStamped = tfBuffer.lookupTransform("odom", "base_link", ros::Time(0), ros::Duration(.5));
+   transformStamped = tfBuffer.lookupTransform("odom", "turn", ros::Time(0), ros::Duration(.5));
 
    move_base_msgs::MoveBaseGoal cur_goal;
 
@@ -280,13 +304,13 @@ void Navigation::execute_turn() {
    cur_goal.target_pose.header.frame_id = "odom";  //goal must be in the odom frame
    cur_goal.target_pose.header.stamp = ros::Time::now();
 
-   cur_goal.target_pose.pose.position.x = transformStamped.transform.translation.x + 1.0;
-   cur_goal.target_pose.pose.position.y = transformStamped.transform.translation.y + 1.0;
+   cur_goal.target_pose.pose.position.x = current_turn_transform->transform.translation.x;
+   cur_goal.target_pose.pose.position.y = current_turn_transform->transform.translation.y;
    cur_goal.target_pose.pose.position.z = 0;
-   cur_goal.target_pose.pose.orientation.w = transformStamped.transform.rotation.w;
-   cur_goal.target_pose.pose.orientation.x = transformStamped.transform.rotation.x;
-   cur_goal.target_pose.pose.orientation.y = transformStamped.transform.rotation.y;
-   cur_goal.target_pose.pose.orientation.z = transformStamped.transform.rotation.z;
+   cur_goal.target_pose.pose.orientation.w = current_turn_transform->transform.rotation.w;
+   cur_goal.target_pose.pose.orientation.x = current_turn_transform->transform.rotation.x;
+   cur_goal.target_pose.pose.orientation.y = current_turn_transform->transform.rotation.y;
+   cur_goal.target_pose.pose.orientation.z = current_turn_transform->transform.rotation.z;
 
    a->sendGoal(cur_goal);
 
@@ -311,3 +335,18 @@ void Navigation::update_goal_callback(const ros::TimerEvent& ev) {
    }
 }
 
+//initialize the turn transform arrays
+void Navigation::init_turn_transforms() {
+   geometry_msgs::TransformStamped *t;
+
+   t = &(turn_transform_left[8]);
+
+   t->transform.translation.x = 1; 
+   t->transform.translation.y = 1;
+   t->transform.translation.z = 0.0;
+
+   t->transform.rotation.x = 0; 
+   t->transform.rotation.y = 0;
+   t->transform.rotation.z = .38268; //sin 22.5 degrees
+   t->transform.rotation.w = .92388; //cos 22.5 degrees
+}

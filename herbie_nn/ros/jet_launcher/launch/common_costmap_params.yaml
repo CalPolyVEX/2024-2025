@@ -21,9 +21,9 @@ obstacles:
              expected_update_rate: 0.2}
 
 inflation_layer:
-    inflation_radius: 0.75 # adjust the inflation for your system setup
+    inflation_radius: 0.7 # adjust the inflation for your system setup
     cost_scaling_factor: 1.75
 
 global_inflation_layer:
-    inflation_radius: 0.75 # adjust the inflation for your system setup
+    inflation_radius: 0.7 # adjust the inflation for your system setup
     cost_scaling_factor: 1.75

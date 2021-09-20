@@ -77,6 +77,8 @@ class Navigation {
   double turn_tracking[TURN_ARRAY_SIZE];
   int turn_index = 0;
   int turn_counter = 0;
+  geometry_msgs::TransformStamped turn_transform_left[64];
+  geometry_msgs::TransformStamped turn_transform_right[64];
 
   //variables for localization
   #define LOCALIZATION_ARRAY_SIZE 200
@@ -122,12 +124,14 @@ class Navigation {
     void publish_pointcloud();
     void autonomous_mode_callback(const std_msgs::Int8::ConstPtr& msg);
     void update_goal_transform();
+    void update_turn_transform();
     void update_goal_callback(const ros::TimerEvent& ev);
     int compute_localization();
     int compute_turn_prob(double* confidence);
     int call_make_plan(double goal_x, double goal_y, double* pose_x, double* pose_y);  //call the planner to test if a plan is found
     void execute_turn();
     void set_narrow_parameters();
+    void init_turn_transforms();
 
     //control board functions
     void create_control_board_msg(int num, void* arg);

@@ -98,6 +98,8 @@ void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
 }
 
 void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& nn_msg) {
+   double turn_confidence;
+
    ground = (double*) &(nn_msg->data[0]);
    loc = (double*) &(nn_msg->data[NUM_GROUND]);
    turn = (double*) &(nn_msg->data[NUM_GROUND + NUM_LOC]);
@@ -105,6 +107,7 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    inference_time = (double) nn_msg->data[NUM_GROUND + NUM_TURN + NUM_LOC + 1];
 
    update_goal_transform();
+   update_turn_transform();
    //draw the localization probability graph
    draw_loc_prob();
 
@@ -143,7 +146,6 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
 
       char coord[2];
       char lcd_msg[32];
-      double turn_confidence;
       coord[0] = 0; //col 0
       coord[1] = 0; //row 0
       create_control_board_msg(1,coord);
