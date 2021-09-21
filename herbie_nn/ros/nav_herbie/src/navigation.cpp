@@ -170,8 +170,10 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    }
 
    //test turning
-   if (cur_loc == 8 && turn_confidence > .95) {
+   int once = 0;
+   if (cur_loc == 8 && turn_confidence > .95 && once ==0) {
       execute_turn();
+      once = 1;
    }
 }
 
@@ -743,7 +745,7 @@ int main(int argc, char** argv) {
   goal_callback=boost::bind(&Navigation::update_goal_callback,&nav_node,_1);
 
   //run the goal update function every 3 seconds
-  diag_timer = h->createTimer(ros::Duration(3.0), goal_callback); 
+  /* diag_timer = h->createTimer(ros::Duration(3.0), goal_callback); */ 
 
   ROS_INFO("Starting navigation");
 

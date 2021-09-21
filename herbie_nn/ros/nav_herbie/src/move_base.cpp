@@ -104,18 +104,18 @@ void convert_image_to_world(int col, int row, double* x, double* y) {
    *y = a;  //y-axis is toward robot left
 
    //testing lookup table
-   /* if (row < 0) */
-   /*    row = 0; */
-   /* else if (row > 359) */
-   /*    row = 359; */
+   if (row < 0)
+      row = 0;
+   else if (row > 359)
+      row = 359;
 
-   /* if (col < 0) */
-   /*    col = 0; */
-   /* else if (col > 639) */
-   /*    col = 639; */
+   if (col < 0)
+      col = 0;
+   else if (col > 639)
+      col = 639;
 
-   /* *x = front[row][col] * .0254; */
-   /* *y = side[row][col] * .0254; */
+   *x = front[row][col] * .0254;
+   *y = side[row][col] * .0254;
 }
 
 void Navigation::set_action_client(MoveBaseClient* ac) {

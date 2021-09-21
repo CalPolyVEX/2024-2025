@@ -33,6 +33,7 @@ void OdometryPublisher::publish_odometry_message(double vx, double vth) {
   
   //create the Odometry message
   nav_msgs::Odometry odom;
+  current_time = ros::Time::now();
   odom.header.stamp = current_time;
   odom.header.frame_id = "odom";
   odom.child_frame_id = "base_link";
@@ -68,6 +69,7 @@ void OdometryPublisher::publish_odometry_message(double vx, double vth) {
   ////////////////////////
   //create the Twist message
   geometry_msgs::TwistWithCovarianceStamped t;
+  current_time = ros::Time::now();
   t.header.stamp = current_time;
   t.header.frame_id = "base_link";
 

@@ -161,6 +161,7 @@ pose0_config: [false, false, false,
 pose0_differential: true
 pose0_relative: true
 pose0_queue_size: 2
+
 #pose0_rejection_threshold: 2  
 #pose0_nodelay: false
 
