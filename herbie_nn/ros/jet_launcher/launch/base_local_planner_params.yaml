@@ -1,6 +1,6 @@
 base_global_planner: "global_planner/GlobalPlanner"
-#base_local_planner: "dwa_local_planner/DWAPlannerROS"
-base_local_planner: "teb_local_planner/TebLocalPlannerROS"
+base_local_planner: "dwa_local_planner/DWAPlannerROS"
+#base_local_planner: "teb_local_planner/TebLocalPlannerROS"
 
 ###################DWA Planner#############################
 DWAPlannerROS:
@@ -50,7 +50,7 @@ aggressive_reset:
   layer_names: ["obstacles"]
 
 planner_patience: 5.0
-planner_frequency: 1
+planner_frequency: .5
 
 #############Teb Local Planner################################
 TebLocalPlannerROS:
@@ -60,12 +60,16 @@ TebLocalPlannerROS:
   # Trajectory
  
   teb_autosize: True
+  #dt_ref: 0.3
   dt_ref: 0.3
+  #dt_hysteresis: 0.1
   dt_hysteresis: 0.1
-  max_samples: 500
+  #max_samples: 500
+  max_samples: 50
   global_plan_overwrite_orientation: True
   allow_init_with_backwards_motion: False
-  max_global_plan_lookahead_dist: 3.0
+  #max_global_plan_lookahead_dist: 3.0
+  max_global_plan_lookahead_dist: 1.0
   global_plan_viapoint_sep: -1
   global_plan_prune_distance: 1
   exact_arc_length: False
@@ -82,8 +86,11 @@ TebLocalPlannerROS:
   acc_lim_theta: 0.5
   min_turning_radius: 0.0
   footprint_model: # types: "point", "circular", "two_circles", "line", "polygon"
-    type: "polygon"
-    vertices: [[-0.195, -0.195], [-0.195, 0.195], [0.195, 0.195], [0.195, -0.195]]
+    #type: "polygon"
+    #vertices: [[-0.195, -0.195], [-0.195, 0.195], [0.195, 0.195], [0.195, -0.195]]
+    type: "circular"
+    radius: .2
+
  
   # GoalTolerance
  
@@ -112,8 +119,10 @@ TebLocalPlannerROS:
   obstacle_cost_exponent: 4
   weight_max_vel_x: 2
   weight_max_vel_theta: 1
-  weight_acc_lim_x: 1
-  weight_acc_lim_theta: 1
+  #weight_acc_lim_x: 1
+  weight_acc_lim_x: 0  #ignore acceleration limits
+  #weight_acc_lim_theta: 1
+  weight_acc_lim_theta: 0  #ignore acceleration limits
   weight_kinematics_nh: 1000
   weight_kinematics_forward_drive: 1
   weight_kinematics_turning_radius: 1

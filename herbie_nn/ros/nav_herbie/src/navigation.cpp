@@ -171,7 +171,7 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
 
    //test turning
    int once = 0;
-   if (cur_loc == 8 && turn_confidence > .95 && once ==0) {
+   if (cur_loc == 8 && turn_confidence > .95 && once == 0) {
       execute_turn();
       once = 1;
    }

@@ -8,6 +8,7 @@ extern ros::NodeHandle *nh;
 extern ros::Subscriber sub_, sub_stop;
 extern ros::Publisher pub_;
 extern ros::Publisher twist_pub;
+int first_encoder_reading = 1;
 
 void OdometryPublisher::publish_odometry_message(double vx, double vth) {
   //publish a new odometry message
@@ -92,6 +93,12 @@ void OdometryPublisher::update_odometry(int enc_left, int enc_right, double* vel
   //ros::Time current_time = ros::Time::now();
 
   //take the encoder counts and update the number of ticks traveled
+  if (first_encoder_reading) {
+     last_enc_left = enc_left;
+     last_enc_right = enc_right;
+     first_encoder_reading = 0;
+  }
+
   left_ticks = enc_left - last_enc_left;
   right_ticks = enc_right - last_enc_right;
   last_enc_left = enc_left;

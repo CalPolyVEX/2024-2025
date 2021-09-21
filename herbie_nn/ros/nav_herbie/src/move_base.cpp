@@ -216,18 +216,20 @@ void Navigation::send_goal(const std_msgs::Empty::ConstPtr& msg) {
 
 void Navigation::publish_pointcloud() {
    int numpoints = 80; //the number of points output by the neural network
+   int interpolate = 14; //number of points to interpolate
+
    sensor_msgs::PointCloud2 cloud_msg;
 
    cloud_msg.header.frame_id = "see3_cam";
    cloud_msg.header.stamp = ros::Time::now();
-   cloud_msg.width  = (numpoints-1)*4; //number of points (interpolate 4 times the points)
+   cloud_msg.width  = (numpoints-1)*interpolate; //number of points (interpolate 4 times the points)
    cloud_msg.height = 1;
    cloud_msg.is_bigendian = false;
    cloud_msg.is_dense = true; // there may be invalid points
 
    sensor_msgs::PointCloud2Modifier modifier(cloud_msg);
    modifier.setPointCloud2FieldsByString(2,"xyz","rgb");
-   modifier.resize((numpoints-1)*4); //interpolate 4 times the points
+   modifier.resize((numpoints-1)*interpolate); //interpolate 4 times the points
 
    //iterators
    sensor_msgs::PointCloud2Iterator<float> out_x(cloud_msg, "x");
@@ -254,7 +256,7 @@ void Navigation::publish_pointcloud() {
       convert_image_to_world(next_x, next_y, &next_b, &next_a);
 
       //this loop computes the interpolated point cloud points
-      for (int j=0; j<4; j++) {
+      for (int j=0; j<interpolate; j++) {
          *out_x = b + ((next_b - b) * scale); //positive x-axis is forward from robot
          *out_y = a + ((next_a - a) * scale); //positive y-axis is to the left of robot
          *out_z = 0.2; //positive z-axis is up from the robot
@@ -272,7 +274,7 @@ void Navigation::publish_pointcloud() {
          ++out_g;
          ++out_b;
 
-         scale += 1.0/4.0;
+         scale += 1.0/interpolate;
       }
 
       a = next_a;
