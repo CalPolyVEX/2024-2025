@@ -137,7 +137,7 @@ class JoystickNode:
       rec_topics = "rosbag record \
          /nav_output_video/compressed /see3cam_cu20/image_raw_live/compressed /point_cloud \
          /move_base/local_costmap/costmap /move_base/global_costmap/costmap /tf /tf_static /ekf_node/odom /roboclaw_twist /cmd_vel \
-         /move_base/GlobalPlanner/plan /move_base/DWAPlannerROS/local_plan /move_base/local_costmap/footprint /move_base/DWAPlannerROS/global_plan \
+         /move_base/DWAPlannerROS/local_plan /move_base/local_costmap/footprint /move_base/DWAPlannerROS/global_plan /move_base/TebLocalPlannerROS/global_plan /move_base/TebLocalPlannerROS/local_plan \
          __name:=my_bag_recorder"
       proc1 = subprocess.Popen('cd /mnt/temp;' + rec_topics, shell=True)
 

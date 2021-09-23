@@ -745,7 +745,7 @@ int main(int argc, char** argv) {
   goal_callback=boost::bind(&Navigation::update_goal_callback,&nav_node,_1);
 
   //run the goal update function every 3 seconds
-  /* diag_timer = h->createTimer(ros::Duration(3.0), goal_callback); */ 
+  diag_timer = h->createTimer(ros::Duration(3.0), goal_callback); 
 
   ROS_INFO("Starting navigation");
 

@@ -104,18 +104,18 @@ void convert_image_to_world(int col, int row, double* x, double* y) {
    *y = a;  //y-axis is toward robot left
 
    //testing lookup table
-   if (row < 0)
-      row = 0;
-   else if (row > 359)
-      row = 359;
+   /* if (row < 0) */
+   /*    row = 0; */
+   /* else if (row > 359) */
+   /*    row = 359; */
 
-   if (col < 0)
-      col = 0;
-   else if (col > 639)
-      col = 639;
+   /* if (col < 0) */
+   /*    col = 0; */
+   /* else if (col > 639) */
+   /*    col = 639; */
 
-   *x = front[row][col] * .0254;
-   *y = side[row][col] * .0254;
+   /* *x = front[row][col] * .0254; */
+   /* *y = side[row][col] * .0254; */
 }
 
 void Navigation::set_action_client(MoveBaseClient* ac) {
@@ -167,6 +167,10 @@ void Navigation::update_goal_transform() {
 }
 
 void Navigation::update_turn_transform() {
+   geometry_msgs::TransformStamped *t;
+
+   t = &(turn_transform_left[8]);
+
    //testing
    static tf2_ros::TransformBroadcaster tfb;
    geometry_msgs::TransformStamped transformStamped;
@@ -329,13 +333,13 @@ void Navigation::execute_turn() {
    cur_goal.target_pose.header.frame_id = "odom";  //goal must be in the odom frame
    cur_goal.target_pose.header.stamp = ros::Time::now();
 
-   cur_goal.target_pose.pose.position.x = current_turn_transform->transform.translation.x;
-   cur_goal.target_pose.pose.position.y = current_turn_transform->transform.translation.y;
+   cur_goal.target_pose.pose.position.x = transformStamped.transform.translation.x;
+   cur_goal.target_pose.pose.position.y = transformStamped.transform.translation.y;
    cur_goal.target_pose.pose.position.z = 0;
-   cur_goal.target_pose.pose.orientation.w = current_turn_transform->transform.rotation.w;
-   cur_goal.target_pose.pose.orientation.x = current_turn_transform->transform.rotation.x;
-   cur_goal.target_pose.pose.orientation.y = current_turn_transform->transform.rotation.y;
-   cur_goal.target_pose.pose.orientation.z = current_turn_transform->transform.rotation.z;
+   cur_goal.target_pose.pose.orientation.w = transformStamped.transform.rotation.w;
+   cur_goal.target_pose.pose.orientation.x = transformStamped.transform.rotation.x;
+   cur_goal.target_pose.pose.orientation.y = transformStamped.transform.rotation.y;
+   cur_goal.target_pose.pose.orientation.z = transformStamped.transform.rotation.z;
 
    a->sendGoal(cur_goal);
 
