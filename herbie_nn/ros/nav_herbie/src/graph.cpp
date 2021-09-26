@@ -55,23 +55,6 @@ void Navigation::convert_to_heading(float w, float x, float y, float z) {
    last_heading = heading;  // move to next
 }
 
-int getIndex(vector<std::string> v, std::string K)
-{
-    /* auto it = find(v.begin(), v.end(), K); */
- 
-    /* // If element was found */
-    /* if (it != v.end()) */
-    /* { */
-    /*    // calculating the index of K */
-    /*    return it - v.begin(); */
-    /* } */
-    /* else { */
-    /*   std::cout << "find error" << std::endl; */
-    /*   return -1; */
-    /* } */
-   return 0;
-}
-
 void Navigation::graph_init() {
    /* std::map<std::string, int> nodes1 = { */
    /*    //straight nodes */
@@ -505,41 +488,24 @@ void Navigation::graph_init() {
 
    //printing test attribute
    std::cout << "vertex id: " << VAS(&gr, "id", 2) << std::endl;
+
+   path_to_next_goal();
 }
 
 void Navigation::path_to_next_goal() {
-   /* // defining the type of the Dijkstra Class */
-   /* using SptSolver = lemon::Dijkstra<lemon::SmartDigraph, lemon::SmartDigraph::ArcMap<double>>; */
+   igraph_vector_t v,e;
 
-   /* //print next turn direction */
-   /* int current_node = 1; */
-   /* int dest_node = 30; */
+   igraph_vector_init(&v, 100);
+   igraph_vector_init(&e, 100);
 
-   /* lemon::SmartDigraph::Node startN = main_map.nodeFromId( getIndex(nodes,"1_2_straight") ); */
-   /* lemon::SmartDigraph::Node endN = main_map.nodeFromId( getIndex(nodes,"9_13_left") ); */
+   igraph_get_shortest_path(&gr, &v, &e, 4, 27, IGRAPH_OUT);
 
-   /* std::cout << "start: " << nodeMap[startN] << std::endl; */
-   /* std::cout << "end: " << nodeMap[endN] << std::endl; */
+   int i=0;
+   while ((int)VECTOR(v)[i] != 27) {
+      std::cout << (int) VECTOR(v)[i] << std::endl;
+      i++;
+   }
 
-   /* SptSolver spt(main_map, costMap); */
-   /* spt.run(startN, endN); */
-
-   /* std::vector<lemon::SmartDigraph::Node> path; */
-   /* for (lemon::SmartDigraph::Node v = endN; v != startN; v = spt.predNode(v)) */
-   /* { */
-   /*    if (v != lemon::INVALID && spt.reached(v)) //special LEMON node constant */
-   /*    { */
-   /*       path.push_back(v); */
-   /*    } */
-   /* } */
-   /* path.push_back(startN); */
-
-   /* //print out the path with reverse iterator */
-   /* std::cout << "Path from " << " to " << " is: " << std::endl; */
-   /* for (auto p = path.rbegin(); p != path.rend(); ++p) */
-   /*    std::cout << nodeMap[*p] << std::endl; */
-
-   /* //print out the shortest cost */
-   /* double cost = spt.dist(endN); */
-   /* std::cout << "Total cost for the shortest path is: "<< cost << std::endl; */
+   igraph_vector_destroy(&v);
+   igraph_vector_destroy(&e);
 }
