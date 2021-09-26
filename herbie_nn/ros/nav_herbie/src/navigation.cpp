@@ -97,6 +97,8 @@ void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
    }
 }
 
+int once = 0;
+
 void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& nn_msg) {
    double turn_confidence;
 
@@ -170,9 +172,9 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    }
 
    //test turning
-   int once = 0;
-   if (cur_loc == 8 && turn_confidence > .95 && once == 0) {
-      execute_turn();
+   if ((cur_loc == 8) && (turn_confidence > .95) && (once == 0)) {
+      int turn_dir = get_next_turn_dir(cur_loc,29); //next turn direction
+      execute_turn(cur_loc,turn_dir); //execute left turn
       once = 1;
    }
 }
@@ -730,7 +732,7 @@ int main(int argc, char** argv) {
 
   Navigation nav_node;
   nav_node.graph_init();
-  ros::shutdown(); //exit
+  /* ros::shutdown(); //exit */
 
   MoveBaseClient ac("move_base", true);
   
@@ -747,7 +749,7 @@ int main(int argc, char** argv) {
   goal_callback=boost::bind(&Navigation::update_goal_callback,&nav_node,_1);
 
   //run the goal update function every 3 seconds
-  diag_timer = h->createTimer(ros::Duration(3.0), goal_callback); 
+  diag_timer = h->createTimer(ros::Duration(2.0), goal_callback); 
 
   ROS_INFO("Starting navigation");
 

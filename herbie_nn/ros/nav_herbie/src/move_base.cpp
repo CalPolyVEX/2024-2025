@@ -6,7 +6,7 @@
 
 #include <pcl_conversions/pcl_conversions.h>
 #include <sensor_msgs/PointCloud2.h>
-//#include "output.h"
+#include "output.h"
 
 extern int sim_mode;
 extern ros::Timer diag_timer;
@@ -88,10 +88,14 @@ void convert_image_to_world(int col, int row, double* x, double* y) {
    /*           {-5.526553689847709e-05,0.004262116239831571,-0.19803144040722234}}; */
 
    //9/12/21 calibration
-   double r_t_inv[3][3] = {{-0.00266937920376545,-0.00011232742977799345,0.8538495118346788},
-      {3.7348555556903726e-05,-0.002714164927900428,1.1541406814343038},
-      {-2.1784034424370855e-05,0.0033593149732969742,-0.10899350363712738}};
+   /* double r_t_inv[3][3] = {{-0.00266937920376545,-0.00011232742977799345,0.8538495118346788}, */
+   /*    {3.7348555556903726e-05,-0.002714164927900428,1.1541406814343038}, */
+   /*    {-2.1784034424370855e-05,0.0033593149732969742,-0.10899350363712738}}; */
 
+   //9/23/21 calibration
+   double r_t_inv[3][3] = {{-0.0029710385858653108,-2.0372969150804934e-05,0.9260424951167465},
+      {1.4259051739232575e-05,-0.00253422318646511,1.2048751880635866},
+      {-6.136870472003728e-05,0.00437942965513288,-0.22477696834779506}};
 
    double a = (r_t_inv[0][0] * col) + (r_t_inv[0][1] * row) + (r_t_inv[0][2] * 1); 
    double b = (r_t_inv[1][0] * col) + (r_t_inv[1][1] * row) + (r_t_inv[1][2] * 1); 
@@ -104,18 +108,22 @@ void convert_image_to_world(int col, int row, double* x, double* y) {
    *y = a;  //y-axis is toward robot left
 
    //testing lookup table
-   /* if (row < 0) */
-   /*    row = 0; */
-   /* else if (row > 359) */
-   /*    row = 359; */
+   /* int lookup_table = 0; */
 
-   /* if (col < 0) */
-   /*    col = 0; */
-   /* else if (col > 639) */
-   /*    col = 639; */
+   /* if (lookup_table == 1) { */
+   /*    if (row < 0) */
+   /*       row = 0; */
+   /*    else if (row > 359) */
+   /*       row = 359; */
 
-   /* *x = front[row][col] * .0254; */
-   /* *y = side[row][col] * .0254; */
+   /*    if (col < 0) */
+   /*       col = 0; */
+   /*    else if (col > 639) */
+   /*       col = 639; */
+
+   /*    *x = front[row][col] * .0254; */
+   /*    *y = side[row][col] * .0254; */
+   /* } */
 }
 
 void Navigation::set_action_client(MoveBaseClient* ac) {
@@ -177,8 +185,8 @@ void Navigation::update_turn_transform() {
 
    transformStamped.header.frame_id = "base_link";
    transformStamped.child_frame_id = "turn";
-   transformStamped.transform.translation.x = 1; 
-   transformStamped.transform.translation.y = 1;
+   transformStamped.transform.translation.x = 2; 
+   transformStamped.transform.translation.y = .5;
    transformStamped.transform.translation.z = 0.0;
 
    transformStamped.transform.rotation.x = 0; 
@@ -313,10 +321,16 @@ void Navigation::set_narrow_parameters() {
    ros::service::call("/move_base/set_parameters", srv_req, srv_resp);
 }
 
-void Navigation::execute_turn() {
+void Navigation::execute_turn(int hallway_num, int dir) {
    geometry_msgs::TransformStamped* current_turn_transform;
 
-   current_turn_transform = &(turn_transform_left[8]);
+   if (dir == 0) { //turn left
+      current_turn_transform = &(turn_transform_left[hallway_num]);
+   } else if (dir == 2) { //turn right
+      current_turn_transform = &(turn_transform_right[hallway_num]);
+   } else { //keep going straight
+      return;
+   }
 
    diag_timer.stop(); //stop the goal update timer
 
@@ -371,7 +385,7 @@ void Navigation::init_turn_transforms() {
    t = &(turn_transform_left[8]);
 
    t->transform.translation.x = 1; 
-   t->transform.translation.y = 1;
+   t->transform.translation.y = .5;
    t->transform.translation.z = 0.0;
 
    t->transform.rotation.x = 0; 

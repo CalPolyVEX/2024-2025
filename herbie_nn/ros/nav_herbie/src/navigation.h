@@ -17,7 +17,8 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include <ros/console.h>
-#include <boost/thread.hpp>
+//#include <boost/thread.hpp>
+#include <mutex>
 #include <iostream>
 #include <cmath>
 #include <queue>
@@ -99,7 +100,7 @@ class Navigation {
   tf2_ros::Buffer tfBuffer;
   tf2_ros::TransformListener* tfListener;
   std::string service_name = "move_base/make_plan";
-  boost::mutex update_goal_mutex;
+  std::mutex update_goal_mutex;
 
   public:
     Navigation(); 
@@ -132,7 +133,7 @@ class Navigation {
     int compute_localization();
     int compute_turn_prob(double* confidence);
     int call_make_plan(double goal_x, double goal_y, double* pose_x, double* pose_y);  //call the planner to test if a plan is found
-    void execute_turn();
+    void execute_turn(int hallway_num, int dir);
     void set_narrow_parameters();
     void init_turn_transforms();
 

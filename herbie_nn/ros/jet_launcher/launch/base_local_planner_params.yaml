@@ -1,6 +1,6 @@
 base_global_planner: "global_planner/GlobalPlanner"
-#base_local_planner: "dwa_local_planner/DWAPlannerROS"
-base_local_planner: "teb_local_planner/TebLocalPlannerROS"
+base_local_planner: "dwa_local_planner/DWAPlannerROS"
+#base_local_planner: "teb_local_planner/TebLocalPlannerROS"
 
 ###################DWA Planner#############################
 DWAPlannerROS:
@@ -20,7 +20,7 @@ DWAPlannerROS:
 
   holonomic_robot: false
 
-  sim_time: 1.5
+  sim_time: 2.0
   path_distance_bias: 32
   goal_distance_bias: 20
   occdist_scale: .02
@@ -37,8 +37,7 @@ DWAPlannerROS:
 GlobalPlanner:
   neutral_cost: 66
   cost_factor: .55
-  default_tolerance: 1.0
-
+  default_tolerance: 0.7
 
 recovery_behavior_enabled: true
 recovery_behaviors:
@@ -66,7 +65,7 @@ TebLocalPlannerROS:
   #dt_hysteresis: 0.1
   dt_hysteresis: 0.1
   #max_samples: 500
-  max_samples: 500
+  max_samples: 400
   global_plan_overwrite_orientation: True
   allow_init_with_backwards_motion: False
   #max_global_plan_lookahead_dist: 3.0
@@ -92,7 +91,6 @@ TebLocalPlannerROS:
     #vertices: [[-0.195, -0.195], [-0.195, 0.195], [0.195, 0.195], [0.195, -0.195]]
     type: "circular"
     radius: .26
-
  
   # GoalTolerance
  
@@ -183,7 +181,8 @@ TebLocalPlannerROS:
     cluster_max_distance: 0.4
     cluster_min_pts: 2
     ransac_inlier_distance: 0.15
-    ransac_min_inliers: 10
+    #ransac_min_inliers: 10
+    ransac_min_inliers: 13
     #ransac_no_iterations: 1500
     ransac_no_iterations: 1000
     ransac_remainig_outliers: 3
