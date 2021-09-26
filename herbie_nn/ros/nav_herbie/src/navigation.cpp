@@ -6,7 +6,7 @@
 #include <getopt.h>
 #include "navigation.h"
 
-#include <lemon/list_graph.h>
+/* #include <lemon/list_graph.h> */
 
 using namespace std;
 
@@ -730,6 +730,8 @@ int main(int argc, char** argv) {
 
   Navigation nav_node;
   nav_node.graph_init();
+  ros::shutdown(); //exit
+
   MoveBaseClient ac("move_base", true);
   
   nav_node.set_action_client(&ac);

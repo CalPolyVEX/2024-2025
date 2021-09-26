@@ -27,7 +27,8 @@
 
 #include <nav_msgs/GetPlan.h>
 
-#include <lemon/smart_graph.h>
+/* #include <lemon/smart_graph.h> */
+#include <igraph.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
 
@@ -70,6 +71,7 @@ class Navigation {
   int goal_cur_index = 0;
 
   //variables for graph
+  igraph_t gr;
   std::vector<std::string> nodes;
 
   //variables for turn

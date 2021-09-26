@@ -30,6 +30,7 @@ catkin_package(
 
 include_directories(
   ${catkin_INCLUDE_DIRS} 
+  /usr/local/include/igraph
 )
 
 add_executable(navigation
@@ -40,4 +41,6 @@ add_executable(navigation
   src/navigation.h)
 
 add_dependencies(navigation ${PROJECT_NAME}_gencfg)
-target_link_libraries(navigation ${catkin_LIBRARIES})
+target_link_libraries(navigation ${catkin_LIBRARIES} -ligraph -L/usr/local/lib)
+#target_include_directories (${JS_OPENCV_V4L2_BIN} PUBLIC ${V4L2_HELPER_LIB_INCLUDE_DIR})
+#target_link_libraries (${JS_OPENCV_V4L2_BIN} v4l2_helper ${catkin_LIBRARIES})
