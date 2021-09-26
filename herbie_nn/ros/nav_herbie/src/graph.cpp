@@ -1,17 +1,11 @@
 //This file contains functions for the graph map
 
 #include "navigation.h"
-
-/* #include <lemon/smart_graph.h> */
-/* #include <lemon/dijkstra.h> */
+#include <cstring>
 
 extern int sim_mode;
 
 using namespace std;
-
-/* lemon::SmartDigraph main_map; */
-/* lemon::SmartDigraph::NodeMap<std::string> nodeMap(main_map); */
-/* lemon::SmartDigraph::ArcMap<double> costMap(main_map); */ 
 
 void Navigation::odom_callback(const nav_msgs::Odometry::ConstPtr& msg) { 
    float w = msg->pose.pose.orientation.w; 
@@ -361,43 +355,17 @@ void Navigation::graph_init() {
    /*    Arc {"10_9_straight", "9_8_straight",   1}      //75 */
    /* }; */    
 
-   /* //populate graph */
-   /* //nodes first */
-   /* lemon::SmartDigraph::Node currentNode; */
-   /* for (auto nodesIter = nodes.begin(); nodesIter != nodes.end(); ++nodesIter) */
-   /* { */
-   /*    string key = *nodesIter; */
-   /*    /1* std::cout << key << std::endl; *1/ */
-   /*    currentNode = main_map.addNode(); */
-   /*    nodeMap[currentNode] = key; */
-   /* } */
-
-   /* //then the arcs with the costs through the cost map */
-   /* lemon::SmartDigraph::Arc currentArc; */
-   /* for (auto arcsIter = arcs.begin(); arcsIter != arcs.end(); ++arcsIter) */
-   /* { */
-   /*    int sourceIndex = getIndex(nodes,arcsIter->sourceID); */
-   /*    int targetIndex = getIndex(nodes,arcsIter->targetID); */
-
-   /*    lemon::SmartDigraph::Node sourceNode = main_map.nodeFromId(sourceIndex); */
-   /*    lemon::SmartDigraph::Node targetNode = main_map.nodeFromId(targetIndex); */
-
-   /*    currentArc = main_map.addArc(sourceNode, targetNode); */
-   /*    costMap[currentArc] = arcsIter->cost; */
-   /* } */
-
-
-   /* path_to_next_goal(); */
    igraph_vector_t v1, v2;
    igraph_strvector_t vector_names;
-
-   /* igraph_create(&gr, &v1, 0, 0); //create a graph with 5 edges */
 
    /* turn on attribute handling */
    igraph_set_attribute_table(&igraph_cattribute_table);
 
-   igraph_empty(&gr, 64, 1); //create a directed graph with 0 vertices
+   igraph_empty(&gr, 64, 1); //create a directed graph with 64 vertices
 
+   //In the graph, vertices are hallways and edges connect the hallways.
+   //Each of the edges has a turn direction associated with the edge (Straight,
+   //Left, or Right).
    igraph_add_edge(&gr, 0, 2);    SETEAS(&gr, "turn_dir", 0, "S"); 
    igraph_add_edge(&gr, 0, 4);    SETEAS(&gr, "turn_dir", 1, "L"); 
 
@@ -465,47 +433,86 @@ void Navigation::graph_init() {
    igraph_strvector_init(&vector_names, 0);
    /* igraph_vector_destroy(&v1); */
 
-   SETVAS(&gr, "id", 1, "test");
-   SETEAN(&gr, "weight", 2, 100.0); //set edge 2 weight to 100.0
-
-   /* igraph_vector_init(&v2, 0); */
-   /* igraph_get_edgelist(&gr, &v2, 0); */
-   /* igraph_vector_sort(&v1); */
-   /* igraph_vector_sort(&v2); */
-
    int n_vert = (int) igraph_vcount(&gr); //get the number of vertices
-   int n_edge = (int) igraph_ecount(&gr);
+   int n_edge = (int) igraph_ecount(&gr); //get the number of edges
 
-   std::cout << "Graph init complete.\n";
+   std::cout << "Graph initialization complete.\n";
    std::cout << "Number of vertices: " << n_vert << std::endl;
    std::cout << "Number of edges: " << n_edge << std::endl;
 
-   for (int i=0; i<n_edge; i++) {
-      igraph_integer_t from, to;
-      igraph_edge(&gr, i, &from, &to);
-      std::cout << "from: " << (int) from << "  to: " << (int)to << std::endl;
-   }
+   //print all the edges
+   /* for (int i=0; i<n_edge; i++) { */
+   /*    igraph_integer_t from, to; */
+   /*    igraph_edge(&gr, i, &from, &to); */
+   /*    std::cout << "from: " << (int) from << "  to: " << (int)to << std::endl; */
+   /* } */
 
-   //printing test attribute
-   std::cout << "vertex id: " << VAS(&gr, "id", 2) << std::endl;
-
-   path_to_next_goal();
+   /* path_to_next_goal(); */
+   std::cout << get_next_turn_dir(8,29) << std::endl;
 }
 
 void Navigation::path_to_next_goal() {
-   igraph_vector_t v,e;
+   int start = 17;
+   int end = 22;
 
-   igraph_vector_init(&v, 100);
-   igraph_vector_init(&e, 100);
+   igraph_vector_t vertices,edges;
 
-   igraph_get_shortest_path(&gr, &v, &e, 4, 27, IGRAPH_OUT);
+   igraph_vector_init(&vertices, 20); //initialize to default size of 20
+   igraph_vector_init(&edges, 20);
 
+   igraph_get_shortest_path(&gr, &vertices, &edges, start, end, IGRAPH_OUT);
+
+   //print out the vertices to get from start to end
    int i=0;
-   while ((int)VECTOR(v)[i] != 27) {
-      std::cout << (int) VECTOR(v)[i] << std::endl;
+   int current_vertex = VECTOR(vertices)[0]; //initialize to the starting vertex
+
+   while (current_vertex != end) {
+      std::cout << current_vertex << std::endl;
+      int last_vertex = current_vertex; 
       i++;
+      current_vertex = VECTOR(vertices)[i];
+
+      igraph_integer_t edge;
+      int eid = igraph_get_eid(&gr, &edge, last_vertex, current_vertex, IGRAPH_DIRECTED, 0); //lookup the edge id
+      if (eid != -1) {
+         //printing turn_dir
+         std::cout << "\tturn_dir: " << EAS(&gr, "turn_dir", edge) << std::endl;
+      }
    }
 
-   igraph_vector_destroy(&v);
-   igraph_vector_destroy(&e);
+   igraph_vector_destroy(&vertices);
+   igraph_vector_destroy(&edges);
+}
+
+//returns the direction of the next turn in the path (0=left, 1=straight, 2=right)
+int Navigation::get_next_turn_dir(int start, int end) {
+   igraph_vector_t vertices,edges;
+
+   igraph_vector_init(&vertices, 20); //initialize to default size of 20
+   igraph_vector_init(&edges, 20);
+
+   igraph_get_shortest_path(&gr, &vertices, &edges, start, end, IGRAPH_OUT);
+
+   //print out the vertices to get from start to end
+   int current_vertex = VECTOR(vertices)[0]; //initialize to the starting vertex
+   int next_vertex = VECTOR(vertices)[1];    //initialize to the next vertex in path
+   int direction = -1; //initialize to error
+   
+   igraph_integer_t edge;
+   int eid = igraph_get_eid(&gr, &edge, current_vertex, next_vertex, IGRAPH_DIRECTED, 0); //lookup the edge id
+   if (eid != -1) {
+      const char* dir_string = EAS(&gr, "turn_dir", edge);
+
+      if (strcmp("L", dir_string) == 0)
+         direction = 0;
+      else if (strcmp("S", dir_string) == 0)
+         direction = 1;
+      else if (strcmp("R", dir_string) == 0)
+         direction = 2;
+   }
+
+   igraph_vector_destroy(&vertices);
+   igraph_vector_destroy(&edges);
+
+   return direction;
 }

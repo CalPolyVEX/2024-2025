@@ -119,6 +119,7 @@ class Navigation {
     void convert_to_heading(float w, float x, float y, float z);
     void graph_init();
     void path_to_next_goal();
+    int get_next_turn_dir(int start, int end);
 
     //move base functions
     void send_goal(const std_msgs::Empty::ConstPtr& msg);
