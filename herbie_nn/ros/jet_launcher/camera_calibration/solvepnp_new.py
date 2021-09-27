@@ -90,7 +90,7 @@ class camera_transform:
 
         ]],
         dtype=np.float64)
-      self.objectPoints = .0254*self.objectPoints #convert to meters
+      #self.objectPoints = .0254*self.objectPoints #convert to meters
 
       # print (self.objectPoints.shape)
 

@@ -58,23 +58,23 @@ class Interpolate:
         for row in range(360):
             for col in range(640):
                 if self.dataset_side[row,col] == -5000:
-                    temp = interp.nearest_neighbor_interpolation(self.dataset_x, col, row)
+                    temp = interp.nearest_neighbor_interpolation(self.dataset_x, col, row, p=6)
                     self.dataset_side[row,col] = temp
                 else:
                     print ('existing')
 
                 if self.dataset_front[row,col] == -5000:
-                    temp = interp.nearest_neighbor_interpolation(self.dataset_y, col, row)
+                    temp = interp.nearest_neighbor_interpolation(self.dataset_y, col, row, p=6)
                     self.dataset_front[row,col] = temp
             counter += 1
             print(counter)
 
 
     def generate_output(self):
-        col_max = 15
+        col_max = 640
         row_max = 360
 
-        print("float front[360,640] = {")
+        print("float front[360][640] = {")
         for row in range(row_max):
             print ("{", end='')
             for col in range(col_max):
@@ -89,7 +89,7 @@ class Interpolate:
                 print (',')
         print ('};')
 
-        print("float side[360,640] = {")
+        print("float side[360][640] = {")
         for row in range(row_max):
             print ("{", end='')
             for col in range(col_max):
