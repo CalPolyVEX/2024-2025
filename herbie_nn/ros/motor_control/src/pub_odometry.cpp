@@ -138,7 +138,7 @@ void OdometryPublisher::setmotor(int duty_cyclel, int duty_cycler) {
   while ((board_queue.size() != 0) && (sent_board_packets < 7)) {
      herbie_board_queue_mutex.unlock();
      //usleep(1500);
-     usleep(3100);
+     usleep(3200);
      struct packet p;
 
      herbie_board_queue_mutex.lock();

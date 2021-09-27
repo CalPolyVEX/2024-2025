@@ -76,6 +76,9 @@ Navigation::Navigation() : it(nh) {
   //tell the action client that we want to spin a thread by default
   tfListener = new tf2_ros::TransformListener(tfBuffer);
   h = &nh; //set the ROS node handle
+
+  //initialize the hardcoded turn information
+  init_turn_transforms();
 }
 
 void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
@@ -348,30 +351,49 @@ void Navigation::draw_loc_prob() {
    }
 }
 
+#define HALLWAY_NUM 30
 int Navigation::compute_localization() {
    //localization from the neural network is updated at 20Hz
    float confidence_threshold = .90;
    int temp_index = localization_index - 1;
+   int hallway_count[HALLWAY_NUM];
+   float hallway_confidence[HALLWAY_NUM];
+   int max_count = 0;
+   int max_estimate;
+   int estimate;
 
    if (temp_index < 0) {
       temp_index += LOCALIZATION_ARRAY_SIZE;
    }
 
-   int estimate = localization_tracking[temp_index];
+   for (int i=0; i<HALLWAY_NUM; i++) {
+      hallway_count[i] = 0;
+      hallway_confidence[i] = 0;
+   }
 
-   for (int i=0; i<4; i++) {
-      if ((localization_tracking[temp_index] != estimate) || (localization_value[temp_index] < confidence_threshold)) {
-         return -1;
-      }
-
-      temp_index -= 2;
+   for (int i=0; i<8; i++) {
+      estimate = localization_tracking[temp_index];
+      hallway_confidence[estimate] += localization_value[temp_index]; //sum up the confidence values
+      hallway_count[estimate]++;
+      temp_index--;
 
       if (temp_index < 0) {
          temp_index += LOCALIZATION_ARRAY_SIZE;
       }
    }
 
-   return estimate; //the localization estimate
+   //find the max number of hallway id's that appear
+   for (int i=0; i<HALLWAY_NUM; i++) {
+      if (hallway_count[i] > max_count) {
+         max_count = hallway_count[i];
+         max_estimate = i;
+      }
+   }
+
+   if (max_count > 6)
+      return max_estimate;
+   else
+      return -1;  //unknown
 }
 
 int Navigation::compute_turn_prob(double* confidence) {
