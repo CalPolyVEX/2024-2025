@@ -8,8 +8,6 @@ extern int sim_mode;
 using namespace std;
 
 void Navigation::graph_init() {
-   igraph_vector_t v1, v2;
-
    /* turn on attribute handling */
    igraph_set_attribute_table(&igraph_cattribute_table);
 
@@ -18,69 +16,81 @@ void Navigation::graph_init() {
    //In the graph, vertices are hallways and edges connect the hallways.
    //Each of the edges has a turn direction associated with the edge (Straight,
    //Left, or Right).
-   igraph_add_edge(&gr, 0, 2);    SETEAS(&gr, "turn_dir", 0, "S"); 
-   igraph_add_edge(&gr, 0, 4);    SETEAS(&gr, "turn_dir", 1, "L"); 
+   igraph_add_edge(&gr, 0, 2);    SETEAS(&gr, "turn_dir", 0, "S");    
+   igraph_add_edge(&gr, 0, 4);    SETEAS(&gr, "turn_dir", 1, "L");    
+                                                                      
+   igraph_add_edge(&gr, 1, 17);   SETEAS(&gr, "turn_dir", 2, "R");    
+                                                                      
+   igraph_add_edge(&gr, 2, 23);   SETEAS(&gr, "turn_dir", 3, "L");    
+                                                                      
+   igraph_add_edge(&gr, 3, 1);    SETEAS(&gr, "turn_dir", 4, "S");    
+   igraph_add_edge(&gr, 3, 4);    SETEAS(&gr, "turn_dir", 5, "R");    
+                                                                      
+   igraph_add_edge(&gr, 4, 7);    SETEAS(&gr, "turn_dir", 6, "R");    
+                                                                      
+   igraph_add_edge(&gr, 5, 1);    SETEAS(&gr, "turn_dir", 7, "R");    
+   igraph_add_edge(&gr, 5, 2);    SETEAS(&gr, "turn_dir", 8, "L");    
+                                                                      
+   igraph_add_edge(&gr, 6, 5);    SETEAS(&gr, "turn_dir", 9, "L");    
+                                                                       
+   igraph_add_edge(&gr, 7, 8);    SETEAS(&gr, "turn_dir", 10, "L");   
+   igraph_add_edge(&gr, 8, 11);   SETEAS(&gr, "turn_dir", 11, "L");   
+   igraph_add_edge(&gr, 9, 6);    SETEAS(&gr, "turn_dir", 12, "R");   
+   igraph_add_edge(&gr, 10, 9);   SETEAS(&gr, "turn_dir", 13, "R");   
+   igraph_add_edge(&gr, 11, 12);  SETEAS(&gr, "turn_dir", 14, "R");   
+                                                                      
+   igraph_add_edge(&gr, 12, 15);  SETEAS(&gr, "turn_dir", 15, "L");   
+   igraph_add_edge(&gr, 12, 18);  SETEAS(&gr, "turn_dir", 16, "R");   
+                                                                      
+   igraph_add_edge(&gr, 13, 10);  SETEAS(&gr, "turn_dir", 17, "L");   
+                                                                      
+   igraph_add_edge(&gr, 14, 13);  SETEAS(&gr, "turn_dir", 18, "R");   
+   igraph_add_edge(&gr, 14, 18);  SETEAS(&gr, "turn_dir", 19, "S");   
+                                                                      
+   igraph_add_edge(&gr, 15, 16);  SETEAS(&gr, "turn_dir", 20, "L");   
+   igraph_add_edge(&gr, 15, 29);  SETEAS(&gr, "turn_dir", 21, "R");   
+                                                                      
+   igraph_add_edge(&gr, 16, 0);   SETEAS(&gr, "turn_dir", 22, "L");   
+                                                                      
+   igraph_add_edge(&gr, 17, 14);  SETEAS(&gr, "turn_dir", 23, "R");   
+   igraph_add_edge(&gr, 17, 29);  SETEAS(&gr, "turn_dir", 24, "S");   
+                                                                      
+   igraph_add_edge(&gr, 18, 21);  SETEAS(&gr, "turn_dir", 25, "S");   
+   igraph_add_edge(&gr, 18, 24);  SETEAS(&gr, "turn_dir", 26, "L");   
+                                                                      
+   igraph_add_edge(&gr, 19, 13);  SETEAS(&gr, "turn_dir", 27, "L");   
+   igraph_add_edge(&gr, 19, 15);  SETEAS(&gr, "turn_dir", 28, "S");   
+                                                                      
+   igraph_add_edge(&gr, 20, 19);  SETEAS(&gr, "turn_dir", 29, "S");   
+   igraph_add_edge(&gr, 20, 24);  SETEAS(&gr, "turn_dir", 30, "R");   
+                                                                      
+   igraph_add_edge(&gr, 21, 22);  SETEAS(&gr, "turn_dir", 31, "R");   
+   igraph_add_edge(&gr, 22, 3);   SETEAS(&gr, "turn_dir", 32, "R");   
+   igraph_add_edge(&gr, 23, 20);  SETEAS(&gr, "turn_dir", 33, "L");   
+   igraph_add_edge(&gr, 24, 27);  SETEAS(&gr, "turn_dir", 34, "L");   
+                                                                      
+   igraph_add_edge(&gr, 25, 19);  SETEAS(&gr, "turn_dir", 35, "R");   
+   igraph_add_edge(&gr, 25, 21);  SETEAS(&gr, "turn_dir", 36, "L");   
+                                                                      
+   igraph_add_edge(&gr, 26, 25);  SETEAS(&gr, "turn_dir", 37, "R");   
+   igraph_add_edge(&gr, 27, 28);  SETEAS(&gr, "turn_dir", 38, "L");   
+                                                                      
+   igraph_add_edge(&gr, 28, 14);  SETEAS(&gr, "turn_dir", 39, "L");   
+   igraph_add_edge(&gr, 28, 16);  SETEAS(&gr, "turn_dir", 40, "S");   
+                                                                      
+   igraph_add_edge(&gr, 29, 26);  SETEAS(&gr, "turn_dir", 41, "R");   
 
-   igraph_add_edge(&gr, 1, 17);   SETEAS(&gr, "turn_dir", 2, "R");
+   for (int i=0; i<42; i++) { //set all hallway to not narrow
+      SETVAN(&gr, "narrow", i, 0);
+   }
 
-   igraph_add_edge(&gr, 2, 23);   SETEAS(&gr, "turn_dir", 3, "L");
-
-   igraph_add_edge(&gr, 3, 1);    SETEAS(&gr, "turn_dir", 4, "S");
-   igraph_add_edge(&gr, 3, 4);    SETEAS(&gr, "turn_dir", 5, "R");
-
-   igraph_add_edge(&gr, 4, 7);    SETEAS(&gr, "turn_dir", 6, "R");
-
-   igraph_add_edge(&gr, 5, 1);    SETEAS(&gr, "turn_dir", 7, "R");
-   igraph_add_edge(&gr, 5, 2);    SETEAS(&gr, "turn_dir", 8, "L");
-
-   igraph_add_edge(&gr, 6, 5);    SETEAS(&gr, "turn_dir", 9, "L");
-
-   igraph_add_edge(&gr, 7, 8);    SETEAS(&gr, "turn_dir", 10, "L");
-   igraph_add_edge(&gr, 8, 11);   SETEAS(&gr, "turn_dir", 11, "L");
-   igraph_add_edge(&gr, 9, 6);    SETEAS(&gr, "turn_dir", 12, "R");
-   igraph_add_edge(&gr, 10, 9);   SETEAS(&gr, "turn_dir", 13, "R");
-   igraph_add_edge(&gr, 11, 12);  SETEAS(&gr, "turn_dir", 14, "R");
-
-   igraph_add_edge(&gr, 12, 15);  SETEAS(&gr, "turn_dir", 15, "L");
-   igraph_add_edge(&gr, 12, 18);  SETEAS(&gr, "turn_dir", 16, "R");
-
-   igraph_add_edge(&gr, 13, 10);  SETEAS(&gr, "turn_dir", 17, "L");
-
-   igraph_add_edge(&gr, 14, 13);  SETEAS(&gr, "turn_dir", 18, "R");
-   igraph_add_edge(&gr, 14, 18);  SETEAS(&gr, "turn_dir", 19, "S");
-
-   igraph_add_edge(&gr, 15, 16);  SETEAS(&gr, "turn_dir", 20, "L");
-   igraph_add_edge(&gr, 15, 29);  SETEAS(&gr, "turn_dir", 21, "R");
-
-   igraph_add_edge(&gr, 16, 0);   SETEAS(&gr, "turn_dir", 22, "L");
-
-   igraph_add_edge(&gr, 17, 14);  SETEAS(&gr, "turn_dir", 23, "R");
-   igraph_add_edge(&gr, 17, 29);  SETEAS(&gr, "turn_dir", 24, "S");
-
-   igraph_add_edge(&gr, 18, 21);  SETEAS(&gr, "turn_dir", 25, "S");
-   igraph_add_edge(&gr, 18, 24);  SETEAS(&gr, "turn_dir", 26, "L");
-
-   igraph_add_edge(&gr, 19, 13);  SETEAS(&gr, "turn_dir", 27, "L");
-   igraph_add_edge(&gr, 19, 15);  SETEAS(&gr, "turn_dir", 28, "S");
-
-   igraph_add_edge(&gr, 20, 19);  SETEAS(&gr, "turn_dir", 29, "S");
-   igraph_add_edge(&gr, 20, 24);  SETEAS(&gr, "turn_dir", 30, "R");
-
-   igraph_add_edge(&gr, 21, 22);  SETEAS(&gr, "turn_dir", 31, "R");
-   igraph_add_edge(&gr, 22, 3);   SETEAS(&gr, "turn_dir", 32, "R");
-   igraph_add_edge(&gr, 23, 20);  SETEAS(&gr, "turn_dir", 33, "L");
-   igraph_add_edge(&gr, 24, 27);  SETEAS(&gr, "turn_dir", 34, "L");
-
-   igraph_add_edge(&gr, 25, 19);  SETEAS(&gr, "turn_dir", 35, "R");
-   igraph_add_edge(&gr, 25, 21);  SETEAS(&gr, "turn_dir", 36, "L");
-
-   igraph_add_edge(&gr, 26, 25);  SETEAS(&gr, "turn_dir", 37, "R");
-   igraph_add_edge(&gr, 27, 28);  SETEAS(&gr, "turn_dir", 38, "L");
-
-   igraph_add_edge(&gr, 28, 14);  SETEAS(&gr, "turn_dir", 39, "L");
-   igraph_add_edge(&gr, 28, 16);  SETEAS(&gr, "turn_dir", 40, "S");
-
-   igraph_add_edge(&gr, 29, 26);  SETEAS(&gr, "turn_dir", 41, "R");
+   //set the narrow hallways
+   SETVAN(&gr, "narrow", 4, 1);
+   SETVAN(&gr, "narrow", 5, 1);
+   SETVAN(&gr, "narrow", 12, 1);
+   SETVAN(&gr, "narrow", 13, 1);
+   SETVAN(&gr, "narrow", 22, 1);
+   SETVAN(&gr, "narrow", 23, 1);
 
    int n_vert = (int) igraph_vcount(&gr); //get the number of vertices
    int n_edge = (int) igraph_ecount(&gr); //get the number of edges

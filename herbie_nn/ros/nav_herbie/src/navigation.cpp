@@ -6,8 +6,6 @@
 #include <getopt.h>
 #include "navigation.h"
 
-/* #include <lemon/list_graph.h> */
-
 using namespace std;
 
 #define NUM_GROUND 80
@@ -29,7 +27,7 @@ using namespace std;
 int sim_mode = 0;
 int debug_mode = 1;
 ros::NodeHandle* h;
-ros::Timer diag_timer;
+ros::Timer goal_timer;
 
 Navigation::Navigation() : it(nh) {
   //subscriber for pose
@@ -97,8 +95,6 @@ void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
    }
 }
 
-int once = 0;
-
 void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& nn_msg) {
    double turn_confidence;
 
@@ -130,8 +126,6 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
       draw_goal();
       write_text();
    }
-
-   //avoid_obstacles();
 
    //publish pointcloud
    publish_pointcloud();
@@ -172,10 +166,35 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    }
 
    //test turning
-   if ((cur_loc == 8) && (turn_confidence > .95) && (once == 0)) {
+   if ((cur_loc == 8) && (turn_confidence > .95) && (turn_in_progress == 0)) {
       int turn_dir = get_next_turn_dir(cur_loc,29); //next turn direction
       execute_turn(cur_loc,turn_dir); //execute left turn
-      once = 1;
+      turn_in_progress = 1;
+   }
+
+   if (turn_in_progress) { //check the distance to the turn goal
+      turn_progress_counter++;
+
+      //set a timeout for turning
+      if (turn_progress_counter > 100) {
+         //turn timeout
+         a->cancelAllGoals(); //cancel the turn goal
+         goal_timer.start(); //start the goal update timer
+         turn_in_progress = 0;
+         turn_progress_counter = 0;
+      }
+      
+      //if the distance is small, then the turn is complete
+      if (get_distance_to_goal() < .2) {
+         a->cancelAllGoals(); //cancel the turn goal
+         goal_timer.start(); //start the goal update timer
+         turn_in_progress = 0;
+         turn_progress_counter = 0;
+
+         //set narrow parameters for the new hallway
+         int narrow = VAN(&gr, "narrow", cur_loc);
+         set_narrow_parameters(narrow);
+      }
    }
 }
 
@@ -749,7 +768,7 @@ int main(int argc, char** argv) {
   goal_callback=boost::bind(&Navigation::update_goal_callback,&nav_node,_1);
 
   //run the goal update function every 3 seconds
-  diag_timer = h->createTimer(ros::Duration(2.0), goal_callback); 
+  goal_timer = h->createTimer(ros::Duration(2.0), goal_callback); 
 
   ROS_INFO("Starting navigation");
 

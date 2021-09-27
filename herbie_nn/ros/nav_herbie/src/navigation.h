@@ -82,6 +82,9 @@ class Navigation {
   int turn_counter = 0;
   geometry_msgs::TransformStamped turn_transform_left[64];
   geometry_msgs::TransformStamped turn_transform_right[64];
+  int turn_in_progress = 0;
+  int turn_progress_counter = 0;
+  move_base_msgs::MoveBaseGoal cur_goal;
 
   //variables for localization
   #define LOCALIZATION_ARRAY_SIZE 200
@@ -134,8 +137,9 @@ class Navigation {
     int compute_turn_prob(double* confidence);
     int call_make_plan(double goal_x, double goal_y, double* pose_x, double* pose_y);  //call the planner to test if a plan is found
     void execute_turn(int hallway_num, int dir);
-    void set_narrow_parameters();
+    void set_narrow_parameters(int narrow);
     void init_turn_transforms();
+    double get_distance_to_goal();
 
     //control board functions
     void create_control_board_msg(int num, void* arg);
