@@ -5,6 +5,7 @@ import localization_augment
 import goal_augment
 import turn_augment
 import pretrained_model
+import socket
 
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
@@ -54,11 +55,14 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 elif retrain == 1: # training the ground boundary
                     model.m.eval()
                     model = pretrained_model.Pretrained_Model.set_train_ground(model)
+
+                    if epoch < 5:
+                        model.m1.eval()
                 elif retrain == 0: # freeze the ground boundary backbone
                     model.m1.eval()
                     model.ground_out.eval()
 
-                    if epoch < 5: #in the first few epochs, freeze the pretrained layers
+                    if epoch < 15: #in the first few epochs, freeze the pretrained layers
                         model.m.eval()
 
                 if retrain == 2:
@@ -107,10 +111,10 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
             # generate training schedule
             training_schedule_length = 20
-            # training_schedule = [1,2,1,2,3,1,2,1,2,3, \
-            #                      1,2,1,2,3,1,2,1,2,3]
-            training_schedule = [1,2,3,1,2,3,1,2,3,1, \
-                                 2,3,1,2,3,1,2,3,1,2]
+            training_schedule = [1,2,1,2,3,1,2,1,2,3, \
+                                 1,2,1,2,3,1,2,1,2,3]
+            # training_schedule = [1,2,3,1,2,3,1,2,3,1, \
+            #                      2,3,1,2,3,1,2,3,1,2]
 
             assert len(training_schedule) == training_schedule_length
 
@@ -308,15 +312,16 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                 total_iter[1], total_iter[2], total_iter[3]))
 
             # deep copy the model
-            if phase == 'val' and epoch_loss < best_loss:
+            if phase == 'val' and epoch_loss < best_loss and (epoch > 1):
                 best_loss = epoch_loss
                 best_model_wts = copy.deepcopy(model.state_dict())
                 print ("Saving new best model...")
-                torch.save(model, 'inference.pt')
+                hostname = str(socket.gethostname())
+                torch.save(model, 'inference_' + hostname + '.pt')
                 torch.save({
                     'epoch': epoch,
                     'model_state_dict': model.state_dict()
-                    }, 'test.pt')
+                    }, 'test_' + hostname + '.pt')
 
         print()
 
@@ -424,6 +429,7 @@ if __name__ == '__main__':
     print (goal_dataset_sizes)
     print ("turn dataset: ", end = '')
     print (turn_dataset_sizes)
+    hostname = str(socket.gethostname())
 
     #create the model
     if retrain == 0:
@@ -445,7 +451,7 @@ if __name__ == '__main__':
         model = m
         print ("-----------Training model for ground detection--------------")
 
-        checkpoint = torch.load('test.pt')
+        checkpoint = torch.load('test_' + hostname + '.pt')
         model.load_state_dict(checkpoint['model_state_dict'])
 
         if torch.cuda.is_available(): #send the model to the GPU if available
@@ -466,7 +472,7 @@ if __name__ == '__main__':
         model = m
         print ("-----------Retraining model for localization--------------")
 
-        checkpoint = torch.load('test.pt')
+        checkpoint = torch.load('test_' + hostname + '.pt')
         model.load_state_dict(checkpoint['model_state_dict'])
 
         if torch.cuda.is_available(): #send the model to the GPU if available
@@ -476,7 +482,7 @@ if __name__ == '__main__':
         model = pretrained_model.Pretrained_Model.set_train_loc(model)
 
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
-            model.parameters()), lr=0.002)
+            model.parameters()), lr=0.0003)
 
     elif retrain == 3:
         # retrain the goal head
@@ -485,7 +491,7 @@ if __name__ == '__main__':
         model = m
         print ("-----------Retraining model for goal--------------")
 
-        checkpoint = torch.load('test.pt')
+        checkpoint = torch.load('test_' + hostname + '.pt')
         model.load_state_dict(checkpoint['model_state_dict'])
 
         if torch.cuda.is_available(): #send the model to the GPU if available
@@ -495,7 +501,7 @@ if __name__ == '__main__':
         model = pretrained_model.Pretrained_Model.set_train_goal(model)
 
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
-            model.parameters()), lr=0.003)
+            model.parameters()), lr=0.0003)
 
     elif retrain == 4:
         # retrain the turn head
@@ -504,7 +510,7 @@ if __name__ == '__main__':
         model = m
         print ("-----------Retraining model for turn--------------")
 
-        checkpoint = torch.load('test.pt')
+        checkpoint = torch.load('test_' + hostname + '.pt')
         model.load_state_dict(checkpoint['model_state_dict'])
 
         if torch.cuda.is_available(): #send the model to the GPU if available

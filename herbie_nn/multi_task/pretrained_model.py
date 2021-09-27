@@ -17,13 +17,13 @@ class Pretrained_Model(torch.nn.Module):
 
         # instantiate pre-trained model for multiple output heads
         self.m = timm.create_model('efficientnet_lite0', pretrained=True)
-        # self.m = timm.create_model('efficientnet_es', pretrained=True)
+        # self.m = timm.create_model('tf_efficientnet_b0_ns', pretrained=True)
         self.removed = list(self.m.children())[:-1]
         self.m = torch.nn.Sequential(*self.removed)
 
         # ground boundary backbone
         self.m1 = timm.create_model('efficientnet_lite0', pretrained=True)
-        # self.m1 = timm.create_model('mixnet_m', pretrained=True)
+        # self.m1 = timm.create_model('tf_efficientnet_b0_ns', pretrained=True)
         self.removed1 = list(self.m1.children())[:-1]
         self.m1 = torch.nn.Sequential(*self.removed1)
 
@@ -33,6 +33,7 @@ class Pretrained_Model(torch.nn.Module):
         self.lr3 = torch.nn.LeakyReLU()
         self.lr4 = torch.nn.LeakyReLU()
         self.lr5 = torch.nn.LeakyReLU()
+        self.lr6 = torch.nn.LeakyReLU()
         self.feature_num = 1280
         # self.feature_num = 1536
 
@@ -51,16 +52,21 @@ class Pretrained_Model(torch.nn.Module):
         self.turn_bn2 = torch.nn.BatchNorm1d(num_features=128)
         self.turn_out = torch.nn.Linear(128, self.turn_outputs)
 
-        self.goal_hidden = torch.nn.Linear(self.feature_num, 64)
+        #self.goal_hidden = torch.nn.Linear(self.feature_num, 100)
+        self.goal_hidden_x = torch.nn.Linear(self.feature_num, 64)
+        self.goal_hidden_y = torch.nn.Linear(self.feature_num, 64)
         self.goal_bn1 = torch.nn.BatchNorm1d(num_features=64)
-        self.goal_out = torch.nn.Linear(64, self.goal_outputs)
+        self.goal_bn2 = torch.nn.BatchNorm1d(num_features=64)
+        #self.goal_out = torch.nn.Linear(100, self.goal_outputs)
+        self.goal_out_x = torch.nn.Linear(64, 1)
+        self.goal_out_y = torch.nn.Linear(64, 1)
 
         self.softmax = torch.nn.Softmax(1)
         self.sig = torch.nn.Sigmoid()
         self.sig1 = torch.nn.Sigmoid()
-        self.do1 = torch.nn.Dropout(p=.2)
-        self.do2 = torch.nn.Dropout(p=.2)
-        self.do3 = torch.nn.Dropout(p=.2)
+        # self.do1 = torch.nn.Dropout(p=.2)
+        # self.do2 = torch.nn.Dropout(p=.2)
+        # self.do3 = torch.nn.Dropout(p=.2)
 
     def forward(self, x):
         backbone_out = self.m(x)
@@ -85,9 +91,14 @@ class Pretrained_Model(torch.nn.Module):
         turn_out_val = self.sig(self.turn_out(turn_hidden_out2))
 
         # goal output
-        goal_hidden_out = self.lr5(self.goal_bn1(self.goal_hidden(backbone_out)))
+        goal_hidden_out_x = self.lr5(self.goal_bn1(self.goal_hidden_x(backbone_out)))
+        goal_hidden_out_y = self.lr6(self.goal_bn2(self.goal_hidden_y(backbone_out)))
+
+        goal_out_x1 = self.goal_out_x(goal_hidden_out_x)
+        goal_out_y1 = self.goal_out_y(goal_hidden_out_y)
         # goal_hidden_out = self.lr5((self.goal_hidden(self.do3(backbone_out))))
-        goal_out_val = self.goal_out(goal_hidden_out)
+        #goal_out_val = self.goal_out(goal_hidden_out)
+        goal_out_val = torch.cat((goal_out_x1, goal_out_y1), dim=1)
 
         return ground_output_val, loc_output, turn_out_val, goal_out_val
 
@@ -183,27 +194,42 @@ class Pretrained_Model(torch.nn.Module):
     @staticmethod
     def enable_goal_head(model, status):
         #disable goal head training
-        model.goal_hidden.weight.requires_grad = status
-        model.goal_hidden.bias.requires_grad = status
+        model.goal_hidden_x.weight.requires_grad = status
+        model.goal_hidden_x.bias.requires_grad = status
+
+        model.goal_hidden_y.weight.requires_grad = status
+        model.goal_hidden_y.bias.requires_grad = status
 
         model.goal_bn1.weight.requires_grad = status
         model.goal_bn1.bias.requires_grad = status
+
+        model.goal_bn2.weight.requires_grad = status
+        model.goal_bn2.bias.requires_grad = status
 
         # if status == False:
         #     model.goal_bn1.running_mean.requires_grad = status
         #     model.goal_bn1.running_var.requires_grad = status
 
-        model.goal_out.weight.requires_grad = status
-        model.goal_out.bias.requires_grad = status
+        model.goal_out_x.weight.requires_grad = status
+        model.goal_out_x.bias.requires_grad = status
+
+        model.goal_out_y.weight.requires_grad = status
+        model.goal_out_y.bias.requires_grad = status
 
         if status == False:
-            model.goal_hidden.eval()
+            model.goal_hidden_x.eval()
+            model.goal_hidden_y.eval()
             model.goal_bn1.eval()
-            model.goal_out.eval()
+            model.goal_bn2.eval()
+            model.goal_out_x.eval()
+            model.goal_out_y.eval()
         else:
-            model.goal_hidden.train()
+            model.goal_hidden_x.train()
+            model.goal_hidden_y.train()
             model.goal_bn1.train()
-            model.goal_out.train()
+            model.goal_bn2.train()
+            model.goal_out_x.train()
+            model.goal_out_y.train()
 
         return model
 
@@ -340,15 +366,25 @@ class Pretrained_Model(torch.nn.Module):
             param.requires_grad = False
 
         # enable training for specific layers
-        model.goal_hidden.weight.requires_grad = True
-        model.goal_hidden.bias.requires_grad = True
+        model.goal_hidden_x.weight.requires_grad = True
+        model.goal_hidden_x.bias.requires_grad = True
+
+        model.goal_hidden_y.weight.requires_grad = True
+        model.goal_hidden_y.bias.requires_grad = True
 
         # batch normalization layers
         model.goal_bn1.weight.requires_grad = True
         model.goal_bn1.bias.requires_grad = True
 
-        model.goal_out.weight.requires_grad = True
-        model.goal_out.bias.requires_grad = True
+        # batch normalization layers 2
+        model.goal_bn2.weight.requires_grad = True
+        model.goal_bn2.bias.requires_grad = True
+
+        model.goal_out_x.weight.requires_grad = True
+        model.goal_out_x.bias.requires_grad = True
+
+        model.goal_out_y.weight.requires_grad = True
+        model.goal_out_y.bias.requires_grad = True
 
         print ('--backbone complete--')
 

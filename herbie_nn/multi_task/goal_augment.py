@@ -52,7 +52,7 @@ class GoalDataset(Dataset):
         goal_data_list = prefix.split('-')
         center_y = int(goal_data_list[-2])
         center_x = int(goal_data_list[-3])
-        turn_dir = int(goal_data_list[-4])
+        #turn_dir = int(goal_data_list[-4])
 
         # add the data points to the 'data_list'
         data_list = []

@@ -58,12 +58,12 @@ class LocalizationDataset(Dataset):
 
         # append turn classification
         turn_list = []
-        if img_name_fields[2] == 'straight': # straight percentage
-            turn_list.append(float(int(img_name_fields[4])/100.0))
-            turn_list.append(float(0.0))
-        else:
-            turn_list.append(float(0.0))
-            turn_list.append(float(int(img_name_fields[4])/100.0))
+        # if img_name_fields[2] == 'straight': # straight percentage
+        #     turn_list.append(float(int(img_name_fields[4])/100.0))
+        #     turn_list.append(float(0.0))
+        # else:
+        #     turn_list.append(float(0.0))
+        #     turn_list.append(float(int(img_name_fields[4])/100.0))
 
         # apply the augmentations to the image
         if self.transform is not None:
@@ -84,8 +84,8 @@ def create_datasets(train_file_list,val_file_list):
          A.ISONoise(p=.25),
          A.RandomShadow(p=.3),
          A.MotionBlur(p=.2),
-         A.CoarseDropout(max_holes=8, max_height=30, max_width=30, p=.5),
-         A.Perspective(p=.4),
+         A.CoarseDropout(max_holes=8, max_height=50, max_width=50, p=.5),
+         #A.Perspective(p=.4),
          A.RandomToneCurve(p=.3),
          ToTensorV2(),
       ]
