@@ -71,7 +71,7 @@ void convert_image_to_world(int col, int row, double* x, double* y) {
 }
 
 void Navigation::set_action_client(MoveBaseClient* ac) {
-   a = ac;
+   action_client = ac;
 }
 
 //update the transform from base_link to the goal
@@ -163,7 +163,7 @@ void Navigation::send_goal(const std_msgs::Empty::ConstPtr& msg) {
 
    /* ROS_INFO("Sending goal"); */
    update_goal_mutex.lock();
-   a->sendGoal(cur_goal);
+   action_client->sendGoal(cur_goal);
    update_goal_mutex.unlock();
 }
 
@@ -319,7 +319,7 @@ void Navigation::execute_turn(int hallway_num, int dir) {
    cur_goal.target_pose.pose.orientation.y = transformStamped.transform.rotation.y;
    cur_goal.target_pose.pose.orientation.z = transformStamped.transform.rotation.z;
 
-   a->sendGoal(temp_goal);
+   action_client->sendGoal(temp_goal);
 
    update_goal_mutex.unlock();
 }
@@ -350,7 +350,7 @@ double Navigation::get_distance_to_goal() {
 void Navigation::autonomous_mode_callback(const std_msgs::Int8::ConstPtr& msg) {
    if (msg->data == 0) {
       //cancel goals
-      a->cancelAllGoals();
+      action_client->cancelAllGoals();
    }
 }
 
@@ -367,27 +367,79 @@ void Navigation::update_goal_callback(const ros::TimerEvent& ev) {
 
 //initialize the turn transform arrays
 void Navigation::init_turn_transforms() {
+   tf2::Quaternion tempQuaternion;
    geometry_msgs::TransformStamped *t;
 
+   //zero out all transforms
+   for(int i=0; i<64; i++) {
+      t = &(turn_transform_left[i]);
+
+      t->transform.translation.x = 0; 
+      t->transform.translation.y = 0;
+      t->transform.translation.z = 0;
+      t->transform.rotation.x = 0; 
+      t->transform.rotation.y = 0;
+      t->transform.rotation.z = 0; 
+      t->transform.rotation.w = 0;
+
+      t = &(turn_transform_right[i]);
+
+      t->transform.translation.x = 0; 
+      t->transform.translation.y = 0;
+      t->transform.translation.z = 0;
+      t->transform.rotation.x = 0; 
+      t->transform.rotation.y = 0;
+      t->transform.rotation.z = 0; 
+      t->transform.rotation.w = 0;
+   }
+
    t = &(turn_transform_left[8]);
+   tempQuaternion.setRPY(0,0,90.0*M_PI/180); //90 degree counterclockwise
+   tempQuaternion=tempQuaternion.normalize();
 
    t->transform.translation.x = 2; 
    t->transform.translation.y = 1;
    t->transform.translation.z = 0.0;
-   t->transform.rotation.x = 0; 
-   t->transform.rotation.y = 0;
-   t->transform.rotation.z = 0.7071; //sin 45 degrees
-   t->transform.rotation.w = 0.7071; //cos 45 degrees
+   t->transform.rotation.x = tempQuaternion.x(); 
+   t->transform.rotation.y = tempQuaternion.y();
+   t->transform.rotation.z = tempQuaternion.z(); 
+   t->transform.rotation.w = tempQuaternion.w();
 
    t = &(turn_transform_right[11]);
+   tempQuaternion.setRPY(0,0,-90.0*M_PI/180); //90 degree clockwise
+   tempQuaternion=tempQuaternion.normalize();
 
    t->transform.translation.x = 1; 
    t->transform.translation.y = 0;
    t->transform.translation.z = 0.0;
-   t->transform.rotation.x = 0; 
-   t->transform.rotation.y = 0;
-   t->transform.rotation.z = -.7071; //sin -45.0 degrees
-   t->transform.rotation.w = .7071;  //cos 45.0 degrees
+   t->transform.rotation.x = tempQuaternion.x(); 
+   t->transform.rotation.y = tempQuaternion.y();
+   t->transform.rotation.z = tempQuaternion.z(); 
+   t->transform.rotation.w = tempQuaternion.w();
+
+   t = &(turn_transform_left[12]);
+   tempQuaternion.setRPY(0,0,-90.0*M_PI/180); //90 degree clockwise
+   tempQuaternion=tempQuaternion.normalize();
+
+   t->transform.translation.x = 1; 
+   t->transform.translation.y = 0;
+   t->transform.translation.z = 0.0;
+   t->transform.rotation.x = tempQuaternion.x(); 
+   t->transform.rotation.y = tempQuaternion.y();
+   t->transform.rotation.z = tempQuaternion.z(); 
+   t->transform.rotation.w = tempQuaternion.w();
+
+   t = &(turn_transform_right[12]);
+   tempQuaternion.setRPY(0,0,90.0*M_PI/180); //90 degree counterclockwise
+   tempQuaternion=tempQuaternion.normalize();
+
+   t->transform.translation.x = 1; 
+   t->transform.translation.y = 0;
+   t->transform.translation.z = 0.0;
+   t->transform.rotation.x = tempQuaternion.x(); 
+   t->transform.rotation.y = tempQuaternion.y();
+   t->transform.rotation.z = tempQuaternion.z(); 
+   t->transform.rotation.w = tempQuaternion.w();
 }
 
 int Navigation::call_make_plan(double goal_x, double goal_y, double* pose_x, double* pose_y) {

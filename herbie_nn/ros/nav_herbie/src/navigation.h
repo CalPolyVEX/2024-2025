@@ -25,6 +25,8 @@
 #include <map>
 #include <list>
 #include <cstdio>
+#include <chrono>
+#include <thread>
 
 #include <nav_msgs/GetPlan.h>
 
@@ -90,6 +92,8 @@ class Navigation {
   #define LOCALIZATION_ARRAY_SIZE 200
   int localization_tracking[LOCALIZATION_ARRAY_SIZE];
   int localization_value[LOCALIZATION_ARRAY_SIZE];
+  float localization_x_position[LOCALIZATION_ARRAY_SIZE];
+  float localization_y_position[LOCALIZATION_ARRAY_SIZE];
   int localization_index = 0;
 
   //variables for heading
@@ -99,7 +103,7 @@ class Navigation {
   int heading_counter = 0;
 
   //move base variables
-  MoveBaseClient* a;
+  MoveBaseClient* action_client;
   tf2_ros::Buffer tfBuffer;
   tf2_ros::TransformListener* tfListener;
   std::string service_name = "move_base/make_plan";

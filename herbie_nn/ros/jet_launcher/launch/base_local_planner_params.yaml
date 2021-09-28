@@ -16,7 +16,7 @@ DWAPlannerROS:
   acc_lim_th: 4.2
   acc_lim_x: 4.2
   acc_lim_y: 2.5
-  acc_lim_trans: 2.5
+  acc_lim_trans: 3.0
 
   holonomic_robot: false
 
@@ -34,6 +34,7 @@ DWAPlannerROS:
   vth_samples: 40
 
   latch_xy_goal_tolerance: true
+  xy_goal_tolerance: .1
   yaw_goal_tolerance: .05
 
 ###################Global Planner#############################

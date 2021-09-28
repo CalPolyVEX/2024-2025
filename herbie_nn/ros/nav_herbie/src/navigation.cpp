@@ -30,55 +30,69 @@ ros::NodeHandle* h;
 ros::Timer goal_timer;
 
 Navigation::Navigation() : it(nh) {
-  //subscriber for pose
-  if (sim_mode == 1) {
-     odom_data_sub = nh.subscribe("/camera/odom/sample", 1, &Navigation::odom_callback, this);
-  } else {
-     odom_data_sub = nh.subscribe("/ekf_node/odom", 1, &Navigation::odom_callback, this);
-  }
+   //subscriber for pose
+   if (sim_mode == 1) {
+      odom_data_sub = nh.subscribe("/camera/odom/sample", 1, &Navigation::odom_callback, this);
+   } else {
+      odom_data_sub = nh.subscribe("/ekf_node/odom", 1, &Navigation::odom_callback, this);
+   }
 
-  //subscriber for autonomous mode signal
-  autonomous_sub = nh.subscribe("/autonomous", 1, &Navigation::autonomous_mode_callback, this);
+   //subscriber for autonomous mode signal
+   autonomous_sub = nh.subscribe("/autonomous", 1, &Navigation::autonomous_mode_callback, this);
 
-  //subscriber for navigation goal
-  nav_goal_sub = nh.subscribe("/nav_goal", 1, &Navigation::send_goal, this);
+   //subscriber for navigation goal
+   nav_goal_sub = nh.subscribe("/nav_goal", 1, &Navigation::send_goal, this);
 
-  //subscriber for neural network data
-  nn_data_sub = nh.subscribe("/nn_data", 1, &Navigation::nn_data_callback, this);
-  
-  //subscriber for 640x360 image
-  image_transport::TransportHints hints("compressed");
+   //subscriber for neural network data
+   nn_data_sub = nh.subscribe("/nn_data", 1, &Navigation::nn_data_callback, this);
 
-  if (sim_mode == 0) {
+   //subscriber for 640x360 image
+   image_transport::TransportHints hints("compressed");
+
+   if (sim_mode == 0) {
 #ifdef __x86_64__
-     img_sub = it.subscribe("/see3cam_cu20/image_raw", 1, &Navigation::img_callback, this, hints);
+      img_sub = it.subscribe("/see3cam_cu20/image_raw", 1, &Navigation::img_callback, this, hints);
 #else
-     //if on ARM, read live from the camera
-     img_sub = it.subscribe("/see3cam_cu20/image_raw_live", 1, &Navigation::img_callback, this);
+      //if on ARM, read live from the camera
+      img_sub = it.subscribe("/see3cam_cu20/image_raw_live", 1, &Navigation::img_callback, this);
 #endif
-  } else {
-     img_sub = it.subscribe("/see3cam_cu20/image_raw", 1, &Navigation::img_callback, this, hints);
-  }
+   } else {
+      img_sub = it.subscribe("/see3cam_cu20/image_raw", 1, &Navigation::img_callback, this, hints);
+   }
 
-  image_pub_ = it.advertise("/nav_output_video", 1);
-  twist_pub_ = nh.advertise<geometry_msgs::Twist>("/nav_cmd_vel", 1);
+   image_pub_ = it.advertise("/nav_output_video", 1);
+   twist_pub_ = nh.advertise<geometry_msgs::Twist>("/nav_cmd_vel", 1);
 
-  // point cloud publisher
-  pointcloud_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/point_cloud", 1);
-  
-  // control board publisher
-  control_board_pub_ = nh.advertise<std_msgs::Int32MultiArray>("/control_board", 1);
+   // point cloud publisher
+   pointcloud_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/point_cloud", 1);
 
-  nh.setParam("/autonomous_mode", false);
+   // control board publisher
+   control_board_pub_ = nh.advertise<std_msgs::Int32MultiArray>("/control_board", 1);
 
-  new_image = cv::Mat(360, 640, CV_8UC3);
-  
-  //tell the action client that we want to spin a thread by default
-  tfListener = new tf2_ros::TransformListener(tfBuffer);
-  h = &nh; //set the ROS node handle
+   nh.setParam("/autonomous_mode", false);
 
-  //initialize the hardcoded turn information
-  init_turn_transforms();
+   new_image = cv::Mat(360, 640, CV_8UC3);
+
+   //tell the action client that we want to spin a thread by default
+   tfListener = new tf2_ros::TransformListener(tfBuffer);
+   h = &nh; //set the ROS node handle
+
+   //initialize the hardcoded turn information
+   init_turn_transforms();
+
+   action_client = new MoveBaseClient("move_base", true);
+   std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+   //wait for the action server to come up
+   while(!action_client->waitForServer(ros::Duration(5.0))){
+      ROS_INFO("Waiting for the move_base action server to come up");
+   }
+
+   //set the localization position arrays to 0
+   for(int i=0; i<LOCALIZATION_ARRAY_SIZE; i++) {
+      localization_x_position[i] = 0;
+      localization_y_position[i] = 0;
+   }
 }
 
 void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
@@ -149,7 +163,7 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
       coord[0] = 0; //col 0
       coord[1] = 0; //row 0
       create_control_board_msg(1,coord);
-      usleep(5);
+      usleep(10);
 
       //print localization
       if (compute_turn_prob(&turn_confidence) == 1) {
@@ -160,7 +174,7 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
          create_control_board_msg(2,lcd_msg);
       }
 
-      usleep(5);
+      usleep(10);
       /* coord[1] = 1; */
       /* create_control_board_msg(1,coord); //move to second line on LCD */
       /* usleep(5); */
@@ -172,9 +186,12 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    //test turning
    compute_turn_prob(&turn_confidence); //compute turn confidence
 
-   if ((cur_loc == 8) && (turn_confidence > .95) && (turn_in_progress == 0)) {
-      int turn_dir = get_next_turn_dir(cur_loc,29); //next turn direction
-      execute_turn(cur_loc,turn_dir); //execute left turn
+   //if ((cur_loc == 8) && (turn_confidence > .95) && (turn_in_progress == 0)) {
+   int cur_loc_estimate = compute_localization();
+
+   if ((cur_loc_estimate == 8) && (turn_confidence > .95) && (turn_in_progress == 0)) {
+      int turn_dir = get_next_turn_dir(cur_loc_estimate,29); //next turn direction
+      execute_turn(cur_loc_estimate,turn_dir); //execute left turn
       turn_in_progress = 1;
    }
 
@@ -184,20 +201,22 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
       coord[0] = 12; //col 10
       coord[1] = 1; //row 1
       create_control_board_msg(1,coord);
+      usleep(10);
       sprintf(lcd_msg,"Turn");
       create_control_board_msg(2,lcd_msg);
+      usleep(10);
 
       //set a timeout for turning
-      if (turn_progress_counter > 300) { //15 second timeout for a turn
+      if (turn_progress_counter > 300) { //15 second timeout for a turn (15*20Hz = 300)
          //turn timeout
-         a->cancelAllGoals(); //cancel the turn goal
+         action_client->cancelAllGoals(); //cancel the turn goal
          goal_timer.start(); //start the goal update timer
          turn_in_progress = 0;
          turn_progress_counter = 0;
       }
       
-      //if the distance is small, then the turn is complete
-      if (a->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
+      //turn is complete, restart the goal timer and set parameters
+      if (action_client->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
          //a->cancelAllGoals(); //cancel the turn goal
          goal_timer.start(); //start the goal update timer
          turn_in_progress = 0;
@@ -211,8 +230,10 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
       coord[0] = 12; //col 10
       coord[1] = 1; //row 1
       create_control_board_msg(1,coord);
+      usleep(10);
       sprintf(lcd_msg,"    ");
       create_control_board_msg(2,lcd_msg);
+      usleep(10);
    }
 }
 
@@ -357,6 +378,13 @@ void Navigation::draw_loc_prob() {
 
    localization_tracking[localization_index] = cur_loc;
    localization_value[localization_index] = cur_loc_prob; //localization index will point to most recent reading
+
+   //store the position of this localization
+   geometry_msgs::TransformStamped transformStamped;
+   transformStamped = tfBuffer.lookupTransform("odom", "base_link", ros::Time(0));
+
+   localization_x_position[localization_index] = transformStamped.transform.translation.x;
+   localization_y_position[localization_index] = transformStamped.transform.translation.y;
    
    //tracking the turn probability from the neural network
    turn_index++;
@@ -403,7 +431,7 @@ int Navigation::compute_localization() {
       }
    }
 
-   if (max_count > 6)
+   if (max_count > 6 && ((hallway_confidence[estimate]/hallway_count[estimate]) > .90))
       return max_estimate;
    else
       return -1;  //unknown
@@ -524,7 +552,6 @@ void find_left_right_obstacle_coord(int y_coord, double* ground, int* left, int*
       }
    }
 }
-
 
 float Navigation::compute_obstacle_force(int coord, int side) {
    /* if (1 == 0) { */
@@ -784,14 +811,14 @@ int main(int argc, char** argv) {
   nav_node.graph_init();
   /* ros::shutdown(); //exit */
 
-  MoveBaseClient ac("move_base", true);
+  /* MoveBaseClient ac("move_base", true); */
   
-  nav_node.set_action_client(&ac);
+  /* nav_node.set_action_client(&ac); */
 
   //wait for the action server to come up
-  while(!ac.waitForServer(ros::Duration(5.0))){
-     ROS_INFO("Waiting for the move_base action server to come up");
-  }
+  /* while(!ac.waitForServer(ros::Duration(5.0))){ */
+  /*    ROS_INFO("Waiting for the move_base action server to come up"); */
+  /* } */
 
   //since the goal callback is part of the nav_node object, 
   //bind the callback using boost:bind and boost:function
