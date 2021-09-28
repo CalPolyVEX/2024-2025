@@ -140,11 +140,12 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    }
 
    turn_counter++;
+   char coord[2];
+   char lcd_msg[32];
+
    if (turn_counter > 2) {
       turn_counter = 0;
 
-      char coord[2];
-      char lcd_msg[32];
       coord[0] = 0; //col 0
       coord[1] = 0; //row 0
       create_control_board_msg(1,coord);
@@ -160,15 +161,17 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
       }
 
       usleep(5);
-      coord[1] = 1;
-      create_control_board_msg(1,coord); //move to second line on LCD
-      usleep(5);
-      sprintf(lcd_msg,"%03d,%03d", (int) (goal[0]*640), (int) (goal[1]*360));
-      create_control_board_msg(2,lcd_msg);
-      usleep(5);
+      /* coord[1] = 1; */
+      /* create_control_board_msg(1,coord); //move to second line on LCD */
+      /* usleep(5); */
+      /* sprintf(lcd_msg,"%03d,%03d", (int) (goal[0]*640), (int) (goal[1]*360)); */
+      /* create_control_board_msg(2,lcd_msg); */
+      /* usleep(5); */
    }
 
    //test turning
+   compute_turn_prob(&turn_confidence); //compute turn confidence
+
    if ((cur_loc == 8) && (turn_confidence > .95) && (turn_in_progress == 0)) {
       int turn_dir = get_next_turn_dir(cur_loc,29); //next turn direction
       execute_turn(cur_loc,turn_dir); //execute left turn
@@ -178,8 +181,14 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    if (turn_in_progress) { //check the distance to the turn goal
       turn_progress_counter++;
 
+      coord[0] = 12; //col 10
+      coord[1] = 1; //row 1
+      create_control_board_msg(1,coord);
+      sprintf(lcd_msg,"Turn");
+      create_control_board_msg(2,lcd_msg);
+
       //set a timeout for turning
-      if (turn_progress_counter > 100) {
+      if (turn_progress_counter > 300) { //15 second timeout for a turn
          //turn timeout
          a->cancelAllGoals(); //cancel the turn goal
          goal_timer.start(); //start the goal update timer
@@ -188,8 +197,8 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
       }
       
       //if the distance is small, then the turn is complete
-      if (get_distance_to_goal() < .2) {
-         a->cancelAllGoals(); //cancel the turn goal
+      if (a->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
+         //a->cancelAllGoals(); //cancel the turn goal
          goal_timer.start(); //start the goal update timer
          turn_in_progress = 0;
          turn_progress_counter = 0;
@@ -198,6 +207,12 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
          int narrow = VAN(&gr, "narrow", cur_loc);
          set_narrow_parameters(narrow);
       }
+   } else {
+      coord[0] = 12; //col 10
+      coord[1] = 1; //row 1
+      create_control_board_msg(1,coord);
+      sprintf(lcd_msg,"    ");
+      create_control_board_msg(2,lcd_msg);
    }
 }
 
@@ -334,37 +349,35 @@ void Navigation::draw_loc_prob() {
    }
 
    //tracking the localization values from the neural network
-   localization_tracking[localization_index] = cur_loc;
-   localization_value[localization_index] = cur_loc_prob;
-   localization_index = (localization_index + 1); 
+   localization_index++;
 
    if (localization_index == LOCALIZATION_ARRAY_SIZE) {
       localization_index = 0;
    }
+
+   localization_tracking[localization_index] = cur_loc;
+   localization_value[localization_index] = cur_loc_prob; //localization index will point to most recent reading
    
    //tracking the turn probability from the neural network
-   turn_tracking[turn_index] = turn[0];
-   turn_index = (turn_index + 1); 
+   turn_index++;
 
    if (turn_index == TURN_ARRAY_SIZE) {
       turn_index = 0;
    }
+
+   turn_tracking[turn_index] = turn[0]; //turn index will point to most recent reading
 }
 
 #define HALLWAY_NUM 30
 int Navigation::compute_localization() {
    //localization from the neural network is updated at 20Hz
    float confidence_threshold = .90;
-   int temp_index = localization_index - 1;
+   int temp_index = localization_index;
    int hallway_count[HALLWAY_NUM];
    float hallway_confidence[HALLWAY_NUM];
    int max_count = 0;
    int max_estimate;
    int estimate;
-
-   if (temp_index < 0) {
-      temp_index += LOCALIZATION_ARRAY_SIZE;
-   }
 
    for (int i=0; i<HALLWAY_NUM; i++) {
       hallway_count[i] = 0;
@@ -400,12 +413,8 @@ int Navigation::compute_turn_prob(double* confidence) {
    //turn probability from the neural network is updated at 20Hz
    double avg_threshold = 0;
    float confidence_threshold = .90;
-   int temp_index = turn_index - 1;
+   int temp_index = turn_index;
    int above_threshold = 0;
-
-   if (temp_index < 0) {
-      temp_index += TURN_ARRAY_SIZE;
-   }
 
    for (int i=0; i<6; i++) {
       if (turn_tracking[temp_index] > confidence_threshold) {

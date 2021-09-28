@@ -169,7 +169,7 @@ void Navigation::send_goal(const std_msgs::Empty::ConstPtr& msg) {
 
 void Navigation::publish_pointcloud() {
    int numpoints = 80; //the number of points output by the neural network
-   int interpolate = 14; //number of points to interpolate
+   int interpolate = 15; //number of points to interpolate
 
    sensor_msgs::PointCloud2 cloud_msg;
 
@@ -372,24 +372,22 @@ void Navigation::init_turn_transforms() {
    t = &(turn_transform_left[8]);
 
    t->transform.translation.x = 2; 
-   t->transform.translation.y = .5;
+   t->transform.translation.y = 1;
    t->transform.translation.z = 0.0;
-
    t->transform.rotation.x = 0; 
    t->transform.rotation.y = 0;
-   t->transform.rotation.z = .38268; //sin 22.5 degrees
-   t->transform.rotation.w = .92388; //cos 22.5 degrees
+   t->transform.rotation.z = 0.7071; //sin 45 degrees
+   t->transform.rotation.w = 0.7071; //cos 45 degrees
 
    t = &(turn_transform_right[11]);
 
    t->transform.translation.x = 1; 
    t->transform.translation.y = 0;
    t->transform.translation.z = 0.0;
-
    t->transform.rotation.x = 0; 
    t->transform.rotation.y = 0;
-   t->transform.rotation.z = -.707107; //sin -45.0 degrees
-   t->transform.rotation.w = .707107;  //cos 45.0 degrees
+   t->transform.rotation.z = -.7071; //sin -45.0 degrees
+   t->transform.rotation.w = .7071;  //cos 45.0 degrees
 }
 
 int Navigation::call_make_plan(double goal_x, double goal_y, double* pose_x, double* pose_y) {
