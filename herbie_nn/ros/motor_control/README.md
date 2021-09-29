@@ -1,14 +1,9 @@
 # motor_control
 
-transform a pointcloud2 with tf2, dynamic reconfigure to change the lookup transform parameters.
+This ROS node communicates with the Herbie control board to:  
 
-Demonstration:
+* read the encoders (sent at 30Hz from the Herbie board over USB)
+* compute and publish odometry
+* run the PID control loop for motor control
+* queue up and send commands to the Herbie board (print to LCD, send servo commands, blink LEDs)
 
-https://github.com/lucasw/dynamic_reconfigure_tools is required.
-
-```
-roslaunch motor_control demo.launch
-```
-![rviz and rqt demo.launch](data/motor_control.png)
-
-In the image above the point cloud originally has map for a frame_id, but the parameters transform the points to relative to frame2 by the same amount, with frame1 as the new frame_id.
