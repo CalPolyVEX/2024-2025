@@ -1,11 +1,15 @@
 # ue4
 Joystick controls
 
+* press button 3 and 4 simultaneously to start
+
 * button 1 press - toggle manual control
 * button 1 hold - exit ROS
 * button 2 hold - start/stop recording .bag file
-* button 3 press - toggle manual/autonomous driving
-* button 4 press - send navigation goal
+* button 4 press - enter autonomous mode
+* button 4 hold - exit autonomous mode
+* button 7 hold - manually send navigation goal
+* button 8 hold - move servos
 
 Sparse checkout for ROS (this will checkout only the ROS directory into the catkin_ws/src directory)
 
