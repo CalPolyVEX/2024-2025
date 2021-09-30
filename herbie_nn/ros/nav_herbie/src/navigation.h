@@ -81,6 +81,7 @@ class Navigation {
   #define TURN_ARRAY_SIZE 50
   double turn_tracking[TURN_ARRAY_SIZE];
   int turn_index = 0;
+  int turn_dir = 1; //0=left, 1=straight, 2=right
   int turn_counter = 0;
   geometry_msgs::TransformStamped turn_transform_left[64];
   geometry_msgs::TransformStamped turn_transform_right[64];
@@ -90,8 +91,8 @@ class Navigation {
 
   //variables for localization
   #define LOCALIZATION_ARRAY_SIZE 200
-  int localization_tracking[LOCALIZATION_ARRAY_SIZE];
-  int localization_value[LOCALIZATION_ARRAY_SIZE];
+  int localization_num[LOCALIZATION_ARRAY_SIZE];
+  float localization_value[LOCALIZATION_ARRAY_SIZE];
   float localization_x_position[LOCALIZATION_ARRAY_SIZE];
   float localization_y_position[LOCALIZATION_ARRAY_SIZE];
   int localization_index = 0;
@@ -137,7 +138,7 @@ class Navigation {
     void update_goal_transform();
     void update_turn_transform();
     void update_goal_callback(const ros::TimerEvent& ev);
-    int compute_localization();
+    void compute_localization(int* num, float* conf);
     int compute_turn_prob(double* confidence);
     int call_make_plan(double goal_x, double goal_y, double* pose_x, double* pose_y);  //call the planner to test if a plan is found
     void execute_turn(int hallway_num, int dir);

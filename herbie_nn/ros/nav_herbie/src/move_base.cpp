@@ -249,9 +249,9 @@ void Navigation::set_narrow_parameters(int narrow) {
    double_param.name = "sim_time";
 
    if (narrow == 1) {
-      double_param.value = 1.3;
+      double_param.value = 1.2;
    } else {
-      double_param.value = 2.0;
+      double_param.value = 1.8;
    }
 
    conf.doubles.push_back(double_param);
@@ -397,8 +397,8 @@ void Navigation::init_turn_transforms() {
    tempQuaternion.setRPY(0,0,90.0*M_PI/180); //90 degree counterclockwise
    tempQuaternion=tempQuaternion.normalize();
 
-   t->transform.translation.x = 2; 
-   t->transform.translation.y = 1;
+   t->transform.translation.x = 1.7; 
+   t->transform.translation.y = 1.7;
    t->transform.translation.z = 0.0;
    t->transform.rotation.x = tempQuaternion.x(); 
    t->transform.rotation.y = tempQuaternion.y();

@@ -90,6 +90,8 @@ Navigation::Navigation() : it(nh) {
 
    //set the localization position arrays to 0
    for(int i=0; i<LOCALIZATION_ARRAY_SIZE; i++) {
+      localization_num[i] = 0;
+      localization_value[i] = 0;
       localization_x_position[i] = 0;
       localization_y_position[i] = 0;
    }
@@ -156,6 +158,9 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    turn_counter++;
    char coord[2];
    char lcd_msg[32];
+   int cur_loc_estimate;
+   float cur_loc_conf;
+   compute_localization(&cur_loc_estimate, &cur_loc_conf);
 
    if (turn_counter > 2) {
       turn_counter = 0;
@@ -167,10 +172,10 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
 
       //print localization
       if (compute_turn_prob(&turn_confidence) == 1) {
-         sprintf(lcd_msg,"%02d %.2f T %.2f  ", cur_loc, cur_loc_prob, turn_confidence);
+         sprintf(lcd_msg,"%02d %.2f T %.2f  ", cur_loc_estimate, cur_loc_conf, turn_confidence);
          create_control_board_msg(2,lcd_msg);
       } else {
-         sprintf(lcd_msg,"%02d %.2f S %.2f  ", cur_loc, cur_loc_prob, turn_confidence);
+         sprintf(lcd_msg,"%02d %.2f S %.2f  ", cur_loc_estimate, cur_loc_conf, turn_confidence);
          create_control_board_msg(2,lcd_msg);
       }
 
@@ -187,10 +192,11 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    compute_turn_prob(&turn_confidence); //compute turn confidence
 
    //if ((cur_loc == 8) && (turn_confidence > .95) && (turn_in_progress == 0)) {
-   int cur_loc_estimate = compute_localization();
+   //int cur_loc_estimate = 0;
 
-   if ((cur_loc_estimate == 8) && (turn_confidence > .95) && (turn_in_progress == 0)) {
-      int turn_dir = get_next_turn_dir(cur_loc_estimate,29); //next turn direction
+   /* if ((cur_loc == 8) && (turn_confidence > .95) && (turn_in_progress == 0)) { */
+   if ((cur_loc_estimate != -1) && (turn_confidence > .95) && (turn_in_progress == 0)) {
+      turn_dir = get_next_turn_dir(cur_loc_estimate,29); //next turn direction
       execute_turn(cur_loc_estimate,turn_dir); //execute left turn
       turn_in_progress = 1;
    }
@@ -198,11 +204,11 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    if (turn_in_progress) { //check the distance to the turn goal
       turn_progress_counter++;
 
-      coord[0] = 12; //col 10
+      coord[0] = 11; //col 10
       coord[1] = 1; //row 1
       create_control_board_msg(1,coord);
       usleep(10);
-      sprintf(lcd_msg,"Turn");
+      sprintf(lcd_msg,"Turn%d", turn_dir);
       create_control_board_msg(2,lcd_msg);
       usleep(10);
 
@@ -376,7 +382,7 @@ void Navigation::draw_loc_prob() {
       localization_index = 0;
    }
 
-   localization_tracking[localization_index] = cur_loc;
+   localization_num[localization_index] = cur_loc;
    localization_value[localization_index] = cur_loc_prob; //localization index will point to most recent reading
 
    //store the position of this localization
@@ -397,12 +403,13 @@ void Navigation::draw_loc_prob() {
 }
 
 #define HALLWAY_NUM 30
-int Navigation::compute_localization() {
+void Navigation::compute_localization(int* num, float* conf) {
    //localization from the neural network is updated at 20Hz
-   float confidence_threshold = .90;
+   float confidence_threshold = .85;
    int temp_index = localization_index;
    int hallway_count[HALLWAY_NUM];
    float hallway_confidence[HALLWAY_NUM];
+   float overall_confidence;
    int max_count = 0;
    int max_estimate;
    int estimate;
@@ -413,7 +420,7 @@ int Navigation::compute_localization() {
    }
 
    for (int i=0; i<8; i++) {
-      estimate = localization_tracking[temp_index];
+      estimate = localization_num[temp_index];
       hallway_confidence[estimate] += localization_value[temp_index]; //sum up the confidence values
       hallway_count[estimate]++;
       temp_index--;
@@ -431,10 +438,15 @@ int Navigation::compute_localization() {
       }
    }
 
-   if (max_count > 6 && ((hallway_confidence[estimate]/hallway_count[estimate]) > .90))
-      return max_estimate;
-   else
-      return -1;  //unknown
+   overall_confidence = hallway_confidence[max_estimate]/(float)hallway_count[max_estimate];
+
+   if ((max_count > 5) && (overall_confidence > confidence_threshold)) {
+      *num = max_estimate;
+      *conf = overall_confidence;
+   } else {
+      *num = -1;
+      *conf = 0;
+   }
 }
 
 int Navigation::compute_turn_prob(double* confidence) {
