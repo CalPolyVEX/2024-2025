@@ -1,9 +1,8 @@
-# This file saves heading data to a file and then runs through a .bag file
-# a second time to generate heading data for a given image.  The bag file
-# must publish to /see3cam_cu20/image_raw/compressed and also must publish
-# the odometry to /camera/odom/sample (T265 tracking camera)
+# This file saves images from a ROS bag file.  The files are saved periodically and roscore
+# must be running before starting the script
 #
-# To run:  python3 make_dirs.py -heading file.bag
+# To save images:  python sample_images.py num path 
+# (where num is the hallway number and path is the ROS bag file)
 
 import roslib
 import rosbag
@@ -39,6 +38,8 @@ class sample_images:
         self.file_prefix = self.file_prefix.split('.bag')[0]
 
         filelist = glob.glob(self.path + '/*.jpg')
+        filelist = filelist + glob.glob(self.training_dir + '/*.jpg')
+        filelist = filelist + glob.glob(self.validation_dir + '/*.jpg')
         print (filelist)
 
         for f in filelist:
@@ -47,14 +48,24 @@ class sample_images:
                 os.remove(f)
 
     def split(self):
-        validation_percentage = .85
+        training_percentage = .85 #85% of images are used for training, others used for validation
 
         filelist = glob.glob(self.path + '/*.jpg')
         random.shuffle(filelist)
         print (filelist)
 
+        # check if the training directory exists
+        if not os.path.exists(self.training_dir):
+            os.makedirs(self.training_dir)
+            print('Made dir ' + self.training_dir)
+
+        # check if the validation directory exists
+        if not os.path.exists(self.validation_dir):
+            os.makedirs(self.validation_dir)
+            print('Made dir ' + self.validation_dir)
+
         #copy training images
-        training_num = int(len(filelist) * validation_percentage)
+        training_num = int(len(filelist) * training_percentage)
         for i in range(training_num):
             shutil.copy2(filelist[0], self.training_dir)
             filelist.pop(0)
@@ -80,7 +91,7 @@ class sample_images:
         current_dir = ""  # directory in which to store images
         image_topic = '/see3cam_cu20/image_raw_live/compressed'
 
-        for topic, msg, t in bag.read_messages(topics=[image_topic]):
+        for topic, msg, timestamp in bag.read_messages(topics=[image_topic]):
             if topic == image_topic:
                 np_arr = np.frombuffer(msg.data, np.uint8)
                 self.image = cv2.imdecode(
