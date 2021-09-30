@@ -1,4 +1,4 @@
-Setting up environment for training neural network:
+This directory contains the training scripts for the neural network.
 
 ## Setup
 It is best to first setup a Python virtual environment before running PyTorch.  A virtual environment will download all the Python 
@@ -19,3 +19,21 @@ Then, install the necessary packages:
 
 ```
 pip3 install torch torchsummary torchvision albumentations timm
+```
+
+---
+
+### Training the model
+
+```python train_ref.py``` - train the Efficientnet-Lite backbone
+
+```python train_ref.py 1``` - train the ground boundary network (has its own separate Efficientnet-Lite backbone)
+
+```python train_ref.py 2``` - train the localization output head
+
+```python train_ref.py 3``` - train the goal prediction output head
+
+```python train_ref.py 4``` - train the turn detection output head
+
+
+
