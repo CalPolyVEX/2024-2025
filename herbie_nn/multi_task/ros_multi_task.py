@@ -35,10 +35,10 @@ class image_inference:
             "/test_image/image_raw/compressed", CompressedImage, queue_size=1)
 
         self.image_sub = rospy.Subscriber(
-            "/see3cam_cu20/image_raw/compressed", CompressedImage, self.callback, queue_size=1, buff_size=10000000)
+                "/see3cam_cu20/image_raw_live/compressed", CompressedImage, self.callback, queue_size=1, buff_size=10000000)
 
         self.data_pub = rospy.Publisher(
-            '/nn_data', Float64MultiArray, queue_size=1)
+            '/nn_data1', Float64MultiArray, queue_size=1)
 
         self.scan_pub = rospy.Publisher('scan', LaserScan, queue_size=50)
         self.pointcloud_pub = rospy.Publisher('point_cloud', PointCloud2, queue_size=50)

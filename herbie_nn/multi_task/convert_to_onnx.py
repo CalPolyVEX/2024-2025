@@ -13,14 +13,14 @@ def convert_pytorch_onnx(model_name = 'efficientnet_lite0-.0102-80out.pt'):
     #model_name = 'mobilenetv3_small-.0110-80out.pt'
     #semnasnet_100-.0074-80out.pt'
     print ('Converting ' + model_name + ' to .onnx')
-    model = torch.load(model_name)
+    model = torch.load(model_name, map_location=torch.device('cpu'))
     model.eval()
 
     print (model)
 
     x = torch.rand(3,360,640, requires_grad = True)
     x = x.unsqueeze(0)
-    x = x.to('cuda:0')
+    x = x.to('cpu')
 
     #print(model(x))
     batch_size = 1
