@@ -35,5 +35,21 @@ pip3 install torch torchsummary torchvision albumentations timm
 
 ```python train_ref.py 4``` - train the turn detection output head
 
+---
+
+### Viewing model structure
+
+netron is a tool to help visualize the structure of a model.  Install netron using:
+
+```pip install netron```
+
+Once netron is installed, convert the model to .onnx (standardized neural network model file format) using:
+
+```python convert_to_onnx.py file.pt```
+
+Then run netron with:  ```netron test_model.onnx```
+
+The model architecture will then be viewable on a web browser at localhost:8080
+
 
 
