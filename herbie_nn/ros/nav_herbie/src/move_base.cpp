@@ -116,10 +116,14 @@ void Navigation::update_goal_transform() {
    update_goal_mutex.unlock();
 }
 
-void Navigation::update_turn_transform() {
+void Navigation::update_turn_transform(int hallway, int direction) {
    geometry_msgs::TransformStamped *t;
 
-   t = &(turn_transform_left[8]);
+   if (direction == 0) {
+      t = &(turn_transform_left[hallway]);
+   } else {
+      t = &(turn_transform_right[hallway]);
+   }
 
    //testing
    static tf2_ros::TransformBroadcaster tfb;
@@ -144,7 +148,7 @@ void Navigation::send_goal(const std_msgs::Empty::ConstPtr& msg) {
    //get the transform from odom to goal since the planner only takes goals in 
    //the odom frame
    geometry_msgs::TransformStamped transformStamped;
-   transformStamped = tfBuffer.lookupTransform("odom", "goal", ros::Time(0));
+   transformStamped = tfBuffer.lookupTransform("odom", "goal", ros::Time(0), ros::Duration(0.5));
 
    move_base_msgs::MoveBaseGoal cur_goal;
 
@@ -293,7 +297,10 @@ void Navigation::execute_turn(int hallway_num, int dir) {
    //get the transform from odom to goal since the planner only takes goals in 
    //the odom frame
    geometry_msgs::TransformStamped transformStamped;
-   transformStamped = tfBuffer.lookupTransform("odom", "turn", ros::Time(0));
+   transformStamped = tfBuffer.lookupTransform("odom", "turn", ros::Time(0), ros::Duration(1.5));
+   /* ros::Time now = ros::Time::now(); */
+   /* tfBuffer.waitForTransform("/odom", "/turn", now, ros::Duration(3.0)); */
+   /* tfBuffer.lookupTransform("/odom", "/turn", now, transformStamped); */
 
    move_base_msgs::MoveBaseGoal temp_goal;
 
@@ -380,7 +387,7 @@ void Navigation::init_turn_transforms() {
       t->transform.rotation.x = 0; 
       t->transform.rotation.y = 0;
       t->transform.rotation.z = 0; 
-      t->transform.rotation.w = 0;
+      t->transform.rotation.w = 1;
 
       t = &(turn_transform_right[i]);
 
@@ -390,7 +397,7 @@ void Navigation::init_turn_transforms() {
       t->transform.rotation.x = 0; 
       t->transform.rotation.y = 0;
       t->transform.rotation.z = 0; 
-      t->transform.rotation.w = 0;
+      t->transform.rotation.w = 1;
    }
 
    t = &(turn_transform_left[8]);
@@ -409,8 +416,8 @@ void Navigation::init_turn_transforms() {
    tempQuaternion.setRPY(0,0,-90.0*M_PI/180); //90 degree clockwise
    tempQuaternion=tempQuaternion.normalize();
 
-   t->transform.translation.x = 1; 
-   t->transform.translation.y = 0;
+   t->transform.translation.x = 1.7; 
+   t->transform.translation.y = -1.7;
    t->transform.translation.z = 0.0;
    t->transform.rotation.x = tempQuaternion.x(); 
    t->transform.rotation.y = tempQuaternion.y();

@@ -136,7 +136,7 @@ class Navigation {
     void publish_pointcloud();
     void autonomous_mode_callback(const std_msgs::Int8::ConstPtr& msg);
     void update_goal_transform();
-    void update_turn_transform();
+    void update_turn_transform(int hallway, int direction);
     void update_goal_callback(const ros::TimerEvent& ev);
     void compute_localization(int* num, float* conf);
     int compute_turn_prob(double* confidence);

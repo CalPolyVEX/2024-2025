@@ -123,8 +123,18 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    goal = (double*) &(nn_msg->data[NUM_GROUND + NUM_TURN + NUM_LOC]);
    inference_time = (double) nn_msg->data[NUM_GROUND + NUM_TURN + NUM_LOC + 1];
 
+   int cur_loc_estimate;
+   float cur_loc_conf;
+   compute_localization(&cur_loc_estimate, &cur_loc_conf);
+
    update_goal_transform();
-   update_turn_transform();
+
+   if (cur_loc_estimate == 8) {
+      update_turn_transform(cur_loc_estimate, 0);
+   } else {
+      update_turn_transform(cur_loc_estimate, 1);
+   }
+  
    //draw the localization probability graph
    draw_loc_prob();
 
@@ -158,9 +168,6 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    turn_counter++;
    char coord[2];
    char lcd_msg[32];
-   int cur_loc_estimate;
-   float cur_loc_conf;
-   compute_localization(&cur_loc_estimate, &cur_loc_conf);
 
    if (turn_counter > 2) {
       turn_counter = 0;
