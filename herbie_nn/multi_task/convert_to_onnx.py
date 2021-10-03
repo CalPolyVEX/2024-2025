@@ -1,3 +1,10 @@
+#convert a pytorch trained model to an ONNX format.  The ONNX format is
+#used by the Jetson to generate an optimized neural network engine that
+#is run directly on the board.
+#
+#run using:  python convert_to_onnx.py inference.pt
+#(where inference.pt is the trained pytorch model)
+
 import torch
 import torch.onnx
 import onnx
@@ -6,12 +13,7 @@ import onnxruntime
 import numpy as np
 import sys, cv2
 
-#import onnx_tensorrt.backend as backend
-
 def convert_pytorch_onnx(model_name = 'efficientnet_lite0-.0102-80out.pt'):
-    #model_name = 'efficientnet_lite0-.0102-80out.pt'
-    #model_name = 'mobilenetv3_small-.0110-80out.pt'
-    #semnasnet_100-.0074-80out.pt'
     print ('Converting ' + model_name + ' to .onnx')
     model = torch.load(model_name, map_location=torch.device('cpu'))
     model.eval()
@@ -22,12 +24,11 @@ def convert_pytorch_onnx(model_name = 'efficientnet_lite0-.0102-80out.pt'):
     x = x.unsqueeze(0)
     x = x.to('cpu')
 
-    #print(model(x))
     batch_size = 1
     # Export the model
-    torch.onnx.export(model,                     # model being run
+    torch.onnx.export(model,                   # model being run
                     x,                         # model input (or a tuple for multiple inputs)
-                    "test_model.onnx",         # where to save the model (can be a file or file-like object)
+                    "trained_model.onnx",      # where to save the model
                     export_params=True,        # store the trained parameter weights inside the model file
                     opset_version=11,          # the ONNX version to export the model to
                     do_constant_folding=True,  # whether to execute constant folding for optimization

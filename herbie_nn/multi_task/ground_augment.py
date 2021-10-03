@@ -1,3 +1,5 @@
+#generate augmented images for the ground dataset
+
 from collections import defaultdict
 import copy
 import random
