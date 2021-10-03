@@ -95,6 +95,9 @@ Navigation::Navigation() : it(nh) {
       localization_x_position[i] = 0;
       localization_y_position[i] = 0;
    }
+
+   //start the turn transform thread
+   turn_transform_thread = new std::thread(&Navigation::update_turn_transform, this);
 }
 
 void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
@@ -116,6 +119,7 @@ void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
 
 void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& nn_msg) {
    double turn_confidence;
+   float cur_loc_conf;
 
    ground = (double*) &(nn_msg->data[0]);
    loc = (double*) &(nn_msg->data[NUM_GROUND]);
@@ -123,17 +127,12 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    goal = (double*) &(nn_msg->data[NUM_GROUND + NUM_TURN + NUM_LOC]);
    inference_time = (double) nn_msg->data[NUM_GROUND + NUM_TURN + NUM_LOC + 1];
 
-   int cur_loc_estimate;
-   float cur_loc_conf;
+   //update the localization estimate
+   cur_loc_mutex.lock();
    compute_localization(&cur_loc_estimate, &cur_loc_conf);
+   cur_loc_mutex.unlock();
 
    update_goal_transform();
-
-   if (cur_loc_estimate == 8) {
-      update_turn_transform(cur_loc_estimate, 0);
-   } else {
-      update_turn_transform(cur_loc_estimate, 1);
-   }
   
    //draw the localization probability graph
    draw_loc_prob();
@@ -187,24 +186,15 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
       }
 
       usleep(10);
-      /* coord[1] = 1; */
-      /* create_control_board_msg(1,coord); //move to second line on LCD */
-      /* usleep(5); */
-      /* sprintf(lcd_msg,"%03d,%03d", (int) (goal[0]*640), (int) (goal[1]*360)); */
-      /* create_control_board_msg(2,lcd_msg); */
-      /* usleep(5); */
    }
 
    //test turning
    compute_turn_prob(&turn_confidence); //compute turn confidence
 
-   //if ((cur_loc == 8) && (turn_confidence > .95) && (turn_in_progress == 0)) {
-   //int cur_loc_estimate = 0;
-
    /* if ((cur_loc == 8) && (turn_confidence > .95) && (turn_in_progress == 0)) { */
    if ((cur_loc_estimate != -1) && (turn_confidence > .95) && (turn_in_progress == 0)) {
       turn_dir = get_next_turn_dir(cur_loc_estimate,29); //next turn direction
-      execute_turn(cur_loc_estimate,turn_dir); //execute left turn
+      execute_turn(); //execute left turn
       turn_in_progress = 1;
    }
 
@@ -236,15 +226,17 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
          turn_progress_counter = 0;
 
          //set narrow parameters for the new hallway
-         int narrow = VAN(&gr, "narrow", cur_loc);
-         set_narrow_parameters(narrow);
+         if (cur_loc_estimate != -1) {
+            int narrow = VAN(&gr, "narrow", cur_loc_estimate);
+            set_narrow_parameters(narrow);
+         }
       }
    } else {
-      coord[0] = 12; //col 10
+      coord[0] = 11; //col 10
       coord[1] = 1; //row 1
       create_control_board_msg(1,coord);
       usleep(10);
-      sprintf(lcd_msg,"    ");
+      sprintf(lcd_msg,"     ");
       create_control_board_msg(2,lcd_msg);
       usleep(10);
    }

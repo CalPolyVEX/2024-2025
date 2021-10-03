@@ -116,32 +116,50 @@ void Navigation::update_goal_transform() {
    update_goal_mutex.unlock();
 }
 
-void Navigation::update_turn_transform(int hallway, int direction) {
+void Navigation::update_turn_transform() {
    geometry_msgs::TransformStamped *t;
+   int temp_loc_estimate;
 
-   if (direction == 0) {
-      t = &(turn_transform_left[hallway]);
-   } else {
-      t = &(turn_transform_right[hallway]);
+   while(1) {
+      cur_loc_mutex.lock();
+      temp_loc_estimate = cur_loc_estimate;  //read the current hallway estimate
+      cur_loc_mutex.unlock();
+
+      if (temp_loc_estimate != -1) {
+         int direction;
+
+         if (temp_loc_estimate == 8) {
+            direction = 0;
+         } else {
+            direction = 1;
+         }
+
+         if (direction == 0) { //turn left at this hallway
+            t = &(turn_transform_left[temp_loc_estimate]);
+         } else { //turn right at this hallway
+            t = &(turn_transform_right[temp_loc_estimate]);
+         }
+
+         static tf2_ros::TransformBroadcaster tfb;
+         geometry_msgs::TransformStamped transformStamped;
+
+         transformStamped.header.frame_id = "base_link";
+         transformStamped.child_frame_id = "turn";
+         transformStamped.transform.translation.x = t->transform.translation.x; 
+         transformStamped.transform.translation.y = t->transform.translation.y;
+         transformStamped.transform.translation.z = t->transform.translation.z;
+
+         transformStamped.transform.rotation.w = t->transform.rotation.w; 
+         transformStamped.transform.rotation.x = t->transform.rotation.x; 
+         transformStamped.transform.rotation.y = t->transform.rotation.y;
+         transformStamped.transform.rotation.z = t->transform.rotation.z; 
+
+         transformStamped.header.stamp = ros::Time::now();
+         tfb.sendTransform(transformStamped);
+
+         std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
    }
-
-   //testing
-   static tf2_ros::TransformBroadcaster tfb;
-   geometry_msgs::TransformStamped transformStamped;
-
-   transformStamped.header.frame_id = "base_link";
-   transformStamped.child_frame_id = "turn";
-   transformStamped.transform.translation.x = t->transform.translation.x; 
-   transformStamped.transform.translation.y = t->transform.translation.y;
-   transformStamped.transform.translation.z = t->transform.translation.z;
-
-   transformStamped.transform.rotation.w = t->transform.rotation.w; 
-   transformStamped.transform.rotation.x = t->transform.rotation.x; 
-   transformStamped.transform.rotation.y = t->transform.rotation.y;
-   transformStamped.transform.rotation.z = t->transform.rotation.z; 
-
-   transformStamped.header.stamp = ros::Time::now();
-   tfb.sendTransform(transformStamped);
 }
 
 void Navigation::send_goal(const std_msgs::Empty::ConstPtr& msg) {
@@ -279,17 +297,7 @@ void Navigation::set_narrow_parameters(int narrow) {
    ros::service::call("/move_base/set_parameters", srv_req, srv_resp);
 }
 
-void Navigation::execute_turn(int hallway_num, int dir) {
-   geometry_msgs::TransformStamped* current_turn_transform;
-
-   if (dir == 0) { //turn left
-      current_turn_transform = &(turn_transform_left[hallway_num]);
-   } else if (dir == 2) { //turn right
-      current_turn_transform = &(turn_transform_right[hallway_num]);
-   } else { //keep going straight
-      return;
-   }
-
+void Navigation::execute_turn() {
    goal_timer.stop(); //stop the goal update timer
 
    update_goal_mutex.lock();
@@ -298,9 +306,6 @@ void Navigation::execute_turn(int hallway_num, int dir) {
    //the odom frame
    geometry_msgs::TransformStamped transformStamped;
    transformStamped = tfBuffer.lookupTransform("odom", "turn", ros::Time(0), ros::Duration(1.5));
-   /* ros::Time now = ros::Time::now(); */
-   /* tfBuffer.waitForTransform("/odom", "/turn", now, ros::Duration(3.0)); */
-   /* tfBuffer.lookupTransform("/odom", "/turn", now, transformStamped); */
 
    move_base_msgs::MoveBaseGoal temp_goal;
 
@@ -311,8 +316,9 @@ void Navigation::execute_turn(int hallway_num, int dir) {
    temp_goal.target_pose.pose.position.x = transformStamped.transform.translation.x;
    temp_goal.target_pose.pose.position.y = transformStamped.transform.translation.y;
    temp_goal.target_pose.pose.position.z = 0;
-
-   cur_goal.target_pose.pose.position.x = transformStamped.transform.translation.x; //save the current turn goal
+   
+   //save the current turn goal
+   cur_goal.target_pose.pose.position.x = transformStamped.transform.translation.x;
    cur_goal.target_pose.pose.position.y = transformStamped.transform.translation.y;
    cur_goal.target_pose.pose.position.z = 0;
 
@@ -321,7 +327,8 @@ void Navigation::execute_turn(int hallway_num, int dir) {
    temp_goal.target_pose.pose.orientation.y = transformStamped.transform.rotation.y;
    temp_goal.target_pose.pose.orientation.z = transformStamped.transform.rotation.z;
 
-   cur_goal.target_pose.pose.orientation.w = transformStamped.transform.rotation.w; //save the current turn orientation
+   //save the current turn orientation
+   cur_goal.target_pose.pose.orientation.w = transformStamped.transform.rotation.w;
    cur_goal.target_pose.pose.orientation.x = transformStamped.transform.rotation.x;
    cur_goal.target_pose.pose.orientation.y = transformStamped.transform.rotation.y;
    cur_goal.target_pose.pose.orientation.z = transformStamped.transform.rotation.z;

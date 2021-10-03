@@ -88,6 +88,7 @@ class Navigation {
   int turn_in_progress = 0;
   int turn_progress_counter = 0;
   move_base_msgs::MoveBaseGoal cur_goal;
+  std::thread *turn_transform_thread;
 
   //variables for localization
   #define LOCALIZATION_ARRAY_SIZE 200
@@ -96,6 +97,8 @@ class Navigation {
   float localization_x_position[LOCALIZATION_ARRAY_SIZE];
   float localization_y_position[LOCALIZATION_ARRAY_SIZE];
   int localization_index = 0;
+  int cur_loc_estimate = -1;
+  std::mutex cur_loc_mutex;
 
   //variables for heading
   float heading_offset = 0;
@@ -136,12 +139,12 @@ class Navigation {
     void publish_pointcloud();
     void autonomous_mode_callback(const std_msgs::Int8::ConstPtr& msg);
     void update_goal_transform();
-    void update_turn_transform(int hallway, int direction);
+    void update_turn_transform();
     void update_goal_callback(const ros::TimerEvent& ev);
     void compute_localization(int* num, float* conf);
     int compute_turn_prob(double* confidence);
     int call_make_plan(double goal_x, double goal_y, double* pose_x, double* pose_y);  //call the planner to test if a plan is found
-    void execute_turn(int hallway_num, int dir);
+    void execute_turn();
     void set_narrow_parameters(int narrow);
     void init_turn_transforms();
     double get_distance_to_goal();
