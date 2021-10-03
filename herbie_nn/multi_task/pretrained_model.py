@@ -1,3 +1,9 @@
+#This file describes the neural network structure.  The backbone uses the
+#Efficientnet-Lite0 pretrained model from the timm repository.
+#
+#A better view of the network structure can be found using 'netron' to view
+#a trained ONNX model file.
+
 import timm
 import torch
 from torchvision import models
@@ -5,7 +11,6 @@ from torchsummary import summary
 import torch.nn.functional as F
 
 class Pretrained_Model(torch.nn.Module):
-# class Pretrained_Model:
     def __init__(self, shape, num_outputs1, num_outputs2, goal_outputs):
         super(Pretrained_Model, self).__init__()
 
@@ -17,13 +22,11 @@ class Pretrained_Model(torch.nn.Module):
 
         # instantiate pre-trained model for multiple output heads
         self.m = timm.create_model('efficientnet_lite0', pretrained=True)
-        # self.m = timm.create_model('tf_efficientnet_b0_ns', pretrained=True)
         self.removed = list(self.m.children())[:-1]
         self.m = torch.nn.Sequential(*self.removed)
 
         # ground boundary backbone
         self.m1 = timm.create_model('efficientnet_lite0', pretrained=True)
-        # self.m1 = timm.create_model('tf_efficientnet_b0_ns', pretrained=True)
         self.removed1 = list(self.m1.children())[:-1]
         self.m1 = torch.nn.Sequential(*self.removed1)
 
@@ -38,7 +41,6 @@ class Pretrained_Model(torch.nn.Module):
         # self.feature_num = 1536
 
         self.ground_out = torch.nn.Linear(1280, self.num_ground_outputs)
-        # self.ground_out = torch.nn.Linear(1536, self.num_ground_outputs)
 
         self.loc_hidden1 = torch.nn.Linear(self.feature_num, 256)
         self.loc_hidden2 = torch.nn.Linear(256, 256)
@@ -64,9 +66,6 @@ class Pretrained_Model(torch.nn.Module):
         self.softmax = torch.nn.Softmax(1)
         self.sig = torch.nn.Sigmoid()
         self.sig1 = torch.nn.Sigmoid()
-        # self.do1 = torch.nn.Dropout(p=.2)
-        # self.do2 = torch.nn.Dropout(p=.2)
-        # self.do3 = torch.nn.Dropout(p=.2)
 
     def forward(self, x):
         backbone_out = self.m(x)
@@ -114,7 +113,7 @@ class Pretrained_Model(torch.nn.Module):
 
     @staticmethod
     def enable_ground_head(model, status):
-        #disable localization head training
+        #set localization head training status
         model.ground_out.weight.requires_grad = status
         model.ground_out.bias.requires_grad = status
 
@@ -127,7 +126,7 @@ class Pretrained_Model(torch.nn.Module):
 
     @staticmethod
     def enable_loc_head(model, status):
-        #disable localization head training
+        #set localization head training status
         model.loc_hidden1.weight.requires_grad = status
         model.loc_hidden1.bias.requires_grad = status
 
@@ -160,7 +159,7 @@ class Pretrained_Model(torch.nn.Module):
 
     @staticmethod
     def enable_turn_head(model, status):
-        #disable turn head training
+        #set turn head training status
         model.turn_hidden1.weight.requires_grad = status
         model.turn_hidden1.bias.requires_grad = status
 
@@ -193,7 +192,7 @@ class Pretrained_Model(torch.nn.Module):
 
     @staticmethod
     def enable_goal_head(model, status):
-        #disable goal head training
+        #set goal head training status
         model.goal_hidden_x.weight.requires_grad = status
         model.goal_hidden_x.bias.requires_grad = status
 

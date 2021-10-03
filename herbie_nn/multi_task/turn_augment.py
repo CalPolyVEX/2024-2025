@@ -1,3 +1,6 @@
+#generate augmented images for the turn dataset during training.  Augmented
+#images are generate dynamically during training.
+
 from collections import defaultdict
 import copy
 import random

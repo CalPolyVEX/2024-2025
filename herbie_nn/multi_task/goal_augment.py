@@ -1,3 +1,6 @@
+#generate augmented images for the goal dataset during training
+#Augmented images are generated dynamically during training.
+
 from collections import defaultdict
 import copy
 import random
