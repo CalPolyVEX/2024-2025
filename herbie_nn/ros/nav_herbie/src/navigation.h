@@ -17,7 +17,6 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include <ros/console.h>
-//#include <boost/thread.hpp>
 #include <mutex>
 #include <iostream>
 #include <cmath>
@@ -30,7 +29,6 @@
 
 #include <nav_msgs/GetPlan.h>
 
-/* #include <lemon/smart_graph.h> */
 #include <igraph.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
@@ -38,13 +36,6 @@
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
 class Navigation {
-  struct Arc
-  {
-     std::string sourceID;
-     std::string targetID;
-     double cost;
-  };
-
   ros::NodeHandle nh;
   image_transport::ImageTransport it;
 
@@ -79,29 +70,32 @@ class Navigation {
 
   //variables for turn
   #define TURN_ARRAY_SIZE 50
-  double turn_tracking[TURN_ARRAY_SIZE];
+  double turn_tracking[TURN_ARRAY_SIZE]; //stores the last TURN_ARRAY_SIZE neural network predictions
   int turn_index = 0;
-  int turn_dir = 1; //0=left, 1=straight, 2=right
+  int turn_dir = 1;                      //0=left, 1=straight, 2=right
   int turn_counter = 0;
   geometry_msgs::TransformStamped turn_transform_left[64];
   geometry_msgs::TransformStamped turn_transform_right[64];
-  int turn_in_progress = 0;
-  int turn_progress_counter = 0;
+  int turn_in_progress = 0;              //true if a turn is currently in progress
+  int turn_progress_counter = 0;         //used to determine turn timeout
   move_base_msgs::MoveBaseGoal cur_goal;
   std::thread *turn_transform_thread;
+  int route_hallway[100];
+  int route_turn[100];
+  int current_route_index = 0;         //the index into the route hallway array
 
   //variables for localization
   #define LOCALIZATION_ARRAY_SIZE 200
-  int localization_num[LOCALIZATION_ARRAY_SIZE];
-  float localization_value[LOCALIZATION_ARRAY_SIZE];
-  float localization_x_position[LOCALIZATION_ARRAY_SIZE];
-  float localization_y_position[LOCALIZATION_ARRAY_SIZE];
-  int localization_index = 0;
+  int localization_num[LOCALIZATION_ARRAY_SIZE];          //stores the history of hallway predictions
+  float localization_value[LOCALIZATION_ARRAY_SIZE];      //stores the confidence of those predictions
+  float localization_x_position[LOCALIZATION_ARRAY_SIZE]; //x odometry coordinate of last prediction
+  float localization_y_position[LOCALIZATION_ARRAY_SIZE]; //y odometry coordinate of last prediction
+  int localization_index = 0;                             //current index into the hallway pred. array
   int cur_loc_estimate = -1;
   std::mutex cur_loc_mutex;
 
   //variables for heading
-  float heading_offset = 0;
+  float heading_offset = 0;  //an offset used to handle wrap around of the heading
   float last_heading = 0;
   float actual_heading = 0;
   int heading_counter = 0;
@@ -111,7 +105,7 @@ class Navigation {
   tf2_ros::Buffer tfBuffer;
   tf2_ros::TransformListener* tfListener;
   std::string service_name = "move_base/make_plan";
-  std::mutex update_goal_mutex;
+  std::mutex update_goal_mutex;  //lock this mutex when updating the goal
 
   public:
     Navigation(); 
@@ -148,6 +142,7 @@ class Navigation {
     void set_narrow_parameters(int narrow);
     void init_turn_transforms();
     double get_distance_to_goal();
+    void init_route();
 
     //control board functions
     void create_control_board_msg(int num, void* arg);

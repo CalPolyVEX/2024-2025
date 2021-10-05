@@ -177,6 +177,11 @@ void OdometryPublisher::control_board_callback(const std_msgs::Int32MultiArray::
       board_queue.push(p);  //push the packet into the queue
    }
 
+   if (board_queue.size() > 25) {
+      /* unsigned char x = 2; //LED 2 = green LED */
+      /* create_control_board_msg(7,(void*) &x); //turn on LED */
+   }
+
    herbie_board_queue_mutex.unlock();
 }
 
@@ -307,6 +312,8 @@ void OdometryPublisher::serial_loop() {
   }
 }
 
+//create a message that is sent from this node to the control board
+//over USB serial
 void OdometryPublisher::create_control_board_msg(int num, void* arg) {
    boost::shared_ptr<std_msgs::Int32MultiArray> test_msg(new std_msgs::Int32MultiArray());
    unsigned char buf[8];

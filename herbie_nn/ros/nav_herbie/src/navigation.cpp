@@ -98,6 +98,12 @@ Navigation::Navigation() : it(nh) {
 
    //start the turn transform thread
    turn_transform_thread = new std::thread(&Navigation::update_turn_transform, this);
+
+   //initialize the route to all invalid
+   for(int i=0; i<100; i++) {
+      route_hallway[i] = -1;
+      route_turn[i] = -1;
+   }
 }
 
 void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
@@ -158,7 +164,7 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    //publish pointcloud
    publish_pointcloud();
 
-   //publish message
+   //publish the image (if in debug mode)
    if(debug_mode) {
       sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", new_image).toImageMsg();
       image_pub_.publish(pub_msg);
@@ -220,12 +226,17 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
       
       //turn is complete, restart the goal timer and set parameters
       if (action_client->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
-         //a->cancelAllGoals(); //cancel the turn goal
          goal_timer.start(); //start the goal update timer
          turn_in_progress = 0;
          turn_progress_counter = 0;
 
-         //set narrow parameters for the new hallway
+         //update the route index
+         current_route_index++;
+         if (route_hallway[current_route_index] == -1) { //route completed, so start over
+            current_route_index = 0;
+         }
+
+         //if the new hallway is narrow, set the driving parameters to closely follow the global path
          if (cur_loc_estimate != -1) {
             int narrow = VAN(&gr, "narrow", cur_loc_estimate);
             set_narrow_parameters(narrow);
@@ -811,12 +822,6 @@ int main(int argc, char** argv) {
   }
 
   ros::init(argc, argv, "navigation_node");
-
-  /* if (argc == 2 && strcmp(argv[1], "-sim") == 0) { */
-  /*    sim_mode = 1; */
-  /* } else { */
-  /*    sim_mode = 0; */
-  /* } */
 
   Navigation nav_node;
   nav_node.graph_init();

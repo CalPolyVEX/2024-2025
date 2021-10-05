@@ -191,7 +191,7 @@ void Navigation::send_goal(const std_msgs::Empty::ConstPtr& msg) {
 
 void Navigation::publish_pointcloud() {
    int numpoints = 80; //the number of points output by the neural network
-   int interpolate = 15; //number of points to interpolate
+   int interpolate = 15; //number of points to interpolate between 2 neural network (world) points
 
    sensor_msgs::PointCloud2 cloud_msg;
 
@@ -408,23 +408,19 @@ void Navigation::init_turn_transforms() {
    }
 
    t = &(turn_transform_left[8]);
-   tempQuaternion.setRPY(0,0,90.0*M_PI/180); //90 degree counterclockwise
-   tempQuaternion=tempQuaternion.normalize();
-
    t->transform.translation.x = 1.7; 
    t->transform.translation.y = 1.7;
    t->transform.translation.z = 0.0;
-   t->transform.rotation.x = tempQuaternion.x(); 
-   t->transform.rotation.y = tempQuaternion.y();
-   t->transform.rotation.z = tempQuaternion.z(); 
-   t->transform.rotation.w = tempQuaternion.w();
+   tempQuaternion.setRPY(0,0,90.0*M_PI/180); //90 degree counterclockwise
+   tempQuaternion=tempQuaternion.normalize();
+   tf2::convert(t->transform.rotation, tempQuaternion);
 
    t = &(turn_transform_right[11]);
    tempQuaternion.setRPY(0,0,-90.0*M_PI/180); //90 degree clockwise
    tempQuaternion=tempQuaternion.normalize();
 
-   t->transform.translation.x = 1.7; 
-   t->transform.translation.y = -1.7;
+   t->transform.translation.x = 0.7; 
+   t->transform.translation.y = -1.0;
    t->transform.translation.z = 0.0;
    t->transform.rotation.x = tempQuaternion.x(); 
    t->transform.rotation.y = tempQuaternion.y();
@@ -432,7 +428,7 @@ void Navigation::init_turn_transforms() {
    t->transform.rotation.w = tempQuaternion.w();
 
    t = &(turn_transform_left[12]);
-   tempQuaternion.setRPY(0,0,-90.0*M_PI/180); //90 degree clockwise
+   tempQuaternion.setRPY(0,0,90.0*M_PI/180); //90 degree counterclockwise
    tempQuaternion=tempQuaternion.normalize();
 
    t->transform.translation.x = 1; 
@@ -444,7 +440,7 @@ void Navigation::init_turn_transforms() {
    t->transform.rotation.w = tempQuaternion.w();
 
    t = &(turn_transform_right[12]);
-   tempQuaternion.setRPY(0,0,90.0*M_PI/180); //90 degree counterclockwise
+   tempQuaternion.setRPY(0,0,-90.0*M_PI/180); //90 degree clockwise
    tempQuaternion=tempQuaternion.normalize();
 
    t->transform.translation.x = 1; 
@@ -454,6 +450,34 @@ void Navigation::init_turn_transforms() {
    t->transform.rotation.y = tempQuaternion.y();
    t->transform.rotation.z = tempQuaternion.z(); 
    t->transform.rotation.w = tempQuaternion.w();
+}
+
+//initialize the route
+void Navigation::init_route() {
+   //route for a loop around north quad
+   route_hallway[0] = 8;
+   route_turn[0] = 0; //left
+
+   route_hallway[1] = 11;
+   route_turn[1] = 2; //right
+
+   route_hallway[2] = 12;
+   route_turn[2] = 0; //left
+
+   route_hallway[3] = 15;
+   route_turn[3] = 0; //left
+
+   route_hallway[4] = 16;
+   route_turn[4] = 0; //left
+
+   route_hallway[5] = 0;
+   route_turn[5] = 0; //left
+
+   route_hallway[6] = 4;
+   route_turn[6] = 2; //right
+
+   route_hallway[7] = 7;
+   route_turn[7] = 0; //left
 }
 
 int Navigation::call_make_plan(double goal_x, double goal_y, double* pose_x, double* pose_y) {
