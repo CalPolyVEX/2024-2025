@@ -282,19 +282,19 @@ void Navigation::set_narrow_parameters(int narrow) {
 
    ros::service::call("/move_base/DWAPlannerROS/set_parameters", srv_req, srv_resp);
 
-   double_param.name = "planner_frequency";
+   /* double_param.name = "planner_frequency"; */
 
-   if (narrow == 1) {
-      double_param.value = 1.0;
-   } else {
-      double_param.value = 0.5;
-   }
+   /* if (narrow == 1) { */
+   /*    double_param.value = 1.0; */
+   /* } else { */
+   /*    double_param.value = 0.5; */
+   /* } */
 
-   conf.doubles.push_back(double_param);
+   /* conf.doubles.push_back(double_param); */
 
-   srv_req.config = conf;
+   /* srv_req.config = conf; */
 
-   ros::service::call("/move_base/set_parameters", srv_req, srv_resp);
+   /* ros::service::call("/move_base/set_parameters", srv_req, srv_resp); */
 }
 
 void Navigation::execute_turn() {
@@ -316,6 +316,12 @@ void Navigation::execute_turn() {
    temp_goal.target_pose.pose.position.x = transformStamped.transform.translation.x;
    temp_goal.target_pose.pose.position.y = transformStamped.transform.translation.y;
    temp_goal.target_pose.pose.position.z = 0;
+   
+   ROS_WARN("JS turn goal");
+   ROS_WARN("JS turn goal x: %f", temp_goal.target_pose.pose.position.x);
+   ROS_WARN("JS turn goal y: %f", temp_goal.target_pose.pose.position.y);
+   std::cout << "JS turn goal x: " << temp_goal.target_pose.pose.position.x << std::endl;
+   std::cout << "JS turn goal y: " << temp_goal.target_pose.pose.position.y << std::endl;
    
    //save the current turn goal
    cur_goal.target_pose.pose.position.x = transformStamped.transform.translation.x;
@@ -408,19 +414,23 @@ void Navigation::init_turn_transforms() {
    }
 
    t = &(turn_transform_left[8]);
-   t->transform.translation.x = 1.7; 
-   t->transform.translation.y = 1.7;
-   t->transform.translation.z = 0.0;
    tempQuaternion.setRPY(0,0,90.0*M_PI/180); //90 degree counterclockwise
    tempQuaternion=tempQuaternion.normalize();
-   tf2::convert(t->transform.rotation, tempQuaternion);
+
+   t->transform.translation.x = 1.7; 
+   t->transform.translation.y = .2;
+   t->transform.translation.z = 0.0;
+   t->transform.rotation.x = tempQuaternion.x(); 
+   t->transform.rotation.y = tempQuaternion.y();
+   t->transform.rotation.z = tempQuaternion.z(); 
+   t->transform.rotation.w = tempQuaternion.w();
 
    t = &(turn_transform_right[11]);
    tempQuaternion.setRPY(0,0,-90.0*M_PI/180); //90 degree clockwise
    tempQuaternion=tempQuaternion.normalize();
 
-   t->transform.translation.x = 0.7; 
-   t->transform.translation.y = -1.0;
+   t->transform.translation.x = 1.0; 
+   t->transform.translation.y = 0;
    t->transform.translation.z = 0.0;
    t->transform.rotation.x = tempQuaternion.x(); 
    t->transform.rotation.y = tempQuaternion.y();

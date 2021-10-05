@@ -247,7 +247,7 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
       coord[1] = 1; //row 1
       create_control_board_msg(1,coord);
       usleep(10);
-      sprintf(lcd_msg,"     ");
+      sprintf(lcd_msg,"      ");
       create_control_board_msg(2,lcd_msg);
       usleep(10);
    }

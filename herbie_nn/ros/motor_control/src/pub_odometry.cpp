@@ -177,10 +177,10 @@ void OdometryPublisher::control_board_callback(const std_msgs::Int32MultiArray::
       board_queue.push(p);  //push the packet into the queue
    }
 
-   if (board_queue.size() > 25) {
-      /* unsigned char x = 2; //LED 2 = green LED */
-      /* create_control_board_msg(7,(void*) &x); //turn on LED */
-   }
+   /* if (board_queue.size() > 25) { */
+   /*    unsigned char x = 2; //LED 2 = green LED */
+   /*    create_control_board_msg(7,(void*) &x); //turn on LED */
+   /* } */
 
    herbie_board_queue_mutex.unlock();
 }
