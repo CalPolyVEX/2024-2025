@@ -5,7 +5,7 @@ latch_xy_goal_tolerance: true  #must be here in the global namespace due to a bu
 
 ###################DWA Planner#############################
 DWAPlannerROS:
-  max_vel_x: 1.25
+  max_vel_x: 1.0
   min_vel_x: 0.1
 
   max_vel_y: 0.0
@@ -13,17 +13,17 @@ DWAPlannerROS:
 
   #max_vel_theta: 1.0
   max_speed_theta: 1.0
-  #min_vel_theta: 0.1
-  min_in_place_speed_theta: 0.3
+  #min_vel_theta: 0.2
+  min_in_place_speed_theta: 0.85
 
-  acc_lim_th: 4.2
+  acc_lim_theta: 6.2
   acc_lim_x: 4.2
   acc_lim_y: 2.5
-  acc_lim_trans: 3.0
+  acc_lim_trans: 4.0
 
   holonomic_robot: false
 
-  sim_time: 1.7
+  sim_time: 1.3
   path_distance_bias: 32
   goal_distance_bias: 20
   occdist_scale: .02
@@ -37,9 +37,10 @@ DWAPlannerROS:
   vth_samples: 40
 
   latch_xy_goal_tolerance: true
-  xy_goal_tolerance: .3
-  yaw_goal_tolerance: .15
+  xy_goal_tolerance: .27
+  yaw_goal_tolerance: .10
   prune_plan: true
+  global_frame_id: odom
 
 ###################Global Planner#############################
 GlobalPlanner:
