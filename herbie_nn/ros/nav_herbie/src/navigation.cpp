@@ -200,6 +200,7 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    /* if ((cur_loc == 8) && (turn_confidence > .95) && (turn_in_progress == 0)) { */
    if ((cur_loc_estimate != -1) && (turn_confidence > .95) && (turn_in_progress == 0)) {
       turn_dir = get_next_turn_dir(cur_loc_estimate,29); //next turn direction
+      set_narrow_parameters(1); //use narrow hallway parameters when turning
       execute_turn(); //execute left turn
       turn_in_progress = 1;
    }

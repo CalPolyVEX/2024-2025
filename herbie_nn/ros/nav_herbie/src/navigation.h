@@ -85,7 +85,7 @@ class Navigation {
   int current_route_index = 0;         //the index into the route hallway array
 
   //variables for localization
-  #define LOCALIZATION_ARRAY_SIZE 200
+  #define LOCALIZATION_ARRAY_SIZE 6000 //approximately 30 seconds worth of localization predictions
   int localization_num[LOCALIZATION_ARRAY_SIZE];          //stores the history of hallway predictions
   float localization_value[LOCALIZATION_ARRAY_SIZE];      //stores the confidence of those predictions
   float localization_x_position[LOCALIZATION_ARRAY_SIZE]; //x odometry coordinate of last prediction
@@ -99,6 +99,7 @@ class Navigation {
   float last_heading = 0;
   float actual_heading = 0;
   int heading_counter = 0;
+  std::mutex heading_mutex;
 
   //move base variables
   MoveBaseClient* action_client;
@@ -143,6 +144,7 @@ class Navigation {
     void init_turn_transforms();
     double get_distance_to_goal();
     void init_route();
+    void turn_degrees(int degrees);
 
     //control board functions
     void create_control_board_msg(int num, void* arg);

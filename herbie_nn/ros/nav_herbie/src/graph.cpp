@@ -212,7 +212,9 @@ void Navigation::convert_to_heading(float w, float x, float y, float z) {
       heading_offset -= 360.0;
    }
 
+   heading_mutex.lock();
    actual_heading = heading + heading_offset;
+   heading_mutex.unlock();
             
    last_heading = heading;  // move to next
 }

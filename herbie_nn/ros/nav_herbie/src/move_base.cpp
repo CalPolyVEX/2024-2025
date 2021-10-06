@@ -128,10 +128,12 @@ void Navigation::update_turn_transform() {
       if (temp_loc_estimate != -1) {
          int direction;
 
-         if (temp_loc_estimate == 8) {
+         if (temp_loc_estimate == 8) { //FIXME
             direction = 0;
-         } else {
+         } else if (temp_loc_estimate == 11) {
             direction = 1;
+         } else {
+            direction = 0;
          }
 
          if (direction == 0) { //turn left at this hallway
@@ -157,8 +159,9 @@ void Navigation::update_turn_transform() {
          transformStamped.header.stamp = ros::Time::now();
          tfb.sendTransform(transformStamped);
 
-         std::this_thread::sleep_for(std::chrono::milliseconds(100));
       }
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(150));
    }
 }
 
@@ -380,6 +383,11 @@ void Navigation::update_goal_callback(const ros::TimerEvent& ev) {
    nh.getParam("/autonomous_mode", autonomous_mode);
 
    if (autonomous_mode == true) {
+      if (cur_loc_estimate != -1) {
+         int narrow = VAN(&gr, "narrow", cur_loc_estimate);
+         set_narrow_parameters(narrow);
+      }
+
       std_msgs::Empty m;
       send_goal((const std_msgs::Empty::ConstPtr&)m);
    }
@@ -417,7 +425,7 @@ void Navigation::init_turn_transforms() {
    tempQuaternion.setRPY(0,0,90.0*M_PI/180); //90 degree counterclockwise
    tempQuaternion=tempQuaternion.normalize();
 
-   t->transform.translation.x = 1.7; 
+   t->transform.translation.x = 1.8; 
    t->transform.translation.y = .2;
    t->transform.translation.z = 0.0;
    t->transform.rotation.x = tempQuaternion.x(); 
@@ -429,7 +437,7 @@ void Navigation::init_turn_transforms() {
    tempQuaternion.setRPY(0,0,-90.0*M_PI/180); //90 degree clockwise
    tempQuaternion=tempQuaternion.normalize();
 
-   t->transform.translation.x = 1.0; 
+   t->transform.translation.x = 1.3; 
    t->transform.translation.y = 0;
    t->transform.translation.z = 0.0;
    t->transform.rotation.x = tempQuaternion.x(); 
@@ -490,6 +498,46 @@ void Navigation::init_route() {
    route_turn[7] = 0; //left
 }
 
+void Navigation::turn_degrees(int degrees) {
+   float new_heading;
+   float desired_heading;
+   float angular_velocity;
+   geometry_msgs::Twist msg;
+
+   heading_mutex.lock();
+   new_heading = actual_heading;
+   heading_mutex.unlock();
+
+   desired_heading = new_heading + degrees;
+
+   if (desired_heading > new_heading) { //turn counterclockwise
+      angular_velocity = .9;
+
+      msg.linear.x = 0;
+      msg.angular.z = angular_velocity;
+
+      while(new_heading < desired_heading) {
+         heading_mutex.lock();
+         new_heading = actual_heading;
+         heading_mutex.unlock();
+         
+         twist_pub_.publish(msg); //publish the twist message
+         
+         std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      }
+
+      //stop
+      msg.linear.x = 0;
+      msg.angular.z = 0;
+      twist_pub_.publish(msg); //publish the twist message
+   } else { //turn clockwise
+      angular_velocity = -.9;
+
+      msg.linear.x = 0;
+      msg.angular.z = angular_velocity;
+   }
+}
+
 int Navigation::call_make_plan(double goal_x, double goal_y, double* pose_x, double* pose_y) {
    ros::ServiceClient serviceClient = nh.serviceClient<nav_msgs::GetPlan>(service_name);
    nav_msgs::GetPlan srv;
@@ -529,9 +577,6 @@ int Navigation::call_make_plan(double goal_x, double goal_y, double* pose_x, dou
          *pose_x = p.pose.position.x;
          *pose_y = p.pose.position.y; 
 
-         /* boost::forEach(const geometry_msgs::PoseStamped &p, srv.response.plan.poses) { */
-         /*    ROS_INFO("x = %f, y = %f", p.pose.position.x, p.pose.position.y); */
-         /* } */
          return 1; //found a plan
       }
       else {

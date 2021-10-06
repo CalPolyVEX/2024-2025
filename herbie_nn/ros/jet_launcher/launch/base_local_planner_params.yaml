@@ -12,14 +12,14 @@ DWAPlannerROS:
   min_vel_y: 0.0
 
   #max_vel_theta: 1.0
-  max_speed_theta: 1.0
+  max_speed_theta: 1.3
   #min_vel_theta: 0.2
-  min_in_place_speed_theta: 0.85
+  min_in_place_speed_theta: 1.1
 
-  acc_lim_theta: 6.2
-  acc_lim_x: 4.2
-  acc_lim_y: 2.5
-  acc_lim_trans: 4.0
+  acc_lim_theta: 10.0
+  acc_lim_x: 5.2
+  acc_lim_y: 0.0
+  acc_lim_trans: 5.0
 
   holonomic_robot: false
 
@@ -58,8 +58,8 @@ aggressive_reset:
   layer_names: ["obstacles"]
 
 planner_patience: 5.0
-#planner_frequency: .5
-planner_frequency: 0.0
+planner_frequency: .5
+#planner_frequency: 0.0
 
 #############Teb Local Planner################################
 TebLocalPlannerROS:
