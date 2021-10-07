@@ -21,6 +21,8 @@ class image_tracker:
       self.mouseY = 0
       self.key = 0
       self.l = Lock()
+      self.width_threshold = 200
+      # self.width_threshold = 106
 
       cv2.namedWindow('image',cv2.WINDOW_NORMAL)
       cv2.setMouseCallback('image',self.mouse_click)
@@ -50,8 +52,13 @@ class image_tracker:
          self.orig_img = cv2.imread(f)
          coord = f.split('.jpg')   #remove .jpg extension
          self.coord = coord[0].split('-')
-         
+
          cv2.circle(self.img1, (int(self.coord[-3]), int(self.coord[-2])), 2, (0,255,255), -1)
+
+         #draw vertical lines
+         cv2.line(self.img1, (320-self.width_threshold, 0), (320-self.width_threshold, 359), (0, 255, 255), 1)
+         cv2.line(self.img1, (320+self.width_threshold, 0), (320+self.width_threshold, 359), (0, 255, 255), 1)
+
          cv2.imshow('image',self.img1)
 
          while True:
@@ -68,6 +75,8 @@ class image_tracker:
                os.remove(f)
                cv2.imwrite(self.new_filename,self.orig_img)
                break
+            elif key == ord('c'): #set the goal to the upper center (no goal state)
+               self.mouse_click(cv2.EVENT_LBUTTONDOWN,320,0,0,0)
             elif key == ord('a'): #skip the image
                break
 
