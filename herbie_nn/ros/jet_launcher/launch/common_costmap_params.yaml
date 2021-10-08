@@ -5,8 +5,9 @@ transform_tolerance: 0.3
 obstacle_range: 6
 max_obstacle_height: 2.0
 raytrace_range: 6.2
-footprint: [[-0.195, -0.195], [-0.195, 0.195], [0.195, 0.195], [0.195, -0.195]]
-footprint_padding: 0.15
+#footprint: [[-0.195, -0.195], [-0.195, 0.195], [0.195, 0.195], [0.195, -0.195]]
+footprint: [[-0.23, -0.23], [-0.23, 0.23], [0.23, 0.23], [0.23, -0.23]]
+footprint_padding: 0.16
 lethal_cost_threshold: 200
 
 plugins: 

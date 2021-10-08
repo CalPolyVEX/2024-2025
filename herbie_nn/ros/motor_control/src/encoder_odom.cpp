@@ -221,7 +221,8 @@ void OdometryPublisher::run_pid() {
   last_left_motor_cmd = cur_left_motor;
   last_right_motor_cmd = cur_right_motor;
 
-  compute_pid(des_vel_left, ltv, des_vel_right, rtv); //compute the new motor speeds
+  //compute_pid(des_vel_left, ltv, des_vel_right, rtv); //compute the new motor speeds
+  compute_pid_alt(des_vel_left, ltv, des_vel_right, rtv); //compute the new motor speeds
 
   if (debug_odometry == 1) {
     ROS_INFO("desired vl_ticks: %f desired vr_ticks: %f", des_vel_left, des_vel_right);
@@ -237,11 +238,13 @@ void OdometryPublisher::run_pid() {
   //limit motor acceleration/deceleration
   //without this, the starts/stops are abrupt
   if (abs(cur_left_motor - last_left_motor_cmd) > 400) {
-    cur_left_motor = cur_left_motor * .10 + last_left_motor_cmd * .90;
+    /* cur_left_motor = cur_left_motor * .10 + last_left_motor_cmd * .90; */
+    cur_left_motor = cur_left_motor * .30 + last_left_motor_cmd * .70;
   }
 
   if (abs(cur_right_motor - last_right_motor_cmd) > 400) {
-    cur_right_motor = cur_right_motor * .10 + last_right_motor_cmd * .90;
+    cur_right_motor = cur_right_motor * .30 + last_right_motor_cmd * .70;
+    /* cur_right_motor = cur_right_motor * .10 + last_right_motor_cmd * .90; */
   }
 
   //adjust for Herbie control board limits (-2400 to +2400)
@@ -270,42 +273,11 @@ void OdometryPublisher::run_pid() {
 
 }
 
-void OdometryPublisher::compute_pid(double left_desired, double left_actual, double right_desired, double right_actual) {
-  double kp = 4.8;
-  double ki = .5;
-  double kd = 0.30;
+void OdometryPublisher::compute_pid_alt(double left_desired, double left_actual, double right_desired, double right_actual) {
+  double kp = 9;
+  double ki = 0.1;
+  double kd = -0.5;
   int i;
-
-  //test acceleration
-  if ((abs(left_desired) < 1000) || (abs(right_desired) < 1000) || (abs(left_actual) < 1000) || (abs(right_actual) < 1000)) {
-  //if ((abs(left_desired) < 1000) || (abs(right_desired) < 1000) ) {
-    //kp = 1.0;
-  }
-
-  //if the wheel velocities are set to 0
-  //if ((abs(left_desired) < .0001 && abs(right_desired) < .0001) || stop == 1) {
-  if ((abs(left_desired) < .0001 && abs(right_desired) < .0001) && (1==0)) {
-    cur_left_motor = 0;
-    cur_right_motor = 0;
-
-    last_left_error = 0;
-    last_right_error = 0;
-
-    for (i=0; i<INTEGRAL_ARRAY_SIZE; i++) {
-        left_integral[i] = 0;
-        right_integral[i] = 0;
-    }
-
-    desired_vel_mutex.lock();
-    desired_vl = 0;
-    desired_vr = 0;
-    desired_vel_mutex.unlock();
-
-    left_tick_vel = 0;
-    right_tick_vel = 0;
-
-    return;
-  }
 
   double left_error = left_desired - left_actual;
   double right_error = right_desired - right_actual;
@@ -316,14 +288,132 @@ void OdometryPublisher::compute_pid(double left_desired, double left_actual, dou
   double left_sum = 0.0;
   double right_sum = 0.0;
 
-  left_counter = (left_counter + 1) % INTEGRAL_ARRAY_SIZE;
-  right_counter = (right_counter + 1) % INTEGRAL_ARRAY_SIZE;
+  left_counter++;
+  right_counter++;
+
+  if (left_counter == INTEGRAL_ARRAY_SIZE) {
+     left_counter = 0;
+  }
+  
+  if (right_counter == INTEGRAL_ARRAY_SIZE) {
+     right_counter = 0;
+  }
+
   left_integral[left_counter] = left_error;
   right_integral[right_counter] = right_error;
 
   for (i=0; i<INTEGRAL_ARRAY_SIZE; i++) {
     left_sum += left_integral[i];
     right_sum += right_integral[i];
+  }
+
+  //reset the integral array if the error switches sign
+  if ((last_left_error * left_error) < 0.0) {
+     for (i=0; i<INTEGRAL_ARRAY_SIZE; i++) {
+        left_integral[i] = 0;
+     }
+     left_sum = 0.0;
+  }
+
+  if ((last_right_error * right_error) < 0.0) {
+     for (i=0; i<INTEGRAL_ARRAY_SIZE; i++) {
+        right_integral[i] = 0;
+     }
+     right_sum = 0.0;
+  }
+
+  if (left_sum > 18000) {
+    left_sum = 18000;
+  } else if (left_sum < -18000) {
+    left_sum = -18000;
+  }
+
+  if (right_sum > 18000) {
+    right_sum = 18000;
+  } else if (right_sum < -18000) {
+    right_sum = -18000;
+  }
+
+  double pl_out, il_out, dl_out;
+  double pr_out, ir_out, dr_out;
+
+  pl_out = kp * left_error;
+  il_out = ki * left_sum;
+  dl_out = kd * left_error_diff;
+
+  pr_out = kp * right_error;
+  ir_out = ki * right_sum;
+  dr_out = kd * right_error_diff;
+
+  if (debug_odometry == 1) {
+    ROS_INFO("P: %f, I: %f, D: %f", pl_out, il_out, dl_out);
+  }
+
+  cur_left_motor += pl_out + il_out + dl_out;
+  cur_right_motor += pr_out + ir_out + dr_out;
+
+  last_left_error = left_error;
+  last_right_error = right_error;
+
+  //limit the max speed
+  if (cur_left_motor > MAX_MOTOR_SPEED) {
+    cur_left_motor = MAX_MOTOR_SPEED;
+  } else if (cur_left_motor < -MAX_MOTOR_SPEED)
+    cur_left_motor = -MAX_MOTOR_SPEED;
+
+  if (cur_right_motor > MAX_MOTOR_SPEED) {
+    cur_right_motor = MAX_MOTOR_SPEED;
+  } else if (cur_right_motor < -MAX_MOTOR_SPEED)
+    cur_right_motor = -MAX_MOTOR_SPEED;
+}
+
+void OdometryPublisher::compute_pid(double left_desired, double left_actual, double right_desired, double right_actual) {
+  double kp = 4.8;
+  double ki = .7;
+  double kd = -0.30;
+  int i;
+
+  double left_error = left_desired - left_actual;
+  double right_error = right_desired - right_actual;
+  double left_error_diff = last_left_error - left_error;
+  double right_error_diff = last_right_error - right_error;
+
+  //compute integral term
+  double left_sum = 0.0;
+  double right_sum = 0.0;
+
+  left_counter++;
+  right_counter++;
+
+  if (left_counter == INTEGRAL_ARRAY_SIZE) {
+     left_counter = 0;
+  }
+  
+  if (right_counter == INTEGRAL_ARRAY_SIZE) {
+     right_counter = 0;
+  }
+
+  left_integral[left_counter] = left_error;
+  right_integral[right_counter] = right_error;
+
+  for (i=0; i<INTEGRAL_ARRAY_SIZE; i++) {
+    left_sum += left_integral[i];
+    right_sum += right_integral[i];
+  }
+
+  //reset the integral array if the error switches sign
+  if ((last_left_error * left_error) < 0.0) {
+     for (i=0; i<INTEGRAL_ARRAY_SIZE; i++) {
+        left_integral[i] = 0;
+     }
+     left_sum = 0.0;
+  }
+
+  if ((last_right_error * right_error) < 0.0) {
+     for (i=0; i<INTEGRAL_ARRAY_SIZE; i++) {
+        right_integral[i] = 0;
+     }
+     right_sum = 0.0;
   }
 
   if (left_sum > 18000) {

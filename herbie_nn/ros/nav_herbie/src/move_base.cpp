@@ -132,6 +132,8 @@ void Navigation::update_turn_transform() {
             direction = 0;
          } else if (temp_loc_estimate == 11) {
             direction = 1;
+         } else if (temp_loc_estimate == 6) {
+            direction = 0;
          } else {
             direction = 0;
          }
@@ -161,7 +163,7 @@ void Navigation::update_turn_transform() {
 
       }
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(150));
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
    }
 }
 
@@ -425,7 +427,7 @@ void Navigation::init_turn_transforms() {
    tempQuaternion.setRPY(0,0,90.0*M_PI/180); //90 degree counterclockwise
    tempQuaternion=tempQuaternion.normalize();
 
-   t->transform.translation.x = 1.8; 
+   t->transform.translation.x = 2.3; 
    t->transform.translation.y = .2;
    t->transform.translation.z = 0.0;
    t->transform.rotation.x = tempQuaternion.x(); 
@@ -437,7 +439,7 @@ void Navigation::init_turn_transforms() {
    tempQuaternion.setRPY(0,0,-90.0*M_PI/180); //90 degree clockwise
    tempQuaternion=tempQuaternion.normalize();
 
-   t->transform.translation.x = 1.3; 
+   t->transform.translation.x = 1.5; 
    t->transform.translation.y = 0;
    t->transform.translation.z = 0.0;
    t->transform.rotation.x = tempQuaternion.x(); 
@@ -462,6 +464,18 @@ void Navigation::init_turn_transforms() {
    tempQuaternion=tempQuaternion.normalize();
 
    t->transform.translation.x = 1; 
+   t->transform.translation.y = 0;
+   t->transform.translation.z = 0.0;
+   t->transform.rotation.x = tempQuaternion.x(); 
+   t->transform.rotation.y = tempQuaternion.y();
+   t->transform.rotation.z = tempQuaternion.z(); 
+   t->transform.rotation.w = tempQuaternion.w();
+
+   t = &(turn_transform_left[6]);
+   tempQuaternion.setRPY(0,0,90.0*M_PI/180); //90 degree counterclockwise
+   tempQuaternion=tempQuaternion.normalize();
+
+   t->transform.translation.x = .5; 
    t->transform.translation.y = 0;
    t->transform.translation.z = 0.0;
    t->transform.rotation.x = tempQuaternion.x(); 
