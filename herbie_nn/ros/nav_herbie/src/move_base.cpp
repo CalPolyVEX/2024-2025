@@ -276,9 +276,9 @@ void Navigation::set_narrow_parameters(int narrow) {
    double_param.name = "sim_time";
 
    if (narrow == 1) {
-      double_param.value = 1.2;
+      double_param.value = 2.5;
    } else {
-      double_param.value = 1.8;
+      double_param.value = 2.5;
    }
 
    conf.doubles.push_back(double_param);

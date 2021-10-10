@@ -274,9 +274,9 @@ void OdometryPublisher::run_pid() {
 }
 
 void OdometryPublisher::compute_pid_alt(double left_desired, double left_actual, double right_desired, double right_actual) {
-  double kp = 9;
+  double kp = 7;
   double ki = 0.1;
-  double kd = -0.5;
+  double kd = -1.5;
   int i;
 
   double left_error = left_desired - left_actual;

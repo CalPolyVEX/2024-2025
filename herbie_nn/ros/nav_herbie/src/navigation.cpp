@@ -467,7 +467,7 @@ int Navigation::compute_turn_prob(double* confidence) {
    int temp_index = turn_index;
    int above_threshold = 0;
 
-   for (int i=0; i<6; i++) {
+   for (int i=0; i<5; i++) {
       if (turn_tracking[temp_index] > confidence_threshold) {
          above_threshold++;
       }
@@ -481,7 +481,7 @@ int Navigation::compute_turn_prob(double* confidence) {
       }
    }
 
-   *confidence = avg_threshold / 6.0;
+   *confidence = avg_threshold / 5.0;
 
    if (above_threshold > 4)
       return 1; //a turn

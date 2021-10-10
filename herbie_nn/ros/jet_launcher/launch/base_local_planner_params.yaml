@@ -1,29 +1,29 @@
 base_global_planner: "global_planner/GlobalPlanner"
-#base_local_planner: "dwa_local_planner/DWAPlannerROS"
-base_local_planner: "teb_local_planner/TebLocalPlannerROS"
+base_local_planner: "dwa_local_planner/DWAPlannerROS"
+#base_local_planner: "teb_local_planner/TebLocalPlannerROS"
 latch_xy_goal_tolerance: true  #must be here in the global namespace due to a bug
 
 ###################DWA Planner#############################
 DWAPlannerROS:
-  max_vel_x: 1.0
+  max_vel_x: 0.23
   min_vel_x: 0.1
 
   max_vel_y: 0.0
   min_vel_y: 0.0
 
   #max_vel_theta: 1.0
-  max_speed_theta: 1.3
+  max_speed_theta: .4
   #min_vel_theta: 0.2
-  min_in_place_speed_theta: 1.1
+  min_in_place_speed_theta: .15 
 
-  acc_lim_theta: 10.0
-  acc_lim_x: 5.2
+  acc_lim_theta: 5.0
+  acc_lim_x: 2.7
   acc_lim_y: 0.0
-  acc_lim_trans: 5.0
+  acc_lim_trans: 2.7
 
   holonomic_robot: false
 
-  sim_time: 1.3
+  sim_time: 1.8
   path_distance_bias: 32
   goal_distance_bias: 20
   occdist_scale: .05
@@ -37,7 +37,7 @@ DWAPlannerROS:
   vth_samples: 40
 
   latch_xy_goal_tolerance: true
-  xy_goal_tolerance: .27
+  xy_goal_tolerance: .2
   yaw_goal_tolerance: .10
   prune_plan: true
   global_frame_id: odom
@@ -90,7 +90,7 @@ TebLocalPlannerROS:
   max_vel_x: 0.4
   max_vel_x_backwards: 0.2
   max_vel_y: 0.0
-  max_vel_theta: 1.0
+  max_vel_theta: .5
   acc_lim_x: 0.5
   acc_lim_theta: 0.5
   min_turning_radius: 0.0

@@ -6,7 +6,7 @@ obstacle_range: 6
 max_obstacle_height: 2.0
 raytrace_range: 6.2
 #footprint: [[-0.195, -0.195], [-0.195, 0.195], [0.195, 0.195], [0.195, -0.195]]
-footprint: [[-0.23, -0.23], [-0.23, 0.23], [0.23, 0.23], [0.23, -0.23]]
+footprint: [[-0.2, -0.2], [-0.2, 0.2], [0.2, 0.2], [0.2, -0.2]]
 footprint_padding: 0.16
 lethal_cost_threshold: 200
 
@@ -22,9 +22,9 @@ obstacles:
              expected_update_rate: 0.2}
 
 inflation_layer:
-    inflation_radius: 0.72 # adjust the inflation for your system setup
+    inflation_radius: 0.75 # adjust the inflation for your system setup
     cost_scaling_factor: 1.75
 
 global_inflation_layer:
-    inflation_radius: 0.72 # adjust the inflation for your system setup
+    inflation_radius: 0.75 # adjust the inflation for your system setup
     cost_scaling_factor: 1.75
