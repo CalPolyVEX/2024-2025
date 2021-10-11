@@ -2,6 +2,7 @@
 #define NAVIGATION_H
 
 #include <geometry_msgs/TransformStamped.h>
+#include <geometry_msgs/Pose.h>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2_sensor_msgs/tf2_sensor_msgs.h>
@@ -26,6 +27,7 @@
 #include <cstdio>
 #include <chrono>
 #include <thread>
+#include <atomic>
 
 #include <nav_msgs/GetPlan.h>
 
@@ -85,11 +87,11 @@ class Navigation {
   int current_route_index = 0;         //the index into the route hallway array
 
   //variables for localization
-  #define LOCALIZATION_ARRAY_SIZE 6000 //approximately 30 seconds worth of localization predictions
+  #define LOCALIZATION_ARRAY_SIZE 1200 //approximately 60 seconds worth of localization predictions
   int localization_num[LOCALIZATION_ARRAY_SIZE];          //stores the history of hallway predictions
   float localization_value[LOCALIZATION_ARRAY_SIZE];      //stores the confidence of those predictions
-  float localization_x_position[LOCALIZATION_ARRAY_SIZE]; //x odometry coordinate of last prediction
-  float localization_y_position[LOCALIZATION_ARRAY_SIZE]; //y odometry coordinate of last prediction
+  geometry_msgs::Pose localization_pose[LOCALIZATION_ARRAY_SIZE]; //poses of last prediction 
+  float localization_heading[LOCALIZATION_ARRAY_SIZE];    //store the last headings
   int localization_index = 0;                             //current index into the hallway pred. array
   int cur_loc_estimate = -1;
   std::mutex cur_loc_mutex;
@@ -149,6 +151,9 @@ class Navigation {
     //control board functions
     void create_control_board_msg(int num, void* arg);
     unsigned short compute_crc(unsigned char* data, int len);
+
+    //recovery
+    void get_major_heading();
 };
 
 #endif

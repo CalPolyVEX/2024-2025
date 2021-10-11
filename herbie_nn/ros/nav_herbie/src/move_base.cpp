@@ -92,6 +92,8 @@ void Navigation::update_goal_transform() {
       ground_y_coord = boundary_y;
    } 
 
+   ground_y_coord += 5; //move closer by 5 pixels
+
    double x,y;
    convert_image_to_world(goal_x, ground_y_coord, &x, &y);
 
@@ -276,9 +278,9 @@ void Navigation::set_narrow_parameters(int narrow) {
    double_param.name = "sim_time";
 
    if (narrow == 1) {
-      double_param.value = 2.5;
+      double_param.value = 2.8;
    } else {
-      double_param.value = 2.5;
+      double_param.value = 2.8;
    }
 
    conf.doubles.push_back(double_param);
@@ -440,7 +442,7 @@ void Navigation::init_turn_transforms() {
    tempQuaternion=tempQuaternion.normalize();
 
    t->transform.translation.x = 1.5; 
-   t->transform.translation.y = 0;
+   t->transform.translation.y = .10;
    t->transform.translation.z = 0.0;
    t->transform.rotation.x = tempQuaternion.x(); 
    t->transform.rotation.y = tempQuaternion.y();

@@ -38,6 +38,7 @@ add_executable(navigation
   src/graph.cpp
   src/move_base.cpp
   src/control_board.cpp
+  src/recovery.cpp
   src/navigation.h)
 
 add_dependencies(navigation ${PROJECT_NAME}_gencfg)

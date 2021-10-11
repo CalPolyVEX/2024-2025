@@ -92,8 +92,17 @@ Navigation::Navigation() : it(nh) {
    for(int i=0; i<LOCALIZATION_ARRAY_SIZE; i++) {
       localization_num[i] = 0;
       localization_value[i] = 0;
-      localization_x_position[i] = 0;
-      localization_y_position[i] = 0;
+
+      localization_pose[i].position.x = 0;
+      localization_pose[i].position.y = 0;
+      localization_pose[i].position.z = 0;
+
+      localization_pose[i].orientation.w = 1;
+      localization_pose[i].orientation.x = 0;
+      localization_pose[i].orientation.y = 0;
+      localization_pose[i].orientation.z = 0;
+
+      localization_heading[i] = 0;
    }
 
    //start the turn transform thread
@@ -400,9 +409,20 @@ void Navigation::draw_loc_prob() {
    geometry_msgs::TransformStamped transformStamped;
    transformStamped = tfBuffer.lookupTransform("odom", "base_link", ros::Time(0));
 
-   localization_x_position[localization_index] = transformStamped.transform.translation.x;
-   localization_y_position[localization_index] = transformStamped.transform.translation.y;
+   //store the pose of this localization
+   localization_pose[localization_index].position.x = transformStamped.transform.translation.x;
+   localization_pose[localization_index].position.y = transformStamped.transform.translation.y;
+   localization_pose[localization_index].position.z = transformStamped.transform.translation.z;
    
+   localization_pose[localization_index].orientation.w = transformStamped.transform.rotation.w;
+   localization_pose[localization_index].orientation.x = transformStamped.transform.rotation.x;
+   localization_pose[localization_index].orientation.y = transformStamped.transform.rotation.y;
+   localization_pose[localization_index].orientation.z = transformStamped.transform.rotation.z;
+
+   heading_mutex.lock();
+   localization_heading[localization_index] = actual_heading;
+   heading_mutex.unlock();
+
    //tracking the turn probability from the neural network
    turn_index++;
 

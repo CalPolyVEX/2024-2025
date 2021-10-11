@@ -5,11 +5,11 @@ local_costmap:
   publish_frequency: 3.0
 
   rolling_window: true
-  width: 6.0
-  height: 6.0
+  width: 5.5
+  height: 5.5
   resolution: 0.025
   #resolution: 0.05
 
   plugins: 
       - {name: obstacles,        type: "costmap_2d::ObstacleLayer"}
-#      - {name: inflation_layer,  type: "costmap_2d::InflationLayer"}   #disable this costmap for TEB planner
+      - {name: inflation_layer,  type: "costmap_2d::InflationLayer"}   #disable this costmap for TEB planner
