@@ -111,10 +111,10 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
             # generate training schedule
             training_schedule_length = 20
-            training_schedule = [1,2,1,2,3,1,2,1,2,3, \
-                                 1,2,1,2,3,1,2,1,2,3]
-            # training_schedule = [1,2,3,1,2,3,1,2,3,1, \
-            #                      2,3,1,2,3,1,2,3,1,2]
+            # training_schedule = [1,2,1,2,3,1,2,1,2,3, \
+            #                      1,2,1,2,3,1,2,1,2,3]
+            training_schedule = [1,2,3,1,2,3,1,2,3,1, \
+                                 2,3,1,2,3,1,2,3,1,2]
 
             assert len(training_schedule) == training_schedule_length
 
@@ -537,5 +537,6 @@ if __name__ == '__main__':
 
     #train the model
     #model = train_model(model, criterion, optimizer, exp_lr_scheduler, num_epochs=480)
-    model = train_model(model, criterion, optimizer, exp_lr_scheduler, num_epochs=203)
+    #model = train_model(model, criterion, optimizer, exp_lr_scheduler, num_epochs=203)
+    model = train_model(model, criterion, optimizer, exp_lr_scheduler, num_epochs=162)
 

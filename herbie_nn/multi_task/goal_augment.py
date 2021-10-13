@@ -65,13 +65,19 @@ class GoalDataset(Dataset):
         # apply the augmentations to the image
         if self.tr == 1:
             #print('Training batch')
-            aug_found = 0
+            aug_found = 1
 
+            #cutout sections of the image first
             transform_cutout = A.Compose([
                 A.CoarseDropout(max_holes=8, max_height=50, max_width=50, p=.5)
             ])
             transformed_cutout = transform_cutout(image=image)
             image = transformed_cutout['image']
+
+            #testing without keypoints
+            transformed = self.transform(image=image) #try without keypoints
+            image = transformed['image']
+
             #cv2.imwrite("test" + str(self.img_counter) + '.jpg', image)
             #self.img_counter += 1
             #print ("test write")
@@ -91,11 +97,6 @@ class GoalDataset(Dataset):
                   data_list.append(float(keypoints[0][0])/640.0) #add the x
                   data_list.append(float(keypoints[0][1])/360.0) #add the y
                   aug_found = 1
-
-                  # cv2.imwrite("test-" + str(int(keypoints[0][0])) + '-' + \
-                  #    str(int(keypoints[0][1])) + '-' + str(self.img_counter) + '.jpg', image)
-                  # self.img_counter += 1
-                  # print ("test write")
 
             tensor_train_transform = A.Compose([
                 ToTensorV2()
@@ -125,11 +126,12 @@ def create_datasets(train_file_list,val_file_list):
          A.ISONoise(p=.15),
          A.RandomShadow(p=.2),
          A.MotionBlur(p=.2),
-         A.Perspective(scale=(.05,.1),p=.5),
+         #A.Perspective(scale=(.05,.1),p=.5),
          A.RandomToneCurve(p=.3),
          # ToTensorV2(),
-      ],
-      keypoint_params=A.KeypointParams(format='xy')
+      ]
+      #],
+      #keypoint_params=A.KeypointParams(format='xy')
    )
    train_dataset = GoalDataset(images_filepaths=train_file_list, transform=train_transform)
 

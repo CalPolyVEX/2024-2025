@@ -55,13 +55,17 @@ class Pretrained_Model(torch.nn.Module):
         self.turn_out = torch.nn.Linear(128, self.turn_outputs)
 
         #self.goal_hidden = torch.nn.Linear(self.feature_num, 100)
-        self.goal_hidden_x = torch.nn.Linear(self.feature_num, 64)
-        self.goal_hidden_y = torch.nn.Linear(self.feature_num, 64)
-        self.goal_bn1 = torch.nn.BatchNorm1d(num_features=64)
-        self.goal_bn2 = torch.nn.BatchNorm1d(num_features=64)
+        self.goal_hidden_x = torch.nn.Linear(self.feature_num, 100)
+        self.goal_hidden_y = torch.nn.Linear(self.feature_num, 100)
+        self.goal_bn1 = torch.nn.BatchNorm1d(num_features=100)
+        self.goal_bn2 = torch.nn.BatchNorm1d(num_features=100)
         #self.goal_out = torch.nn.Linear(100, self.goal_outputs)
-        self.goal_out_x = torch.nn.Linear(64, 1)
-        self.goal_out_y = torch.nn.Linear(64, 1)
+        self.goal_hidden_x2 = torch.nn.Linear(100,100)
+        self.goal_hidden_y2 = torch.nn.Linear(100,100)
+        self.goal_hidden_lr1 = torch.nn.LeakyReLU()
+        self.goal_hidden_lr2 = torch.nn.LeakyReLU()
+        self.goal_out_x = torch.nn.Linear(100, 1)
+        self.goal_out_y = torch.nn.Linear(100, 1)
 
         self.softmax = torch.nn.Softmax(1)
         self.sig = torch.nn.Sigmoid()
@@ -93,11 +97,14 @@ class Pretrained_Model(torch.nn.Module):
         goal_hidden_out_x = self.lr5(self.goal_bn1(self.goal_hidden_x(backbone_out)))
         goal_hidden_out_y = self.lr6(self.goal_bn2(self.goal_hidden_y(backbone_out)))
 
-        goal_out_x1 = self.goal_out_x(goal_hidden_out_x)
-        goal_out_y1 = self.goal_out_y(goal_hidden_out_y)
-        # goal_hidden_out = self.lr5((self.goal_hidden(self.do3(backbone_out))))
-        #goal_out_val = self.goal_out(goal_hidden_out)
-        goal_out_val = torch.cat((goal_out_x1, goal_out_y1), dim=1)
+        goal_out_x1 = self.goal_hidden_lr1(self.goal_hidden_x2(goal_hidden_out_x))
+        goal_out_y1 = self.goal_hidden_lr2(self.goal_hidden_y2(goal_hidden_out_y))
+
+        goal_out_x2 = self.goal_out_x(goal_out_x1)
+        goal_out_y2 = self.goal_out_y(goal_out_y1)
+
+        #goal_out_val = torch.cat((goal_out_x1, goal_out_y1), dim=1)
+        goal_out_val = torch.cat((goal_out_x2, goal_out_y2), dim=1)
 
         return ground_output_val, loc_output, turn_out_val, goal_out_val
 
@@ -209,6 +216,12 @@ class Pretrained_Model(torch.nn.Module):
         #     model.goal_bn1.running_mean.requires_grad = status
         #     model.goal_bn1.running_var.requires_grad = status
 
+        model.goal_hidden_x2.weight.requires_grad = status
+        model.goal_hidden_x2.bias.requires_grad = status
+
+        model.goal_hidden_y2.weight.requires_grad = status
+        model.goal_hidden_y2.bias.requires_grad = status
+
         model.goal_out_x.weight.requires_grad = status
         model.goal_out_x.bias.requires_grad = status
 
@@ -220,6 +233,8 @@ class Pretrained_Model(torch.nn.Module):
             model.goal_hidden_y.eval()
             model.goal_bn1.eval()
             model.goal_bn2.eval()
+            model.goal_hidden_x2.eval()
+            model.goal_hidden_y2.eval()
             model.goal_out_x.eval()
             model.goal_out_y.eval()
         else:
@@ -227,6 +242,8 @@ class Pretrained_Model(torch.nn.Module):
             model.goal_hidden_y.train()
             model.goal_bn1.train()
             model.goal_bn2.train()
+            model.goal_hidden_x2.train()
+            model.goal_hidden_y2.train()
             model.goal_out_x.train()
             model.goal_out_y.train()
 
@@ -379,6 +396,14 @@ class Pretrained_Model(torch.nn.Module):
         model.goal_bn2.weight.requires_grad = True
         model.goal_bn2.bias.requires_grad = True
 
+        # hidden layer 2
+        model.goal_hidden_x2.weight.requires_grad = True
+        model.goal_hidden_x2.bias.requires_grad = True
+
+        model.goal_hidden_y2.weight.requires_grad = True
+        model.goal_hidden_y2.bias.requires_grad = True
+
+        #output layer
         model.goal_out_x.weight.requires_grad = True
         model.goal_out_x.bias.requires_grad = True
 
