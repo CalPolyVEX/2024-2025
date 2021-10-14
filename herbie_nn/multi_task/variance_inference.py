@@ -114,8 +114,15 @@ class compute_variance:
         variance_names_only_file.close()
 
     def clean(self):
-        os.remove(self.variance_file)
-        os.remove(self.variance_names_only_file)
+        if os.path.exists(self.variance_file):
+            os.remove(self.variance_file)
+
+        if os.path.exists(self.variance_names_only_file):
+            os.remove(self.variance_names_only_file)
+
+        # remove inference images
+        for file in os.listdir(self.output_dir):
+            os.remove(os.path.join(self.output_dir,file))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process unlabeled images.')
