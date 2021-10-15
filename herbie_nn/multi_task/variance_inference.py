@@ -113,6 +113,15 @@ class compute_variance:
         variance_file.close()
         variance_names_only_file.close()
 
+        #print the average variance
+        sum = 0
+        for line in self.variances:
+            sum += float(line[1])
+        average = sum / len(self.variances)
+
+        print('average x variance: ' + str(average))
+
+
     def clean(self):
         if os.path.exists(self.variance_file):
             os.remove(self.variance_file)
