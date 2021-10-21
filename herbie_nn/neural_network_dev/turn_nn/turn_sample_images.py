@@ -1,7 +1,7 @@
 # This file saves images from a ROS bag file.  The files are saved periodically and roscore
 # must be running before starting the script
 #
-# To save images:  python sample_images.py turn path 
+# To save images:  python sample_images.py turn path
 # (where turn is 0 or 1 (not turn or turn) and path is the ROS bag file)
 
 import roslib
@@ -17,11 +17,11 @@ from sensor_msgs.msg import CompressedImage
 
 
 class sample_images:
-    def __init__(self, args, bagfile):
+    def __init__(self, args, bagfile, freq=23):
         self.image = None
 
-        # how many frames to skip in a straight section before saving an image
-        self.save_freq = 23  # save every 5 photos
+        # how many frames to skip before saving an image
+        self.save_freq = freq # save every save_freq frames
 
         # the parent dir and the bagfile
         self.path = './Input_Images'
@@ -33,6 +33,23 @@ class sample_images:
         self.prev_dir = ""
         self.turn = int(args["turn"])
 
+    def save_num_files(self, save_num):
+        if save_num == 0:
+            return
+
+        filelist = glob.glob(self.path + '/*.jpg')
+        random.shuffle(filelist)
+
+        if save_num > len(filelist):
+            save_num = len(filelist)
+
+        savelist = filelist[0:save_num]
+        delete_list = filelist[save_num:]
+
+        for f in delete_list:
+            # print (f)
+            os.remove(f)
+
     def clean(self):
         self.file_prefix = self.bagfile.split('/')[-1]
         self.file_prefix = self.file_prefix.split('.bag')[0]
@@ -40,11 +57,14 @@ class sample_images:
         filelist = glob.glob(self.path + '/*.jpg')
         filelist = filelist + glob.glob(self.training_dir + '/*.jpg')
         filelist = filelist + glob.glob(self.validation_dir + '/*.jpg')
-        print (filelist)
+        #print (filelist)
+
+        print ('Removing files in: ' + self.training_dir + ' and ' + self.validation_dir)
+        print ('Files in: ' + self.path + ' not deleted')
 
         for f in filelist:
             if self.file_prefix in f:
-                print (f)
+                #print (f)
                 os.remove(f)
 
     def split(self):
@@ -90,6 +110,7 @@ class sample_images:
         saved_image_num = 0       # counter for naming images stored
         current_dir = ""  # directory in which to store images
         image_topic = '/see3cam_cu20/image_raw_live/compressed'
+        # image_topic = '/see3cam_cu20/image_raw/compressed'
 
         for topic, msg, timestamp in bag.read_messages(topics=[image_topic]):
             if topic == image_topic:
@@ -127,6 +148,8 @@ def main(args):
     parser = argparse.ArgumentParser(description='Create image directories from bag files')
     parser.add_argument('-clean', help='Clean the output directories', action='store_true')
     parser.add_argument('-split', help='Split the data into training and validation', action='store_true')
+    parser.add_argument('-freq', help='How many frames to skip before saving images', type=int)
+    parser.add_argument('-save_num', help='How many total frames to save', type=int)
     parser.add_argument('turn', help='Turn present flag (0=not a turn)', type=int)
     parser.add_argument('path', nargs='+', help='Path to 1 or more ROS bag files')
 
@@ -142,10 +165,17 @@ def main(args):
             dm = sample_images(args.__dict__, "")
             dm.split()
         else:
+            freq=23 #default image frequency
+
+            if args.freq != None:
+                freq = args.freq
+
+            print('Capturing images every ' + str(freq) + ' frames.')
+
             # process each bag file
             for bagfile in args.path:
                 #create with argument dictionary
-                dm = sample_images(args.__dict__, bagfile)
+                dm = sample_images(args.__dict__, bagfile, freq=freq)
 
                 # if '-clean' flag, just remove the output images
                 if args.clean:
@@ -155,6 +185,11 @@ def main(args):
                 # process the bag file
                 dm.read_bag()
 
+            #set how many images to save
+            save_num = 0
+            if args.save_num != None:
+                save_num = args.save_num
+            dm.save_num_files(save_num)
 
 if __name__ == '__main__':
     main(sys.argv)
