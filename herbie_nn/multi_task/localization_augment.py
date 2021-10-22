@@ -76,7 +76,8 @@ class LocalizationDataset(Dataset):
         #print (data_list)
         d = torch.Tensor(data_list) # convert the list of data points to a tensor
         t = torch.Tensor(turn_list) # convert the turn list
-        return image, d, t #return the image and the list of datapoints
+        #return image, d, t #return the image and the list of datapoints
+        return image, d #return the image and the list of datapoints
 
 def create_datasets(train_file_list,val_file_list):
    # apply transforms to the training dataset
@@ -87,7 +88,8 @@ def create_datasets(train_file_list,val_file_list):
          A.ISONoise(p=.25),
          A.RandomShadow(p=.3),
          A.MotionBlur(p=.2),
-         A.CoarseDropout(max_holes=8, max_height=50, max_width=50, p=.5),
+         #A.CoarseDropout(max_holes=8, max_height=50, max_width=50, p=.5),
+         A.CoarseDropout(max_holes=8, min_holes=5, max_height=200, max_width=50, min_height=70, p=.5),
          #A.Perspective(p=.4),
          A.RandomToneCurve(p=.3),
          ToTensorV2(),

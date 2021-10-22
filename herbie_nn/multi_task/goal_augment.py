@@ -37,10 +37,12 @@ class GoalDataset(Dataset):
         self.transform = transform
         self.img_counter = 0
 
-        if 'Training' in str(images_filepaths):
+        if 'Training' in str(self.images_filepaths[0]):
             self.tr = 1
+            # print('goal training')
         else:
             self.tr = 0
+            # print('goal validation')
 
     def __len__(self):
         return len(self.images_filepaths)
@@ -50,73 +52,78 @@ class GoalDataset(Dataset):
         image = cv2.imread(image_filepath)
 
         #read in goal data
-        image_filename = image_filepath.split('/')[-1]
-        prefix = image_filename.split('.')[0]
+        #image_filename = image_filepath.split('/')[-1]
+        image_filename = os.path.basename(image_filepath)
+        #prefix = image_filename.split('.')[0]
+        prefix = os.path.splitext(image_filename)[0]
         goal_data_list = prefix.split('-')
-        center_y = int(goal_data_list[-2])
         center_x = int(goal_data_list[-3])
-        #turn_dir = int(goal_data_list[-4])
+        center_y = int(goal_data_list[-2])
 
-        # add the data points to the 'data_list'
-        data_list = []
-        data_list.append(float(center_x) / 640.0)
-        data_list.append(float(center_y) / 360.0)
+        # if self.tr == 1:
+        #     print('goal training')
+        # else:
+        #     print('goal validation')
 
-        # apply the augmentations to the image
         if self.tr == 1:
-            #print('Training batch')
-            aug_found = 1
+            aug_found = 0
 
-            #cutout sections of the image first
+            #dropout part of the image
             transform_cutout = A.Compose([
-                A.CoarseDropout(max_holes=8, max_height=50, max_width=50, p=.5)
+                #A.CoarseDropout(max_holes=8, max_height=80, max_width=50, p=.5)
+                A.CoarseDropout(max_holes=8, min_holes=5, max_height=200, max_width=50, min_height=70, p=.5),
             ])
             transformed_cutout = transform_cutout(image=image)
             image = transformed_cutout['image']
 
-            #testing without keypoints
-            transformed = self.transform(image=image) #try without keypoints
-            image = transformed['image']
-
-            #cv2.imwrite("test" + str(self.img_counter) + '.jpg', image)
-            #self.img_counter += 1
-            #print ("test write")
+            train_transform_aug = A.Compose(
+                [
+                    A.RandomBrightnessContrast(p=0.5),
+                    A.GaussNoise(p=.2),
+                    A.ISONoise(p=.15),
+                    A.RandomShadow(p=.2),
+                    A.MotionBlur(p=.2),
+                    A.Perspective(scale=(.05,.1),p=.5),
+                    A.RandomToneCurve(p=.3)
+                ],
+                keypoint_params=A.KeypointParams(format='xy')
+            )
 
             while aug_found == 0:
-               keypoints = [(center_x, center_y)]
-               transformed = self.transform(image=image, keypoints=keypoints)
-               keypoints = transformed['keypoints']
-               #transformed = self.transform(image=image) #try without keypoints
+                keypoints = [(center_x, center_y)]
+                transformed = train_transform_aug(image=image, keypoints=keypoints)
+                keypoints_out = transformed['keypoints']
 
-               #if after transformation there is a single keypoint,
-               #then use the new image and keypoint
-               if len(keypoints) == 1:
-                  image = transformed['image']
-                  data_list = []
-                  #print (data_list)
-                  data_list.append(float(keypoints[0][0])/640.0) #add the x
-                  data_list.append(float(keypoints[0][1])/360.0) #add the y
-                  aug_found = 1
+                #if after transformation there is a single keypoint,
+                #then use the new image and keypoint
+                if len(keypoints_out) == 1:
+                    image = transformed['image']
+                    data_list = []
+                    data_list.append(float(keypoints_out[0][0])/639.0) #add the x
+                    data_list.append(float(keypoints_out[0][1])/359.0) #add the y
+                    aug_found = 1
 
             tensor_train_transform = A.Compose([
                 ToTensorV2()
             ])
             transformed_train_image = tensor_train_transform(image=image)
-            image = transformed_train_image['image']
+            final_image = transformed_train_image['image']
 
-            image_out = image / 255.0
+            image = final_image / 255.0
+
         else:
-            #print('Validation batch')
-            val_transform = A.Compose([
-                ToTensorV2()
-            ])
-            transformed_val_image = val_transform(image=image)
-            image = transformed_val_image['image']
-            # image = self.transform(image=image)["image"]
-            image_out = image / 255.0
+            # add the data points to the 'data_list'
+            data_list = []
+            data_list.append(float(center_x) / 639.0)
+            data_list.append(float(center_y) / 359.0)
+
+            # apply the augmentations to the image
+            if self.transform is not None:
+                image = self.transform(image=image)["image"]
+                image = image / 255.0
 
         d = torch.Tensor(data_list) # convert the list of data points to a tensor
-        return image_out, d #return the image and the list of datapoints
+        return image, d #return the image and the list of datapoints
 
 def create_datasets(train_file_list,val_file_list):
    train_transform = A.Compose(
@@ -127,11 +134,10 @@ def create_datasets(train_file_list,val_file_list):
          A.RandomShadow(p=.2),
          A.MotionBlur(p=.2),
          #A.Perspective(scale=(.05,.1),p=.5),
+         A.CoarseDropout(max_holes=8, max_height=50, max_width=50, p=.5),
          A.RandomToneCurve(p=.3),
-         # ToTensorV2(),
+         ToTensorV2()
       ]
-      #],
-      #keypoint_params=A.KeypointParams(format='xy')
    )
    train_dataset = GoalDataset(images_filepaths=train_file_list, transform=train_transform)
 

@@ -38,7 +38,6 @@ class Pretrained_Model(torch.nn.Module):
         self.lr5 = torch.nn.LeakyReLU()
         self.lr6 = torch.nn.LeakyReLU()
         self.feature_num = 1280
-        # self.feature_num = 1536
 
         self.ground_out = torch.nn.Linear(1280, self.num_ground_outputs)
 
@@ -55,21 +54,27 @@ class Pretrained_Model(torch.nn.Module):
         self.turn_out = torch.nn.Linear(128, self.turn_outputs)
 
         #self.goal_hidden = torch.nn.Linear(self.feature_num, 100)
-        self.goal_hidden_x = torch.nn.Linear(self.feature_num, 100)
-        self.goal_hidden_y = torch.nn.Linear(self.feature_num, 100)
-        self.goal_bn1 = torch.nn.BatchNorm1d(num_features=100)
-        self.goal_bn2 = torch.nn.BatchNorm1d(num_features=100)
-        #self.goal_out = torch.nn.Linear(100, self.goal_outputs)
-        self.goal_hidden_x2 = torch.nn.Linear(100,100)
-        self.goal_hidden_y2 = torch.nn.Linear(100,100)
+        self.goal_feat_size = 1
+        self.goal_hidden_x = torch.nn.Linear(self.feature_num, self.goal_feat_size)
+        self.goal_hidden_y = torch.nn.Linear(self.feature_num, self.goal_feat_size)
+        self.goal_bn1 = torch.nn.BatchNorm1d(num_features=self.goal_feat_size)
+        self.goal_bn2 = torch.nn.BatchNorm1d(num_features=self.goal_feat_size)
+        self.goal_hidden_x2 = torch.nn.Linear(self.goal_feat_size,self.goal_feat_size)
+        self.goal_hidden_y2 = torch.nn.Linear(self.goal_feat_size,self.goal_feat_size)
+        self.goal_bn3 = torch.nn.BatchNorm1d(num_features=self.goal_feat_size)
+        self.goal_bn4 = torch.nn.BatchNorm1d(num_features=self.goal_feat_size)
         self.goal_hidden_lr1 = torch.nn.LeakyReLU()
         self.goal_hidden_lr2 = torch.nn.LeakyReLU()
-        self.goal_out_x = torch.nn.Linear(100, 1)
-        self.goal_out_y = torch.nn.Linear(100, 1)
+        self.goal_out_x = torch.nn.Linear(self.goal_feat_size, 1)
+        self.goal_out_y = torch.nn.Linear(self.goal_feat_size, 1)
+
+        self.goal_out_bn1 = torch.nn.BatchNorm1d(num_features=self.goal_feat_size)
+        self.goal_out_bn2 = torch.nn.BatchNorm1d(num_features=self.goal_feat_size)
+        self.sig_goal_x = torch.nn.Sigmoid()
+        self.sig_goal_y = torch.nn.Sigmoid()
 
         self.softmax = torch.nn.Softmax(1)
         self.sig = torch.nn.Sigmoid()
-        self.sig1 = torch.nn.Sigmoid()
 
     def forward(self, x):
         backbone_out = self.m(x)
@@ -79,34 +84,43 @@ class Pretrained_Model(torch.nn.Module):
         ground_output_val = self.ground_out(backbone_out1)
 
         # localization output
-        l_out1 = self.lr1(self.loc_bn1(self.loc_hidden1(backbone_out)))
-        l_out2 = self.lr2(self.loc_bn2(self.loc_hidden2(l_out1)))
-        # l_out1 = self.lr1((self.loc_hidden1(self.do1(backbone_out))))
-        # l_out2 = self.lr2((self.loc_hidden2(l_out1)))
+        # l_out1 = self.lr1(self.loc_bn1(self.loc_hidden1(backbone_out))) #BN # enabled
+        # l_out2 = self.lr2(self.loc_bn2(self.loc_hidden2(l_out1))) #BN enabled
+        l_out1 = self.lr1((self.loc_hidden1(backbone_out)))
+        l_out2 = self.lr2((self.loc_hidden2(l_out1)))
+
         o7 = self.loc_out(l_out2)
         loc_output = self.softmax(o7) # localization output
-        #o8 = self.sig1(o7) # localization output
 
         # turn output
-        turn_hidden_out1 = self.lr3(self.turn_bn1(self.turn_hidden1(backbone_out)))
-        # turn_hidden_out1 = self.lr3((self.turn_hidden1(self.do2(backbone_out))))
+        #turn_hidden_out1 = self.lr3(self.turn_bn1(self.turn_hidden1(backbone_out))) #BN enabled
+        turn_hidden_out1 = self.lr3((self.turn_hidden1(backbone_out)))
         turn_hidden_out2 = self.lr4(self.turn_hidden2(turn_hidden_out1))
         turn_out_val = self.sig(self.turn_out(turn_hidden_out2))
 
         # goal output
-        goal_hidden_out_x = self.lr5(self.goal_bn1(self.goal_hidden_x(backbone_out)))
-        goal_hidden_out_y = self.lr6(self.goal_bn2(self.goal_hidden_y(backbone_out)))
 
-        goal_out_x1 = self.goal_hidden_lr1(self.goal_hidden_x2(goal_hidden_out_x))
-        goal_out_y1 = self.goal_hidden_lr2(self.goal_hidden_y2(goal_hidden_out_y))
+        # with batch normalization
+        # goal_hidden_out_x = self.lr5(self.goal_bn1(self.goal_hidden_x(backbone_out)))
+        # goal_hidden_out_y = self.lr6(self.goal_bn2(self.goal_hidden_y(backbone_out)))
 
-        goal_out_x2 = self.goal_out_x(goal_out_x1)
-        goal_out_y2 = self.goal_out_y(goal_out_y1)
+        # goal_out_x1 = self.goal_hidden_lr1(self.goal_bn3(self.goal_hidden_x2(goal_hidden_out_x)))
+        # goal_out_y1 = self.goal_hidden_lr2(self.goal_bn4(self.goal_hidden_y2(goal_hidden_out_y)))
 
-        #goal_out_val = torch.cat((goal_out_x1, goal_out_y1), dim=1)
+        # no batch normalization
+        goal_hidden_out_x = self.lr5((self.goal_hidden_x(backbone_out)))
+        goal_hidden_out_y = self.lr6((self.goal_hidden_y(backbone_out)))
+
+        # goal_out_x1 = self.goal_hidden_lr1((self.goal_hidden_x2(goal_hidden_out_x)))
+        # goal_out_y1 = self.goal_hidden_lr2((self.goal_hidden_y2(goal_hidden_out_y)))
+
+        goal_out_x2 = self.goal_out_x(goal_hidden_out_x)
+        goal_out_y2 = self.goal_out_y(goal_hidden_out_y)
+
         goal_out_val = torch.cat((goal_out_x2, goal_out_y2), dim=1)
 
         return ground_output_val, loc_output, turn_out_val, goal_out_val
+        #return ground_output_val, loc_output, turn_out_val, goal_out_x2
 
     def build(self):
         print(self.m)
@@ -212,6 +226,12 @@ class Pretrained_Model(torch.nn.Module):
         model.goal_bn2.weight.requires_grad = status
         model.goal_bn2.bias.requires_grad = status
 
+        model.goal_bn3.weight.requires_grad = status
+        model.goal_bn3.bias.requires_grad = status
+
+        model.goal_bn4.weight.requires_grad = status
+        model.goal_bn4.bias.requires_grad = status
+
         # if status == False:
         #     model.goal_bn1.running_mean.requires_grad = status
         #     model.goal_bn1.running_var.requires_grad = status
@@ -231,10 +251,17 @@ class Pretrained_Model(torch.nn.Module):
         if status == False:
             model.goal_hidden_x.eval()
             model.goal_hidden_y.eval()
-            model.goal_bn1.eval()
-            model.goal_bn2.eval()
+            # model.goal_bn1.eval()
+            # model.goal_bn2.eval()
+
+            #train
+            model.goal_bn1.train()
+            model.goal_bn2.train()
+
             model.goal_hidden_x2.eval()
             model.goal_hidden_y2.eval()
+            model.goal_bn3.eval()
+            model.goal_bn4.eval()
             model.goal_out_x.eval()
             model.goal_out_y.eval()
         else:
@@ -244,6 +271,8 @@ class Pretrained_Model(torch.nn.Module):
             model.goal_bn2.train()
             model.goal_hidden_x2.train()
             model.goal_hidden_y2.train()
+            model.goal_bn3.train()
+            model.goal_bn4.train()
             model.goal_out_x.train()
             model.goal_out_y.train()
 
@@ -346,7 +375,7 @@ class Pretrained_Model(torch.nn.Module):
 
     @staticmethod
     def set_fixed_localization(model):
-        print ("--setting fixed localization--")
+        #print ("--setting fixed localization--")
 
         # freeze everything in the model
         for param in model.parameters():
@@ -369,13 +398,13 @@ class Pretrained_Model(torch.nn.Module):
         model.loc_out.weight.requires_grad = True
         model.loc_out.bias.requires_grad = True
 
-        print ('--backbone complete--')
+        #print ('--backbone complete--')
 
         return model
 
     @staticmethod
     def set_fixed_goal(model):
-        print ("--setting fixed goal--")
+        #print ("--setting fixed goal--")
 
         # freeze everything in the model
         for param in model.parameters():
@@ -403,6 +432,14 @@ class Pretrained_Model(torch.nn.Module):
         model.goal_hidden_y2.weight.requires_grad = True
         model.goal_hidden_y2.bias.requires_grad = True
 
+        # batch normalization layers 3
+        model.goal_bn3.weight.requires_grad = True
+        model.goal_bn3.bias.requires_grad = True
+
+        # batch normalization layers 4
+        model.goal_bn4.weight.requires_grad = True
+        model.goal_bn4.bias.requires_grad = True
+
         #output layer
         model.goal_out_x.weight.requires_grad = True
         model.goal_out_x.bias.requires_grad = True
@@ -410,13 +447,13 @@ class Pretrained_Model(torch.nn.Module):
         model.goal_out_y.weight.requires_grad = True
         model.goal_out_y.bias.requires_grad = True
 
-        print ('--backbone complete--')
+        #print ('--backbone complete--')
 
         return model
 
     @staticmethod
     def set_fixed_turn(model):
-        print ("--setting fixed turn--")
+        #print ("--setting fixed turn--")
 
         # freeze everything in the model
         for param in model.parameters():
@@ -439,7 +476,7 @@ class Pretrained_Model(torch.nn.Module):
         model.turn_out.weight.requires_grad = True
         model.turn_out.bias.requires_grad = True
 
-        print ('--backbone complete--')
+        #print ('--backbone complete--')
 
         return model
 
