@@ -59,8 +59,7 @@ class sample_images:
         filelist = filelist + glob.glob(self.validation_dir + '/*.jpg')
         #print (filelist)
 
-        print ('Removing files in: ' + self.training_dir + ' and ' + self.validation_dir)
-        print ('Files in: ' + self.path + ' not deleted')
+        print ('Removing files in: ' + self.path + ' and ' + self.training_dir + ' and ' + self.validation_dir)
 
         for f in filelist:
             if self.file_prefix in f:
@@ -165,7 +164,7 @@ def main(args):
             dm = sample_images(args.__dict__, "")
             dm.split()
         else:
-            freq=23 #default image frequency
+            freq=25 #default image frequency
 
             if args.freq != None:
                 freq = args.freq

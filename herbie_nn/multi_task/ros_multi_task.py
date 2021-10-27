@@ -36,6 +36,7 @@ class image_inference:
 
         self.image_sub = rospy.Subscriber(
                 "/see3cam_cu20/image_raw_live/compressed", CompressedImage, self.callback, queue_size=1, buff_size=10000000)
+                #"/see3cam_cu20/image_raw/compressed", CompressedImage, self.callback, queue_size=1, buff_size=10000000)
 
         self.data_pub = rospy.Publisher(
             '/nn_data1', Float64MultiArray, queue_size=1)
@@ -68,7 +69,7 @@ class image_inference:
         #create pcl from points
         scaled_polygon_pcl = pcl2.create_cloud_xyz32(header, cloud_points)
 
-        #publish    
+        #publish
         self.pointcloud_pub.publish(scaled_polygon_pcl)
 
     def publish_laserscan(self):
@@ -249,16 +250,8 @@ class image_inference:
         var_x = np.var(self.goal_list_x)
         var_y = np.var(self.goal_list_y)
 
-        #print (var_x, var_y)
-
-        if var_x < .0009 and var_y < .0009:
-            avg_x = np.median(self.goal_list_x)
-            avg_y = np.median(self.goal_list_y)
-            cv2.circle(img, (int(avg_x*640), int(avg_y*360)),
-                       3, (0, 255, 0), -1)
-        else:
-            cv2.circle(img, (int(center_x*640), int(center_y*360)),
-                       3, (255, 0, 255), -1)
+        cv2.circle(img, (int(center_x*640), int(center_y*360)),
+                    3, (255, 0, 255), -1)
 
     def callback(self, msg_in):
         #### direct conversion to CV2 ####
@@ -293,16 +286,6 @@ class image_inference:
         self.goal_x = int(640 * float(output[3].data[0][0]))
         self.goal_y = int(360 * float(output[3].data[0][1]))
         self.last_find_x = 0
-        self.find_left_right(110, image_np_360)
-        self.find_left_right(120, image_np_360)
-        self.find_left_right(130, image_np_360)
-        self.find_left_right(140, image_np_360)
-        self.find_left_right(150, image_np_360)
-        self.find_left_right(170, image_np_360)
-        self.find_left_right(200, image_np_360)
-        self.find_left_right(240, image_np_360)
-        self.find_left_right(280, image_np_360)
-        self.find_left_right(340, image_np_360)
 
         font = cv2.FONT_HERSHEY_SIMPLEX
         fontScale = .7
