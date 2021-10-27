@@ -33,7 +33,6 @@ def create_schedule(num, weights):
 
     for i in range(len(elems)):
         freq = 30 * weights[i] / float(total)
-        # print (freq)
         schedule += [i+1] * round(freq)
 
     random.shuffle(schedule)
@@ -228,14 +227,8 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                         loc_flag = 1
 
                         if phase == 'train':
-                            if epoch < backbone_freeze:
-                                model.m.train()
-                                #model.m.eval()
-                                #model = pretrained_model.Pretrained_Model.set_fixed_localization(model)
-                                model = pretrained_model.Pretrained_Model.set_train_loc(model)
-                            else:
-                                model.m.train()
-                                model = pretrained_model.Pretrained_Model.set_train_loc(model)
+                            model.m.train()
+                            model = pretrained_model.Pretrained_Model.set_train_loc(model)
 
                     elif turn_train == 1: # turn batch
                         if phase == 'train':
@@ -258,14 +251,8 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                         turn_flag = 1
 
                         if phase == 'train':
-                            if epoch < backbone_freeze:
-                                model.m.train()
-                                #model.m.eval()
-                                #model = pretrained_model.Pretrained_Model.set_fixed_turn(model)
-                                model = pretrained_model.Pretrained_Model.set_train_turn(model)
-                            else:
-                                model.m.train()
-                                model = pretrained_model.Pretrained_Model.set_train_turn(model)
+                            model.m.train()
+                            model = pretrained_model.Pretrained_Model.set_train_turn(model)
 
                     elif goal_train == 1: # goal batch
                         if phase == 'train':
@@ -286,14 +273,8 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
                         goal_flag = 1
 
                         if phase == 'train':
-                            if epoch < backbone_freeze:
-                                #model.m.eval()
-                                model.m.train()
-                                #model = pretrained_model.Pretrained_Model.set_fixed_goal(model)
-                                model = pretrained_model.Pretrained_Model.set_train_goal(model)
-                            else:
-                                model.m.train()
-                                model = pretrained_model.Pretrained_Model.set_train_goal(model)
+                            model.m.train()
+                            model = pretrained_model.Pretrained_Model.set_train_goal(model)
 
                 elif retrain == 1:
                     inputs, labels = next(ground_iterator)
@@ -330,13 +311,11 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
 
                     if retrain == 0:
                         if loc_train == 1: #localization
-                             # loss = 3.5 * criterion[1](outputs[1], output_tensor)
                              loss = criterion[1](outputs[1], output_tensor)
                              total_loss[1] += loss.item() * inputs.size(0)
                              total_iter[1] += 1
                              assert loc_flag == 1
                         elif turn_train == 1: #turn
-                             #loss = .3 * criterion[2](outputs[2], output_tensor)
                              loss = criterion[2](outputs[2], output_tensor)
                              total_loss[2] += loss.item() * inputs.size(0)
                              total_iter[2] += 1
@@ -548,7 +527,6 @@ if __name__ == '__main__':
 
     turn_dataset_sizes = {x: len(turn_image_datasets[x]) for x in ['train', 'val']}
 
-    #dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
     print ("ground dataset: ", end = '')
     print (ground_dataset_sizes)
     print ("localization dataset: ", end = '')
@@ -610,8 +588,6 @@ if __name__ == '__main__':
         model = pretrained_model.Pretrained_Model.set_fixed_localization(model)
         model = pretrained_model.Pretrained_Model.set_train_loc(model)
 
-        # optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
-        #     model.parameters()), lr=0.0003)
         optimizer = optim.AdamW(filter(lambda p: p.requires_grad, \
             model.parameters()), lr=0.0003)
 

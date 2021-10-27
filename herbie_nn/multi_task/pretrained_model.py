@@ -54,7 +54,7 @@ class Pretrained_Model(torch.nn.Module):
         self.turn_out = torch.nn.Linear(128, self.turn_outputs)
 
         #self.goal_hidden = torch.nn.Linear(self.feature_num, 100)
-        self.goal_feat_size = 1
+        self.goal_feat_size = 2
         self.goal_hidden_x = torch.nn.Linear(self.feature_num, self.goal_feat_size)
         self.goal_hidden_y = torch.nn.Linear(self.feature_num, self.goal_feat_size)
         self.goal_bn1 = torch.nn.BatchNorm1d(num_features=self.goal_feat_size)
@@ -67,11 +67,6 @@ class Pretrained_Model(torch.nn.Module):
         self.goal_hidden_lr2 = torch.nn.LeakyReLU()
         self.goal_out_x = torch.nn.Linear(self.goal_feat_size, 1)
         self.goal_out_y = torch.nn.Linear(self.goal_feat_size, 1)
-
-        self.goal_out_bn1 = torch.nn.BatchNorm1d(num_features=self.goal_feat_size)
-        self.goal_out_bn2 = torch.nn.BatchNorm1d(num_features=self.goal_feat_size)
-        self.sig_goal_x = torch.nn.Sigmoid()
-        self.sig_goal_y = torch.nn.Sigmoid()
 
         self.softmax = torch.nn.Softmax(1)
         self.sig = torch.nn.Sigmoid()
@@ -118,8 +113,11 @@ class Pretrained_Model(torch.nn.Module):
         goal_out_y2 = self.goal_out_y(goal_hidden_out_y)
 
         goal_out_val = torch.cat((goal_out_x2, goal_out_y2), dim=1)
+        goal_out_val = goal_out_val.flatten(1)
+        #goal_out_val = goal_out_val.view(goal_out_val.size(0), goal_out_val.size(1))
 
-        return ground_output_val, loc_output, turn_out_val, goal_out_val
+        #return ground_output_val, loc_output, turn_out_val, goal_out_val
+        return ground_output_val, loc_output, turn_out_val, goal_hidden_out_x
         #return ground_output_val, loc_output, turn_out_val, goal_out_x2
 
     def build(self):
@@ -232,10 +230,6 @@ class Pretrained_Model(torch.nn.Module):
         model.goal_bn4.weight.requires_grad = status
         model.goal_bn4.bias.requires_grad = status
 
-        # if status == False:
-        #     model.goal_bn1.running_mean.requires_grad = status
-        #     model.goal_bn1.running_var.requires_grad = status
-
         model.goal_hidden_x2.weight.requires_grad = status
         model.goal_hidden_x2.bias.requires_grad = status
 
@@ -251,13 +245,8 @@ class Pretrained_Model(torch.nn.Module):
         if status == False:
             model.goal_hidden_x.eval()
             model.goal_hidden_y.eval()
-            # model.goal_bn1.eval()
-            # model.goal_bn2.eval()
-
-            #train
-            model.goal_bn1.train()
-            model.goal_bn2.train()
-
+            model.goal_bn1.eval()
+            model.goal_bn2.eval()
             model.goal_hidden_x2.eval()
             model.goal_hidden_y2.eval()
             model.goal_bn3.eval()
