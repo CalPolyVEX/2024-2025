@@ -65,7 +65,7 @@ class sample_images:
 
         for f in filelist:
             if self.file_prefix in f:
-                print (f)
+                #print (f)
                 os.remove(f)
 
     def split(self):
@@ -154,7 +154,7 @@ def main(args):
         # parse the arguments
         args = parser.parse_args()
 
-        # if '-split' flag, just remove the output images
+        # if '-split' flag, move files to the training and validation dirs
         if args.split:
             dm = sample_images(args.__dict__, "")
             dm.split()
@@ -171,7 +171,7 @@ def main(args):
                 #create with argument dictionary
                 dm = sample_images(args.__dict__, bagfile, freq=freq)
 
-                # if '-clean' flag, just remove the output images
+                # if '-clean' flag, just all input and output images
                 if args.clean:
                     dm.clean()
                     continue
