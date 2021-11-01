@@ -130,14 +130,37 @@ void Navigation::update_turn_transform() {
       if (temp_loc_estimate != -1) {
          int direction;
 
-         if (temp_loc_estimate == 8) { //FIXME
-            direction = 0;
-         } else if (temp_loc_estimate == 11) {
-            direction = 1;
+         //this is for testing turn directions
+         if (temp_loc_estimate == 0) { //FIXME
+            direction = 0; //left
+         } else if (temp_loc_estimate == 1) {
+            direction = 2; //right
+         } else if (temp_loc_estimate == 4) {
+            direction = 2; //right
+         } else if (temp_loc_estimate == 5) {
+            direction = 2; //right
          } else if (temp_loc_estimate == 6) {
-            direction = 0;
+            direction = 0; //left
+         } else if (temp_loc_estimate == 7) {
+            direction = 0; //left
+         } else if (temp_loc_estimate == 8) {
+            direction = 0; //left
+         } else if (temp_loc_estimate == 9) {
+            direction = 2; //right
+         } else if (temp_loc_estimate == 10) {
+            direction = 2; //right
+         } else if (temp_loc_estimate == 11) {
+            direction = 2; //right
+         } else if (temp_loc_estimate == 12) {
+            direction = 0; //left
+         } else if (temp_loc_estimate == 14) {
+            direction = 2; //right
+         } else if (temp_loc_estimate == 15) {
+            direction = 0; //left
+         } else if (temp_loc_estimate == 16) {
+            direction = 0; //left
          } else {
-            direction = 0;
+            direction = 0; //default left
          }
 
          if (direction == 0) { //turn left at this hallway
@@ -397,6 +420,32 @@ void Navigation::update_goal_callback(const ros::TimerEvent& ev) {
    }
 }
 
+//set transform array entry
+void Navigation::set_turn_entry(int hallway_num, double x, double y, double degrees) {
+   //hallway_num is the hallway the robot is currently in
+   //x is the distance in meters forward
+   //y is the distance in meters sideways (positive to the left)
+   tf2::Quaternion tempQuaternion;
+   geometry_msgs::TransformStamped *t;
+
+   if (degrees > 0) { //positive degrees is counterclockwise
+      t = &(turn_transform_left[hallway_num]);
+   } else { //negative degrees is clockwise
+      t = &(turn_transform_right[hallway_num]);
+   }
+
+   tempQuaternion.setRPY(0,0,degrees*M_PI/180.0); //90 degree counterclockwise
+   tempQuaternion=tempQuaternion.normalize();
+
+   t->transform.translation.x = x; 
+   t->transform.translation.y = y;
+   t->transform.translation.z = 0.0;
+   t->transform.rotation.x = tempQuaternion.x(); 
+   t->transform.rotation.y = tempQuaternion.y();
+   t->transform.rotation.z = tempQuaternion.z(); 
+   t->transform.rotation.w = tempQuaternion.w();
+}
+
 //initialize the turn transform arrays
 void Navigation::init_turn_transforms() {
    tf2::Quaternion tempQuaternion;
@@ -425,65 +474,19 @@ void Navigation::init_turn_transforms() {
       t->transform.rotation.w = 1;
    }
 
-   t = &(turn_transform_left[8]);
-   tempQuaternion.setRPY(0,0,90.0*M_PI/180); //90 degree counterclockwise
-   tempQuaternion=tempQuaternion.normalize();
 
-   t->transform.translation.x = 2.3; 
-   t->transform.translation.y = .2;
-   t->transform.translation.z = 0.0;
-   t->transform.rotation.x = tempQuaternion.x(); 
-   t->transform.rotation.y = tempQuaternion.y();
-   t->transform.rotation.z = tempQuaternion.z(); 
-   t->transform.rotation.w = tempQuaternion.w();
+   set_turn_entry(8, 2.1, .3, 90);
+   set_turn_entry(11, 1.3, .1, -90);
+   set_turn_entry(12, 1.0, 0, 90);
+   set_turn_entry(12, 1.0, 0, -90);
+   set_turn_entry(15, 1.0, 0, 90);
+   set_turn_entry(16, 1.0, 0, 90);
+   set_turn_entry(0, 0.5, 0, 90);
+   set_turn_entry(4, 0.5, 0, -90);
+   set_turn_entry(7, 1.0, 0, 90);
 
-   t = &(turn_transform_right[11]);
-   tempQuaternion.setRPY(0,0,-90.0*M_PI/180); //90 degree clockwise
-   tempQuaternion=tempQuaternion.normalize();
-
-   t->transform.translation.x = 1.5; 
-   t->transform.translation.y = .10;
-   t->transform.translation.z = 0.0;
-   t->transform.rotation.x = tempQuaternion.x(); 
-   t->transform.rotation.y = tempQuaternion.y();
-   t->transform.rotation.z = tempQuaternion.z(); 
-   t->transform.rotation.w = tempQuaternion.w();
-
-   t = &(turn_transform_left[12]);
-   tempQuaternion.setRPY(0,0,90.0*M_PI/180); //90 degree counterclockwise
-   tempQuaternion=tempQuaternion.normalize();
-
-   t->transform.translation.x = 1; 
-   t->transform.translation.y = 0;
-   t->transform.translation.z = 0.0;
-   t->transform.rotation.x = tempQuaternion.x(); 
-   t->transform.rotation.y = tempQuaternion.y();
-   t->transform.rotation.z = tempQuaternion.z(); 
-   t->transform.rotation.w = tempQuaternion.w();
-
-   t = &(turn_transform_right[12]);
-   tempQuaternion.setRPY(0,0,-90.0*M_PI/180); //90 degree clockwise
-   tempQuaternion=tempQuaternion.normalize();
-
-   t->transform.translation.x = 1; 
-   t->transform.translation.y = 0;
-   t->transform.translation.z = 0.0;
-   t->transform.rotation.x = tempQuaternion.x(); 
-   t->transform.rotation.y = tempQuaternion.y();
-   t->transform.rotation.z = tempQuaternion.z(); 
-   t->transform.rotation.w = tempQuaternion.w();
-
-   t = &(turn_transform_left[6]);
-   tempQuaternion.setRPY(0,0,90.0*M_PI/180); //90 degree counterclockwise
-   tempQuaternion=tempQuaternion.normalize();
-
-   t->transform.translation.x = .5; 
-   t->transform.translation.y = 0;
-   t->transform.translation.z = 0.0;
-   t->transform.rotation.x = tempQuaternion.x(); 
-   t->transform.rotation.y = tempQuaternion.y();
-   t->transform.rotation.z = tempQuaternion.z(); 
-   t->transform.rotation.w = tempQuaternion.w();
+   set_turn_entry(6, 0.5, 0, 90);
+   set_turn_entry(9, 1.5, 0, -90);
 }
 
 //initialize the route

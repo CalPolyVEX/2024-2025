@@ -92,6 +92,7 @@ class Navigation {
   float localization_value[LOCALIZATION_ARRAY_SIZE];      //stores the confidence of those predictions
   geometry_msgs::Pose localization_pose[LOCALIZATION_ARRAY_SIZE]; //poses of last prediction 
   float localization_heading[LOCALIZATION_ARRAY_SIZE];    //store the last headings
+  int localization_turn_progress[LOCALIZATION_ARRAY_SIZE];//store turn in progress flag
   int localization_index = 0;                             //current index into the hallway pred. array
   int cur_loc_estimate = -1;
   std::mutex cur_loc_mutex;
@@ -120,8 +121,6 @@ class Navigation {
     void draw_goal();
     void write_text();
     void draw_lines();
-    void avoid_obstacles();
-    float compute_obstacle_force(int coord, int side);
 
     //graph functions
     void odom_callback(const nav_msgs::Odometry::ConstPtr& msg); 
@@ -147,6 +146,7 @@ class Navigation {
     double get_distance_to_goal();
     void init_route();
     void turn_degrees(int degrees);
+    void set_turn_entry(int hallway_num, double x, double y, double degrees);
 
     //control board functions
     void create_control_board_msg(int num, void* arg);

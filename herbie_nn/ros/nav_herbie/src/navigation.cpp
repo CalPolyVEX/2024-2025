@@ -103,6 +103,7 @@ Navigation::Navigation() : it(nh) {
       localization_pose[i].orientation.z = 0;
 
       localization_heading[i] = 0;
+      localization_turn_progress[i] = 0;
    }
 
    //start the turn transform thread
@@ -375,15 +376,6 @@ void Navigation::draw_loc_prob() {
    int base = 70;
    int top = 20;
 
-   /* for (int i=0; i<NUM_LOC; i++) { */
-   /*    int height = loc[i] * (base-top); */
-   /*    if (i > 29) { */
-   /*       cv::line(new_image, cv::Point(i*3, base-1), cv::Point(i*3, base-height-1), cv::Scalar(0, 255, 0), 3); */
-   /*    } else { */
-   /*       cv::line(new_image, cv::Point(i*3, base-1), cv::Point(i*3, base-height-1), cv::Scalar(255, 128, 0), 3); */
-   /*    } */
-   /* } */
-
    //find the highest localization node
    float max_loc=0;
    int loc_index = 0;
@@ -418,6 +410,7 @@ void Navigation::draw_loc_prob() {
    localization_pose[localization_index].orientation.x = transformStamped.transform.rotation.x;
    localization_pose[localization_index].orientation.y = transformStamped.transform.rotation.y;
    localization_pose[localization_index].orientation.z = transformStamped.transform.rotation.z;
+   localization_turn_progress[localization_index]= turn_in_progress;
 
    heading_mutex.lock();
    localization_heading[localization_index] = actual_heading;
@@ -486,8 +479,9 @@ int Navigation::compute_turn_prob(double* confidence) {
    float confidence_threshold = .90;
    int temp_index = turn_index;
    int above_threshold = 0;
+   int num_samples = 4; //number of samples to read in a row
 
-   for (int i=0; i<5; i++) {
+   for (int i=0; i<num_samples; i++) {
       if (turn_tracking[temp_index] > confidence_threshold) {
          above_threshold++;
       }
@@ -501,9 +495,9 @@ int Navigation::compute_turn_prob(double* confidence) {
       }
    }
 
-   *confidence = avg_threshold / 5.0;
+   *confidence = avg_threshold / num_samples;
 
-   if (above_threshold > 4)
+   if (above_threshold > (num_samples-1))
       return 1; //a turn
    else
       return 0;
@@ -574,241 +568,6 @@ void Navigation::draw_lines()
 
    // vertical line down middle
    // cv::line(new_image, cv::Point(320, 0), cv::Point(320, 359), cv::Scalar(255, 255, 0), 1);
-}
-
-void find_left_right_obstacle_coord(int y_coord, double* ground, int* left, int* right) {
-   //starting at the y_coord, search to the left for an obstacle
-   *left = 0;
-   for (int i=40; i>0; i--) {
-      if (int(ground[i] * 360) > y_coord)  {
-         *left = i*8;
-         break;
-      }
-   }
-
-   //starting at the y_coord, search to the right for an obstacle
-   *right = 639;
-   for (int i=40; i<80; i++) {
-      if (int(ground[i] * 360) > y_coord)  {
-         *right = i*8;
-         break;
-      }
-   }
-}
-
-float Navigation::compute_obstacle_force(int coord, int side) {
-   /* if (1 == 0) { */
-   /*    //compute Y force on left side///////////////////////////////////////////////////// */
-   /*    float closest_left_distance = 10000; */
-   /*    int min_left_x, min_left_y, min_right_x, min_right_y; */
-   /*    int left_start_x = LEFT_OBSTACLE_X - (8*(num_obstacle_points-1)); */
-   /*    int blocking_left = 0; */
-   /*    for (int i=left_start_x; i <= (LEFT_OBSTACLE_X+16); i+=8) { */
-   /*       int x1 = i; */
-   /*       int y1 = ground[i/8]*360; */
-   /*       float distance = sqrt(pow((x1-LEFT_OBSTACLE_X), 2) + pow((y1-LEFT_OBSTACLE_Y), 2)); */
-
-   /*       if (distance < closest_left_distance) { //find the closest distance */
-   /*          min_left_x = x1; */
-   /*          min_left_y = y1; */
-   /*          closest_left_distance = distance; */
-   /*       } */
-
-   /*       /1* if (y1 > LEFT_OBSTACLE_Y) { //obstacle too close *1/ */
-   /*       /1*    blocking_left = 1; *1/ */
-   /*       /1* } *1/ */
-
-   /*    } */
-   /*    cv::line(new_image, cv::Point(min_left_x, min_left_y), cv::Point(LEFT_OBSTACLE_X, LEFT_OBSTACLE_Y), cv::Scalar(0, 0, 255), 2); */
-
-   /*    float left_mean = 0; */
-   /*    float left_sd = 50; */
-   /*    float ang_force_left = (1.0 / (left_sd * sqrt(2 * 3.14159))) * exp(-0.5 * pow((closest_left_distance-left_mean)/left_sd, 2)); */
-   /*    ang_force_left *= -35.0; */
-
-   /*    //if there is a blocking obstacle on the left side */
-   /*    if (blocking_left) { */
-   /*       ang_force_left = -2.0; */
-   /*    } */
-
-   /*    //compute Y force on right side/////////////////////////////////////////////////// */
-   /*    float closest_right_distance = 10000; */
-   /*    int right_start_x = RIGHT_OBSTACLE_X + (8*(num_obstacle_points-1)); */
-   /*    int blocking_right = 0; */
-   /*    for (int i=right_start_x; i >= (RIGHT_OBSTACLE_X-16); i-=8) { */
-   /*       int x1 = i; */
-   /*       int y1 = ground[i/8]*360; */
-   /*       float distance = sqrt(pow((x1-RIGHT_OBSTACLE_X), 2) + pow((y1-RIGHT_OBSTACLE_Y), 2)); */
-
-   /*       if (distance < closest_right_distance) { */
-   /*          min_right_x = x1; */
-   /*          min_right_y = y1; */
-   /*          closest_right_distance = distance; */
-   /*       } */
-
-   /*       /1* if (y1 > RIGHT_OBSTACLE_Y) { //obstacle too close *1/ */
-   /*       /1*    blocking_right = 1; *1/ */
-   /*       /1* } *1/ */
-   /*    } */
-   /*    cv::line(new_image, cv::Point(min_right_x, min_right_y), cv::Point(RIGHT_OBSTACLE_X, RIGHT_OBSTACLE_Y), cv::Scalar(0, 0, 255), 2); */
-
-   /*    float right_mean = 0; */
-   /*    float right_sd = 50; */
-   /*    float ang_force_right = (1.0 / (right_sd * sqrt(2 * 3.14159))) * exp(-0.5 * pow((closest_right_distance-right_mean)/right_sd, 2)); */
-   /*    ang_force_right *= 35.0; */
-
-   /*    //if there is a blocking obstacle on the left side */
-   /*    if (blocking_right) { */
-   /*       ang_force_right = 2.0; */
-   /*    } */
-
-   /*    return ang_force_left + ang_force_right; */ 
-   /* } */
-
-   //compute force
-   float gauss_max = 1.5;
-   float sd = 55;
-   int distance_threshold = 110; //any closer than this distance from center, then max force is applied
-   int center = 320;
-
-   if (side == 1) { //right side
-      int b = center + distance_threshold;
-
-      if (coord < b) {
-         return gauss_max;
-      } else {
-         float g = gauss_max * exp( - (pow(coord-b,2) / (2.0 * pow(sd,2))) ) ;
-         return g;
-      }
-   } else {
-      int b = center - distance_threshold;
-
-      if (coord > b) {
-         return gauss_max;
-      } else {
-         float g = gauss_max * exp( - (pow(coord-b,2) / (2.0 * pow(sd,2))) );
-         return g;
-      }
-   }
-
-   return 0;
-}
-
-void Navigation::avoid_obstacles()
-{
-   geometry_msgs::Twist t_cmd;
-
-   //compute linear velocity attraction to goal point
-   float goal_velocity = .005 * (LEFT_OBSTACLE_Y - cur_goal_y);
-
-   if (goal_velocity > MAX_LINEAR) {
-      goal_velocity = MAX_LINEAR;
-   } else if (goal_velocity < -MAX_LINEAR) {
-      goal_velocity = -MAX_LINEAR;
-   }
-
-   //compute forward distance to obstacle
-   int boundary_index = LEFT_OBSTACLE_X / 8;
-   int min_forward_distance = 360;
-
-   //for all the points between the top of the trapezoid
-   while ((boundary_index*8) >= LEFT_OBSTACLE_X && (boundary_index*8) <= RIGHT_OBSTACLE_X) {
-      int y_ground = ground[boundary_index]*360;
-
-      if (y_ground > LEFT_OBSTACLE_Y) {
-         y_ground = LEFT_OBSTACLE_Y;
-      }
-      
-      //get the distance from obstacle to the Y coordinate of the trapezoid
-      int cur_distance = LEFT_OBSTACLE_Y - y_ground; 
-
-      if (cur_distance < min_forward_distance) {
-         min_forward_distance = cur_distance;
-      }
-
-      cv::circle(new_image,
-                 cv::Point(int(boundary_index*8), int(LEFT_OBSTACLE_Y)),
-                 3,
-                 cv::Scalar(0, 255, 255),
-                 cv::FILLED,
-                 cv::LINE_8);
-      boundary_index++;
-   }
-
-   //compute repulsive linear velocity - any obstacles will generate a negative
-   //velocity force
-   float mean = 0;
-   float sd = 6;
-   float obst_linear;
-
-   if (min_forward_distance < 0) {
-      min_forward_distance = 0.0;   
-   }
-   
-   //the obstacle repulsive force is expressed as a Gaussian function
-   obst_linear = (1.0 / (sd * sqrt(2 * 3.14159))) * exp(-0.5 * pow((min_forward_distance-mean)/sd, 2));
-   obst_linear *= 4.0;
-
-   /* cout << setprecision(3) << "linear_vel: " << goal_velocity; */
-   // cout << " goal_distance: " << min_forward_distance;
-   /* cout << setprecision(3) << " obst_linear: " << obst_linear; */
-
-   //set the linear velocity to 0 if there is an obstacle
-   int obstacle_stop = 0;
-   for(int i=30; i<50; i++) { //look through ground boundary points 30 to 49
-      int ground_y = ground[i]*360;
-
-      if (ground_y > STOP_OBSTACLE_Y) {
-         obstacle_stop = 1;
-         break;
-      }
-   }
-   
-   //set the linear velocity
-   if (obstacle_stop == 0) { //if there is an obstacle, come to a full stop
-      t_cmd.linear.x = goal_velocity - obst_linear;
-   } else {
-      t_cmd.linear.x = 0;
-   }
-
-   if (t_cmd.linear.x < 0) {
-      t_cmd.linear.x = 0;
-   }
-
-   /* t_cmd.linear.x = 0;  //FIXME do not move the robot forward */
-
-   //compute angular velocity attraction to goal point
-   float ang_velocity = .020 * (320.0 - cur_goal_x);
-   float ang_max = 4.0;
-   if (ang_velocity < -ang_max) { //limit the maximum of the angular velocity
-      ang_velocity = -ang_max;
-   } else if (ang_velocity > ang_max) {
-      ang_velocity = ang_max;
-   }
-   /* cout << setprecision(3) << "  ang_vel: " << ang_velocity << endl; */
-
-   t_cmd.angular.z = ang_velocity;
-
-   int num_obstacle_points = 10;
-
-   /* std::cout << "ang left: " << ang_force_left << "  ang right: " << ang_force_right << std::endl; */
-
-   int left,right;
-
-   int y_coord = 280;
-   cv::line(new_image, cv::Point(310, y_coord), cv::Point(340, y_coord), cv::Scalar(0, 255, 0), 3);
-   find_left_right_obstacle_coord(y_coord, ground, &left, &right);
-   /* std::cout << "coord left: " << left << "  coord right: " << right << std::endl; */
-
-   float ang_force_left = -compute_obstacle_force(left, 0);
-   float ang_force_right = compute_obstacle_force(right, 1);
-
-   /* std::cout << "\tleft force: " << ang_force_left << std::endl; */
-   /* std::cout << "\tright force: " << ang_force_right << std::endl; */
-
-   t_cmd.angular.z += ang_force_left + ang_force_right;
-
-   //twist_pub_.publish(t_cmd);
 }
 
 int main(int argc, char** argv) {
