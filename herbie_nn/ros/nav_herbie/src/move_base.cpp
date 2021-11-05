@@ -159,6 +159,8 @@ void Navigation::update_turn_transform() {
             direction = 0; //left
          } else if (temp_loc_estimate == 16) {
             direction = 0; //left
+         } else if (temp_loc_estimate == 17) {
+            direction = 2; //right
          } else {
             direction = 0; //default left
          }
@@ -400,7 +402,9 @@ double Navigation::get_distance_to_goal() {
 void Navigation::autonomous_mode_callback(const std_msgs::Int8::ConstPtr& msg) {
    if (msg->data == 0) {
       //cancel goals
+      update_goal_mutex.lock();
       action_client->cancelAllGoals();
+      update_goal_mutex.unlock();
    }
 }
 
@@ -475,17 +479,23 @@ void Navigation::init_turn_transforms() {
    }
 
 
-   set_turn_entry(8, 2.1, .3, 90);
+   //clockwise loop
+   set_turn_entry(8, 2.1, .3, 90); //+90 degrees is counter-clockwise
    set_turn_entry(11, 1.3, .1, -90);
-   set_turn_entry(12, 1.0, 0, 90);
-   set_turn_entry(12, 1.0, 0, -90);
-   set_turn_entry(15, 1.0, 0, 90);
-   set_turn_entry(16, 1.0, 0, 90);
-   set_turn_entry(0, 0.5, 0, 90);
-   set_turn_entry(4, 0.5, 0, -90);
+   set_turn_entry(12, 2.0, 0, 90);
+   set_turn_entry(15, 1.8, 0, 90);
+   set_turn_entry(16, 1.8, 0, 90);
+   set_turn_entry(0, 1.0, -0.1, 90);
+   set_turn_entry(4, 1.5, 0, -90);
    set_turn_entry(7, 1.0, 0, 90);
 
-   set_turn_entry(6, 0.5, 0, 90);
+   set_turn_entry(6, 1.0, 0, 90);
+   set_turn_entry(5, 2.0, 0, -90);
+   set_turn_entry(1, 1.8, 0, -90);
+   set_turn_entry(17, 1.8, 0, -90);
+   set_turn_entry(14, 1.0, 0.1, -90);
+   set_turn_entry(13, 1.5, 0, 90);
+   set_turn_entry(10, 0.5, 0, -90);
    set_turn_entry(9, 1.5, 0, -90);
 }
 

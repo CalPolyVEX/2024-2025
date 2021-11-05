@@ -19,11 +19,6 @@ using namespace std;
 #define RIGHT_OBSTACLE_X 384
 #define RIGHT_OBSTACLE_Y 229
 
-#define STOP_OBSTACLE_Y 295 
-
-#define MAX_LINEAR .6
-#define MAX_ANGULAR .8
-
 int sim_mode = 0;
 int debug_mode = 1;
 ros::NodeHandle* h;
@@ -127,9 +122,13 @@ void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
     
    //resize image to IMG_HEIGHT x IMG_WIDTH
    if (cv_ptr->image.rows == 360 && cv_ptr->image.cols == 640) {
+      img_mutex.lock();
       memcpy(new_image.data, cv_ptr->image.data, 640*360*3);
+      img_mutex.unlock();
    } else {
+      img_mutex.lock();
       cv::resize(cv_ptr->image, new_image, cv::Size(640,360), CV_INTER_LINEAR);
+      img_mutex.unlock();
    }
 }
 
@@ -150,12 +149,13 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
 
    update_goal_transform();
   
-   //draw the localization probability graph
-   draw_loc_prob();
+   //compute the localization probability
+   compute_loc_prob();
 
    //connect the boundary points with lines
    if (debug_mode) {
       //draw the ground boundary points
+      img_mutex.lock();
       for (int i=0; i<NUM_GROUND; i++) {
          cv::circle( new_image,
                cv::Point(i*8, int(ground[i] * 360)),
@@ -164,9 +164,10 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
                cv::FILLED,
                cv::LINE_8 );
       }
+      img_mutex.unlock();
 
       connect_boundary();
-      draw_lines();
+      /* draw_lines(); */
       draw_goal();
       write_text();
    }
@@ -176,7 +177,9 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
 
    //publish the image (if in debug mode)
    if(debug_mode) {
+      img_mutex.lock();
       sensor_msgs::ImagePtr pub_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", new_image).toImageMsg();
+      img_mutex.unlock();
       image_pub_.publish(pub_msg);
    }
 
@@ -229,14 +232,18 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
       //set a timeout for turning
       if (turn_progress_counter > 300) { //15 second timeout for a turn (15*20Hz = 300)
          //turn timeout
+         update_goal_mutex.lock();
          action_client->cancelAllGoals(); //cancel the turn goal
+         update_goal_mutex.unlock();
          goal_timer.start(); //start the goal update timer
          turn_in_progress = 0;
          turn_progress_counter = 0;
       }
       
       //turn is complete, restart the goal timer and set parameters
+      update_goal_mutex.lock();
       if (action_client->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
+         update_goal_mutex.unlock();
          goal_timer.start(); //start the goal update timer
          turn_in_progress = 0;
          turn_progress_counter = 0;
@@ -254,6 +261,7 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
          }
       }
    } else {
+      update_goal_mutex.unlock();
       coord[0] = 11; //col 10
       coord[1] = 1; //row 1
       create_control_board_msg(1,coord);
@@ -269,6 +277,7 @@ void Navigation::write_text() {
 
    if (turn[0] > .6) {
       sprintf (str, "turn: %.3f", (float) turn[0]);
+      img_mutex.lock();
       cv::putText(new_image, //target image
                str, //text
                cv::Point(430, 30), //top-left position
@@ -276,12 +285,14 @@ void Navigation::write_text() {
                .9,
                CV_RGB(0, 0, 255), //font color
                2);
+      img_mutex.unlock();
    }
 
    //print the localization
    sprintf(str, "loc: %d (%.3f)", cur_loc, cur_loc_prob);
 
    if (cur_loc < 30) {
+      img_mutex.lock();
       cv::putText(new_image, //target image
                str, //text
                cv::Point(430, 60), //top-left position
@@ -289,7 +300,9 @@ void Navigation::write_text() {
                .8,
                cv::Scalar(255, 128, 0), //font color
                2);
+      img_mutex.unlock();
    } else {
+      img_mutex.lock();
       cv::putText(new_image, //target image
                str, //text
                cv::Point(430, 60), //top-left position
@@ -297,10 +310,12 @@ void Navigation::write_text() {
                .8,
                cv::Scalar(0, 255, 0), //font color
                2);
+      img_mutex.unlock();
    }
 
    //write the inference time
    sprintf (str, "nn (ms): %.2f", inference_time*100.0);
+   img_mutex.lock();
    cv::putText(new_image, //target image
          str, //text
          cv::Point(430, 90), //top-left position
@@ -318,6 +333,7 @@ void Navigation::write_text() {
          .8,
          cv::Scalar(0, 255, 0), //font color
          2);
+   img_mutex.unlock();
 }
 
 void Navigation::draw_goal() {
@@ -353,26 +369,28 @@ void Navigation::draw_goal() {
    }
    variance /= GOAL_AVG_COUNT;
 
-   /* std::cout << variance << std::endl; */
-
    if (variance > 70) { //moving goal, draw it as red
+      img_mutex.lock();
       cv::circle( new_image,
             cv::Point(int(cur_goal_x), int(cur_goal_y)),
             3,
             cv::Scalar( 0, 0, 255),
             cv::FILLED,
             cv::LINE_8 );
+      img_mutex.unlock();
    } else {  //the goal is stable, draw it as green
+      img_mutex.lock();
       cv::circle( new_image,
             cv::Point(int(cur_goal_x), int(cur_goal_y)),
             3,
             cv::Scalar( 0, 255, 0),
             cv::FILLED,
             cv::LINE_8 );
+      img_mutex.unlock();
    }
 }
 
-void Navigation::draw_loc_prob() {
+void Navigation::compute_loc_prob() {
    int base = 70;
    int top = 20;
 
@@ -529,14 +547,6 @@ void Navigation::compute_farthest(float* coord) {
 
    coord[0] = highest_index*8;
    coord[1] = ground[highest_index] * 360;
-
-   //draw the farthest point
-   // cv::circle( new_image,
-   //    cv::Point(coord[0], coord[1]),
-   //    4,
-   //    cv::Scalar( 0, 255, 0),
-   //    cv::FILLED,
-   //    cv::LINE_8 );
 }
 
 void Navigation::connect_boundary() {
@@ -545,7 +555,9 @@ void Navigation::connect_boundary() {
       int y1 = ground[i]*360;
       int x2 = (i+1)*8;
       int y2 = ground[i+1]*360;
+      img_mutex.lock();
       cv::line(new_image, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 0, 255), 2);
+      img_mutex.unlock();
    }
 }
 

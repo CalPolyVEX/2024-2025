@@ -110,6 +110,7 @@ class Navigation {
   tf2_ros::TransformListener* tfListener;
   std::string service_name = "move_base/make_plan";
   std::mutex update_goal_mutex;  //lock this mutex when updating the goal
+  std::mutex img_mutex;  //lock this mutex when updating the output image
 
   public:
     Navigation(); 
@@ -117,7 +118,7 @@ class Navigation {
     void img_callback(const sensor_msgs::ImageConstPtr& msg);
     void compute_farthest(float* coord);
     void connect_boundary();
-    void draw_loc_prob();
+    void compute_loc_prob();
     void draw_goal();
     void write_text();
     void draw_lines();

@@ -24,7 +24,7 @@ DWAPlannerROS:
   holonomic_robot: false
 
   sim_time: 1.8
-  path_distance_bias: 32
+  path_distance_bias: 34
   goal_distance_bias: 20
   occdist_scale: .05
   dwa: true
