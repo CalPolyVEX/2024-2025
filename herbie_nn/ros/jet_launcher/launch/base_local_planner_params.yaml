@@ -24,9 +24,12 @@ DWAPlannerROS:
   holonomic_robot: false
 
   sim_time: 1.8
-  path_distance_bias: 34
-  goal_distance_bias: 20
-  occdist_scale: .05
+  # path_distance_bias: 34  # .6 in default config
+  # goal_distance_bias: 20  # .8 in default config
+  # occdist_scale: .05 # .01 in default config
+  path_distance_bias: .6  # .6 in default config
+  goal_distance_bias: .8  # .8 in default config
+  occdist_scale: .02 # .01 in default config
   dwa: true
 
   #neutral_cost: 66
@@ -37,7 +40,7 @@ DWAPlannerROS:
   vth_samples: 40
 
   latch_xy_goal_tolerance: true
-  xy_goal_tolerance: .2
+  xy_goal_tolerance: .1
   yaw_goal_tolerance: .10
   prune_plan: true
   global_frame_id: odom
@@ -55,12 +58,12 @@ recovery_behaviors:
     type: 'clear_costmap_recovery/ClearCostmapRecovery'
 
 aggressive_reset:
-  reset_distance: 0.0
+  reset_distance: 3.0
   layer_names: ["obstacles"]
 
 planner_patience: 5.0
-planner_frequency: .5
-#planner_frequency: 0.0
+#planner_frequency: .5
+planner_frequency: 0.0
 
 #############Teb Local Planner################################
 TebLocalPlannerROS:

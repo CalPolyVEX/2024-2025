@@ -303,9 +303,31 @@ void Navigation::set_narrow_parameters(int narrow) {
    double_param.name = "sim_time";
 
    if (narrow == 1) {
-      double_param.value = 2.8;
+      double_param.value = 1.5;
    } else {
-      double_param.value = 2.8;
+      double_param.value = 3.0;
+   }
+
+   conf.doubles.push_back(double_param);
+
+   //path_distance_bias: .6
+   double_param.name = "path_distance_bias";
+
+   if (narrow == 1) {
+      double_param.value = 1.0;
+   } else {
+      double_param.value = .6;
+   }
+
+   conf.doubles.push_back(double_param);
+
+   //max_vel_x: 0.23
+   double_param.name = "max_vel_x";
+
+   if (narrow == 1) {
+      double_param.value = .18;
+   } else {
+      double_param.value = .27;
    }
 
    conf.doubles.push_back(double_param);
@@ -480,14 +502,14 @@ void Navigation::init_turn_transforms() {
 
 
    //clockwise loop
-   set_turn_entry(8, 2.1, .3, 90); //+90 degrees is counter-clockwise
-   set_turn_entry(11, 1.3, .1, -90);
+   set_turn_entry(8, 2.1, .3, 85); //+90 degrees is counter-clockwise
+   set_turn_entry(11, 1.2, 0.0, -90);
    set_turn_entry(12, 2.0, 0, 90);
    set_turn_entry(15, 1.8, 0, 90);
-   set_turn_entry(16, 1.8, 0, 90);
+   set_turn_entry(16, 1.9, 0, 92);
    set_turn_entry(0, 1.0, -0.1, 90);
    set_turn_entry(4, 1.5, 0, -90);
-   set_turn_entry(7, 1.0, 0, 90);
+   set_turn_entry(7, 1.7, 0, 90);
 
    set_turn_entry(6, 1.0, 0, 90);
    set_turn_entry(5, 2.0, 0, -90);

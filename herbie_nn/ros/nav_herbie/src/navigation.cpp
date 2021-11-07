@@ -241,9 +241,14 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
       }
       
       //turn is complete, restart the goal timer and set parameters
+      bool turn_complete = false;
       update_goal_mutex.lock();
       if (action_client->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
-         update_goal_mutex.unlock();
+         turn_complete = true;
+      }
+      update_goal_mutex.unlock();
+
+      if (turn_complete) {
          goal_timer.start(); //start the goal update timer
          turn_in_progress = 0;
          turn_progress_counter = 0;
@@ -261,7 +266,6 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
          }
       }
    } else {
-      update_goal_mutex.unlock();
       coord[0] = 11; //col 10
       coord[1] = 1; //row 1
       create_control_board_msg(1,coord);
@@ -292,7 +296,7 @@ void Navigation::write_text() {
    sprintf(str, "loc: %d (%.3f)", cur_loc, cur_loc_prob);
 
    if (cur_loc < 30) {
-      img_mutex.lock();
+      /* img_mutex.lock(); */
       cv::putText(new_image, //target image
                str, //text
                cv::Point(430, 60), //top-left position
@@ -300,9 +304,9 @@ void Navigation::write_text() {
                .8,
                cv::Scalar(255, 128, 0), //font color
                2);
-      img_mutex.unlock();
+      /* img_mutex.unlock(); */
    } else {
-      img_mutex.lock();
+      /* img_mutex.lock(); */
       cv::putText(new_image, //target image
                str, //text
                cv::Point(430, 60), //top-left position
@@ -310,12 +314,12 @@ void Navigation::write_text() {
                .8,
                cv::Scalar(0, 255, 0), //font color
                2);
-      img_mutex.unlock();
+      /* img_mutex.unlock(); */
    }
 
    //write the inference time
    sprintf (str, "nn (ms): %.2f", inference_time*100.0);
-   img_mutex.lock();
+   /* img_mutex.lock(); */
    cv::putText(new_image, //target image
          str, //text
          cv::Point(430, 90), //top-left position
@@ -333,7 +337,7 @@ void Navigation::write_text() {
          .8,
          cv::Scalar(0, 255, 0), //font color
          2);
-   img_mutex.unlock();
+   /* img_mutex.unlock(); */
 }
 
 void Navigation::draw_goal() {
@@ -370,23 +374,23 @@ void Navigation::draw_goal() {
    variance /= GOAL_AVG_COUNT;
 
    if (variance > 70) { //moving goal, draw it as red
-      img_mutex.lock();
+      /* img_mutex.lock(); */
       cv::circle( new_image,
             cv::Point(int(cur_goal_x), int(cur_goal_y)),
             3,
             cv::Scalar( 0, 0, 255),
             cv::FILLED,
             cv::LINE_8 );
-      img_mutex.unlock();
+      /* img_mutex.unlock(); */
    } else {  //the goal is stable, draw it as green
-      img_mutex.lock();
+      /* img_mutex.lock(); */
       cv::circle( new_image,
             cv::Point(int(cur_goal_x), int(cur_goal_y)),
             3,
             cv::Scalar( 0, 255, 0),
             cv::FILLED,
             cv::LINE_8 );
-      img_mutex.unlock();
+      /* img_mutex.unlock(); */
    }
 }
 
@@ -555,9 +559,9 @@ void Navigation::connect_boundary() {
       int y1 = ground[i]*360;
       int x2 = (i+1)*8;
       int y2 = ground[i+1]*360;
-      img_mutex.lock();
+      /* img_mutex.lock(); */
       cv::line(new_image, cv::Point(x1, y1), cv::Point(x2, y2), cv::Scalar(0, 0, 255), 2);
-      img_mutex.unlock();
+      /* img_mutex.unlock(); */
    }
 }
 
