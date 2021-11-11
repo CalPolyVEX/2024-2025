@@ -430,7 +430,7 @@ int main(int argc, char** argv) {
 
   ROS_INFO("Starting motor drive");
   //run diagnostics function at 5Hz (.2 seconds)
-  /* ros::Timer diag_timer = nh->createTimer(ros::Duration(1.2), diag_callback); */
+  ros::Timer diag_timer = nh->createTimer(ros::Duration(1.2), diag_callback);
 
   odom_pub.serial_loop();
 

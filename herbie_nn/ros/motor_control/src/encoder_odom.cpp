@@ -239,11 +239,11 @@ void OdometryPublisher::run_pid() {
   //without this, the starts/stops are abrupt
   if (abs(cur_left_motor - last_left_motor_cmd) > 400) {
     /* cur_left_motor = cur_left_motor * .10 + last_left_motor_cmd * .90; */
-    cur_left_motor = cur_left_motor * .30 + last_left_motor_cmd * .70;
+    cur_left_motor = cur_left_motor * .25 + last_left_motor_cmd * .75;
   }
 
   if (abs(cur_right_motor - last_right_motor_cmd) > 400) {
-    cur_right_motor = cur_right_motor * .30 + last_right_motor_cmd * .70;
+    cur_right_motor = cur_right_motor * .25 + last_right_motor_cmd * .75;
     /* cur_right_motor = cur_right_motor * .10 + last_right_motor_cmd * .90; */
   }
 
@@ -351,103 +351,6 @@ void OdometryPublisher::compute_pid_alt(double left_desired, double left_actual,
 
   cur_left_motor += pl_out + il_out + dl_out;
   cur_right_motor += pr_out + ir_out + dr_out;
-
-  last_left_error = left_error;
-  last_right_error = right_error;
-
-  //limit the max speed
-  if (cur_left_motor > MAX_MOTOR_SPEED) {
-    cur_left_motor = MAX_MOTOR_SPEED;
-  } else if (cur_left_motor < -MAX_MOTOR_SPEED)
-    cur_left_motor = -MAX_MOTOR_SPEED;
-
-  if (cur_right_motor > MAX_MOTOR_SPEED) {
-    cur_right_motor = MAX_MOTOR_SPEED;
-  } else if (cur_right_motor < -MAX_MOTOR_SPEED)
-    cur_right_motor = -MAX_MOTOR_SPEED;
-}
-
-void OdometryPublisher::compute_pid(double left_desired, double left_actual, double right_desired, double right_actual) {
-  double kp = 4.8;
-  double ki = .7;
-  double kd = -0.30;
-  int i;
-
-  double left_error = left_desired - left_actual;
-  double right_error = right_desired - right_actual;
-  double left_error_diff = last_left_error - left_error;
-  double right_error_diff = last_right_error - right_error;
-
-  //compute integral term
-  double left_sum = 0.0;
-  double right_sum = 0.0;
-
-  left_counter++;
-  right_counter++;
-
-  if (left_counter == INTEGRAL_ARRAY_SIZE) {
-     left_counter = 0;
-  }
-  
-  if (right_counter == INTEGRAL_ARRAY_SIZE) {
-     right_counter = 0;
-  }
-
-  left_integral[left_counter] = left_error;
-  right_integral[right_counter] = right_error;
-
-  for (i=0; i<INTEGRAL_ARRAY_SIZE; i++) {
-    left_sum += left_integral[i];
-    right_sum += right_integral[i];
-  }
-
-  //reset the integral array if the error switches sign
-  if ((last_left_error * left_error) < 0.0) {
-     for (i=0; i<INTEGRAL_ARRAY_SIZE; i++) {
-        left_integral[i] = 0;
-     }
-     left_sum = 0.0;
-  }
-
-  if ((last_right_error * right_error) < 0.0) {
-     for (i=0; i<INTEGRAL_ARRAY_SIZE; i++) {
-        right_integral[i] = 0;
-     }
-     right_sum = 0.0;
-  }
-
-  if (left_sum > 18000) {
-    left_sum = 18000;
-  } else if (left_sum < -18000) {
-    left_sum = -18000;
-  }
-
-  if (right_sum > 18000) {
-    right_sum = 18000;
-  } else if (right_sum < -18000) {
-    right_sum = -18000;
-  }
-
-  /* *left_set_value = (kp * left_error) + (ki * left_sum) - (kd * left_error_diff); */
-  /* *right_set_value = (kp * right_error) + (ki * right_sum) - (kd * right_error_diff); */
-
-  double pl_out, il_out, dl_out;
-  double pr_out, ir_out, dr_out;
-
-  pl_out = kp * left_error;
-  il_out = ki * left_sum;
-  dl_out = kd * left_error_diff;
-
-  pr_out = kp * right_error;
-  ir_out = ki * right_sum;
-  dr_out = kd * right_error_diff;
-
-  if (debug_odometry == 1) {
-    ROS_INFO("P: %f, I: %f, D: %f", pl_out, il_out, dl_out);
-  }
-
-  cur_left_motor = pl_out + il_out + dl_out;
-  cur_right_motor = pr_out + ir_out + dr_out;
 
   last_left_error = left_error;
   last_right_error = right_error;

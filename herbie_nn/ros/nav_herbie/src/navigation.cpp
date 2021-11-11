@@ -12,7 +12,6 @@ using namespace std;
 #define NUM_LOC 64
 #define NUM_TURN 1
 #define NUM_GOAL 2
-#define GOAL_AVG_COUNT 4
 
 #define LEFT_OBSTACLE_X 256
 #define LEFT_OBSTACLE_Y 229
@@ -210,15 +209,20 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    //test turning
    compute_turn_prob(&turn_confidence); //compute turn confidence
 
-   /* if ((cur_loc == 8) && (turn_confidence > .95) && (turn_in_progress == 0)) { */
+   //if currently localized in a hallway and high turn confidence detected,
+   //then execute a turn
    if ((cur_loc_estimate != -1) && (turn_confidence > .95) && (turn_in_progress == 0)) {
-      turn_dir = get_next_turn_dir(cur_loc_estimate,29); //next turn direction
+      //turn_dir = get_next_turn_dir(cur_loc_estimate,29); //next turn direction
+      turn_dir = 0;
+
+      update_goal_mutex.lock();
       set_narrow_parameters(1); //use narrow hallway parameters when turning
+      update_goal_mutex.unlock();
       execute_turn(); //execute left turn
       turn_in_progress = 1;
    }
 
-   if (turn_in_progress) { //check the distance to the turn goal
+   if (turn_in_progress) { //check if currently in a turn
       turn_progress_counter++;
 
       coord[0] = 11; //col 10
@@ -261,9 +265,16 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
 
          //if the new hallway is narrow, set the driving parameters to closely follow the global path
          if (cur_loc_estimate != -1) {
-            int narrow = VAN(&gr, "narrow", cur_loc_estimate);
-            set_narrow_parameters(narrow);
+            update_goal_mutex.lock();
+            //int narrow = VAN(&gr, "narrow", cur_loc_estimate);
+            /* if ((int)*loc >= 0 && (int)*loc < 25) { */
+            /*    int narrow = VAN(&gr, "narrow", (int)*loc); */
+            /*    set_narrow_parameters(narrow); */
+            /* } */
+            update_goal_mutex.unlock();
          }
+
+         turn_start_counter = 50;
       }
    } else {
       coord[0] = 11; //col 10
@@ -273,6 +284,17 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
       sprintf(lcd_msg,"      ");
       create_control_board_msg(2,lcd_msg);
       usleep(10);
+
+      if (turn_start_counter > 0) {
+         turn_start_counter--;
+      } else if (turn_start_counter == 0) {
+         update_goal_mutex.lock();
+         /* int narrow = VAN(&gr, "narrow", cur_loc_estimate); */
+         /* set_narrow_parameters(narrow); */
+         update_goal_mutex.unlock();
+
+         turn_start_counter = -1;
+      }
    }
 }
 
@@ -341,57 +363,14 @@ void Navigation::write_text() {
 }
 
 void Navigation::draw_goal() {
-   goal_cur_index = (goal_cur_index+1) % GOAL_AVG_COUNT;
-
-   goal_x[goal_cur_index] = int(640 * goal[0]);
-   goal_y[goal_cur_index] = int(360 * goal[1]);
-
-   float total_x=0;
-   float total_y=0;
-   for (int i=0; i<GOAL_AVG_COUNT; i++) {
-      total_x += goal_x[i];
-      total_y += goal_y[i];
-   }
-
-   cur_goal_x = total_x / GOAL_AVG_COUNT;
-   cur_goal_y = total_y / GOAL_AVG_COUNT;
-
-   last_goal_x[goal_cur_index] = cur_goal_x;  //store the average goal positions
-   last_goal_y[goal_cur_index] = cur_goal_y;
-
-   //compute the variance of the goal 
-   total_x = 0;
-   float mean_x, variance;
-   for(int i=0; i<GOAL_AVG_COUNT; i++) {
-      total_x += last_goal_x[i];
-   }
-   mean_x = total_x / GOAL_AVG_COUNT;
-
-   variance = 0;
-   for(int i=0; i<GOAL_AVG_COUNT; i++) {
-      variance += pow(mean_x-last_goal_x[i], 2);
-   }
-   variance /= GOAL_AVG_COUNT;
-
-   if (variance > 70) { //moving goal, draw it as red
-      /* img_mutex.lock(); */
-      cv::circle( new_image,
-            cv::Point(int(cur_goal_x), int(cur_goal_y)),
-            3,
-            cv::Scalar( 0, 0, 255),
-            cv::FILLED,
-            cv::LINE_8 );
-      /* img_mutex.unlock(); */
-   } else {  //the goal is stable, draw it as green
-      /* img_mutex.lock(); */
-      cv::circle( new_image,
-            cv::Point(int(cur_goal_x), int(cur_goal_y)),
-            3,
-            cv::Scalar( 0, 255, 0),
-            cv::FILLED,
-            cv::LINE_8 );
-      /* img_mutex.unlock(); */
-   }
+   /* img_mutex.lock(); */
+   cv::circle( new_image,
+         cv::Point(int(cur_goal_x), int(cur_goal_y)),
+         3,
+         cv::Scalar( 0, 255, 0),
+         cv::FILLED,
+         cv::LINE_8 );
+   /* img_mutex.unlock(); */
 }
 
 void Navigation::compute_loc_prob() {

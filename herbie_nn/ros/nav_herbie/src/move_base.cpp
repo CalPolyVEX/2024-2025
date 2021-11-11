@@ -94,6 +94,11 @@ void Navigation::update_goal_transform() {
 
    ground_y_coord += 5; //move closer by 5 pixels
 
+   //limit the goal Y value
+   if (ground_y_coord > 340) {
+      ground_y_coord = 340;
+   }
+
    double x,y;
    convert_image_to_world(goal_x, ground_y_coord, &x, &y);
 
@@ -300,27 +305,32 @@ void Navigation::set_narrow_parameters(int narrow) {
    dynamic_reconfigure::DoubleParameter double_param;
    dynamic_reconfigure::Config conf;
 
+   //when narrow, set the sim_time to short so that the local planner
+   //will closely follow the global plan
    double_param.name = "sim_time";
 
    if (narrow == 1) {
-      double_param.value = 1.5;
+      double_param.value = 1.8;
    } else {
-      double_param.value = 3.0;
+      double_param.value = 2.7;
    }
 
    conf.doubles.push_back(double_param);
 
+   //when narrow, set the path_distance_bias so that the local planner
+   //will closely follow the global plan
    //path_distance_bias: .6
    double_param.name = "path_distance_bias";
 
    if (narrow == 1) {
-      double_param.value = 1.0;
+      double_param.value = .8;
    } else {
       double_param.value = .6;
    }
 
    conf.doubles.push_back(double_param);
 
+   //when narrow, set the maximum forward velocity to slower
    //max_vel_x: 0.23
    double_param.name = "max_vel_x";
 
@@ -336,6 +346,33 @@ void Navigation::set_narrow_parameters(int narrow) {
 
    ros::service::call("/move_base/DWAPlannerROS/set_parameters", srv_req, srv_resp);
 
+   //change the footprint size when narrow
+   /* double_param.name = "footprint_padding"; */
+
+   /* if (narrow == 1) { */
+   /*    double_param.value = .16; */
+   /* } else { */
+   /*    double_param.value = .26; */
+   /* } */
+
+   /* conf.doubles.clear(); */
+   /* conf.doubles.push_back(double_param); */
+   /* srv_req.config = conf; */
+   /* ros::service::call("/move_base/local_costmap/set_parameters", srv_req, srv_resp); */
+
+   /* double_param.name = "footprint_padding"; */
+
+   /* if (narrow == 1) { */
+   /*    double_param.value = .16; */
+   /* } else { */
+   /*    double_param.value = .26; */
+   /* } */
+
+   /* conf.doubles.clear(); */
+   /* conf.doubles.push_back(double_param); */
+   /* srv_req.config = conf; */
+   /* ros::service::call("/move_base/global_costmap/set_parameters", srv_req, srv_resp); */
+
    /* double_param.name = "planner_frequency"; */
 
    /* if (narrow == 1) { */
@@ -349,6 +386,7 @@ void Navigation::set_narrow_parameters(int narrow) {
    /* srv_req.config = conf; */
 
    /* ros::service::call("/move_base/set_parameters", srv_req, srv_resp); */
+   //ros::service::call("/move_base/local_costmap/set_parameters", srv_req, srv_resp);
 }
 
 void Navigation::execute_turn() {
@@ -437,8 +475,10 @@ void Navigation::update_goal_callback(const ros::TimerEvent& ev) {
 
    if (autonomous_mode == true) {
       if (cur_loc_estimate != -1) {
+         update_goal_mutex.lock();
          int narrow = VAN(&gr, "narrow", cur_loc_estimate);
          set_narrow_parameters(narrow);
+         update_goal_mutex.unlock();
       }
 
       std_msgs::Empty m;
@@ -502,8 +542,8 @@ void Navigation::init_turn_transforms() {
 
 
    //clockwise loop
-   set_turn_entry(8, 2.1, .3, 85); //+90 degrees is counter-clockwise
-   set_turn_entry(11, 1.2, 0.0, -90);
+   set_turn_entry(8, 1.9, .3, 85); //+90 degrees is counter-clockwise
+   set_turn_entry(11, 1.1, 0.0, -90);
    set_turn_entry(12, 2.0, 0, 90);
    set_turn_entry(15, 1.8, 0, 90);
    set_turn_entry(16, 1.9, 0, 92);
@@ -517,7 +557,7 @@ void Navigation::init_turn_transforms() {
    set_turn_entry(17, 1.8, 0, -90);
    set_turn_entry(14, 1.0, 0.1, -90);
    set_turn_entry(13, 1.5, 0, 90);
-   set_turn_entry(10, 0.5, 0, -90);
+   set_turn_entry(10, 1.0, 0, -90);
    set_turn_entry(9, 1.5, 0, -90);
 }
 
