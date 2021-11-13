@@ -143,7 +143,8 @@ class Navigation {
     int compute_turn_prob(double* confidence);
     int call_make_plan(double goal_x, double goal_y, double* pose_x, double* pose_y);  //call the planner to test if a plan is found
     void execute_turn();
-    void set_narrow_parameters(int narrow);
+    void set_narrow_parameters(int narrow); 
+    void set_turn_parameters();
     void init_turn_transforms();
     double get_distance_to_goal();
     void init_route();

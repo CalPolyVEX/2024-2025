@@ -74,8 +74,9 @@ Navigation::Navigation() : it(nh) {
    //initialize the hardcoded turn information
    init_turn_transforms();
 
+   //create the move base client (this client manages how to drive to the goal)
    action_client = new MoveBaseClient("move_base", true);
-   std::this_thread::sleep_for(std::chrono::milliseconds(100));
+   std::this_thread::sleep_for(std::chrono::milliseconds(100)); //wait for a little bit
 
    //wait for the action server to come up
    while(!action_client->waitForServer(ros::Duration(5.0))){
@@ -110,6 +111,7 @@ Navigation::Navigation() : it(nh) {
    }
 }
 
+//each time an image is published from the camera reader, this callback is run
 void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
     cv_bridge::CvImageConstPtr cv_ptr;
 
@@ -119,7 +121,7 @@ void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
       ROS_ERROR("cv_bridge exception: %s", e.what());
     }
     
-   //resize image to IMG_HEIGHT x IMG_WIDTH
+   //resize image to IMG_HEIGHT x IMG_WIDTH if necessary
    if (cv_ptr->image.rows == 360 && cv_ptr->image.cols == 640) {
       img_mutex.lock();
       memcpy(new_image.data, cv_ptr->image.data, 640*360*3);
@@ -131,10 +133,12 @@ void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
    }
 }
 
+//each time the neural network data is published, this callback is run
 void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& nn_msg) {
    double turn_confidence;
    float cur_loc_conf;
 
+   //store pointers to the neural network output
    ground = (double*) &(nn_msg->data[0]);
    loc = (double*) &(nn_msg->data[NUM_GROUND]);
    turn = (double*) &(nn_msg->data[NUM_GROUND + NUM_LOC]);
@@ -146,7 +150,7 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    compute_localization(&cur_loc_estimate, &cur_loc_conf);
    cur_loc_mutex.unlock();
 
-   update_goal_transform();
+   update_goal_transform(); //update the transform from current location to the goal
   
    //compute the localization probability
    compute_loc_prob();
@@ -216,7 +220,8 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
       turn_dir = 0;
 
       update_goal_mutex.lock();
-      set_narrow_parameters(1); //use narrow hallway parameters when turning
+      //set_narrow_parameters(1); //use narrow hallway parameters when turning
+      set_turn_parameters(); //use turn parameters when turning
       update_goal_mutex.unlock();
       execute_turn(); //execute left turn
       turn_in_progress = 1;
@@ -374,10 +379,7 @@ void Navigation::draw_goal() {
 }
 
 void Navigation::compute_loc_prob() {
-   int base = 70;
-   int top = 20;
-
-   //find the highest localization node
+   //find the hallway with the highest probability
    float max_loc=0;
    int loc_index = 0;
    for (int i=0; i<NUM_LOC; i++) {
@@ -388,7 +390,7 @@ void Navigation::compute_loc_prob() {
       }
    }
 
-   //tracking the localization values from the neural network
+   //store the history of these hallway localizations in a circular buffer
    localization_index++;
 
    if (localization_index == LOCALIZATION_ARRAY_SIZE) {

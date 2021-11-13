@@ -92,7 +92,11 @@ void Navigation::update_goal_transform() {
       ground_y_coord = boundary_y;
    } 
 
-   ground_y_coord += 5; //move closer by 5 pixels
+   if (ground_y_coord < 180) {
+      ground_y_coord += 15; //move closer by 5 pixels
+   } else {
+      ground_y_coord += 10; //move closer by 5 pixels
+   }
 
    //limit the goal Y value
    if (ground_y_coord > 340) {
@@ -310,9 +314,9 @@ void Navigation::set_narrow_parameters(int narrow) {
    double_param.name = "sim_time";
 
    if (narrow == 1) {
-      double_param.value = 1.8;
+      double_param.value = 2.2;
    } else {
-      double_param.value = 2.7;
+      double_param.value = 2.8;
    }
 
    conf.doubles.push_back(double_param);
@@ -337,7 +341,7 @@ void Navigation::set_narrow_parameters(int narrow) {
    if (narrow == 1) {
       double_param.value = .18;
    } else {
-      double_param.value = .27;
+      double_param.value = .31;
    }
 
    conf.doubles.push_back(double_param);
@@ -387,6 +391,38 @@ void Navigation::set_narrow_parameters(int narrow) {
 
    /* ros::service::call("/move_base/set_parameters", srv_req, srv_resp); */
    //ros::service::call("/move_base/local_costmap/set_parameters", srv_req, srv_resp);
+}
+
+//parameters when turning
+void Navigation::set_turn_parameters() {
+   dynamic_reconfigure::ReconfigureRequest srv_req;
+   dynamic_reconfigure::ReconfigureResponse srv_resp;
+   dynamic_reconfigure::DoubleParameter double_param;
+   dynamic_reconfigure::Config conf;
+
+   //when turning, do not closely follow the global plan
+   double_param.name = "sim_time";
+   double_param.value = 2.8;
+
+   conf.doubles.push_back(double_param);
+
+   //when turning, do not closely follow the global plan
+   //path_distance_bias: .6
+   double_param.name = "path_distance_bias";
+   double_param.value = .6;
+
+   conf.doubles.push_back(double_param);
+
+   //when turning, set the maximum forward velocity to slower
+   //max_vel_x: 0.23
+   double_param.name = "max_vel_x";
+   double_param.value = .18;
+
+   conf.doubles.push_back(double_param);
+
+   srv_req.config = conf;
+
+   ros::service::call("/move_base/DWAPlannerROS/set_parameters", srv_req, srv_resp);
 }
 
 void Navigation::execute_turn() {
@@ -474,7 +510,13 @@ void Navigation::update_goal_callback(const ros::TimerEvent& ev) {
    nh.getParam("/autonomous_mode", autonomous_mode);
 
    if (autonomous_mode == true) {
-      if (cur_loc_estimate != -1) {
+      int temp_loc_estimate; 
+
+      cur_loc_mutex.lock();
+      temp_loc_estimate = cur_loc_estimate;  //read the current hallway estimate
+      cur_loc_mutex.unlock();
+
+      if (temp_loc_estimate != -1) {
          update_goal_mutex.lock();
          int narrow = VAN(&gr, "narrow", cur_loc_estimate);
          set_narrow_parameters(narrow);
@@ -500,7 +542,7 @@ void Navigation::set_turn_entry(int hallway_num, double x, double y, double degr
       t = &(turn_transform_right[hallway_num]);
    }
 
-   tempQuaternion.setRPY(0,0,degrees*M_PI/180.0); //90 degree counterclockwise
+   tempQuaternion.setRPY(0,0,degrees*M_PI/180.0); 
    tempQuaternion=tempQuaternion.normalize();
 
    t->transform.translation.x = x; 
@@ -557,8 +599,11 @@ void Navigation::init_turn_transforms() {
    set_turn_entry(17, 1.8, 0, -90);
    set_turn_entry(14, 1.0, 0.1, -90);
    set_turn_entry(13, 1.5, 0, 90);
-   set_turn_entry(10, 1.0, 0, -90);
-   set_turn_entry(9, 1.5, 0, -90);
+   set_turn_entry(10, 1.2, 0, -90);
+   set_turn_entry(9, 1.6, 0, -90);
+
+   //make entry for 180 degree turn
+   set_turn_entry(31, .1, 0, 180);
 }
 
 //initialize the route
