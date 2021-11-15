@@ -425,6 +425,80 @@ void Navigation::set_turn_parameters() {
    ros::service::call("/move_base/DWAPlannerROS/set_parameters", srv_req, srv_resp);
 }
 
+void Navigation::execute_turn2() {
+   static int turn_start = 0;
+   int frame_skip = 4; //skip every few frames
+   double distance_forward = 1.0;
+   double cur_distance_forward;
+   static double start_x;
+   static double start_y;
+   int straight = 0;
+   geometry_msgs::Twist msg;
+
+   if (turn_start % frame_skip == 0) { 
+      if (turn_start == 0) {
+         //record the start x and y of the turn
+         start_x = localization_pose[localization_index].position.x;
+         start_y = localization_pose[localization_index].position.y;
+         straight = 1;
+      }
+
+      //compute the average of the goal x/y position
+      int num_goal_average = 4;
+      double avg_x = 0;
+      double avg_y = 0;
+      int temp_goal_index = goal_cur_index;
+      for (int i=0; i<num_goal_average; i++) {
+         avg_x += goal_array_x[temp_goal_index];
+         avg_y += goal_array_y[temp_goal_index];
+
+         temp_goal_index--;
+
+         if (temp_goal_index < 0) {
+            temp_goal_index = GOAL_ARRAY_SIZE - 1;
+         }
+      }
+
+      avg_x /= num_goal_average;
+      avg_y /= num_goal_average;
+
+      avg_x *= 640.0;
+      avg_y *= 360.0;
+      
+      if (straight == 1) {
+         //check for obstacles
+         //if there is any obstacle, then stop
+
+         //move forward while computing the turn towards the goal 
+         int midpoint_x = 320;
+         int goal_x = int(640 * goal[0]); //get the x of the goal
+         double Kp = 1.0;
+
+         msg.linear.x = 0.18; //set the linear velocity
+         msg.angular.z = 0.0;
+
+         if(cur_distance_forward < distance_forward) {
+            turn_start++;
+            return;
+         }
+
+         //done with going straight
+         straight = 0;
+      }
+
+      //move forward is complete, so stop and rotate in place
+      msg.linear.x = 0.0; //set the linear velocity
+      msg.angular.z = 0.0;
+      
+      //make the rotate in place turn
+      
+      //stop turning once pointed at the goal and the hallway is correct
+
+      //the turn is complete
+      turn_start = 0;
+   }
+}
+
 void Navigation::execute_turn() {
    goal_timer.stop(); //stop the goal update timer
 

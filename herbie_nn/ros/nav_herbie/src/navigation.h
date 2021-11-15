@@ -59,10 +59,11 @@ class Navigation {
   cv::Mat new_image;
   int cur_loc;  //the index of the current location
   float cur_loc_prob; //the probability of the current location
-  float goal_x[6];
-  float goal_y[6];
-  float last_goal_x[6];
-  float last_goal_y[6];
+
+  //variables for goal
+  #define GOAL_ARRAY_SIZE 50
+  double goal_array_x[GOAL_ARRAY_SIZE];
+  double goal_array_y[GOAL_ARRAY_SIZE];
   float cur_goal_x, cur_goal_y;
   int goal_cur_index = 0;
 
@@ -143,6 +144,7 @@ class Navigation {
     int compute_turn_prob(double* confidence);
     int call_make_plan(double goal_x, double goal_y, double* pose_x, double* pose_y);  //call the planner to test if a plan is found
     void execute_turn();
+    void execute_turn2();
     void set_narrow_parameters(int narrow); 
     void set_turn_parameters();
     void init_turn_transforms();

@@ -427,6 +427,17 @@ void Navigation::compute_loc_prob() {
    }
 
    turn_tracking[turn_index] = turn[0]; //turn index will point to most recent reading
+
+   //track the goal
+   goal_cur_index++;
+
+   if (goal_cur_index == GOAL_ARRAY_SIZE) {
+      goal_cur_index = 0;
+   }
+
+   goal_array_x[goal_cur_index] = int(640 * goal[0]); //get the x of the goal
+   goal_array_y[goal_cur_index] = int(360 * goal[1]); //get the y of the goal
+   
 }
 
 #define HALLWAY_NUM 30
