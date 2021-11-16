@@ -107,6 +107,7 @@ void Navigation::graph_init() {
    /* } */
 
    /* std::cout << get_next_turn_dir(1,18) << std::endl; */
+   /* std::cout << "Next hallway: " << get_next_hallway_num(5,2) << std::endl; */
 }
 
 void Navigation::path_to_next_goal() {
@@ -173,6 +174,40 @@ int Navigation::get_next_turn_dir(int start, int end) {
    igraph_vector_destroy(&edges);
 
    return direction;
+}
+
+//returns the next hallway number given the starting hallway and turn direction
+//(0=left, 1=straight, 2=right)
+int Navigation::get_next_hallway_num(int start, int dir) {
+   igraph_vector_t edges;
+   int n_edge = (int) igraph_ecount(&gr); //get the number of edges
+
+   igraph_vector_init(&edges, 50);
+
+   igraph_integer_t f, t;
+   for (int i=0; i<n_edge; i++) {
+      igraph_edge(&gr, i, &f, &t); //get the start and end vertex id
+
+      if (f == start) {
+         igraph_integer_t edge;
+         int eid = igraph_get_eid(&gr, &edge, f, t, IGRAPH_DIRECTED, 0); //lookup the edge id
+         const char* dir_string = EAS(&gr, "turn_dir", edge);
+
+         if ((strcmp("L", dir_string) == 0) && (dir == 0)) {
+            igraph_vector_destroy(&edges);
+            return t;
+         } else if ((strcmp("S", dir_string) == 0) && (dir == 1)) {
+            igraph_vector_destroy(&edges);
+            return t;
+         } else if ((strcmp("R", dir_string) == 0) && (dir == 2)) {
+            igraph_vector_destroy(&edges);
+            return t;
+         }
+      }
+   }
+
+   igraph_vector_destroy(&edges);
+   return -1; //should not get here, but return -1 for error
 }
 
 void Navigation::odom_callback(const nav_msgs::Odometry::ConstPtr& msg) { 

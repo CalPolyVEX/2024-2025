@@ -127,6 +127,51 @@ void Navigation::update_goal_transform() {
    update_goal_mutex.unlock();
 }
 
+int Navigation::get_turn_dir(int temp_loc_estimate) {
+   int direction;
+
+   if (temp_loc_estimate != -1) {
+      //this is for testing turn directions
+      if (temp_loc_estimate == 0) { //FIXME
+         direction = 0; //left
+      } else if (temp_loc_estimate == 1) {
+         direction = 2; //right
+      } else if (temp_loc_estimate == 4) {
+         direction = 2; //right
+      } else if (temp_loc_estimate == 5) {
+         direction = 2; //right
+      } else if (temp_loc_estimate == 6) {
+         direction = 0; //left
+      } else if (temp_loc_estimate == 7) {
+         direction = 0; //left
+      } else if (temp_loc_estimate == 8) {
+         direction = 0; //left
+      } else if (temp_loc_estimate == 9) {
+         direction = 2; //right
+      } else if (temp_loc_estimate == 10) {
+         direction = 2; //right
+      } else if (temp_loc_estimate == 11) {
+         direction = 2; //right
+      } else if (temp_loc_estimate == 12) {
+         direction = 0; //left
+      } else if (temp_loc_estimate == 14) {
+         direction = 2; //right
+      } else if (temp_loc_estimate == 15) {
+         direction = 0; //left
+      } else if (temp_loc_estimate == 16) {
+         direction = 0; //left
+      } else if (temp_loc_estimate == 17) {
+         direction = 2; //right
+      } else {
+         direction = 0; //default left
+      }
+   } else {
+      return -1;
+   }
+
+   return direction;
+}
+
 void Navigation::update_turn_transform() {
    geometry_msgs::TransformStamped *t;
    int temp_loc_estimate;
@@ -196,7 +241,6 @@ void Navigation::update_turn_transform() {
 
          transformStamped.header.stamp = ros::Time::now();
          tfb.sendTransform(transformStamped);
-
       }
 
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -427,30 +471,61 @@ void Navigation::set_turn_parameters() {
 
 void Navigation::execute_turn2() {
    static int turn_start = 0;
-   int frame_skip = 4; //skip every few frames
+   int frame_skip = 3; //skip every few frames, so this is not run every frame
    double distance_forward = 1.0;
-   double cur_distance_forward;
    static double start_x;
    static double start_y;
    static int straight = 0;
+   static int rotate = 0;
+   static int start_hallway = -1, end_hallway, turn_dir;
    geometry_msgs::Twist msg;
+   geometry_msgs::TransformStamped *t;
 
    if (turn_start % frame_skip == 0) { 
       if (turn_start == 0) {
          //record the start x and y of the turn
          start_x = localization_pose[localization_index].position.x;
          start_y = localization_pose[localization_index].position.y;
+
+         start_hallway = cur_loc_estimate; //record the starting hallway number
+
+         if (start_hallway != -1) { //if good reading, then update other settings
+            turn_dir = get_turn_dir(start_hallway);
+
+            if (turn_dir == 0) { //left turn
+               t = &(turn_transform_left[start_hallway]);
+            } else { //right turn
+               t = &(turn_transform_right[start_hallway]);
+            }
+
+            end_hallway = get_next_hallway_num(start_hallway,turn_dir);
+         }
+
          straight = 1;
       }
 
+      if (start_hallway == -1 && cur_loc_estimate != -1) { //keep reading the hallway estimate until known
+         start_hallway = cur_loc_estimate;
+         turn_dir = get_turn_dir(start_hallway);
+
+         if (turn_dir == 0) { //left turn
+            t = &(turn_transform_left[start_hallway]);
+         } else { //right turn
+            t = &(turn_transform_right[start_hallway]);
+         }
+
+         end_hallway = get_next_hallway_num(start_hallway,turn_dir);
+      }
+
       //compute the average of the goal x/y position
-      int num_goal_average = 4;
-      double avg_x = 0;
-      double avg_y = 0;
+      int num_goal_average = 4; //number of goal points to average across
+      float avg_goal_x = 0;
+      float avg_goal_y = 0;
       int temp_goal_index = goal_cur_index;
+
       for (int i=0; i<num_goal_average; i++) {
-         avg_x += goal_array_x[temp_goal_index];
-         avg_y += goal_array_y[temp_goal_index];
+         avg_goal_x += goal_array_x[temp_goal_index];
+         avg_goal_y += goal_array_y[temp_goal_index];
 
          temp_goal_index--;
 
@@ -459,20 +534,21 @@ void Navigation::execute_turn2() {
          }
       }
 
-      avg_x /= num_goal_average;
-      avg_y /= num_goal_average;
+      avg_goal_x /= num_goal_average;
+      avg_goal_y /= num_goal_average;
 
-      avg_x *= 640.0;
-      avg_y *= 360.0;
+      avg_goal_x *= 640.0;
+      avg_goal_y *= 360.0;
       
-      if (straight == 1) {
+      if (straight == 1) { //still going ahead straight
          //check for obstacles
          int found_obstacle=0;
 
-         for(int i=40-10; i<(40+10); i++) {
-            int point_y = int(ground[i] * 360);
+         int ground_obstacle_width = 12;  //use +/- 12 points around the center of the image
+         for(int i=(40-ground_obstacle_width); i<(40+ground_obstacle_width); i++) {
+            double point_y = ground[i];
 
-            if (point_y > 250) {
+            if (point_y > 0.7) {  // 252/360 = .7 - no obstacle in lower 30% of image
                found_obstacle = 1;
             }
          }
@@ -483,19 +559,38 @@ void Navigation::execute_turn2() {
             msg.angular.z = 0.0;
 
             //publish the message and return
+            twist_pub_.publish(msg); //publish the twist message
 
             return;
          }
 
          //move forward while computing the turn towards the goal 
          int midpoint_x = 320;
-         int goal_x = int(640 * goal[0]); //get the x of the goal
-         double Kp = 1.0;
+         float Kp = .002;
+         float ang_vel, max_ang_vel=.4;
+
+         ang_vel = Kp * (midpoint_x - avg_goal_x);
+
+         if (ang_vel > max_ang_vel) {
+            ang_vel = max_ang_vel;
+         } else if (ang_vel < -max_ang_vel) {
+            ang_vel = -max_ang_vel;
+         }
 
          msg.linear.x = 0.18; //set the linear velocity
-         msg.angular.z = 0.0;
+         msg.angular.z = ang_vel; //set the angular velocity to rotate towards the goal
+
+         //compute the current distance traveled
+         float cur_distance_forward;
+         float cur_x = localization_pose[localization_index].position.x;
+         float cur_y = localization_pose[localization_index].position.y;
+
+         cur_distance_forward = sqrt(pow(cur_x - start_x,2) + pow(cur_y - start_y,2));
 
          if(cur_distance_forward < distance_forward) {
+            //publish the message and return
+            twist_pub_.publish(msg); //publish the twist message
+
             turn_start++;
             return;
          }
@@ -505,14 +600,22 @@ void Navigation::execute_turn2() {
       }
 
       //move forward is complete, so stop and rotate in place
+      rotate = 1;
       msg.linear.x = 0.0; //set the linear velocity
       msg.angular.z = 0.0;
+      twist_pub_.publish(msg); //publish the twist message
       
       //make the rotate in place turn
+      if (turn_dir == 0) { //turn left
+
+      } else if (turn_dir == 2) { //turn right
+
+      }
       
       //stop turning once pointed at the goal and the hallway is correct
 
       //the turn is complete
+      start_hallway = -1;
       turn_start = 0;
    }
 }

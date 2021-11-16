@@ -136,6 +136,7 @@ class Navigation {
     void graph_init();
     void path_to_next_goal();
     int get_next_turn_dir(int start, int end);
+    int get_next_hallway_num(int start, int dir);
 
     //move base functions
     void send_goal(const std_msgs::Empty::ConstPtr& msg);
@@ -157,6 +158,7 @@ class Navigation {
     void init_route();
     void turn_degrees(int degrees);
     void set_turn_entry(int hallway_num, double x, double y, double degrees);
+    int get_turn_dir(int temp_loc_estimate);
 
     //control board functions
     void create_control_board_msg(int num, void* arg);

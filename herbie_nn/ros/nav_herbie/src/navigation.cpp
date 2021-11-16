@@ -50,7 +50,7 @@ Navigation::Navigation() : it(nh) {
    }
 
    image_pub_ = it.advertise("/nav_output_video", 1);
-   twist_pub_ = nh.advertise<geometry_msgs::Twist>("/nav_cmd_vel", 1);
+   twist_pub_ = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
 
    // point cloud publisher
    pointcloud_pub_ = nh.advertise<sensor_msgs::PointCloud2>("/point_cloud", 1);
@@ -608,16 +608,6 @@ int main(int argc, char** argv) {
 
   Navigation nav_node;
   nav_node.graph_init();
-  /* ros::shutdown(); //exit */
-
-  /* MoveBaseClient ac("move_base", true); */
-  
-  /* nav_node.set_action_client(&ac); */
-
-  //wait for the action server to come up
-  /* while(!ac.waitForServer(ros::Duration(5.0))){ */
-  /*    ROS_INFO("Waiting for the move_base action server to come up"); */
-  /* } */
 
   //since the goal callback is part of the nav_node object, 
   //bind the callback using boost:bind and boost:function
