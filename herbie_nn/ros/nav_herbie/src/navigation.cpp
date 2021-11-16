@@ -13,11 +13,6 @@ using namespace std;
 #define NUM_TURN 1
 #define NUM_GOAL 2
 
-#define LEFT_OBSTACLE_X 256
-#define LEFT_OBSTACLE_Y 229
-#define RIGHT_OBSTACLE_X 384
-#define RIGHT_OBSTACLE_Y 229
-
 int sim_mode = 0;
 int debug_mode = 1;
 ros::NodeHandle* h;

@@ -35,6 +35,11 @@
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
 
+#define LEFT_OBSTACLE_X 256
+#define LEFT_OBSTACLE_Y 229
+#define RIGHT_OBSTACLE_X 384
+#define RIGHT_OBSTACLE_Y 229
+
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
 class Navigation {

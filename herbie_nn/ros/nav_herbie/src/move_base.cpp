@@ -432,7 +432,7 @@ void Navigation::execute_turn2() {
    double cur_distance_forward;
    static double start_x;
    static double start_y;
-   int straight = 0;
+   static int straight = 0;
    geometry_msgs::Twist msg;
 
    if (turn_start % frame_skip == 0) { 
@@ -467,7 +467,25 @@ void Navigation::execute_turn2() {
       
       if (straight == 1) {
          //check for obstacles
+         int found_obstacle=0;
+
+         for(int i=40-10; i<(40+10); i++) {
+            int point_y = int(ground[i] * 360);
+
+            if (point_y > 250) {
+               found_obstacle = 1;
+            }
+         }
+
          //if there is any obstacle, then stop
+         if (found_obstacle) {
+            msg.linear.x = 0.0; //set the linear velocity
+            msg.angular.z = 0.0;
+
+            //publish the message and return
+
+            return;
+         }
 
          //move forward while computing the turn towards the goal 
          int midpoint_x = 320;
