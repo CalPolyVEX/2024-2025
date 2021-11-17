@@ -81,7 +81,7 @@ class Navigation {
   double turn_tracking[TURN_ARRAY_SIZE]; //stores the last TURN_ARRAY_SIZE neural network predictions
   int turn_index = 0;
   int turn_dir = 1;                      //0=left, 1=straight, 2=right
-  int turn_counter = 0;
+  int lcd_update_skip = 0;
   geometry_msgs::TransformStamped turn_transform_left[64];
   geometry_msgs::TransformStamped turn_transform_right[64];
   int turn_in_progress = 0;              //true if a turn is currently in progress
@@ -150,7 +150,7 @@ class Navigation {
     int compute_turn_prob(double* confidence);
     int call_make_plan(double goal_x, double goal_y, double* pose_x, double* pose_y);  //call the planner to test if a plan is found
     void execute_turn();
-    void execute_turn2();
+    int execute_turn2(int reset);
     void set_narrow_parameters(int narrow); 
     void set_turn_parameters();
     void init_turn_transforms();

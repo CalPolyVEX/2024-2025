@@ -181,12 +181,12 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
       image_pub_.publish(pub_msg);
    }
 
-   turn_counter++;
+   lcd_update_skip++;
    char coord[2];
    char lcd_msg[32];
 
-   if (turn_counter > 2) {
-      turn_counter = 0;
+   if (lcd_update_skip > 2) { //skip a few frames before updating the LCD
+      lcd_update_skip = 0;
 
       coord[0] = 0; //col 0
       coord[1] = 0; //row 0
@@ -205,24 +205,24 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
       usleep(10);
    }
 
-   //test turning
    compute_turn_prob(&turn_confidence); //compute turn confidence
 
    //if currently localized in a hallway and high turn confidence detected,
    //then execute a turn
    if ((cur_loc_estimate != -1) && (turn_confidence > .95) && (turn_in_progress == 0)) {
-      //turn_dir = get_next_turn_dir(cur_loc_estimate,29); //next turn direction
-      turn_dir = 0;
+      turn_dir = get_turn_dir(cur_loc_estimate); //next turn direction
 
       update_goal_mutex.lock();
-      //set_narrow_parameters(1); //use narrow hallway parameters when turning
-      set_turn_parameters(); //use turn parameters when turning
+      action_client->cancelAllGoals(); //cancel the turn goal
       update_goal_mutex.unlock();
-      execute_turn(); //execute left turn
+
       turn_in_progress = 1;
    }
 
    if (turn_in_progress) { //check if currently in a turn
+      int turn_complete;
+
+      turn_complete = execute_turn2(0); //execute turn (returns 1 when turn complete)
       turn_progress_counter++;
 
       coord[0] = 11; //col 10
@@ -236,23 +236,19 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
       //set a timeout for turning
       if (turn_progress_counter > 300) { //15 second timeout for a turn (15*20Hz = 300)
          //turn timeout
-         update_goal_mutex.lock();
-         action_client->cancelAllGoals(); //cancel the turn goal
-         update_goal_mutex.unlock();
+         execute_turn(1); //reset the turn status
+
+         // update_goal_mutex.lock();
+         // action_client->cancelAllGoals(); //cancel the turn goal
+         // update_goal_mutex.unlock();
+
          goal_timer.start(); //start the goal update timer
          turn_in_progress = 0;
          turn_progress_counter = 0;
       }
       
       //turn is complete, restart the goal timer and set parameters
-      bool turn_complete = false;
-      update_goal_mutex.lock();
-      if (action_client->getState() == actionlib::SimpleClientGoalState::SUCCEEDED) {
-         turn_complete = true;
-      }
-      update_goal_mutex.unlock();
-
-      if (turn_complete) {
+      if (turn_complete == 1) {
          goal_timer.start(); //start the goal update timer
          turn_in_progress = 0;
          turn_progress_counter = 0;

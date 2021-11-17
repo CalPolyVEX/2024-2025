@@ -469,7 +469,7 @@ void Navigation::set_turn_parameters() {
    ros::service::call("/move_base/DWAPlannerROS/set_parameters", srv_req, srv_resp);
 }
 
-void Navigation::execute_turn2() {
+int Navigation::execute_turn2(int reset_turn) {
    static int turn_start = 0;
    int frame_skip = 3; //skip every few frames, so this is not run every frame
    double distance_forward = 1.0;
@@ -481,6 +481,11 @@ void Navigation::execute_turn2() {
    geometry_msgs::Twist msg;
    geometry_msgs::TransformStamped *t;
 
+   if (reset_turn) { //reset the status of a turn
+      turn_start = 0;
+      return 0;
+   }
+
    if (turn_start % frame_skip == 0) { 
       if (turn_start == 0) {
          //record the start x and y of the turn
@@ -489,7 +494,7 @@ void Navigation::execute_turn2() {
 
          start_hallway = cur_loc_estimate; //record the starting hallway number
 
-         if (start_hallway != -1) { //if good reading, then update other settings
+         if (start_hallway != -1) { //if good localization reading, then update other settings
             turn_dir = get_turn_dir(start_hallway);
 
             if (turn_dir == 0) { //left turn
@@ -504,7 +509,7 @@ void Navigation::execute_turn2() {
          straight = 1;
       }
 
-      if (start_hallway == -1 && cur_loc_estimate != -1) { //keep reading the hallway estimate until known
+      if ((start_hallway == -1) && (cur_loc_estimate != -1)) { //keep reading the hallway estimate until known
          start_hallway = cur_loc_estimate;
          turn_dir = get_turn_dir(start_hallway);
 
@@ -540,7 +545,7 @@ void Navigation::execute_turn2() {
       avg_goal_x *= 640.0;
       avg_goal_y *= 360.0;
       
-      if (straight == 1) { //still going ahead straight
+      if (straight == 1) { //start turn by going straight a fixed distance
          //check for obstacles
          int found_obstacle=0;
 
@@ -553,7 +558,7 @@ void Navigation::execute_turn2() {
             }
          }
 
-         //if there is any obstacle, then stop
+         //if there is an obstacle, then stop
          if (found_obstacle) {
             msg.linear.x = 0.0; //set the linear velocity
             msg.angular.z = 0.0;
@@ -561,7 +566,7 @@ void Navigation::execute_turn2() {
             //publish the message and return
             twist_pub_.publish(msg); //publish the twist message
 
-            return;
+            return 0; //turn still in progress
          }
 
          //move forward while computing the turn towards the goal 
@@ -592,7 +597,7 @@ void Navigation::execute_turn2() {
             twist_pub_.publish(msg); //publish the twist message
 
             turn_start++;
-            return;
+            return 0; //turn still in progress
          }
 
          //done with going straight
@@ -617,7 +622,10 @@ void Navigation::execute_turn2() {
       //the turn is complete
       start_hallway = -1;
       turn_start = 0;
+      return 1; //turn complete
    }
+
+   return 0; //turn still in progress
 }
 
 void Navigation::execute_turn() {
