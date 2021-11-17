@@ -236,7 +236,7 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
       //set a timeout for turning
       if (turn_progress_counter > 300) { //15 second timeout for a turn (15*20Hz = 300)
          //turn timeout
-         execute_turn(1); //reset the turn status
+         execute_turn2(1); //reset the turn status
 
          // update_goal_mutex.lock();
          // action_client->cancelAllGoals(); //cancel the turn goal
@@ -426,8 +426,8 @@ void Navigation::compute_loc_prob() {
       goal_cur_index = 0;
    }
 
-   goal_array_x[goal_cur_index] = int(640 * goal[0]); //get the x of the goal
-   goal_array_y[goal_cur_index] = int(360 * goal[1]); //get the y of the goal
+   goal_array_x[goal_cur_index] = goal[0]; //get the x of the goal
+   goal_array_y[goal_cur_index] = goal[1]; //get the y of the goal
    
 }
 

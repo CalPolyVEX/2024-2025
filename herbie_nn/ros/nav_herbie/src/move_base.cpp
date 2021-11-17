@@ -478,6 +478,7 @@ int Navigation::execute_turn2(int reset_turn) {
    static int straight = 0;
    static int rotate = 0;
    static int start_hallway = -1, end_hallway, turn_dir;
+   static float start_turn_heading;
    geometry_msgs::Twist msg;
    geometry_msgs::TransformStamped *t;
 
@@ -503,6 +504,7 @@ int Navigation::execute_turn2(int reset_turn) {
                t = &(turn_transform_right[start_hallway]);
             }
 
+            //get the ending hallway number when the turn completes
             end_hallway = get_next_hallway_num(start_hallway,turn_dir);
          }
 
@@ -521,7 +523,7 @@ int Navigation::execute_turn2(int reset_turn) {
 
          end_hallway = get_next_hallway_num(start_hallway,turn_dir);
       }
-
+      
       //compute the average of the goal x/y position
       int num_goal_average = 4; //number of goal points to average across
       float avg_goal_x = 0;
@@ -551,9 +553,7 @@ int Navigation::execute_turn2(int reset_turn) {
 
          int ground_obstacle_width = 12;  //use +/- 12 points around the center of the image
          for(int i=(40-ground_obstacle_width); i<(40+ground_obstacle_width); i++) {
-            double point_y = ground[i];
-
-            if (point_y > 0.7) {  // 252/360 = .7 - no obstacle in lower 30% of image
+            if (ground[i] > 0.7) {  // 252/360 = .7 - no obstacle in lower 30% of image
                found_obstacle = 1;
             }
          }
@@ -596,35 +596,73 @@ int Navigation::execute_turn2(int reset_turn) {
             //publish the message and return
             twist_pub_.publish(msg); //publish the twist message
 
-            turn_start++;
             return 0; //turn still in progress
+         } else { //done going straight
+            msg.linear.x = 0.0; //set the linear velocity
+            msg.angular.z = 0.0;
+            twist_pub_.publish(msg); //publish the twist message
          }
 
          //done with going straight
          straight = 0;
-      }
 
-      //move forward is complete, so stop and rotate in place
-      rotate = 1;
-      msg.linear.x = 0.0; //set the linear velocity
-      msg.angular.z = 0.0;
-      twist_pub_.publish(msg); //publish the twist message
-      
-      //make the rotate in place turn
-      if (turn_dir == 0) { //turn left
+         heading_mutex.lock();
+         start_turn_heading = actual_heading;
+         heading_mutex.unlock();
+      } else { //not going straight, but rotating now
+         //move forward is complete, so stop and rotate in place
+         rotate = 1;
 
-      } else if (turn_dir == 2) { //turn right
+         //make the rotate in place turn
+         if (turn_dir == 0) { //turn left
+            float cur_heading;
 
-      }
-      
-      //stop turning once pointed at the goal and the hallway is correct
+            msg.linear.x = 0.0; //set the linear velocity
+            msg.angular.z = 0.15;
+            twist_pub_.publish(msg); //publish the twist message
 
-      //the turn is complete
-      start_hallway = -1;
-      turn_start = 0;
-      return 1; //turn complete
+            heading_mutex.lock();
+            cur_heading = actual_heading;
+            heading_mutex.unlock();
+
+            if (cur_heading > (start_turn_heading + 90.0)) {
+               //stop turning if turned more than 90 degrees
+               msg.linear.x = 0.0; //set the linear velocity
+               msg.angular.z = 0.0;
+               twist_pub_.publish(msg); //publish the twist message
+
+               //the turn is complete
+               start_hallway = -1;
+               turn_start = 0;
+               return 1; //turn complete
+            }
+         } else if (turn_dir == 2) { //turn right
+            float cur_heading;
+
+            msg.linear.x = 0.0; //set the linear velocity
+            msg.angular.z = -0.15;
+            twist_pub_.publish(msg); //publish the twist message
+
+            heading_mutex.lock();
+            cur_heading = actual_heading;
+            heading_mutex.unlock();
+
+            if (cur_heading < (start_turn_heading - 90.0)) {
+               //stop turning if turned more than 90 degrees
+               msg.linear.x = 0.0; //set the linear velocity
+               msg.angular.z = 0.0;
+               twist_pub_.publish(msg); //publish the twist message
+               
+               //the turn is complete
+               start_hallway = -1;
+               turn_start = 0;
+               return 1; //turn complete
+            }
+         } //end right turn
+      } //end rotation section
    }
 
+   turn_start++; //increment the turn frame counter
    return 0; //turn still in progress
 }
 

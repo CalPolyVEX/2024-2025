@@ -92,6 +92,31 @@ void Navigation::graph_init() {
    SETVAN(&gr, "narrow", 22, 1);
    SETVAN(&gr, "narrow", 23, 1);
 
+   //add the reverse hallway number
+   SETVAN(&gr, "reverse", 0, 1);
+   SETVAN(&gr, "reverse", 1, 0);
+
+   SETVAN(&gr, "reverse", 4, 5);
+   SETVAN(&gr, "reverse", 5, 4);
+
+   SETVAN(&gr, "reverse", 6, 7);
+   SETVAN(&gr, "reverse", 7, 6);
+
+   SETVAN(&gr, "reverse", 8, 9);
+   SETVAN(&gr, "reverse", 9, 8);
+
+   SETVAN(&gr, "reverse", 10, 11);
+   SETVAN(&gr, "reverse", 11, 10);
+
+   SETVAN(&gr, "reverse", 12, 13);
+   SETVAN(&gr, "reverse", 13, 12);
+
+   SETVAN(&gr, "reverse", 14, 15);
+   SETVAN(&gr, "reverse", 15, 14);
+
+   SETVAN(&gr, "reverse", 16, 17);
+   SETVAN(&gr, "reverse", 17, 16);
+
    int n_vert = (int) igraph_vcount(&gr); //get the number of vertices
    int n_edge = (int) igraph_ecount(&gr); //get the number of edges
 
