@@ -471,18 +471,33 @@ void Navigation::set_turn_parameters() {
 
 int Navigation::execute_turn2(int reset_turn) {
    static int turn_start = 0;
-   int frame_skip = 3; //skip every few frames, so this is not run every frame
-   static double distance_forward = 1.0;
-   static double start_x;
-   static double start_y;
+   static float distance_forward = 1.0;
+   static float start_x=0.0;
+   static float start_y=0.0;
    static int straight = 0;
    static int rotate = 0;
-   static int start_hallway = -1, end_hallway, turn_dir;
-   static float start_turn_heading;
+   static int start_hallway = -1; 
+   static int end_hallway=0;
+   static int turn_dir=0;
+   static int track_target=0;
+   static float start_turn_heading=0.0;
+   int frame_skip = 3; //skip every few frames, so this is not run every frame
+   float rotate_angular_vel = .38;
    geometry_msgs::Twist msg;
    geometry_msgs::TransformStamped *t;
+   char coord[2];
+   char lcd_msg[32];
 
    if (reset_turn) { //reset the status of a turn
+      msg.linear.x = 0.0; //set the linear velocity
+      msg.angular.z = 0.0;
+
+      //publish the message and return
+      twist_pub_.publish(msg); //publish the twist message
+
+      straight = 0;
+      start_hallway = -1;
+      track_target = 0;
       turn_start = 0;
       return 0;
    }
@@ -494,6 +509,7 @@ int Navigation::execute_turn2(int reset_turn) {
          start_y = localization_pose[localization_index].position.y;
 
          start_hallway = cur_loc_estimate; //record the starting hallway number
+         track_target = 0;
 
          if (start_hallway != -1) { //if good localization reading, then update other settings
             turn_dir = get_turn_dir(start_hallway);
@@ -531,7 +547,7 @@ int Navigation::execute_turn2(int reset_turn) {
       }
       
       //compute the average of the goal x/y position
-      int num_goal_average = 4; //number of goal points to average across
+      int num_goal_average = 3; //number of goal points to average across
       float avg_goal_x = 0;
       float avg_goal_y = 0;
       int temp_goal_index = goal_cur_index;
@@ -572,13 +588,14 @@ int Navigation::execute_turn2(int reset_turn) {
             //publish the message and return
             twist_pub_.publish(msg); //publish the twist message
 
+            turn_start++;
             return 0; //turn still in progress
          }
 
          //move forward while computing the turn towards the goal 
          int midpoint_x = 320;
-         float Kp = .002;
-         float ang_vel, max_ang_vel=.3;
+         float Kp = .003;
+         float ang_vel, max_ang_vel=.4;
 
          ang_vel = Kp * (midpoint_x - avg_goal_x);
 
@@ -588,7 +605,7 @@ int Navigation::execute_turn2(int reset_turn) {
             ang_vel = -max_ang_vel;
          }
 
-         msg.linear.x = 0.18; //set the linear velocity
+         msg.linear.x = 0.20; //set the linear velocity
          msg.angular.z = ang_vel; //set the angular velocity to rotate towards the goal
 
          //compute the current distance traveled
@@ -602,6 +619,19 @@ int Navigation::execute_turn2(int reset_turn) {
             //publish the message and return
             twist_pub_.publish(msg); //publish the twist message
 
+            //move cursor
+            /* coord[0] = 0; //col 0 */
+            /* coord[1] = 1; //row 1 */
+            /* create_control_board_msg(1,coord); */
+            /* usleep(10); */
+
+            //print distance forward
+            //sprintf(lcd_msg,"%.2f %.2f", cur_distance_forward, distance_forward);
+            /* sprintf(lcd_msg,"%.2f %.2f", cur_x, cur_y); */
+            /* create_control_board_msg(2,lcd_msg); */
+            /* usleep(10); */
+
+            turn_start++;
             return 0; //turn still in progress
          } else { //done going straight
             msg.linear.x = 0.0; //set the linear velocity
@@ -625,7 +655,7 @@ int Navigation::execute_turn2(int reset_turn) {
             float cur_heading;
 
             msg.linear.x = 0.0; //set the linear velocity
-            msg.angular.z = 0.15;
+            msg.angular.z = rotate_angular_vel;
             twist_pub_.publish(msg); //publish the twist message
 
             heading_mutex.lock();
@@ -635,22 +665,32 @@ int Navigation::execute_turn2(int reset_turn) {
             //stop turning if we have turned more than 90 degrees, or
             //if the goal is to the left of the midpoint and further than
             //50 pixels
-            if ((cur_heading > (start_turn_heading + 90.0)) || \
-            ((avg_goal_x < midpoint_x) && ((midpoint_x - avg_goal_x) > 50))) {
-               msg.linear.x = 0.0; //set the linear velocity
-               msg.angular.z = 0.0;
-               twist_pub_.publish(msg); //publish the twist message
+            if ((avg_goal_x < midpoint_x) && ((midpoint_x - avg_goal_x) > 50) && 
+               (cur_loc_estimate == end_hallway)) {
+                  track_target = 1;
+               }
 
-               //the turn is complete
-               start_hallway = -1;
-               turn_start = 0;
-               return 1; //turn complete
+            if (track_target) {
+               //turn until close to aligned with hallway
+               if ((abs(midpoint_x - avg_goal_x) < 20) && (cur_loc_estimate == end_hallway)) {
+                  msg.linear.x = 0.0; //set the linear velocity
+                  msg.angular.z = 0.0;
+                  twist_pub_.publish(msg); //publish the twist message
+
+                  //the turn is complete
+                  start_hallway = -1;
+                  track_target = 0;
+                  turn_start = 0;
+                  return 1; //turn complete
+               }
             }
+
+            /* if ((cur_heading > (start_turn_heading + 90.0)) || \ */
          } else if (turn_dir == 2) { //turn right
             float cur_heading;
 
             msg.linear.x = 0.0; //set the linear velocity
-            msg.angular.z = -0.15;
+            msg.angular.z = -rotate_angular_vel;
             twist_pub_.publish(msg); //publish the twist message
 
             heading_mutex.lock();
@@ -660,16 +700,24 @@ int Navigation::execute_turn2(int reset_turn) {
             //stop turning if we have turned more than 90 degrees, or
             //if the goal is to the right of the midpoint and further than
             //50 pixels
-            if (cur_heading < (start_turn_heading - 90.0) || \
-            ((avg_goal_x > midpoint_x) && ((avg_goal_x - midpoint_x) > 50))) {
-               msg.linear.x = 0.0; //set the linear velocity
-               msg.angular.z = 0.0;
-               twist_pub_.publish(msg); //publish the twist message
-               
-               //the turn is complete
-               start_hallway = -1;
-               turn_start = 0;
-               return 1; //turn complete
+            if ((avg_goal_x > midpoint_x) && ((avg_goal_x - midpoint_x) > 50) && 
+               (cur_loc_estimate == end_hallway)) {
+                  track_target = 1;
+               }
+
+            if (track_target) {
+               //turn until close to aligned with hallway
+               if ((abs(midpoint_x - avg_goal_x) < 20) && (cur_loc_estimate == end_hallway)) {
+                  msg.linear.x = 0.0; //set the linear velocity
+                  msg.angular.z = 0.0;
+                  twist_pub_.publish(msg); //publish the twist message
+
+                  //the turn is complete
+                  start_hallway = -1;
+                  track_target = 0;
+                  turn_start = 0;
+                  return 1; //turn complete
+               }
             }
          } //end right turn
       } //end rotation section

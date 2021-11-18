@@ -211,6 +211,7 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    //then execute a turn
    if ((cur_loc_estimate != -1) && (turn_confidence > .95) && (turn_in_progress == 0)) {
       turn_dir = get_turn_dir(cur_loc_estimate); //next turn direction
+      goal_timer.stop(); //stop the goal update timer
 
       update_goal_mutex.lock();
       action_client->cancelAllGoals(); //cancel the turn goal
