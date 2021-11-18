@@ -472,7 +472,7 @@ void Navigation::set_turn_parameters() {
 int Navigation::execute_turn2(int reset_turn) {
    static int turn_start = 0;
    int frame_skip = 3; //skip every few frames, so this is not run every frame
-   double distance_forward = 1.0;
+   static double distance_forward = 1.0;
    static double start_x;
    static double start_y;
    static int straight = 0;
@@ -504,6 +504,9 @@ int Navigation::execute_turn2(int reset_turn) {
                t = &(turn_transform_right[start_hallway]);
             }
 
+            //set the distance to go forward
+            distance_forward = t->transform.translation.x;
+
             //get the ending hallway number when the turn completes
             end_hallway = get_next_hallway_num(start_hallway,turn_dir);
          }
@@ -520,6 +523,9 @@ int Navigation::execute_turn2(int reset_turn) {
          } else { //right turn
             t = &(turn_transform_right[start_hallway]);
          }
+
+         //set the distance to go forward
+         distance_forward = t->transform.translation.x;
 
          end_hallway = get_next_hallway_num(start_hallway,turn_dir);
       }
@@ -572,7 +578,7 @@ int Navigation::execute_turn2(int reset_turn) {
          //move forward while computing the turn towards the goal 
          int midpoint_x = 320;
          float Kp = .002;
-         float ang_vel, max_ang_vel=.4;
+         float ang_vel, max_ang_vel=.3;
 
          ang_vel = Kp * (midpoint_x - avg_goal_x);
 
@@ -611,6 +617,7 @@ int Navigation::execute_turn2(int reset_turn) {
          heading_mutex.unlock();
       } else { //not going straight, but rotating now
          //move forward is complete, so stop and rotate in place
+         int midpoint_x = 320;
          rotate = 1;
 
          //make the rotate in place turn
@@ -625,8 +632,11 @@ int Navigation::execute_turn2(int reset_turn) {
             cur_heading = actual_heading;
             heading_mutex.unlock();
 
-            if (cur_heading > (start_turn_heading + 90.0)) {
-               //stop turning if turned more than 90 degrees
+            //stop turning if we have turned more than 90 degrees, or
+            //if the goal is to the left of the midpoint and further than
+            //50 pixels
+            if ((cur_heading > (start_turn_heading + 90.0)) || \
+            ((avg_goal_x < midpoint_x) && ((midpoint_x - avg_goal_x) > 50))) {
                msg.linear.x = 0.0; //set the linear velocity
                msg.angular.z = 0.0;
                twist_pub_.publish(msg); //publish the twist message
@@ -647,8 +657,11 @@ int Navigation::execute_turn2(int reset_turn) {
             cur_heading = actual_heading;
             heading_mutex.unlock();
 
-            if (cur_heading < (start_turn_heading - 90.0)) {
-               //stop turning if turned more than 90 degrees
+            //stop turning if we have turned more than 90 degrees, or
+            //if the goal is to the right of the midpoint and further than
+            //50 pixels
+            if (cur_heading < (start_turn_heading - 90.0) || \
+            ((avg_goal_x > midpoint_x) && ((avg_goal_x - midpoint_x) > 50))) {
                msg.linear.x = 0.0; //set the linear velocity
                msg.angular.z = 0.0;
                twist_pub_.publish(msg); //publish the twist message
