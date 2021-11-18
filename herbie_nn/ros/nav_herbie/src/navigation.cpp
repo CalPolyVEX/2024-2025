@@ -361,7 +361,7 @@ void Navigation::write_text() {
 void Navigation::draw_goal() {
    /* img_mutex.lock(); */
    cv::circle( new_image,
-         cv::Point(int(cur_goal_x), int(cur_goal_y)),
+         cv::Point(int(goal[0] * 639.0), int(goal[1] * 359.0)),
          3,
          cv::Scalar( 0, 255, 0),
          cv::FILLED,
