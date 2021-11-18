@@ -147,7 +147,7 @@ class JoystickNode:
       self.herbie_board_pub.publish(p)
 
       p = Int32MultiArray()
-      p.data = self.create_string_packet('Recording...')
+      p.data = self.create_string_packet('R....')
       self.herbie_board_pub.publish(p)
 
       rec_topics = "rosbag record \
@@ -162,7 +162,7 @@ class JoystickNode:
       self.herbie_board_pub.publish(p)
 
       p = Int32MultiArray()
-      p.data = self.create_string_packet('Stop Recording.')
+      p.data = self.create_string_packet('SR....')
       self.herbie_board_pub.publish(p)
 
       proc1 = subprocess.Popen('cd /mnt/temp;rosnode kill /my_bag_recorder', shell=True)

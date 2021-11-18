@@ -590,9 +590,13 @@ int Navigation::execute_turn2(int reset_turn) {
 
             turn_start++;
             return 0; //turn still in progress
+         } else {
+            //no obstacles detected so reset the turn timeout since
+            //the robot is making progress
+            turn_progress_counter = 0;
          }
 
-         //move forward while computing the turn towards the goal 
+         //move forward while turning towards the goal 
          int midpoint_x = 320;
          float Kp = .003;
          float ang_vel, max_ang_vel=.4;
@@ -654,9 +658,12 @@ int Navigation::execute_turn2(int reset_turn) {
          if (turn_dir == 0) { //turn left
             float cur_heading;
 
-            msg.linear.x = 0.0; //set the linear velocity
-            msg.angular.z = rotate_angular_vel;
-            twist_pub_.publish(msg); //publish the twist message
+            //if not tracking goal, then this is the initial rotation
+            if (!track_target) {
+               msg.linear.x = 0.0; //set the linear velocity
+               msg.angular.z = rotate_angular_vel;
+               twist_pub_.publish(msg); //publish the twist message
+            }
 
             heading_mutex.lock();
             cur_heading = actual_heading;
@@ -665,14 +672,14 @@ int Navigation::execute_turn2(int reset_turn) {
             //stop turning if we have turned more than 90 degrees, or
             //if the goal is to the left of the midpoint and further than
             //50 pixels
-            if ((avg_goal_x < midpoint_x) && ((midpoint_x - avg_goal_x) > 50) && 
+            if ((avg_goal_x < midpoint_x) && ((midpoint_x - avg_goal_x) > 40) && 
                (cur_loc_estimate == end_hallway)) {
                   track_target = 1;
                }
 
-            if (track_target) {
+            if (track_target && (cur_loc_estimate == end_hallway)) {
                //turn until close to aligned with hallway
-               if ((abs(midpoint_x - avg_goal_x) < 20) && (cur_loc_estimate == end_hallway)) {
+               if (abs(midpoint_x - avg_goal_x) < 20) {
                   msg.linear.x = 0.0; //set the linear velocity
                   msg.angular.z = 0.0;
                   twist_pub_.publish(msg); //publish the twist message
@@ -682,32 +689,48 @@ int Navigation::execute_turn2(int reset_turn) {
                   track_target = 0;
                   turn_start = 0;
                   return 1; //turn complete
+               } else if (avg_goal_x < midpoint_x) {
+                  msg.linear.x = 0.0; //set the linear velocity
+                  msg.angular.z = rotate_angular_vel;
+                  twist_pub_.publish(msg); //publish the twist message
+               } else if (avg_goal_x > midpoint_x) {
+                  msg.linear.x = 0.0; //set the linear velocity
+                  msg.angular.z = -rotate_angular_vel;
+                  twist_pub_.publish(msg); //publish the twist message
                }
+            } else if (track_target && (cur_loc_estimate != end_hallway)) {
+               //if we were tracking the goal and the hallway estimate is changed,
+               //then pause
+               msg.linear.x = 0.0; //set the linear velocity
+               msg.angular.z = 0.0;
+               twist_pub_.publish(msg); //publish the twist message
             }
 
             /* if ((cur_heading > (start_turn_heading + 90.0)) || \ */
          } else if (turn_dir == 2) { //turn right
             float cur_heading;
 
-            msg.linear.x = 0.0; //set the linear velocity
-            msg.angular.z = -rotate_angular_vel;
-            twist_pub_.publish(msg); //publish the twist message
+            //if not tracking goal, then this is the initial rotation
+            if(!track_target) {
+               msg.linear.x = 0.0; //set the linear velocity
+               msg.angular.z = -rotate_angular_vel;
+               twist_pub_.publish(msg); //publish the twist message
+            }
 
             heading_mutex.lock();
             cur_heading = actual_heading;
             heading_mutex.unlock();
 
-            //stop turning if we have turned more than 90 degrees, or
             //if the goal is to the right of the midpoint and further than
             //50 pixels
-            if ((avg_goal_x > midpoint_x) && ((avg_goal_x - midpoint_x) > 50) && 
+            if ((avg_goal_x > midpoint_x) && ((avg_goal_x - midpoint_x) > 40) && 
                (cur_loc_estimate == end_hallway)) {
                   track_target = 1;
                }
 
-            if (track_target) {
+            if (track_target && (cur_loc_estimate == end_hallway)) {
                //turn until close to aligned with hallway
-               if ((abs(midpoint_x - avg_goal_x) < 20) && (cur_loc_estimate == end_hallway)) {
+               if (abs(midpoint_x - avg_goal_x) < 20) {
                   msg.linear.x = 0.0; //set the linear velocity
                   msg.angular.z = 0.0;
                   twist_pub_.publish(msg); //publish the twist message
@@ -717,7 +740,21 @@ int Navigation::execute_turn2(int reset_turn) {
                   track_target = 0;
                   turn_start = 0;
                   return 1; //turn complete
+               } else if (avg_goal_x < midpoint_x) {
+                  msg.linear.x = 0.0; //set the linear velocity
+                  msg.angular.z = rotate_angular_vel;
+                  twist_pub_.publish(msg); //publish the twist message
+               } else if (avg_goal_x > midpoint_x) {
+                  msg.linear.x = 0.0; //set the linear velocity
+                  msg.angular.z = -rotate_angular_vel;
+                  twist_pub_.publish(msg); //publish the twist message
                }
+            } else if (track_target && (cur_loc_estimate != end_hallway)) {
+               //if we were tracking the goal and the hallway estimate is changed,
+               //then pause
+               msg.linear.x = 0.0; //set the linear velocity
+               msg.angular.z = 0.0;
+               twist_pub_.publish(msg); //publish the twist message
             }
          } //end right turn
       } //end rotation section

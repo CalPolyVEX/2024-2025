@@ -97,7 +97,7 @@ Navigation::Navigation() : it(nh) {
    }
 
    //start the turn transform thread
-   turn_transform_thread = new std::thread(&Navigation::update_turn_transform, this);
+   //turn_transform_thread = new std::thread(&Navigation::update_turn_transform, this);
 
    //initialize the route to all invalid
    for(int i=0; i<100; i++) {
