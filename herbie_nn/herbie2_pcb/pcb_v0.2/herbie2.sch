@@ -1498,23 +1498,6 @@ Text GLabel 9000 3650 0    50   Input ~ 0
 LCD_BL
 Wire Wire Line
 	9000 3650 9100 3650
-$Comp
-L Connector_Generic:Conn_02x03_Odd_Even J16
-U 1 1 5FF45C1B
-P 9150 4500
-F 0 "J16" H 9200 4817 50  0000 C CNN
-F 1 "Conn_02x03_Odd_Even" H 9200 4726 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical" H 9150 4500 50  0001 C CNN
-F 3 "~" H 9150 4500 50  0001 C CNN
-	1    9150 4500
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	9450 4600 9450 4500
-Wire Wire Line
-	9450 4500 9450 4400
-Connection ~ 9450 4500
-Connection ~ 9450 4400
 Text GLabel 900  1450 0    50   Input ~ 0
 VIN
 Text GLabel 900  1750 0    50   Input ~ 0
@@ -1626,24 +1609,16 @@ Wire Wire Line
 $Comp
 L Connector_Generic:Conn_01x03 J17
 U 1 1 5FFF4F49
-P 5950 2050
-F 0 "J17" H 5868 1725 50  0000 C CNN
-F 1 "Conn_01x03" H 5868 1816 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 5950 2050 50  0001 C CNN
-F 3 "~" H 5950 2050 50  0001 C CNN
-	1    5950 2050
+P 5600 2050
+F 0 "J17" H 5518 1725 50  0000 C CNN
+F 1 "Conn_01x03" H 5518 1816 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 5600 2050 50  0001 C CNN
+F 3 "~" H 5600 2050 50  0001 C CNN
+	1    5600 2050
 	-1   0    0    1   
 $EndComp
 Wire Wire Line
 	6150 1950 6350 1950
-Wire Wire Line
-	6150 2050 6350 2050
-Wire Wire Line
-	6150 2150 6350 2150
-Wire Wire Line
-	7350 1950 7550 1950
-Wire Wire Line
-	7350 2050 7550 2050
 $Comp
 L Connector_Generic:Conn_01x01 J19
 U 1 1 600F1C0B
@@ -1731,17 +1706,6 @@ Wire Wire Line
 	7950 4200 8000 4200
 Wire Wire Line
 	7950 4300 8000 4300
-$Comp
-L Connector_Generic:Conn_01x01 J4
-U 1 1 5FF3C4E1
-P 5750 2750
-F 0 "J4" H 5668 2525 50  0000 C CNN
-F 1 "Conn_01x01" H 5668 2616 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical" H 5750 2750 50  0001 C CNN
-F 3 "~" H 5750 2750 50  0001 C CNN
-	1    5750 2750
-	-1   0    0    1   
-$EndComp
 Wire Wire Line
 	5950 2750 6000 2750
 Wire Wire Line
@@ -2075,15 +2039,15 @@ Connection ~ 6650 6450
 $Comp
 L Connector:Conn_01x03_Female J6
 U 1 1 619CB932
-P 7750 1950
-F 0 "J6" H 7778 1976 50  0000 L CNN
-F 1 "RC_UART" H 7778 1885 50  0000 L CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 7750 1950 50  0001 C CNN
-F 3 "~" H 7750 1950 50  0001 C CNN
-	1    7750 1950
+P 8150 1600
+F 0 "J6" H 8178 1626 50  0000 L CNN
+F 1 "RC_UART" H 8178 1535 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 8150 1600 50  0001 C CNN
+F 3 "~" H 8150 1600 50  0001 C CNN
+	1    8150 1600
 	1    0    0    -1  
 $EndComp
-Text GLabel 7550 1850 0    50   Input ~ 0
+Text GLabel 7950 1500 0    50   Input ~ 0
 GND
 $Comp
 L js:LS7366R U1
@@ -2318,4 +2282,174 @@ Wire Wire Line
 	4400 4650 4400 4750
 Wire Wire Line
 	4300 4850 4400 4850
+$Comp
+L Connector:Conn_01x03_Female J5
+U 1 1 619E8F64
+P 1200 3550
+F 0 "J5" H 1228 3576 50  0000 L CNN
+F 1 "Conn_01x03_Female" H 1228 3485 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 1200 3550 50  0001 C CNN
+F 3 "~" H 1200 3550 50  0001 C CNN
+	1    1200 3550
+	1    0    0    -1  
+$EndComp
+Text GLabel 1000 3650 0    50   Input ~ 0
+GND
+Text GLabel 1000 3450 0    50   Input ~ 0
+MOTOR1_DIR
+Text GLabel 1000 3550 0    50   Input ~ 0
+MOTOR2_DIR
+Text GLabel 6550 5900 0    50   Input ~ 0
+GND
+$Comp
+L dk_Transistors-FETs-MOSFETs-Single:2N7002 Q2
+U 1 1 61A4E9CD
+P 6600 5650
+F 0 "Q2" H 6708 5703 60  0000 L CNN
+F 1 "2N7002" H 6708 5597 60  0000 L CNN
+F 2 "digikey-footprints:SOT-23-3" H 6800 5850 60  0001 L CNN
+F 3 "https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF" H 6800 5950 60  0001 L CNN
+F 4 "2N7002NCT-ND" H 6800 6050 60  0001 L CNN "Digi-Key_PN"
+F 5 "2N7002" H 6800 6150 60  0001 L CNN "MPN"
+F 6 "Discrete Semiconductor Products" H 6800 6250 60  0001 L CNN "Category"
+F 7 "Transistors - FETs, MOSFETs - Single" H 6800 6350 60  0001 L CNN "Family"
+F 8 "https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF" H 6800 6450 60  0001 L CNN "DK_Datasheet_Link"
+F 9 "/product-detail/en/on-semiconductor/2N7002/2N7002NCT-ND/244664" H 6800 6550 60  0001 L CNN "DK_Detail_Page"
+F 10 "MOSFET N-CH 60V 115MA SOT-23" H 6800 6650 60  0001 L CNN "Description"
+F 11 "ON Semiconductor" H 6800 6750 60  0001 L CNN "Manufacturer"
+F 12 "Active" H 6800 6850 60  0001 L CNN "Status"
+	1    6600 5650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6550 5900 6600 5900
+Wire Wire Line
+	6600 5900 6600 5850
+$Comp
+L Device:R R29
+U 1 1 61A4E9D5
+P 6100 5750
+F 0 "R29" H 6170 5796 50  0000 L CNN
+F 1 "1K" H 6170 5705 50  0000 L CNN
+F 2 "Resistor_SMD:R_1206_3216Metric" V 6030 5750 50  0001 C CNN
+F 3 "~" H 6100 5750 50  0001 C CNN
+	1    6100 5750
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	6250 5750 6300 5750
+Text GLabel 5850 5750 0    50   Input ~ 0
+SBUS_IN
+Wire Wire Line
+	5850 5750 5950 5750
+$Comp
+L Device:R R30
+U 1 1 61A8F50D
+P 6400 5250
+F 0 "R30" H 6470 5296 50  0000 L CNN
+F 1 "10K" H 6470 5205 50  0000 L CNN
+F 2 "Resistor_SMD:R_1206_3216Metric" V 6330 5250 50  0001 C CNN
+F 3 "~" H 6400 5250 50  0001 C CNN
+	1    6400 5250
+	0    1    1    0   
+$EndComp
+$Comp
+L Jumper:SolderJumper_3_Open JP1
+U 1 1 61ACC036
+P 5950 5550
+F 0 "JP1" V 5950 5650 50  0000 L CNN
+F 1 "SolderJumper_3_Open" V 5850 4650 50  0000 L CNN
+F 2 "Jumper:SolderJumper-3_P1.3mm_Open_RoundedPad1.0x1.5mm_NumberLabels" H 5950 5550 50  0001 C CNN
+F 3 "~" H 5950 5550 50  0001 C CNN
+	1    5950 5550
+	0    1    1    0   
+$EndComp
+Connection ~ 5950 5750
+Wire Wire Line
+	6600 5350 6600 5450
+Wire Wire Line
+	5950 5350 6600 5350
+Text GLabel 6200 5250 0    50   Input ~ 0
+3.3V
+Wire Wire Line
+	6200 5250 6250 5250
+Wire Wire Line
+	6550 5250 6600 5250
+Wire Wire Line
+	6600 5250 6600 5350
+Connection ~ 6600 5350
+$Comp
+L Connector_Generic:Conn_02x04_Odd_Even J13
+U 1 1 61C5B7FB
+P 9150 4500
+F 0 "J13" H 9200 4817 50  0000 C CNN
+F 1 "Conn_02x04_Odd_Even" H 9200 4726 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_2x04_P2.54mm_Vertical" H 9150 4500 50  0001 C CNN
+F 3 "~" H 9150 4500 50  0001 C CNN
+	1    9150 4500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9450 4500 9450 4600
+Wire Wire Line
+	9450 4400 9450 4500
+Connection ~ 9450 4400
+Connection ~ 9450 4500
+Wire Wire Line
+	9450 4600 9450 4700
+Connection ~ 9450 4600
+Text GLabel 8900 4700 0    50   Input ~ 0
+RESET
+Text GLabel 5950 2750 0    50   Input ~ 0
+RESET
+Wire Wire Line
+	8900 4700 8950 4700
+Wire Wire Line
+	5800 2150 6350 2150
+Wire Wire Line
+	5800 2050 6350 2050
+Text GLabel 5850 1950 2    50   Input ~ 0
+GND
+Wire Wire Line
+	5800 1950 5850 1950
+Text GLabel 5750 5550 0    50   Input ~ 0
+SBUS_OUT
+Wire Wire Line
+	5750 5550 5800 5550
+Text GLabel 7950 1600 0    50   Input ~ 0
+SBUS_IN
+Text GLabel 7450 1950 2    50   Input ~ 0
+SBUS_OUT
+Wire Wire Line
+	7350 1950 7450 1950
+$Comp
+L Connector:Conn_01x02_Female J4
+U 1 1 619E80FD
+P 2150 3950
+F 0 "J4" H 2178 3926 50  0000 L CNN
+F 1 "AM_Left" H 2178 3835 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 2150 3950 50  0001 C CNN
+F 3 "~" H 2150 3950 50  0001 C CNN
+	1    2150 3950
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:Conn_01x02_Female J14
+U 1 1 619EE458
+P 2150 4250
+F 0 "J14" H 2178 4226 50  0000 L CNN
+F 1 "AM_Right" H 2178 4135 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 2150 4250 50  0001 C CNN
+F 3 "~" H 2150 4250 50  0001 C CNN
+	1    2150 4250
+	1    0    0    -1  
+$EndComp
+Text GLabel 1950 3950 0    50   Input ~ 0
+GND
+Text GLabel 1950 4250 0    50   Input ~ 0
+GND
+Text GLabel 1950 4050 0    50   Input ~ 0
+MOTOR2_PWM
+Text GLabel 1950 4350 0    50   Input ~ 0
+MOTOR1_PWM
 $EndSCHEMATC
