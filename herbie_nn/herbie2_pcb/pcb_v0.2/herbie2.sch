@@ -96,7 +96,7 @@ L SparkFun-Connectors:I2C_STANDARDQWIIC J3
 U 1 1 5FD180A1
 P 900 4450
 F 0 "J3" H 858 5060 45  0000 C CNN
-F 1 "I2C_STANDARDQWIIC" H 858 4976 45  0000 C CNN
+F 1 "I2C_QWIIC" H 858 4976 45  0000 C CNN
 F 2 "Connectors:1X04_1MM_RA" H 900 4950 20  0001 C CNN
 F 3 "" H 900 4450 50  0001 C CNN
 F 4 "CONN-13729" H 858 4881 60  0000 C CNN "Field4"
@@ -201,7 +201,7 @@ L SparkFun-Connectors:I2C_STANDARDQWIIC J8
 U 1 1 5FD3C31B
 P 900 5200
 F 0 "J8" H 858 5810 45  0000 C CNN
-F 1 "I2C_STANDARDQWIIC" H 858 5726 45  0000 C CNN
+F 1 "I2C_QWIIC" H 858 5726 45  0000 C CNN
 F 2 "Connectors:1X04_1MM_RA" H 900 5700 20  0001 C CNN
 F 3 "" H 900 5200 50  0001 C CNN
 F 4 "CONN-13729" H 858 5631 60  0000 C CNN "Field4"
@@ -309,12 +309,12 @@ Wire Wire Line
 $Comp
 L Device:Fuse F1
 U 1 1 5FD09C9A
-P 1850 2450
-F 0 "F1" H 1910 2496 50  0000 L CNN
-F 1 "Fuse" H 1910 2405 50  0000 L CNN
-F 2 "Fuse:Fuseholder_Blade_Mini_Keystone_3568" V 1780 2450 50  0001 C CNN
-F 3 "~" H 1850 2450 50  0001 C CNN
-	1    1850 2450
+P 1850 2150
+F 0 "F1" H 1910 2196 50  0000 L CNN
+F 1 "Fuse" H 1910 2105 50  0000 L CNN
+F 2 "Fuse:Fuseholder_Blade_Mini_Keystone_3568" V 1780 2150 50  0001 C CNN
+F 3 "~" H 1850 2150 50  0001 C CNN
+	1    1850 2150
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -322,7 +322,7 @@ L SparkFun-Connectors:I2C_STANDARDQWIIC J9
 U 1 1 5FD1F3F5
 P 900 5950
 F 0 "J9" H 858 6560 45  0000 C CNN
-F 1 "I2C_STANDARDQWIIC" H 858 6476 45  0000 C CNN
+F 1 "I2C_QWIIC" H 858 6476 45  0000 C CNN
 F 2 "Connectors:1X04_1MM_RA" H 900 6450 20  0001 C CNN
 F 3 "" H 900 5950 50  0001 C CNN
 F 4 "CONN-13729" H 858 6381 60  0000 C CNN "Field4"
@@ -526,7 +526,7 @@ L SparkFun-Connectors:CONN_04JST-PTH J10
 U 1 1 5FD7F7CC
 P 4700 6950
 F 0 "J10" H 4658 7560 45  0000 C CNN
-F 1 "CONN_04JST-PTH" H 4658 7476 45  0000 C CNN
+F 1 "LEFT_ENC" H 4658 7476 45  0000 C CNN
 F 2 "Connectors:JST-4-PTH" H 4700 7450 20  0001 C CNN
 F 3 "" H 4700 6950 50  0001 C CNN
 F 4 "WIRE-13531" H 4658 7381 60  0000 C CNN "Field4"
@@ -538,7 +538,7 @@ L SparkFun-Connectors:CONN_04JST-PTH J11
 U 1 1 5FD8034B
 P 4450 5800
 F 0 "J11" H 4408 6410 45  0000 C CNN
-F 1 "CONN_04JST-PTH" H 4408 6326 45  0000 C CNN
+F 1 "RIGHT_ENC" H 4408 6326 45  0000 C CNN
 F 2 "Connectors:JST-4-PTH" H 4450 6300 20  0001 C CNN
 F 3 "" H 4450 5800 50  0001 C CNN
 F 4 "WIRE-13531" H 4408 6231 60  0000 C CNN "Field4"
@@ -576,22 +576,22 @@ Text GLabel 8100 900  0    50   Input ~ 0
 Wire Wire Line
 	8100 900  8300 900 
 Wire Wire Line
-	3550 2650 3550 2800
+	3550 2350 3550 2500
 Wire Wire Line
-	3250 3250 3200 3250
+	3250 2950 3200 2950
 Wire Wire Line
-	3250 3200 3250 3250
-Text GLabel 3200 3250 0    50   Input ~ 0
+	3250 2900 3250 2950
+Text GLabel 3200 2950 0    50   Input ~ 0
 GND
 $Comp
 L Device:R R2
 U 1 1 5FD1360C
-P 3550 2500
-F 0 "R2" H 3620 2546 50  0000 L CNN
-F 1 "470K" H 3620 2455 50  0000 L CNN
-F 2 "Resistor_SMD:R_1206_3216Metric" V 3480 2500 50  0001 C CNN
-F 3 "~" H 3550 2500 50  0001 C CNN
-	1    3550 2500
+P 3550 2200
+F 0 "R2" H 3620 2246 50  0000 L CNN
+F 1 "470K" H 3620 2155 50  0000 L CNN
+F 2 "Resistor_SMD:R_1206_3216Metric" V 3480 2200 50  0001 C CNN
+F 3 "~" H 3550 2200 50  0001 C CNN
+	1    3550 2200
 	-1   0    0    1   
 $EndComp
 Text GLabel 7750 6100 0    50   Input ~ 0
@@ -704,7 +704,7 @@ Text GLabel 6150 4150 0    50   Input ~ 0
 GND
 Text GLabel 6150 3650 0    50   Input ~ 0
 5V
-Text GLabel 5450 2100 0    50   Input ~ 0
+Text GLabel 5650 2350 0    50   Input ~ 0
 VIN_MEASURE
 Wire Wire Line
 	6150 2250 6350 2250
@@ -741,33 +741,33 @@ $EndComp
 $Comp
 L js:Si4427 Q3
 U 1 1 5FD5676E
-P 2200 2600
-F 0 "Q3" H 2308 2653 60  0000 L CNN
-F 1 "Si4427" H 2308 2547 60  0000 L CNN
-F 2 "js:SO-8_3.9x4.9mm_P1.27mm_Si4427" H 2300 2900 60  0001 L CNN
-F 3 "" H 2300 3000 60  0001 L CNN
-F 4 "Si4427" H 2300 3200 60  0001 L CNN "MPN"
-	1    2200 2600
+P 2200 2300
+F 0 "Q3" H 2308 2353 60  0000 L CNN
+F 1 "Si4427" H 2308 2247 60  0000 L CNN
+F 2 "js:SO-8_3.9x4.9mm_P1.27mm_Si4427" H 2300 2600 60  0001 L CNN
+F 3 "" H 2300 2700 60  0001 L CNN
+F 4 "Si4427" H 2300 2900 60  0001 L CNN "MPN"
+	1    2200 2300
 	0    -1   -1   0   
 $EndComp
 Wire Wire Line
-	2300 2900 2750 2900
-Text GLabel 2700 2800 0    50   Input ~ 0
+	2300 2600 2750 2600
+Text GLabel 2700 2500 0    50   Input ~ 0
 GND
 Wire Wire Line
-	2700 2800 2750 2800
-Text GLabel 2700 3000 0    50   Input ~ 0
+	2700 2500 2750 2500
+Text GLabel 2700 2700 0    50   Input ~ 0
 VIN_FUSE
 Wire Wire Line
-	2700 3000 2750 3000
+	2700 2700 2750 2700
 Wire Wire Line
-	2500 2600 2400 2600
-Text GLabel 1850 2250 0    50   Input ~ 0
+	2500 2300 2400 2300
+Text GLabel 1850 1950 0    50   Input ~ 0
 BATT1
-Text GLabel 3600 2350 2    50   Input ~ 0
+Text GLabel 3600 2050 2    50   Input ~ 0
 VIN_FUSE
 Wire Wire Line
-	3600 2350 3550 2350
+	3600 2050 3550 2050
 Text GLabel 7350 5600 0    50   Input ~ 0
 GND
 Wire Wire Line
@@ -787,22 +787,22 @@ Connection ~ 7400 5700
 $Comp
 L Diode:CVFD20065A D5
 U 1 1 5FD2AD77
-P 2100 1950
-F 0 "D5" H 2100 1733 50  0000 C CNN
-F 1 "CVFD20065A" H 2100 1824 50  0000 C CNN
-F 2 "Package_TO_SOT_THT:TO-220-2_Vertical" H 2100 1775 50  0001 C CNN
-F 3 "https://www.wolfspeed.com/media/downloads/89/CVFD20065A.pdf" H 2100 1950 50  0001 C CNN
-	1    2100 1950
+P 10300 850
+F 0 "D5" H 10300 633 50  0000 C CNN
+F 1 "CVFD20065A" H 10300 724 50  0000 C CNN
+F 2 "Package_TO_SOT_THT:TO-220-2_Vertical" H 10300 675 50  0001 C CNN
+F 3 "https://www.wolfspeed.com/media/downloads/89/CVFD20065A.pdf" H 10300 850 50  0001 C CNN
+	1    10300 850 
 	-1   0    0    1   
 $EndComp
-Text GLabel 1850 1950 0    50   Input ~ 0
+Text GLabel 10050 850  0    50   Input ~ 0
 AC_PWR
 Wire Wire Line
-	1850 1950 1950 1950
-Text GLabel 2400 1950 2    50   Input ~ 0
+	10050 850  10150 850 
+Text GLabel 10600 850  2    50   Input ~ 0
 VIN_FUSE
 Wire Wire Line
-	2400 1950 2250 1950
+	10600 850  10450 850 
 $Comp
 L js:24v13_Pololu U3
 U 1 1 5FD90770
@@ -1523,10 +1523,10 @@ Wire Wire Line
 	900  1450 1000 1450
 Wire Wire Line
 	900  1750 1000 1750
-Text GLabel 2500 2500 2    50   Input ~ 0
+Text GLabel 2500 2200 2    50   Input ~ 0
 VIN_FUSE
 Wire Wire Line
-	2500 2500 2500 2600
+	2500 2200 2500 2300
 Text GLabel 1900 1600 2    50   Input ~ 0
 AC_PWR
 Text GLabel 1900 1300 2    50   Input ~ 0
@@ -1567,18 +1567,18 @@ Wire Wire Line
 Wire Wire Line
 	9400 2050 10150 2050
 Wire Wire Line
-	1850 2600 1900 2600
-Text GLabel 1900 2700 0    50   Input ~ 0
+	1850 2300 1900 2300
+Text GLabel 1900 2400 0    50   Input ~ 0
 BATT1_F
 Wire Wire Line
-	1900 2700 1900 2600
-Connection ~ 1900 2600
+	1900 2400 1900 2300
+Connection ~ 1900 2300
 Wire Wire Line
-	1900 2600 2000 2600
-Text GLabel 3150 2500 1    50   Input ~ 0
+	1900 2300 2000 2300
+Text GLabel 3150 2200 1    50   Input ~ 0
 BATT1_F
 Wire Wire Line
-	1850 2250 1850 2300
+	1850 1950 1850 2000
 Text GLabel 6150 3050 0    50   Input ~ 0
 3.3V
 Wire Wire Line
@@ -1640,17 +1640,6 @@ Wire Wire Line
 	6150 2050 6350 2050
 Wire Wire Line
 	6150 2150 6350 2150
-$Comp
-L Connector_Generic:Conn_01x02 J18
-U 1 1 60096E5A
-P 7750 1950
-F 0 "J18" H 7830 1942 50  0000 L CNN
-F 1 "Conn_01x02" H 7830 1851 50  0000 L CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 7750 1950 50  0001 C CNN
-F 3 "~" H 7750 1950 50  0001 C CNN
-	1    7750 1950
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	7350 1950 7550 1950
 Wire Wire Line
@@ -1755,17 +1744,6 @@ F 3 "~" H 5750 2750 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	5950 2750 6000 2750
-$Comp
-L Connector_Generic:Conn_01x02 J5
-U 1 1 5FFFC61D
-P 5450 2450
-F 0 "J5" H 5368 2125 50  0000 C CNN
-F 1 "Conn_01x02" H 5368 2216 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 5450 2450 50  0001 C CNN
-F 3 "~" H 5450 2450 50  0001 C CNN
-	1    5450 2450
-	-1   0    0    1   
-$EndComp
 Wire Wire Line
 	5650 2350 6350 2350
 Wire Wire Line
@@ -1935,30 +1913,25 @@ $EndComp
 $Comp
 L dk_PMIC-OR-Controllers-Ideal-Diodes:LTC4412ES6_TRMPBF Q1
 U 1 1 601222F1
-P 3150 2500
-F 0 "Q1" H 3594 2153 60  0000 L CNN
-F 1 "LTC4412" H 3594 2047 60  0000 L CNN
-F 2 "digikey-footprints:SOT-23-6" H 3350 2700 60  0001 L CNN
-F 3 "http://www.linear.com/docs/1527" H 3350 2800 60  0001 L CNN
-F 4 "LTC4412ES6#TRMPBFCT-ND" H 3350 2900 60  0001 L CNN "Digi-Key_PN"
-F 5 "LTC4412ES6#TRMPBF" H 3350 3000 60  0001 L CNN "MPN"
-F 6 "Integrated Circuits (ICs)" H 3350 3100 60  0001 L CNN "Category"
-F 7 "PMIC - OR Controllers, Ideal Diodes" H 3350 3200 60  0001 L CNN "Family"
-F 8 "http://www.linear.com/docs/1527" H 3350 3300 60  0001 L CNN "DK_Datasheet_Link"
-F 9 "/product-detail/en/linear-technology-analog-devices/LTC4412ES6-TRMPBF/LTC4412ES6-TRMPBFCT-ND/890097" H 3350 3400 60  0001 L CNN "DK_Detail_Page"
-F 10 "IC OR CTRLR SRC SELECT TSOT23-6" H 3350 3500 60  0001 L CNN "Description"
-F 11 "Linear Technology/Analog Devices" H 3350 3600 60  0001 L CNN "Manufacturer"
-F 12 "Active" H 3350 3700 60  0001 L CNN "Status"
-	1    3150 2500
+P 3150 2200
+F 0 "Q1" H 3594 1853 60  0000 L CNN
+F 1 "LTC4412" H 3594 1747 60  0000 L CNN
+F 2 "digikey-footprints:SOT-23-6" H 3350 2400 60  0001 L CNN
+F 3 "http://www.linear.com/docs/1527" H 3350 2500 60  0001 L CNN
+F 4 "LTC4412ES6#TRMPBFCT-ND" H 3350 2600 60  0001 L CNN "Digi-Key_PN"
+F 5 "LTC4412ES6#TRMPBF" H 3350 2700 60  0001 L CNN "MPN"
+F 6 "Integrated Circuits (ICs)" H 3350 2800 60  0001 L CNN "Category"
+F 7 "PMIC - OR Controllers, Ideal Diodes" H 3350 2900 60  0001 L CNN "Family"
+F 8 "http://www.linear.com/docs/1527" H 3350 3000 60  0001 L CNN "DK_Datasheet_Link"
+F 9 "/product-detail/en/linear-technology-analog-devices/LTC4412ES6-TRMPBF/LTC4412ES6-TRMPBFCT-ND/890097" H 3350 3100 60  0001 L CNN "DK_Detail_Page"
+F 10 "IC OR CTRLR SRC SELECT TSOT23-6" H 3350 3200 60  0001 L CNN "Description"
+F 11 "Linear Technology/Analog Devices" H 3350 3300 60  0001 L CNN "Manufacturer"
+F 12 "Active" H 3350 3400 60  0001 L CNN "Status"
+	1    3150 2200
 	1    0    0    -1  
 $EndComp
 Text GLabel 6150 2250 0    50   Input ~ 0
 SERVO3
-Wire Wire Line
-	5450 2100 5650 2100
-Wire Wire Line
-	5650 2100 5650 2350
-Connection ~ 5650 2350
 Text GLabel 10250 4750 0    50   Input ~ 0
 SERVO3
 Wire Wire Line
@@ -2004,7 +1977,7 @@ NoConn ~ 6200 3150
 Wire Wire Line
 	6200 3150 6350 3150
 Wire Wire Line
-	3150 2500 3150 2600
+	3150 2200 3150 2300
 Wire Wire Line
 	9750 3350 10150 3350
 $Comp
@@ -2099,4 +2072,250 @@ Wire Wire Line
 Wire Wire Line
 	6350 6450 6650 6450
 Connection ~ 6650 6450
+$Comp
+L Connector:Conn_01x03_Female J6
+U 1 1 619CB932
+P 7750 1950
+F 0 "J6" H 7778 1976 50  0000 L CNN
+F 1 "RC_UART" H 7778 1885 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" H 7750 1950 50  0001 C CNN
+F 3 "~" H 7750 1950 50  0001 C CNN
+	1    7750 1950
+	1    0    0    -1  
+$EndComp
+Text GLabel 7550 1850 0    50   Input ~ 0
+GND
+$Comp
+L js:LS7366R U1
+U 1 1 61B3E935
+P 3850 4350
+F 0 "U1" H 3825 4475 50  0000 C CNN
+F 1 "LS7366R" H 3825 4384 50  0000 C CNN
+F 2 "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm" H 3850 4350 50  0001 C CNN
+F 3 "" H 3850 4350 50  0001 C CNN
+	1    3850 4350
+	1    0    0    -1  
+$EndComp
+Text GLabel 4350 4450 2    50   Input ~ 0
+3.3V
+Wire Wire Line
+	4150 4450 4200 4450
+$Comp
+L SparkFun-Connectors:CONN_04JST-PTH J7
+U 1 1 61B3E93E
+P 5750 4550
+F 0 "J7" H 5708 5160 45  0000 C CNN
+F 1 "DOME_ENC" H 5708 5076 45  0000 C CNN
+F 2 "Connectors:JST-4-PTH" H 5750 5050 20  0001 C CNN
+F 3 "" H 5750 4550 50  0001 C CNN
+F 4 "WIRE-13531" H 5708 4981 60  0000 C CNN "Field4"
+	1    5750 4550
+	-1   0    0    1   
+$EndComp
+Text GLabel 5350 4550 0    50   Input ~ 0
+GND
+Text GLabel 5350 4650 0    50   Input ~ 0
+3.3V
+Text GLabel 3450 5050 0    50   Input ~ 0
+ENC_MOSI
+Text GLabel 3450 4950 0    50   Input ~ 0
+ENC_MISO
+Text GLabel 3450 4850 0    50   Input ~ 0
+ENC_SCK
+Text GLabel 3450 4650 0    50   Input ~ 0
+GND
+$Comp
+L Device:R R25
+U 1 1 61B3E950
+P 4550 4750
+F 0 "R25" V 4343 4750 50  0000 C CNN
+F 1 "100" V 4434 4750 50  0000 C CNN
+F 2 "Resistor_SMD:R_1206_3216Metric" V 4480 4750 50  0001 C CNN
+F 3 "~" H 4550 4750 50  0001 C CNN
+	1    4550 4750
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:R R26
+U 1 1 61B3E956
+P 4550 4850
+F 0 "R26" V 4650 4850 50  0000 C CNN
+F 1 "100" V 4750 4850 50  0000 C CNN
+F 2 "Resistor_SMD:R_1206_3216Metric" V 4480 4850 50  0001 C CNN
+F 3 "~" H 4550 4850 50  0001 C CNN
+	1    4550 4850
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	4150 4650 4400 4650
+Wire Wire Line
+	4150 4750 4300 4750
+Wire Wire Line
+	4300 4750 4300 4850
+$Comp
+L Device:R R28
+U 1 1 61B3E962
+P 5150 5050
+F 0 "R28" V 4943 5050 50  0000 C CNN
+F 1 "20K" V 5034 5050 50  0000 C CNN
+F 2 "Resistor_SMD:R_1206_3216Metric" V 5080 5050 50  0001 C CNN
+F 3 "~" H 5150 5050 50  0001 C CNN
+	1    5150 5050
+	-1   0    0    1   
+$EndComp
+$Comp
+L Device:R R27
+U 1 1 61B3E968
+P 4850 5050
+F 0 "R27" V 4643 5050 50  0000 C CNN
+F 1 "20K" V 4734 5050 50  0000 C CNN
+F 2 "Resistor_SMD:R_1206_3216Metric" V 4780 5050 50  0001 C CNN
+F 3 "~" H 4850 5050 50  0001 C CNN
+	1    4850 5050
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	5350 4550 5650 4550
+Wire Wire Line
+	5350 4650 5650 4650
+Wire Wire Line
+	4700 4750 5150 4750
+Wire Wire Line
+	4700 4850 4850 4850
+Wire Wire Line
+	4850 4900 4850 4850
+Connection ~ 4850 4850
+Wire Wire Line
+	4850 4850 5650 4850
+Wire Wire Line
+	5150 4900 5150 4750
+Connection ~ 5150 4750
+Wire Wire Line
+	5150 4750 5650 4750
+Wire Wire Line
+	4850 5200 5150 5200
+Text GLabel 5350 5200 2    50   Input ~ 0
+3.3V
+Wire Wire Line
+	5350 5200 5150 5200
+Connection ~ 5150 5200
+$Comp
+L Device:Crystal Y3
+U 1 1 61B3E97C
+P 3250 4100
+F 0 "Y3" H 3250 4368 50  0000 C CNN
+F 1 "20MHz" H 3250 4277 50  0000 C CNN
+F 2 "Crystal:Crystal_SMD_5032-2Pin_5.0x3.2mm_HandSoldering" H 3250 4100 50  0001 C CNN
+F 3 "~" H 3250 4100 50  0001 C CNN
+	1    3250 4100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3400 4450 3500 4450
+Wire Wire Line
+	3100 4550 3500 4550
+$Comp
+L Device:R R1
+U 1 1 61B3E984
+P 3250 4350
+F 0 "R1" V 3043 4350 50  0000 C CNN
+F 1 "1M" V 3134 4350 50  0000 C CNN
+F 2 "Resistor_SMD:R_1206_3216Metric" V 3180 4350 50  0001 C CNN
+F 3 "~" H 3250 4350 50  0001 C CNN
+	1    3250 4350
+	0    1    1    0   
+$EndComp
+$Comp
+L pspice:C C14
+U 1 1 61B3E98A
+P 3500 3850
+F 0 "C14" H 3322 3804 50  0000 R CNN
+F 1 "12pF" H 3322 3895 50  0000 R CNN
+F 2 "Capacitor_SMD:C_1206_3216Metric" H 3500 3850 50  0001 C CNN
+F 3 "~" H 3500 3850 50  0001 C CNN
+	1    3500 3850
+	-1   0    0    1   
+$EndComp
+$Comp
+L pspice:C C7
+U 1 1 61B3E990
+P 3050 3850
+F 0 "C7" H 2872 3804 50  0000 R CNN
+F 1 "12pF" H 2872 3895 50  0000 R CNN
+F 2 "Capacitor_SMD:C_1206_3216Metric" H 3050 3850 50  0001 C CNN
+F 3 "~" H 3050 3850 50  0001 C CNN
+	1    3050 3850
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	3050 3600 3500 3600
+Text GLabel 3600 3600 2    50   Input ~ 0
+GND
+Wire Wire Line
+	3500 3600 3600 3600
+Connection ~ 3500 3600
+$Comp
+L Device:C C15
+U 1 1 61B3E99A
+P 4200 4300
+F 0 "C15" H 4315 4346 50  0000 L CNN
+F 1 ".1uF" H 4315 4255 50  0000 L CNN
+F 2 "Capacitor_SMD:C_1206_3216Metric" H 4238 4150 50  0001 C CNN
+F 3 "~" H 4200 4300 50  0001 C CNN
+	1    4200 4300
+	1    0    0    -1  
+$EndComp
+Connection ~ 4200 4450
+Wire Wire Line
+	4200 4450 4350 4450
+Text GLabel 4300 4150 2    50   Input ~ 0
+GND
+Wire Wire Line
+	4300 4150 4200 4150
+NoConn ~ 4250 5050
+NoConn ~ 4250 4950
+NoConn ~ 4250 4850
+NoConn ~ 4250 4550
+Wire Wire Line
+	4250 4550 4150 4550
+Wire Wire Line
+	4250 4850 4150 4850
+Wire Wire Line
+	4250 4950 4150 4950
+Wire Wire Line
+	4250 5050 4150 5050
+Connection ~ 3400 4350
+Wire Wire Line
+	3400 4350 3400 4450
+Connection ~ 3100 4350
+Wire Wire Line
+	3100 4350 3100 4550
+Wire Wire Line
+	3400 4100 3400 4350
+Wire Wire Line
+	3100 4100 3100 4350
+Wire Wire Line
+	3400 4100 3500 4100
+Connection ~ 3400 4100
+Wire Wire Line
+	3050 4100 3100 4100
+Connection ~ 3100 4100
+Text GLabel 5650 2450 0    50   Input ~ 0
+ENC3_SS
+Text GLabel 3450 4750 0    50   Input ~ 0
+ENC3_SS
+Wire Wire Line
+	3500 4650 3450 4650
+Wire Wire Line
+	3500 4750 3450 4750
+Wire Wire Line
+	3500 4850 3450 4850
+Wire Wire Line
+	3500 4950 3450 4950
+Wire Wire Line
+	3500 5050 3450 5050
+Wire Wire Line
+	4400 4650 4400 4750
+Wire Wire Line
+	4300 4850 4400 4850
 $EndSCHEMATC
