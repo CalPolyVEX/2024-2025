@@ -1617,21 +1617,6 @@ F 3 "~" H 5600 2050 50  0001 C CNN
 	1    5600 2050
 	-1   0    0    1   
 $EndComp
-Wire Wire Line
-	6150 1950 6350 1950
-$Comp
-L Connector_Generic:Conn_01x01 J19
-U 1 1 600F1C0B
-P 7150 5300
-F 0 "J19" H 7068 5075 50  0001 C CNN
-F 1 "Conn_01x01" H 7068 5166 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical" H 7150 5300 50  0001 C CNN
-F 3 "~" H 7150 5300 50  0001 C CNN
-	1    7150 5300
-	-1   0    0    1   
-$EndComp
-Wire Wire Line
-	7350 5300 7450 5300
 NoConn ~ 6200 2650
 NoConn ~ 6200 2850
 Wire Wire Line
@@ -2295,10 +2280,8 @@ F 3 "~" H 1200 3550 50  0001 C CNN
 $EndComp
 Text GLabel 1000 3650 0    50   Input ~ 0
 GND
-Text GLabel 1000 3450 0    50   Input ~ 0
-MOTOR1_DIR
 Text GLabel 1000 3550 0    50   Input ~ 0
-MOTOR2_DIR
+MOTOR1_DIR
 Text GLabel 6550 5900 0    50   Input ~ 0
 GND
 $Comp
@@ -2413,13 +2396,13 @@ GND
 Wire Wire Line
 	5800 1950 5850 1950
 Text GLabel 5750 5550 0    50   Input ~ 0
-SBUS_OUT
+SBUS_IN_SEL
 Wire Wire Line
 	5750 5550 5800 5550
-Text GLabel 7950 1600 0    50   Input ~ 0
+Text GLabel 7950 1700 0    50   Input ~ 0
 SBUS_IN
 Text GLabel 7450 1950 2    50   Input ~ 0
-SBUS_OUT
+SBUS_IN_SEL
 Wire Wire Line
 	7350 1950 7450 1950
 $Comp
@@ -2452,4 +2435,31 @@ Text GLabel 1950 4050 0    50   Input ~ 0
 MOTOR2_PWM
 Text GLabel 1950 4350 0    50   Input ~ 0
 MOTOR1_PWM
+Text GLabel 6300 1950 0    50   Input ~ 0
+A0
+Wire Wire Line
+	6300 1950 6350 1950
+$Comp
+L Jumper:SolderJumper_2_Open JP2
+U 1 1 61ADCFA7
+P 7100 5300
+F 0 "JP2" H 7300 5250 50  0000 C CNN
+F 1 "SolderJumper_2_Open" H 7150 5150 50  0000 C CNN
+F 2 "Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm" H 7100 5300 50  0001 C CNN
+F 3 "~" H 7100 5300 50  0001 C CNN
+	1    7100 5300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7250 5300 7450 5300
+Text GLabel 6950 5300 0    50   Input ~ 0
+A0
+Text GLabel 1000 3450 0    50   Input ~ 0
+MOTOR2_DIR
+Text GLabel 7450 2050 2    50   Input ~ 0
+SMART_PORT
+Text GLabel 7950 1600 0    50   Input ~ 0
+SMART_PORT
+Wire Wire Line
+	7350 2050 7450 2050
 $EndSCHEMATC
