@@ -58,10 +58,10 @@ recovery_behaviors:
     type: 'clear_costmap_recovery/ClearCostmapRecovery'
 
 aggressive_reset:
-  reset_distance: 1.0
+  reset_distance: .5
   layer_names: ["obstacles"]
 
-planner_patience: 4.0
+planner_patience: 2.0
 #planner_frequency: .5
 planner_frequency: 0.0
 
