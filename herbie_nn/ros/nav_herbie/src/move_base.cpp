@@ -70,10 +70,6 @@ void convert_image_to_world(int col, int row, double* x, double* y) {
    /* } */
 }
 
-void Navigation::set_action_client(MoveBaseClient* ac) {
-   action_client = ac;
-}
-
 //update the transform from base_link to the goal
 void Navigation::update_goal_transform() {
    update_goal_mutex.lock();
@@ -134,6 +130,7 @@ int Navigation::get_turn_dir(int temp_loc_estimate) {
       //this is for testing turn directions
       if (temp_loc_estimate == 0) { //FIXME
          direction = 0; //left
+         direction = 3; //turn around
       } else if (temp_loc_estimate == 1) {
          direction = 2; //right
       } else if (temp_loc_estimate == 4) {
@@ -480,6 +477,7 @@ int Navigation::execute_turn2(int reset_turn) {
    static int end_hallway=0;
    static int turn_dir=0;
    static int track_target=0;
+   static int reverse_hallway = 0;  //number of the reverse direction hallway
    static float start_turn_heading=0.0;
    int frame_skip = 3; //skip every few frames, so this is not run every frame
    float rotate_angular_vel = .38;
@@ -509,6 +507,8 @@ int Navigation::execute_turn2(int reset_turn) {
          start_y = localization_pose[localization_index].position.y;
 
          start_hallway = cur_loc_estimate; //record the starting hallway number
+         reverse_hallway = VAN(&gr, "reverse", start_hallway); //get the number of the reverse
+         
          track_target = 0;
 
          if (start_hallway != -1) { //if good localization reading, then update other settings
@@ -533,6 +533,7 @@ int Navigation::execute_turn2(int reset_turn) {
       if ((start_hallway == -1) && (cur_loc_estimate != -1)) { //keep reading the hallway estimate until known
          start_hallway = cur_loc_estimate;
          turn_dir = get_turn_dir(start_hallway);
+         reverse_hallway = VAN(&gr, "reverse", start_hallway); //get the number of reverse hallway
 
          if (turn_dir == 0) { //left turn
             t = &(turn_transform_left[start_hallway]);
@@ -568,6 +569,29 @@ int Navigation::execute_turn2(int reset_turn) {
 
       avg_goal_x *= 640.0;
       avg_goal_y *= 360.0;
+
+      if (turn_dir == 3) { //turn around in the hallway
+         if ((cur_loc_estimate == reverse_hallway) && (cur_loc_conf > .95) &&
+               (abs(320-avg_goal_x) < 30)) {
+            //done turning around
+            msg.linear.x = 0.0; //set the linear velocity
+            msg.angular.z = 0.0;
+            twist_pub_.publish(msg); //publish the twist message
+
+            //the turn is complete
+            start_hallway = -1;
+            track_target = 0;
+            turn_start = 0;
+            return 1; //turn complete
+         } else {
+            msg.linear.x = 0.0; //set the linear velocity
+            msg.angular.z = rotate_angular_vel; //turn in place
+            twist_pub_.publish(msg); //publish the twist message
+
+            turn_start++;
+            return 0;
+         }
+      }
       
       if (straight == 1) { //start turn by going straight a fixed distance
          //check for obstacles
@@ -593,7 +617,8 @@ int Navigation::execute_turn2(int reset_turn) {
          } else {
             //no obstacles detected so reset the turn timeout since
             //the robot is making progress
-            turn_progress_counter = 0;
+            if (cur_loc_estimate == start_hallway)
+               turn_progress_counter = 0;
          }
 
          //move forward while turning towards the goal 

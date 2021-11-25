@@ -102,6 +102,7 @@ class Navigation {
   int localization_turn_progress[LOCALIZATION_ARRAY_SIZE];//store turn in progress flag
   int localization_index = 0;                             //current index into the hallway pred. array
   int cur_loc_estimate = -1;
+  float cur_loc_conf = 0;
   std::mutex cur_loc_mutex;
 
   //variables for heading
@@ -140,7 +141,6 @@ class Navigation {
 
     //move base functions
     void send_goal(const std_msgs::Empty::ConstPtr& msg);
-    void set_action_client(MoveBaseClient* ac);
     void publish_pointcloud();
     void autonomous_mode_callback(const std_msgs::Int8::ConstPtr& msg);
     void update_goal_transform();

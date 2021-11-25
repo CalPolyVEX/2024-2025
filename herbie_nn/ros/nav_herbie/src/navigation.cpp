@@ -131,7 +131,6 @@ void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
 //each time the neural network data is published, this callback is run
 void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& nn_msg) {
    double turn_confidence;
-   float cur_loc_conf;
 
    //store pointers to the neural network output
    ground = (double*) &(nn_msg->data[0]);
