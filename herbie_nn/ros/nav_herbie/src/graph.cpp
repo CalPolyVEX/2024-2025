@@ -117,6 +117,9 @@ void Navigation::graph_init() {
    SETVAN(&gr, "reverse", 16, 17);
    SETVAN(&gr, "reverse", 17, 16);
 
+   SETVAN(&gr, "reverse", 28, 29);
+   SETVAN(&gr, "reverse", 29, 28);
+
    int n_vert = (int) igraph_vcount(&gr); //get the number of vertices
    int n_edge = (int) igraph_ecount(&gr); //get the number of edges
 

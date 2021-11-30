@@ -96,9 +96,6 @@ Navigation::Navigation() : it(nh) {
       localization_turn_progress[i] = 0;
    }
 
-   //start the turn transform thread
-   //turn_transform_thread = new std::thread(&Navigation::update_turn_transform, this);
-
    //initialize the route to all invalid
    for(int i=0; i<100; i++) {
       route_hallway[i] = -1;

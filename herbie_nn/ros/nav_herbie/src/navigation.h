@@ -92,6 +92,7 @@ class Navigation {
   int route_turn[100];
   int current_route_index = 0;         //the index into the route hallway array
   int turn_start_counter = -1;
+  int end_hallway=0;
 
   //variables for localization
   #define LOCALIZATION_ARRAY_SIZE 1200 //approximately 60 seconds worth of localization predictions

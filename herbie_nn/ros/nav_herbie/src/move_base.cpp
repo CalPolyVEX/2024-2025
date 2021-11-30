@@ -125,6 +125,7 @@ void Navigation::update_goal_transform() {
 
 int Navigation::get_turn_dir(int temp_loc_estimate) {
    int direction;
+   static int turn_15=0;
 
    if (temp_loc_estimate != -1) {
       //this is for testing turn directions
@@ -154,11 +155,21 @@ int Navigation::get_turn_dir(int temp_loc_estimate) {
       } else if (temp_loc_estimate == 14) {
          direction = 2; //right
       } else if (temp_loc_estimate == 15) {
-         direction = 0; //left
+         if (turn_15 == 0) {
+            direction = 2; //right
+            turn_15 = 1;
+         } else {
+            direction = 0; //left
+            turn_15 = 0;
+         }
       } else if (temp_loc_estimate == 16) {
          direction = 0; //left
       } else if (temp_loc_estimate == 17) {
          direction = 2; //right
+      } else if (temp_loc_estimate == 28) {
+         direction = 0; //left
+      } else if (temp_loc_estimate == 29) {
+         direction = 3; //turn around
       } else {
          direction = 0; //default left
       }
@@ -167,81 +178,6 @@ int Navigation::get_turn_dir(int temp_loc_estimate) {
    }
 
    return direction;
-}
-
-void Navigation::update_turn_transform() {
-   geometry_msgs::TransformStamped *t;
-   int temp_loc_estimate;
-
-   while(1) {
-      cur_loc_mutex.lock();
-      temp_loc_estimate = cur_loc_estimate;  //read the current hallway estimate
-      cur_loc_mutex.unlock();
-
-      if (temp_loc_estimate != -1) {
-         int direction;
-
-         //this is for testing turn directions
-         if (temp_loc_estimate == 0) { //FIXME
-            direction = 0; //left
-         } else if (temp_loc_estimate == 1) {
-            direction = 2; //right
-         } else if (temp_loc_estimate == 4) {
-            direction = 2; //right
-         } else if (temp_loc_estimate == 5) {
-            direction = 2; //right
-         } else if (temp_loc_estimate == 6) {
-            direction = 0; //left
-         } else if (temp_loc_estimate == 7) {
-            direction = 0; //left
-         } else if (temp_loc_estimate == 8) {
-            direction = 0; //left
-         } else if (temp_loc_estimate == 9) {
-            direction = 2; //right
-         } else if (temp_loc_estimate == 10) {
-            direction = 2; //right
-         } else if (temp_loc_estimate == 11) {
-            direction = 2; //right
-         } else if (temp_loc_estimate == 12) {
-            direction = 0; //left
-         } else if (temp_loc_estimate == 14) {
-            direction = 2; //right
-         } else if (temp_loc_estimate == 15) {
-            direction = 0; //left
-         } else if (temp_loc_estimate == 16) {
-            direction = 0; //left
-         } else if (temp_loc_estimate == 17) {
-            direction = 2; //right
-         } else {
-            direction = 0; //default left
-         }
-
-         if (direction == 0) { //turn left at this hallway
-            t = &(turn_transform_left[temp_loc_estimate]);
-         } else { //turn right at this hallway
-            t = &(turn_transform_right[temp_loc_estimate]);
-         }
-
-         static tf2_ros::TransformBroadcaster tfb;
-         geometry_msgs::TransformStamped transformStamped;
-
-         transformStamped.header.frame_id = "base_link";
-         transformStamped.child_frame_id = "turn";
-         transformStamped.transform.translation.x = t->transform.translation.x; 
-         transformStamped.transform.translation.y = t->transform.translation.y;
-         transformStamped.transform.translation.z = t->transform.translation.z;
-
-         transformStamped.transform.rotation.w = t->transform.rotation.w; 
-         transformStamped.transform.rotation.x = t->transform.rotation.x; 
-         transformStamped.transform.rotation.y = t->transform.rotation.y;
-         transformStamped.transform.rotation.z = t->transform.rotation.z; 
-
-         transformStamped.header.stamp = ros::Time::now();
-         tfb.sendTransform(transformStamped);
-      }
-
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-   }
 }
 
 void Navigation::send_goal(const std_msgs::Empty::ConstPtr& msg) {
@@ -474,7 +410,6 @@ int Navigation::execute_turn2(int reset_turn) {
    static int straight = 0;
    static int rotate = 0;
    static int start_hallway = -1; 
-   static int end_hallway=0;
    static int turn_dir=0;
    static int track_target=0;
    static int reverse_hallway = 0;  //number of the reverse direction hallway
@@ -789,53 +724,6 @@ int Navigation::execute_turn2(int reset_turn) {
    return 0; //turn still in progress
 }
 
-void Navigation::execute_turn() {
-   goal_timer.stop(); //stop the goal update timer
-
-   update_goal_mutex.lock();
-
-   //get the transform from odom to goal since the planner only takes goals in 
-   //the odom frame
-   geometry_msgs::TransformStamped transformStamped;
-   transformStamped = tfBuffer.lookupTransform("odom", "turn", ros::Time(0), ros::Duration(1.5));
-
-   move_base_msgs::MoveBaseGoal temp_goal;
-
-   //fill in the fields of the goal
-   temp_goal.target_pose.header.frame_id = "odom";  //goal must be in the odom frame
-   temp_goal.target_pose.header.stamp = ros::Time::now();
-
-   temp_goal.target_pose.pose.position.x = transformStamped.transform.translation.x;
-   temp_goal.target_pose.pose.position.y = transformStamped.transform.translation.y;
-   temp_goal.target_pose.pose.position.z = 0;
-   
-   ROS_WARN("JS turn goal");
-   ROS_WARN("JS turn goal x: %f", temp_goal.target_pose.pose.position.x);
-   ROS_WARN("JS turn goal y: %f", temp_goal.target_pose.pose.position.y);
-   std::cout << "JS turn goal x: " << temp_goal.target_pose.pose.position.x << std::endl;
-   std::cout << "JS turn goal y: " << temp_goal.target_pose.pose.position.y << std::endl;
-   
-   //save the current turn goal
-   cur_goal.target_pose.pose.position.x = transformStamped.transform.translation.x;
-   cur_goal.target_pose.pose.position.y = transformStamped.transform.translation.y;
-   cur_goal.target_pose.pose.position.z = 0;
-
-   temp_goal.target_pose.pose.orientation.w = transformStamped.transform.rotation.w;
-   temp_goal.target_pose.pose.orientation.x = transformStamped.transform.rotation.x;
-   temp_goal.target_pose.pose.orientation.y = transformStamped.transform.rotation.y;
-   temp_goal.target_pose.pose.orientation.z = transformStamped.transform.rotation.z;
-
-   //save the current turn orientation
-   cur_goal.target_pose.pose.orientation.w = transformStamped.transform.rotation.w;
-   cur_goal.target_pose.pose.orientation.x = transformStamped.transform.rotation.x;
-   cur_goal.target_pose.pose.orientation.y = transformStamped.transform.rotation.y;
-   cur_goal.target_pose.pose.orientation.z = transformStamped.transform.rotation.z;
-
-   action_client->sendGoal(temp_goal);
-
-   update_goal_mutex.unlock();
-}
-
 //return the distance from the current position to the goal
 double Navigation::get_distance_to_goal() {
   geometry_msgs::TransformStamped transformStamped;
@@ -952,6 +840,8 @@ void Navigation::init_turn_transforms() {
    set_turn_entry(11, 1.1, 0.0, -90);
    set_turn_entry(12, 2.0, 0, 90);
    set_turn_entry(15, 1.8, 0, 90);
+   set_turn_entry(15, 1.8, 0, -90);
+
    set_turn_entry(16, 1.9, 0, 92);
    set_turn_entry(0, 1.0, -0.1, 90);
    set_turn_entry(4, 1.5, 0, -90);
@@ -965,6 +855,8 @@ void Navigation::init_turn_transforms() {
    set_turn_entry(13, 1.5, 0, 90);
    set_turn_entry(10, 1.2, 0, -90);
    set_turn_entry(9, 1.6, 0, -90);
+
+   set_turn_entry(28, 1.8, 0, 90);
 
    //make entry for 180 degree turn
    set_turn_entry(31, .1, 0, 180);
