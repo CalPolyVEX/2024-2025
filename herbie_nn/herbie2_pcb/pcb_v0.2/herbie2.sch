@@ -211,10 +211,10 @@ $EndComp
 Text GLabel 1100 5200 2    50   Input ~ 0
 GND
 $Comp
-L Device:LED D1
+L Device:LED LED1
 U 1 1 5FD49452
 P 9600 6150
-F 0 "D1" H 9593 6367 50  0000 C CNN
+F 0 "LED1" H 9593 6367 50  0000 C CNN
 F 1 "LED" H 9593 6276 50  0000 C CNN
 F 2 "LED_SMD:LED_1206_3216Metric" H 9600 6150 50  0001 C CNN
 F 3 "~" H 9600 6150 50  0001 C CNN
@@ -222,10 +222,10 @@ F 3 "~" H 9600 6150 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Device:LED D2
+L Device:LED LED2
 U 1 1 5FD4CBC4
 P 9600 5800
-F 0 "D2" H 9593 6017 50  0000 C CNN
+F 0 "LED2" H 9593 6017 50  0000 C CNN
 F 1 "LED" H 9593 5926 50  0000 C CNN
 F 2 "LED_SMD:LED_1206_3216Metric" H 9600 5800 50  0001 C CNN
 F 3 "~" H 9600 5800 50  0001 C CNN
@@ -233,10 +233,10 @@ F 3 "~" H 9600 5800 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Device:LED D3
+L Device:LED LED3
 U 1 1 5FD4D256
 P 9600 5450
-F 0 "D3" H 9593 5667 50  0000 C CNN
+F 0 "LED3" H 9593 5667 50  0000 C CNN
 F 1 "LED" H 9593 5576 50  0000 C CNN
 F 2 "LED_SMD:LED_1206_3216Metric" H 9600 5450 50  0001 C CNN
 F 3 "~" H 9600 5450 50  0001 C CNN
@@ -244,10 +244,10 @@ F 3 "~" H 9600 5450 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Device:LED D4
+L Device:LED LED4
 U 1 1 5FD4D964
 P 9600 5100
-F 0 "D4" H 9593 5317 50  0000 C CNN
+F 0 "LED4" H 9593 5317 50  0000 C CNN
 F 1 "LED" H 9593 5226 50  0000 C CNN
 F 2 "LED_SMD:LED_1206_3216Metric" H 9600 5100 50  0001 C CNN
 F 3 "~" H 9600 5100 50  0001 C CNN
@@ -719,9 +719,9 @@ F 3 "http://www.ti.com/lit/ds/symlink/tca9534.pdf" H 7950 5300 50  0001 C CNN
 	1    7850 5400
 	1    0    0    -1  
 $EndComp
-Text GLabel 7350 5100 0    50   Input ~ 0
+Text GLabel 7450 5100 0    50   Input ~ 0
 SCL
-Text GLabel 7350 5200 0    50   Input ~ 0
+Text GLabel 7450 5200 0    50   Input ~ 0
 SDA
 Wire Wire Line
 	7350 5200 7450 5200
@@ -2407,7 +2407,7 @@ Wire Wire Line
 Connection ~ 5750 2750
 Wire Wire Line
 	5750 2750 5750 3100
-Text GLabel 6200 2850 0    50   Input ~ 0
+Text GLabel 5250 3550 0    50   Input ~ 0
 5V_REG
 Wire Wire Line
 	6200 2850 6350 2850
@@ -2622,4 +2622,41 @@ F 3 "~" H 9000 7300 50  0001 C CNN
 	1    9000 7300
 	1    0    0    -1  
 $EndComp
+$Comp
+L Jumper:SolderJumper_3_Open ARDUINO_PWR1
+U 1 1 61A86303
+P 5250 3750
+F 0 "ARDUINO_PWR1" V 5250 3850 50  0000 L CNN
+F 1 "SolderJumper_3_Open" V 5150 2850 50  0000 L CNN
+F 2 "Jumper:SolderJumper-3_P1.3mm_Open_RoundedPad1.0x1.5mm_NumberLabels" H 5250 3750 50  0001 C CNN
+F 3 "~" H 5250 3750 50  0001 C CNN
+	1    5250 3750
+	0    1    1    0   
+$EndComp
+Text GLabel 6200 2850 0    50   Input ~ 0
+ARD_VIN
+Text GLabel 5050 3750 0    50   Input ~ 0
+ARD_VIN
+Wire Wire Line
+	5050 3750 5100 3750
+$Comp
+L Device:R R34
+U 1 1 61A3280D
+P 7100 5000
+F 0 "R34" H 7170 5046 50  0000 L CNN
+F 1 "20K" H 7170 4955 50  0000 L CNN
+F 2 "Resistor_SMD:R_1206_3216Metric" V 7030 5000 50  0001 C CNN
+F 3 "~" H 7100 5000 50  0001 C CNN
+	1    7100 5000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7100 5150 7250 5150
+Wire Wire Line
+	7250 5150 7250 5300
+Connection ~ 7250 5300
+Text GLabel 7050 4850 0    50   Input ~ 0
+3.3V
+Wire Wire Line
+	7050 4850 7100 4850
 $EndSCHEMATC
