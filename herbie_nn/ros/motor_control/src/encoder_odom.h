@@ -115,7 +115,7 @@ class OdometryPublisher {
 
     //motor control and odometry functions
     void run_pid();
-    void compute_pid_alt(double left_desired, double left_actual, double right_desired, double right_actual);
+    void compute_pid(double left_desired, double left_actual, double right_desired, double right_actual);
     void update_odometry(int enc_left, int enc_right, double* vel_x, double* vel_theta);
     double normalize_angle(double angle);
 

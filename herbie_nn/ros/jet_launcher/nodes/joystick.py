@@ -131,7 +131,7 @@ class JoystickNode:
       self.herbie_board_pub.publish(p)
 
       p = Int32MultiArray()
-      p.data = self.create_string_packet('Recording...   ')
+      p.data = self.create_string_packet('R++++   ')
       self.herbie_board_pub.publish(p)
 
       rec_topics = "rosbag record \

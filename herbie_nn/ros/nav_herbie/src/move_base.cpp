@@ -125,13 +125,19 @@ void Navigation::update_goal_transform() {
 
 int Navigation::get_turn_dir(int temp_loc_estimate) {
    int direction;
-   static int turn_15=0;
+   static int turn_15=0; //used to alternate turn directions on hallway 15
+   int rand_turn = std::rand() % 100;
 
    if (temp_loc_estimate != -1) {
       //this is for testing turn directions
       if (temp_loc_estimate == 0) { //FIXME
-         direction = 0; //left
-         direction = 3; //turn around
+         /* direction = 0; //left */
+         /* direction = 3; //turn around */
+         if (rand_turn > 20) {
+            direction = 3; //turn around
+         } else {
+            direction = 0; //left
+         }
       } else if (temp_loc_estimate == 1) {
          direction = 2; //right
       } else if (temp_loc_estimate == 4) {
@@ -153,14 +159,20 @@ int Navigation::get_turn_dir(int temp_loc_estimate) {
       } else if (temp_loc_estimate == 12) {
          direction = 0; //left
       } else if (temp_loc_estimate == 14) {
-         direction = 2; //right
-      } else if (temp_loc_estimate == 15) {
-         if (turn_15 == 0) {
+         //direction = 2; //right
+         if (rand_turn > 30) {
+            direction = 3; //turn around
+         } else {
             direction = 2; //right
-            turn_15 = 1;
+         }
+      } else if (temp_loc_estimate == 15) {
+         /* if (turn_15 % 2 == 0) { */
+         if (rand_turn > 30) {
+            direction = 2; //right
+            turn_15++;
          } else {
             direction = 0; //left
-            turn_15 = 0;
+            turn_15++;
          }
       } else if (temp_loc_estimate == 16) {
          direction = 0; //left
@@ -316,9 +328,9 @@ void Navigation::set_narrow_parameters(int narrow) {
    double_param.name = "max_vel_x";
 
    if (narrow == 1) {
-      double_param.value = .18;
+      double_param.value = .19;
    } else {
-      double_param.value = .31;
+      double_param.value = .33;
    }
 
    conf.doubles.push_back(double_param);
@@ -368,38 +380,6 @@ void Navigation::set_narrow_parameters(int narrow) {
 
    /* ros::service::call("/move_base/set_parameters", srv_req, srv_resp); */
    //ros::service::call("/move_base/local_costmap/set_parameters", srv_req, srv_resp);
-}
-
-//parameters when turning
-void Navigation::set_turn_parameters() {
-   dynamic_reconfigure::ReconfigureRequest srv_req;
-   dynamic_reconfigure::ReconfigureResponse srv_resp;
-   dynamic_reconfigure::DoubleParameter double_param;
-   dynamic_reconfigure::Config conf;
-
-   //when turning, do not closely follow the global plan
-   double_param.name = "sim_time";
-   double_param.value = 2.8;
-
-   conf.doubles.push_back(double_param);
-
-   //when turning, do not closely follow the global plan
-   //path_distance_bias: .6
-   double_param.name = "path_distance_bias";
-   double_param.value = .6;
-
-   conf.doubles.push_back(double_param);
-
-   //when turning, set the maximum forward velocity to slower
-   //max_vel_x: 0.23
-   double_param.name = "max_vel_x";
-   double_param.value = .18;
-
-   conf.doubles.push_back(double_param);
-
-   srv_req.config = conf;
-
-   ros::service::call("/move_base/DWAPlannerROS/set_parameters", srv_req, srv_resp);
 }
 
 int Navigation::execute_turn2(int reset_turn) {
@@ -582,18 +562,6 @@ int Navigation::execute_turn2(int reset_turn) {
          if(cur_distance_forward < distance_forward) {
             //publish the message and return
             twist_pub_.publish(msg); //publish the twist message
-
-            //move cursor
-            /* coord[0] = 0; //col 0 */
-            /* coord[1] = 1; //row 1 */
-            /* create_control_board_msg(1,coord); */
-            /* usleep(10); */
-
-            //print distance forward
-            //sprintf(lcd_msg,"%.2f %.2f", cur_distance_forward, distance_forward);
-            /* sprintf(lcd_msg,"%.2f %.2f", cur_x, cur_y); */
-            /* create_control_board_msg(2,lcd_msg); */
-            /* usleep(10); */
 
             turn_start++;
             return 0; //turn still in progress
@@ -837,10 +805,10 @@ void Navigation::init_turn_transforms() {
 
    //clockwise loop
    set_turn_entry(8, 1.9, .3, 85); //+90 degrees is counter-clockwise
-   set_turn_entry(11, 1.1, 0.0, -90);
+   set_turn_entry(11, 1.05, 0.0, -90);
    set_turn_entry(12, 2.0, 0, 90);
-   set_turn_entry(15, 1.8, 0, 90);
-   set_turn_entry(15, 1.8, 0, -90);
+   set_turn_entry(15, 1.7, 0, 90);
+   set_turn_entry(15, 1.7, 0, -90);
 
    set_turn_entry(16, 1.9, 0, 92);
    set_turn_entry(0, 1.0, -0.1, 90);
@@ -849,9 +817,9 @@ void Navigation::init_turn_transforms() {
 
    set_turn_entry(6, 1.0, 0, 90);
    set_turn_entry(5, 2.0, 0, -90);
-   set_turn_entry(1, 1.8, 0, -90);
+   set_turn_entry(1, 1.7, 0, -90);
    set_turn_entry(17, 1.8, 0, -90);
-   set_turn_entry(14, 1.0, 0.1, -90);
+   set_turn_entry(14, .95, 0.1, -90);
    set_turn_entry(13, 1.5, 0, 90);
    set_turn_entry(10, 1.2, 0, -90);
    set_turn_entry(9, 1.6, 0, -90);

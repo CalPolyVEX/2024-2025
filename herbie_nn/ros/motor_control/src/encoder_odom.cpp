@@ -221,8 +221,7 @@ void OdometryPublisher::run_pid() {
   last_left_motor_cmd = cur_left_motor;
   last_right_motor_cmd = cur_right_motor;
 
-  //compute_pid(des_vel_left, ltv, des_vel_right, rtv); //compute the new motor speeds
-  compute_pid_alt(des_vel_left, ltv, des_vel_right, rtv); //compute the new motor speeds
+  compute_pid(des_vel_left, ltv, des_vel_right, rtv); //compute the new motor speeds
 
   if (debug_odometry == 1) {
     ROS_INFO("desired vl_ticks: %f desired vr_ticks: %f", des_vel_left, des_vel_right);
@@ -239,11 +238,11 @@ void OdometryPublisher::run_pid() {
   //without this, the starts/stops are abrupt
   if (abs(cur_left_motor - last_left_motor_cmd) > 400) {
     /* cur_left_motor = cur_left_motor * .10 + last_left_motor_cmd * .90; */
-    cur_left_motor = cur_left_motor * .25 + last_left_motor_cmd * .75;
+    cur_left_motor = cur_left_motor * .2 + last_left_motor_cmd * .8;
   }
 
   if (abs(cur_right_motor - last_right_motor_cmd) > 400) {
-    cur_right_motor = cur_right_motor * .25 + last_right_motor_cmd * .75;
+    cur_right_motor = cur_right_motor * .2 + last_right_motor_cmd * .8;
     /* cur_right_motor = cur_right_motor * .10 + last_right_motor_cmd * .90; */
   }
 
@@ -273,7 +272,7 @@ void OdometryPublisher::run_pid() {
 
 }
 
-void OdometryPublisher::compute_pid_alt(double left_desired, double left_actual, double right_desired, double right_actual) {
+void OdometryPublisher::compute_pid(double left_desired, double left_actual, double right_desired, double right_actual) {
   double kp = 7;
   double ki = 0.1;
   double kd = -1.5;

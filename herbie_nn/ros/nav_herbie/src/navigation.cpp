@@ -246,6 +246,10 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
       
       //turn is complete, restart the goal timer and set parameters
       if (turn_complete == 1) {
+         ros::TimerEvent ev;
+         //update_goal_callback((const ros::TimerEvent&) ev);
+         update_goal_callback(ev);
+
          goal_timer.start(); //start the goal update timer
          turn_in_progress = 0;
          turn_progress_counter = 0;
@@ -481,7 +485,7 @@ int Navigation::compute_turn_prob(double* confidence) {
    float confidence_threshold = .90;
    int temp_index = turn_index;
    int above_threshold = 0;
-   int num_samples = 4; //number of samples to read in a row
+   int num_samples = 6; //number of samples to read in a row
 
    for (int i=0; i<num_samples; i++) {
       if (turn_tracking[temp_index] > confidence_threshold) {
@@ -598,6 +602,8 @@ int main(int argc, char** argv) {
   }
 
   ros::init(argc, argv, "navigation_node");
+
+  srand(time(0));
 
   Navigation nav_node;
   nav_node.graph_init();

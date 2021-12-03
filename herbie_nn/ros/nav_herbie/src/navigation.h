@@ -25,6 +25,8 @@
 #include <map>
 #include <list>
 #include <cstdio>
+#include <cstdlib>
+#include <ctime>
 #include <chrono>
 #include <thread>
 #include <atomic>
