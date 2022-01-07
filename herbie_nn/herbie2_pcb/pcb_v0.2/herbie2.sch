@@ -2659,4 +2659,10 @@ Text GLabel 7050 4850 0    50   Input ~ 0
 3.3V
 Wire Wire Line
 	7050 4850 7100 4850
+NoConn ~ 5250 4050
+Wire Wire Line
+	5250 4050 5250 3950
+NoConn ~ 7650 7000
+Wire Wire Line
+	7650 7000 7750 7000
 $EndSCHEMATC
