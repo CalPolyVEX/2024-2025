@@ -2662,7 +2662,21 @@ Wire Wire Line
 NoConn ~ 5250 4050
 Wire Wire Line
 	5250 4050 5250 3950
-NoConn ~ 7650 7000
+$Comp
+L Connector_Generic:Conn_01x01 J22
+U 1 1 61DD7009
+P 7350 7050
+F 0 "J22" H 7268 6825 50  0000 C CNN
+F 1 "Conn_01x01" H 7268 6916 50  0000 C CNN
+F 2 "Connector_PinHeader_2.00mm:PinHeader_1x01_P2.00mm_Vertical" H 7350 7050 50  0001 C CNN
+F 3 "~" H 7350 7050 50  0001 C CNN
+	1    7350 7050
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	7550 7050 7650 7050
+Wire Wire Line
+	7650 7050 7650 7000
 Wire Wire Line
 	7650 7000 7750 7000
 $EndSCHEMATC

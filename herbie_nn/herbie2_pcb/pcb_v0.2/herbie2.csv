@@ -1,165 +1,47 @@
-"Source:","/home/jseng/ue4/herbie2/herbie2_pcb/herbie2.sch"
-"Date:","Mon 14 Dec 2020 07:40:39 AM PST"
-"Tool:","Eeschema 5.1.8-db9833491~88~ubuntu18.04.1"
-"Generator:","/usr/share/kicad/plugins/bom_csv_grouped_by_value.py"
-"Component Count:","97"
-
-"Individual Components:"
-
-"Item","Qty","Reference(s)","Value","LibPart","Footprint","Datasheet","Category","DK_Datasheet_Link","DK_Detail_Page","Description","Digi-Key_PN","Family","Field4","MPN","Manufacturer","Status"
-"","","B2","ARDUINO_UNO_R3_SHIELD_ICSP","Sparkfun_boards:ARDUINO_UNO_R3_SHIELD_ICSP","Sparkfun_boards:UNO_R3_SHIELD_ICSP","","","","","","","","XXX-00000","","",""
-"","","C1","12pF","pspice:C","Capacitor_SMD:C_1206_3216Metric","~","","","","","","","","","",""
-"","","C2","12pF","pspice:C","Capacitor_SMD:C_1206_3216Metric","~","","","","","","","","","",""
-"","","C3","12pF","pspice:C","Capacitor_SMD:C_1206_3216Metric","~","","","","","","","","","",""
-"","","C4","12pF","pspice:C","Capacitor_SMD:C_1206_3216Metric","~","","","","","","","","","",""
-"","","C5",".1uF","Device:C","Capacitor_SMD:C_1206_3216Metric","~","","","","","","","","","",""
-"","","C6",".1uF","Device:C","Capacitor_SMD:C_1206_3216Metric","~","","","","","","","","","",""
-"","","C7",".1uF","Device:C","Capacitor_SMD:C_1206_3216Metric","~","","","","","","","","","",""
-"","","C8",".1uF","Device:C","Capacitor_SMD:C_1206_3216Metric","~","","","","","","","","","",""
-"","","C9",".1uF","Device:C","Capacitor_SMD:C_1206_3216Metric","~","","","","","","","","","",""
-"","","C10","1uF","Device:C","Capacitor_SMD:C_1206_3216Metric","~","","","","","","","","","",""
-"","","C11","10uF","Device:C","Capacitor_SMD:C_1206_3216Metric","~","","","","","","","","","",""
-"","","C12","10uF","Device:C","Capacitor_SMD:C_1206_3216Metric","~","","","","","","","","","",""
-"","","C13",".1uF","Device:C","Capacitor_SMD:C_1206_3216Metric","~","","","","","","","","","",""
-"","","D1","LED","Device:LED","LED_SMD:LED_1206_3216Metric","~","","","","","","","","","",""
-"","","D2","LED","Device:LED","LED_SMD:LED_1206_3216Metric","~","","","","","","","","","",""
-"","","D3","LED","Device:LED","LED_SMD:LED_1206_3216Metric","~","","","","","","","","","",""
-"","","D4","LED","Device:LED","LED_SMD:LED_1206_3216Metric","~","","","","","","","","","",""
-"","","D5","CVFD20065A","Diode:CVFD20065A","Package_TO_SOT_THT:TO-220-2_Vertical","https://www.wolfspeed.com/media/downloads/89/CVFD20065A.pdf","","","","","","","","","",""
-"","","F1","Fuse","Device:Fuse","Fuse:Fuseholder_Blade_Mini_Keystone_3568","~","","","","","","","","","",""
-"","","F2","Fuse","Device:Fuse","Fuse:Fuseholder_Blade_Mini_Keystone_3568","~","","","","","","","","","",""
-"","","H1","MountingHole","Mechanical:MountingHole","MountingHole:MountingHole_3.2mm_M3_ISO7380","~","","","","","","","","","",""
-"","","H2","MountingHole","Mechanical:MountingHole","MountingHole:MountingHole_3.2mm_M3_ISO7380","~","","","","","","","","","",""
-"","","H3","MountingHole","Mechanical:MountingHole","MountingHole:MountingHole_3.2mm_M3_ISO7380","~","","","","","","","","","",""
-"","","H4","MountingHole","Mechanical:MountingHole","MountingHole:MountingHole_3.2mm_M3_ISO7380","~","","","","","","","","","",""
-"","","H5","GND_BATT1","Mechanical:MountingHole_Pad","MountingHole:MountingHole_2.2mm_M2_Pad","~","","","","","","","","","",""
-"","","H6","PWR_BATT1","Mechanical:MountingHole_Pad","MountingHole:MountingHole_2.2mm_M2_Pad","~","","","","","","","","","",""
-"","","H7","GND_BATT2","Mechanical:MountingHole_Pad","MountingHole:MountingHole_2.2mm_M2_Pad","~","","","","","","","","","",""
-"","","H8","PWR_BATT2","Mechanical:MountingHole_Pad","MountingHole:MountingHole_2.2mm_M2_Pad","~","","","","","","","","","",""
-"","","H9","GND_AC_PWR","Mechanical:MountingHole_Pad","MountingHole:MountingHole_2.2mm_M2_Pad","~","","","","","","","","","",""
-"","","H10","AC_PWR","Mechanical:MountingHole_Pad","MountingHole:MountingHole_2.2mm_M2_Pad","~","","","","","","","","","",""
-"","","H11","MountingHole_Pad","Mechanical:MountingHole_Pad","MountingHole:MountingHole_2.2mm_M2_Pad_TopBottom","~","","","","","","","","","",""
-"","","H12","MountingHole_Pad","Mechanical:MountingHole_Pad","MountingHole:MountingHole_2.2mm_M2_Pad_TopBottom","~","","","","","","","","","",""
-"","","H13","MountingHole_Pad","Mechanical:MountingHole_Pad","MountingHole:MountingHole_2.2mm_M2_Pad_TopBottom","~","","","","","","","","","",""
-"","","J1","GND","Connector:Screw_Terminal_01x04","TerminalBlock:TerminalBlock_bornier-4_P5.08mm","~","","","","","","","","","",""
-"","","J2","5V","Connector:Screw_Terminal_01x04","TerminalBlock:TerminalBlock_bornier-4_P5.08mm","~","","","","","","","","","",""
-"","","J3","I2C_STANDARDQWIIC","SparkFun-Connectors:I2C_STANDARDQWIIC","Connectors:1X04_1MM_RA","","","","","","","","CONN-13729","","",""
-"","","J4","Conn_01x01","Connector_Generic:Conn_01x01","Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical","~","","","","","","","","","",""
-"","","J5","Conn_01x02","Connector_Generic:Conn_01x02","Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical","~","","","","","","","","","",""
-"","","J8","I2C_STANDARDQWIIC","SparkFun-Connectors:I2C_STANDARDQWIIC","Connectors:1X04_1MM_RA","","","","","","","","CONN-13729","","",""
-"","","J9","I2C_STANDARDQWIIC","SparkFun-Connectors:I2C_STANDARDQWIIC","Connectors:1X04_1MM_RA","","","","","","","","CONN-13729","","",""
-"","","J10","CONN_04JST-PTH","SparkFun-Connectors:CONN_04JST-PTH","Connectors:JST-4-PTH","","","","","","","","WIRE-13531","","",""
-"","","J11","CONN_04JST-PTH","SparkFun-Connectors:CONN_04JST-PTH","Connectors:JST-4-PTH","","","","","","","","WIRE-13531","","",""
-"","","J12","Vin","Connector:Screw_Terminal_01x04","TerminalBlock:TerminalBlock_bornier-4_P5.08mm","~","","","","","","","","","",""
-"","","J15","Conn_01x03_Male","Connector:Conn_01x03_Male","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~","","","","","","","","","",""
-"","","J16","Conn_02x03_Odd_Even","Connector_Generic:Conn_02x03_Odd_Even","Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical","~","","","","","","","","","",""
-"","","J17","Conn_01x03","Connector_Generic:Conn_01x03","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~","","","","","","","","","",""
-"","","J18","Conn_01x02","Connector_Generic:Conn_01x02","Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical","~","","","","","","","","","",""
-"","","J19","Conn_01x01","Connector_Generic:Conn_01x01","Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical","~","","","","","","","","","",""
-"","","J20","Conn_01x03","Connector_Generic:Conn_01x03","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~","","","","","","","","","",""
-"","","LCD1","LCD-16X2SILK","SparkFun-Displays:LCD-16X2SILK","Displays:LCD-16X2","","","","","","","","LCD-00255","","",""
-"","","Q1","LTC4412","herbie2-rescue:LTC4412ES6_TRMPBF-dk_PMIC-OR-Controllers-Ideal-Diodes","digikey-footprints:SOT-23-6","http://www.linear.com/docs/1527","Integrated Circuits (ICs)","http://www.linear.com/docs/1527","/product-detail/en/linear-technology-analog-devices/LTC4412ES6-TRMPBF/LTC4412ES6-TRMPBFCT-ND/890097","IC OR CTRLR SRC SELECT TSOT23-6","LTC4412ES6#TRMPBFCT-ND","PMIC - OR Controllers, Ideal Diodes","","LTC4412ES6#TRMPBF","Linear Technology/Analog Devices","Active"
-"","","Q2","LTC4412","herbie2-rescue:LTC4412ES6_TRMPBF-dk_PMIC-OR-Controllers-Ideal-Diodes","digikey-footprints:SOT-23-6","http://www.linear.com/docs/1527","Integrated Circuits (ICs)","http://www.linear.com/docs/1527","/product-detail/en/linear-technology-analog-devices/LTC4412ES6-TRMPBF/LTC4412ES6-TRMPBFCT-ND/890097","IC OR CTRLR SRC SELECT TSOT23-6","LTC4412ES6#TRMPBFCT-ND","PMIC - OR Controllers, Ideal Diodes","","LTC4412ES6#TRMPBF","Linear Technology/Analog Devices","Active"
-"","","Q3","Si4427","js:Si4427","js:SO-8_3.9x4.9mm_P1.27mm_Si4427","","","","","","","","","Si4427","",""
-"","","Q4","Si4427","js:Si4427","js:SO-8_3.9x4.9mm_P1.27mm_Si4427","","","","","","","","","Si4427","",""
-"","","Q5","2N7002","dk_Transistors-FETs-MOSFETs-Single:2N7002","digikey-footprints:SOT-23-3","https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF","Discrete Semiconductor Products","https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF","/product-detail/en/on-semiconductor/2N7002/2N7002NCT-ND/244664","MOSFET N-CH 60V 115MA SOT-23","2N7002NCT-ND","Transistors - FETs, MOSFETs - Single","","2N7002","ON Semiconductor","Active"
-"","","R1","470K","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R2","470K","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R3","330","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R4","330","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R5","330","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R6","330","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R7","R","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R8","R","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R9","100","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R10","100","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R11","100","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R12","100","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R13","10","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R14","20K","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R15","20K","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R16","20K","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R17","20K","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R18","1M","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R19","1M","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R20","1K","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R21","20K","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R22","20K","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R23","4.7K","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","R24","4.7K","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"","","RV1","10K","Device:R_POT","Potentiometer_THT:Potentiometer_Bourns_3266Y_Vertical","~","","","","","","","","","",""
-"","","S0","Servo0","Connector:Conn_01x03_Male","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~","","","","","","","","","",""
-"","","S1","Servo1","Connector:Conn_01x03_Male","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~","","","","","","","","","",""
-"","","S2","Servo2","Connector:Conn_01x03_Male","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~","","","","","","","","","",""
-"","","S3","Servo3","Connector:Conn_01x03_Male","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~","","","","","","","","","",""
-"","","S4","Servo4","Connector:Conn_01x03_Male","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~","","","","","","","","","",""
-"","","S5","Servo5","Connector:Conn_01x03_Male","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~","","","","","","","","","",""
-"","","U1","74HC595","74xx:74HC595","Package_SO:SOIC-16_3.9x9.9mm_P1.27mm","http://www.ti.com/lit/ds/symlink/sn74hc595.pdf","","","","","","","","","",""
-"","","U2","74164","74xx_IEEE:74164","Package_SO:TSSOP-14_4.4x5mm_P0.65mm","","","","","","","","","","",""
-"","","U3","24v13_Pololu","js:24v13_Pololu","js:24v13_Pololu","","","","","","","","","","",""
-"","","U4","LS7366R","js:LS7366R","Package_SO:SOIC-14_3.9x8.7mm_P1.27mm","","","","","","","","","","",""
-"","","U5","LS7366R","js:LS7366R","Package_SO:SOIC-14_3.9x8.7mm_P1.27mm","","","","","","","","","","",""
-"","","U6","TCA9534","Interface_Expansion:TCA9534","Package_SO:SOIC-16_4.55x10.3mm_P1.27mm","http://www.ti.com/lit/ds/symlink/tca9534.pdf","","","","","","","","","",""
-"","","U7","24v13_Pololu","js:24v13_Pololu","js:24v13_Pololu","","","","","","","","","","",""
-"","","U8","D36V50F5_Pololu","js:D36V50F5_Pololu","js:D36V50F5_Pololu","","","","","","","","","","",""
-"","","Y1","20MHz","Device:Crystal","Crystal:Crystal_SMD_5032-2Pin_5.0x3.2mm_HandSoldering","~","","","","","","","","","",""
-"","","Y2","20MHz","Device:Crystal","Crystal:Crystal_SMD_5032-2Pin_5.0x3.2mm_HandSoldering","~","","","","","","","","","",""
-
-
-
-"Collated Components:"
-
-"Item","Qty","Reference(s)","Value","LibPart","Footprint","Datasheet","Category","DK_Datasheet_Link","DK_Detail_Page","Description","Digi-Key_PN","Family","Field4","MPN","Manufacturer","Status"
-"1","1","B2","ARDUINO_UNO_R3_SHIELD_ICSP","Sparkfun_boards:ARDUINO_UNO_R3_SHIELD_ICSP","Sparkfun_boards:UNO_R3_SHIELD_ICSP","","","","","","","","XXX-00000","","",""
-"2","4","C1, C2, C3, C4","12pF","pspice:C","Capacitor_SMD:C_1206_3216Metric","~","","","","","","","","","",""
-"3","6","C5, C6, C7, C8, C9, C13",".1uF","Device:C","Capacitor_SMD:C_1206_3216Metric","~","","","","","","","","","",""
-"4","1","C10","1uF","Device:C","Capacitor_SMD:C_1206_3216Metric","~","","","","","","","","","",""
-"5","2","C11, C12","10uF","Device:C","Capacitor_SMD:C_1206_3216Metric","~","","","","","","","","","",""
-"6","4","D1, D2, D3, D4","LED","Device:LED","LED_SMD:LED_1206_3216Metric","~","","","","","","","","","",""
-"7","1","D5","CVFD20065A","Diode:CVFD20065A","Package_TO_SOT_THT:TO-220-2_Vertical","https://www.wolfspeed.com/media/downloads/89/CVFD20065A.pdf","","","","","","","","","",""
-"8","2","F1, F2","Fuse","Device:Fuse","Fuse:Fuseholder_Blade_Mini_Keystone_3568","~","","","","","","","","","",""
-"9","4","H1, H2, H3, H4","MountingHole","Mechanical:MountingHole","MountingHole:MountingHole_3.2mm_M3_ISO7380","~","","","","","","","","","",""
-"10","1","H5","GND_BATT1","Mechanical:MountingHole_Pad","MountingHole:MountingHole_2.2mm_M2_Pad","~","","","","","","","","","",""
-"11","1","H6","PWR_BATT1","Mechanical:MountingHole_Pad","MountingHole:MountingHole_2.2mm_M2_Pad","~","","","","","","","","","",""
-"12","1","H7","GND_BATT2","Mechanical:MountingHole_Pad","MountingHole:MountingHole_2.2mm_M2_Pad","~","","","","","","","","","",""
-"13","1","H8","PWR_BATT2","Mechanical:MountingHole_Pad","MountingHole:MountingHole_2.2mm_M2_Pad","~","","","","","","","","","",""
-"14","1","H9","GND_AC_PWR","Mechanical:MountingHole_Pad","MountingHole:MountingHole_2.2mm_M2_Pad","~","","","","","","","","","",""
-"15","1","H10","AC_PWR","Mechanical:MountingHole_Pad","MountingHole:MountingHole_2.2mm_M2_Pad","~","","","","","","","","","",""
-"16","3","H11, H12, H13","MountingHole_Pad","Mechanical:MountingHole_Pad","MountingHole:MountingHole_2.2mm_M2_Pad_TopBottom","~","","","","","","","","","",""
-"17","1","J1","GND","Connector:Screw_Terminal_01x04","TerminalBlock:TerminalBlock_bornier-4_P5.08mm","~","","","","","","","","","",""
-"18","1","J2","5V","Connector:Screw_Terminal_01x04","TerminalBlock:TerminalBlock_bornier-4_P5.08mm","~","","","","","","","","","",""
-"19","3","J3, J8, J9","I2C_STANDARDQWIIC","SparkFun-Connectors:I2C_STANDARDQWIIC","Connectors:1X04_1MM_RA","","","","","","","","CONN-13729","","",""
-"20","2","J4, J19","Conn_01x01","Connector_Generic:Conn_01x01","Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical","~","","","","","","","","","",""
-"21","2","J5, J18","Conn_01x02","Connector_Generic:Conn_01x02","Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical","~","","","","","","","","","",""
-"22","2","J10, J11","CONN_04JST-PTH","SparkFun-Connectors:CONN_04JST-PTH","Connectors:JST-4-PTH","","","","","","","","WIRE-13531","","",""
-"23","1","J12","Vin","Connector:Screw_Terminal_01x04","TerminalBlock:TerminalBlock_bornier-4_P5.08mm","~","","","","","","","","","",""
-"24","1","J15","Conn_01x03_Male","Connector:Conn_01x03_Male","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~","","","","","","","","","",""
-"25","1","J16","Conn_02x03_Odd_Even","Connector_Generic:Conn_02x03_Odd_Even","Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical","~","","","","","","","","","",""
-"26","2","J17, J20","Conn_01x03","Connector_Generic:Conn_01x03","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~","","","","","","","","","",""
-"27","1","LCD1","LCD-16X2SILK","SparkFun-Displays:LCD-16X2SILK","Displays:LCD-16X2","","","","","","","","LCD-00255","","",""
-"28","2","Q1, Q2","LTC4412","herbie2-rescue:LTC4412ES6_TRMPBF-dk_PMIC-OR-Controllers-Ideal-Diodes","digikey-footprints:SOT-23-6","http://www.linear.com/docs/1527","Integrated Circuits (ICs)","http://www.linear.com/docs/1527","/product-detail/en/linear-technology-analog-devices/LTC4412ES6-TRMPBF/LTC4412ES6-TRMPBFCT-ND/890097","IC OR CTRLR SRC SELECT TSOT23-6","LTC4412ES6#TRMPBFCT-ND","PMIC - OR Controllers, Ideal Diodes","","LTC4412ES6#TRMPBF","Linear Technology/Analog Devices","Active"
-"29","2","Q3, Q4","Si4427","js:Si4427","js:SO-8_3.9x4.9mm_P1.27mm_Si4427","","","","","","","","","Si4427","",""
-"30","1","Q5","2N7002","dk_Transistors-FETs-MOSFETs-Single:2N7002","digikey-footprints:SOT-23-3","https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF","Discrete Semiconductor Products","https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF","/product-detail/en/on-semiconductor/2N7002/2N7002NCT-ND/244664","MOSFET N-CH 60V 115MA SOT-23","2N7002NCT-ND","Transistors - FETs, MOSFETs - Single","","2N7002","ON Semiconductor","Active"
-"31","2","R1, R2","470K","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"32","4","R3, R4, R5, R6","330","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"33","2","R7, R8","R","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"34","4","R9, R10, R11, R12","100","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"35","1","R13","10","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"36","6","R14, R15, R16, R17, R21, R22","20K","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"37","2","R18, R19","1M","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"38","1","R20","1K","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"39","2","R23, R24","4.7K","Device:R","Resistor_SMD:R_1206_3216Metric","~","","","","","","","","","",""
-"40","1","RV1","10K","Device:R_POT","Potentiometer_THT:Potentiometer_Bourns_3266Y_Vertical","~","","","","","","","","","",""
-"41","1","S0","Servo0","Connector:Conn_01x03_Male","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~","","","","","","","","","",""
-"42","1","S1","Servo1","Connector:Conn_01x03_Male","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~","","","","","","","","","",""
-"43","1","S2","Servo2","Connector:Conn_01x03_Male","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~","","","","","","","","","",""
-"44","1","S3","Servo3","Connector:Conn_01x03_Male","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~","","","","","","","","","",""
-"45","1","S4","Servo4","Connector:Conn_01x03_Male","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~","","","","","","","","","",""
-"46","1","S5","Servo5","Connector:Conn_01x03_Male","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~","","","","","","","","","",""
-"47","1","U1","74HC595","74xx:74HC595","Package_SO:SOIC-16_3.9x9.9mm_P1.27mm","http://www.ti.com/lit/ds/symlink/sn74hc595.pdf","","","","","","","","","",""
-"48","1","U2","74164","74xx_IEEE:74164","Package_SO:TSSOP-14_4.4x5mm_P0.65mm","","","","","","","","","","",""
-"49","2","U3, U7","24v13_Pololu","js:24v13_Pololu","js:24v13_Pololu","","","","","","","","","","",""
-"50","2","U4, U5","LS7366R","js:LS7366R","Package_SO:SOIC-14_3.9x8.7mm_P1.27mm","","","","","","","","","","",""
-"51","1","U6","TCA9534","Interface_Expansion:TCA9534","Package_SO:SOIC-16_4.55x10.3mm_P1.27mm","http://www.ti.com/lit/ds/symlink/tca9534.pdf","","","","","","","","","",""
-"52","1","U8","D36V50F5_Pololu","js:D36V50F5_Pololu","js:D36V50F5_Pololu","","","","","","","","","","",""
-"53","2","Y1, Y2","20MHz","Device:Crystal","Crystal:Crystal_SMD_5032-2Pin_5.0x3.2mm_HandSoldering","~","","","","","","","","","",""
+Reference, Quantity, Value, Footprint, Datasheet, Field4, MPN, Category, DK_Datasheet_Link, DK_Detail_Page, Description, Digi-Key_PN, Family, Manufacturer, Status
+C1 C2 C3 C4 C7 C14 ,6,12pF,Capacitor_SMD:C_1206_3216Metric,~,,,,,,,,,,
+C10 ,1,1uF,Capacitor_SMD:C_1206_3216Metric,~,,,,,,,,,,
+C11 C12 ,2,10uF,Capacitor_SMD:C_1206_3216Metric,~,,,,,,,,,,
+C5 C6 C8 C9 C13 C15 C16 ,7,.1uF,Capacitor_SMD:C_1206_3216Metric,~,,,,,,,,,,
+D1 D2 D3 D4 ,4,LED,LED_SMD:LED_1206_3216Metric,~,,,,,,,,,,
+D5 ,1,CVFD20065A,Package_TO_SOT_THT:TO-220-2_Vertical,https://www.wolfspeed.com/media/downloads/89/CVFD20065A.pdf,,,,,,,,,,
+F1 F2 ,2,Fuse,Fuse:Fuseholder_Blade_Mini_Keystone_3568,~,,,,,,,,,,
+J1 ,1,GND,TerminalBlock:TerminalBlock_bornier-4_P5.08mm,~,,,,,,,,,,
+J10 ,1,LEFT_ENC,Connectors:JST-4-PTH,,WIRE-13531,,,,,,,,,
+J11 ,1,RIGHT_ENC,Connectors:JST-4-PTH,,WIRE-13531,,,,,,,,,
+J12 ,1,Vin,TerminalBlock:TerminalBlock_bornier-4_P5.08mm,~,,,,,,,,,,
+J13 ,1,Conn_02x04_Odd_Even,Connector_PinHeader_2.54mm:PinHeader_2x04_P2.54mm_Vertical,~,,,,,,,,,,
+J14 ,1,AM_Right,Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical,~,,,,,,,,,,
+J15 ,1,Conn_01x03_Male,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,~,,,,,,,,,,
+J16 ,1,Power,TerminalBlock:TerminalBlock_bornier-4_P5.08mm,~,,,,,,,,,,
+J17 J20 ,2,Conn_01x03,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,~,,,,,,,,,,
+J18 ,1,SmartPort,Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical,~,,,,,,,,,,
+J19 J21 ,2,Conn_01x04_Female,Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical,~,,,,,,,,,,
+J2 ,1,5V,TerminalBlock:TerminalBlock_bornier-4_P5.08mm,~,,,,,,,,,,
+J3 J8 J9 ,3,I2C_QWIIC,Connectors:1X04_1MM_RA,,CONN-13729,,,,,,,,,
+J4 ,1,AM_Left,Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical,~,,,,,,,,,,
+J5 ,1,Conn_01x03_Female,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,~,,,,,,,,,,
+J6 ,1,RC_UART,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,~,,,,,,,,,,
+J7 ,1,DOME_ENC,Connectors:JST-4-PTH,,WIRE-13531,,,,,,,,,
+Q1 ,1,LTC4412,digikey-footprints:SOT-23-6,http://www.linear.com/docs/1527,,LTC4412ES6#TRMPBF,Integrated Circuits (ICs),http://www.linear.com/docs/1527,/product-detail/en/linear-technology-analog-devices/LTC4412ES6-TRMPBF/LTC4412ES6-TRMPBFCT-ND/890097,IC OR CTRLR SRC SELECT TSOT23-6,LTC4412ES6#TRMPBFCT-ND,"PMIC - OR Controllers, Ideal Diodes",Linear Technology/Analog Devices,Active
+Q3 ,1,Si4427,js:SO-8_3.9x4.9mm_P1.27mm_Si4427,,,Si4427,,,,,,,,
+Q2 Q5 ,2,2N7002,digikey-footprints:SOT-23-3,https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF,,2N7002,Discrete Semiconductor Products,https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF,/product-detail/en/on-semiconductor/2N7002/2N7002NCT-ND/244664,MOSFET N-CH 60V 115MA SOT-23,2N7002NCT-ND,"Transistors - FETs, MOSFETs - Single",ON Semiconductor,Active
+R13 ,1,10,Resistor_SMD:R_1206_3216Metric,~,,,,,,,,,,
+R14 R15 R16 R17 R21 R22 R27 R28 R31 ,9,20K,Resistor_SMD:R_1206_3216Metric,~,,,,,,,,,,
+R1 R18 R19 ,3,1M,Resistor_SMD:R_1206_3216Metric,~,,,,,,,,,,
+R2 ,1,470K,Resistor_SMD:R_1206_3216Metric,~,,,,,,,,,,
+R20 R29 ,2,1K,Resistor_SMD:R_1206_3216Metric,~,,,,,,,,,,
+R23 R24 R30 R32 R33 ,5,4.7K,Resistor_SMD:R_1206_3216Metric,~,,,,,,,,,,
+R3 R4 R5 R6 ,4,330,Resistor_SMD:R_1206_3216Metric,~,,,,,,,,,,
+R7 R8 ,2,R,Resistor_SMD:R_1206_3216Metric,~,,,,,,,,,,
+R9 R10 R11 R12 R25 R26 ,6,100,Resistor_SMD:R_1206_3216Metric,~,,,,,,,,,,
+RV1 ,1,10K,Potentiometer_THT:Potentiometer_Bourns_3266Y_Vertical,~,,,,,,,,,,
+S0 ,1,Servo0,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,~,,,,,,,,,,
+S1 ,1,Servo1,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,~,,,,,,,,,,
+S2 ,1,Servo2,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,~,,,,,,,,,,
+S3 ,1,Servo3,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,~,,,,,,,,,,
+S4 ,1,B3F-1000,digikey-footprints:Switch_Tactile_THT_B3F-1xxx,https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3f.pdf,,B3F-1000,Switches,https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3f.pdf,/product-detail/en/omron-electronics-inc-emc-div/B3F-1000/SW400-ND/33150,SWITCH TACTILE SPST-NO 0.05A 24V,SW400-ND,Tactile Switches,Omron Electronics Inc-EMC Div,Active
+U2 ,1,74164,Package_SO:TSSOP-14_4.4x5mm_P0.65mm,,,,,,,,,,,
+U1 U4 U5 ,3,LS7366R,Package_SO:SOIC-14_3.9x8.7mm_P1.27mm,,,,,,,,,,,
+U6 U9 ,2,TCA9534,Package_SO:SOIC-16W_7.5x10.3mm_P1.27mm,http://www.ti.com/lit/ds/symlink/tca9534.pdf,,,,,,,,,,
+Y1 Y2 Y3 ,3,20MHz,Crystal:Crystal_SMD_5032-2Pin_5.0x3.2mm_HandSoldering,~,,,,,,,,,,
