@@ -1,47 +1,58 @@
 Reference, Quantity, Value, Footprint, Datasheet, Field4, MPN, Category, DK_Datasheet_Link, DK_Detail_Page, Description, Digi-Key_PN, Family, Manufacturer, Status
-C1 C2 C3 C4 C7 C14 ,6,12pF,Capacitor_SMD:C_1206_3216Metric,~,,,,,,,,,,
-C10 ,1,1uF,Capacitor_SMD:C_1206_3216Metric,~,,,,,,,,,,
-C11 C12 ,2,10uF,Capacitor_SMD:C_1206_3216Metric,~,,,,,,,,,,
-C5 C6 C8 C9 C13 C15 C16 ,7,.1uF,Capacitor_SMD:C_1206_3216Metric,~,,,,,,,,,,
-D1 D2 D3 D4 ,4,LED,LED_SMD:LED_1206_3216Metric,~,,,,,,,,,,
-D5 ,1,CVFD20065A,Package_TO_SOT_THT:TO-220-2_Vertical,https://www.wolfspeed.com/media/downloads/89/CVFD20065A.pdf,,,,,,,,,,
-F1 F2 ,2,Fuse,Fuse:Fuseholder_Blade_Mini_Keystone_3568,~,,,,,,,,,,
-J1 ,1,GND,TerminalBlock:TerminalBlock_bornier-4_P5.08mm,~,,,,,,,,,,
-J10 ,1,LEFT_ENC,Connectors:JST-4-PTH,,WIRE-13531,,,,,,,,,
-J11 ,1,RIGHT_ENC,Connectors:JST-4-PTH,,WIRE-13531,,,,,,,,,
-J12 ,1,Vin,TerminalBlock:TerminalBlock_bornier-4_P5.08mm,~,,,,,,,,,,
-J13 ,1,Conn_02x04_Odd_Even,Connector_PinHeader_2.54mm:PinHeader_2x04_P2.54mm_Vertical,~,,,,,,,,,,
-J14 ,1,AM_Right,Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical,~,,,,,,,,,,
-J15 ,1,Conn_01x03_Male,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,~,,,,,,,,,,
-J16 ,1,Power,TerminalBlock:TerminalBlock_bornier-4_P5.08mm,~,,,,,,,,,,
-J17 J20 ,2,Conn_01x03,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,~,,,,,,,,,,
-J18 ,1,SmartPort,Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical,~,,,,,,,,,,
-J19 J21 ,2,Conn_01x04_Female,Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical,~,,,,,,,,,,
-J2 ,1,5V,TerminalBlock:TerminalBlock_bornier-4_P5.08mm,~,,,,,,,,,,
-J3 J8 J9 ,3,I2C_QWIIC,Connectors:1X04_1MM_RA,,CONN-13729,,,,,,,,,
-J4 ,1,AM_Left,Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical,~,,,,,,,,,,
-J5 ,1,Conn_01x03_Female,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,~,,,,,,,,,,
-J6 ,1,RC_UART,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,~,,,,,,,,,,
-J7 ,1,DOME_ENC,Connectors:JST-4-PTH,,WIRE-13531,,,,,,,,,
-Q1 ,1,LTC4412,digikey-footprints:SOT-23-6,http://www.linear.com/docs/1527,,LTC4412ES6#TRMPBF,Integrated Circuits (ICs),http://www.linear.com/docs/1527,/product-detail/en/linear-technology-analog-devices/LTC4412ES6-TRMPBF/LTC4412ES6-TRMPBFCT-ND/890097,IC OR CTRLR SRC SELECT TSOT23-6,LTC4412ES6#TRMPBFCT-ND,"PMIC - OR Controllers, Ideal Diodes",Linear Technology/Analog Devices,Active
-Q3 ,1,Si4427,js:SO-8_3.9x4.9mm_P1.27mm_Si4427,,,Si4427,,,,,,,,
-Q2 Q5 ,2,2N7002,digikey-footprints:SOT-23-3,https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF,,2N7002,Discrete Semiconductor Products,https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF,/product-detail/en/on-semiconductor/2N7002/2N7002NCT-ND/244664,MOSFET N-CH 60V 115MA SOT-23,2N7002NCT-ND,"Transistors - FETs, MOSFETs - Single",ON Semiconductor,Active
-R13 ,1,10,Resistor_SMD:R_1206_3216Metric,~,,,,,,,,,,
-R14 R15 R16 R17 R21 R22 R27 R28 R31 ,9,20K,Resistor_SMD:R_1206_3216Metric,~,,,,,,,,,,
-R1 R18 R19 ,3,1M,Resistor_SMD:R_1206_3216Metric,~,,,,,,,,,,
-R2 ,1,470K,Resistor_SMD:R_1206_3216Metric,~,,,,,,,,,,
-R20 R29 ,2,1K,Resistor_SMD:R_1206_3216Metric,~,,,,,,,,,,
-R23 R24 R30 R32 R33 ,5,4.7K,Resistor_SMD:R_1206_3216Metric,~,,,,,,,,,,
-R3 R4 R5 R6 ,4,330,Resistor_SMD:R_1206_3216Metric,~,,,,,,,,,,
-R7 R8 ,2,R,Resistor_SMD:R_1206_3216Metric,~,,,,,,,,,,
-R9 R10 R11 R12 R25 R26 ,6,100,Resistor_SMD:R_1206_3216Metric,~,,,,,,,,,,
-RV1 ,1,10K,Potentiometer_THT:Potentiometer_Bourns_3266Y_Vertical,~,,,,,,,,,,
-S0 ,1,Servo0,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,~,,,,,,,,,,
-S1 ,1,Servo1,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,~,,,,,,,,,,
-S2 ,1,Servo2,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,~,,,,,,,,,,
-S3 ,1,Servo3,Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical,~,,,,,,,,,,
-S4 ,1,B3F-1000,digikey-footprints:Switch_Tactile_THT_B3F-1xxx,https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3f.pdf,,B3F-1000,Switches,https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3f.pdf,/product-detail/en/omron-electronics-inc-emc-div/B3F-1000/SW400-ND/33150,SWITCH TACTILE SPST-NO 0.05A 24V,SW400-ND,Tactile Switches,Omron Electronics Inc-EMC Div,Active
-U2 ,1,74164,Package_SO:TSSOP-14_4.4x5mm_P0.65mm,,,,,,,,,,,
-U1 U4 U5 ,3,LS7366R,Package_SO:SOIC-14_3.9x8.7mm_P1.27mm,,,,,,,,,,,
-U6 U9 ,2,TCA9534,Package_SO:SOIC-16W_7.5x10.3mm_P1.27mm,http://www.ti.com/lit/ds/symlink/tca9534.pdf,,,,,,,,,,
-Y1 Y2 Y3 ,3,20MHz,Crystal:Crystal_SMD_5032-2Pin_5.0x3.2mm_HandSoldering,~,,,,,,,,,,
+B2 ,1,"ARDUINO_UNO_R3_SHIELD_ICSP","Sparkfun_boards:UNO_R3_SHIELD_ICSP","","XXX-00000","","","","","","","","",""
+C1 C2 C3 C4 C7 C14 ,6,"12pF","Capacitor_SMD:C_1206_3216Metric","~"
+C10 ,1,"1uF","Capacitor_SMD:C_1206_3216Metric","~"
+C11 C12 ,2,"10uF","Capacitor_SMD:C_1206_3216Metric","~"
+C5 C6 C8 C9 C13 C15 C16 ,7,".1uF","Capacitor_SMD:C_1206_3216Metric","~"
+D5 ,1,"CVFD20065A","Package_TO_SOT_THT:TO-220-2_Vertical","https://www.wolfspeed.com/media/downloads/89/CVFD20065A.pdf"
+F1 F2 ,2,"Fuse","Fuse:Fuseholder_Blade_Mini_Keystone_3568","~"
+H1 H2 H3 H4 ,4,"MountingHole","MountingHole:MountingHole_3.2mm_M3_ISO7380","~"
+H10 ,1,"AC_PWR","MountingHole:MountingHole_2.2mm_M2_Pad","~"
+H11 H12 H13 ,3,"MountingHole_Pad","MountingHole:MountingHole_2.2mm_M2_Pad_TopBottom","~"
+H6 ,1,"PWR_BATT1","MountingHole:MountingHole_2.2mm_M2_Pad","~"
+J1 ,1,"GND","TerminalBlock:TerminalBlock_bornier-4_P5.08mm","~"
+J10 ,1,"LEFT_ENC","Connectors:JST-4-PTH","","WIRE-13531","","","","","","","","",""
+J11 ,1,"RIGHT_ENC","Connectors:JST-4-PTH","","WIRE-13531","","","","","","","","",""
+J12 ,1,"Vin","TerminalBlock:TerminalBlock_bornier-4_P5.08mm","~"
+J13 ,1,"Conn_02x04_Odd_Even","Connector_PinHeader_2.54mm:PinHeader_2x04_P2.54mm_Vertical","~"
+J14 ,1,"AM_Right","Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical","~"
+J15 ,1,"Conn_01x03_Male","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~"
+J16 ,1,"Power","TerminalBlock:TerminalBlock_bornier-4_P5.08mm","~"
+J17 J20 ,2,"Conn_01x03","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~"
+J18 ,1,"SmartPort","Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical","~"
+J19 J21 ,2,"Conn_01x04_Female","Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical","~"
+J2 ,1,"5V","TerminalBlock:TerminalBlock_bornier-4_P5.08mm","~"
+J22 ,1,"Conn_01x01","Connector_PinHeader_2.00mm:PinHeader_1x01_P2.00mm_Vertical","~"
+J3 J8 J9 ,3,"I2C_QWIIC","Connectors:1X04_1MM_RA","","CONN-13729","","","","","","","","",""
+J4 ,1,"AM_Left","Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical","~"
+J5 ,1,"Conn_01x03_Female","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~"
+J6 ,1,"RC_UART","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~"
+J7 ,1,"DOME_ENC","Connectors:JST-4-PTH","","WIRE-13531","","","","","","","","",""
+JP1 ARDUINO_PWR1 ,2,"SolderJumper_3_Open","Jumper:SolderJumper-3_P1.3mm_Open_RoundedPad1.0x1.5mm_NumberLabels","~"
+JP2 ,1,"SolderJumper_2_Open","Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm","~"
+LCD1 ,1,"LCD-16X2SILK","Displays:LCD-16X2","","LCD-00255","","","","","","","","",""
+LED1 LED2 LED3 LED4 ,4,"LED","LED_SMD:LED_1206_3216Metric","~"
+Q1 ,1,"LTC4412","digikey-footprints:SOT-23-6","http://www.linear.com/docs/1527","","LTC4412ES6#TRMPBF","Integrated Circuits (ICs)","http://www.linear.com/docs/1527","/product-detail/en/linear-technology-analog-devices/LTC4412ES6-TRMPBF/LTC4412ES6-TRMPBFCT-ND/890097","IC OR CTRLR SRC SELECT TSOT23-6","LTC4412ES6#TRMPBFCT-ND","PMIC - OR Controllers, Ideal Diodes","Linear Technology/Analog Devices","Active"
+Q3 ,1,"Si4427","js:SO-8_3.9x4.9mm_P1.27mm_Si4427","","","Si4427","","","","","","","",""
+Q2 Q5 ,2,"2N7002","digikey-footprints:SOT-23-3","https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF","","2N7002","Discrete Semiconductor Products","https://www.onsemi.com/pub/Collateral/NDS7002A-D.PDF","/product-detail/en/on-semiconductor/2N7002/2N7002NCT-ND/244664","MOSFET N-CH 60V 115MA SOT-23","2N7002NCT-ND","Transistors - FETs, MOSFETs - Single","ON Semiconductor","Active"
+R13 ,1,"10","Resistor_SMD:R_1206_3216Metric","~"
+R14 R15 R16 R17 R21 R22 R27 R28 R31 R34 ,10,"20K","Resistor_SMD:R_1206_3216Metric","~"
+R1 R18 R19 ,3,"1M","Resistor_SMD:R_1206_3216Metric","~"
+R2 ,1,"470K","Resistor_SMD:R_1206_3216Metric","~"
+R20 R29 ,2,"1K","Resistor_SMD:R_1206_3216Metric","~"
+R23 R24 R30 R32 R33 ,5,"4.7K","Resistor_SMD:R_1206_3216Metric","~"
+R3 R4 R5 R6 ,4,"330","Resistor_SMD:R_1206_3216Metric","~"
+R7 R8 ,2,"R","Resistor_SMD:R_1206_3216Metric","~"
+R9 R10 R11 R12 R25 R26 ,6,"100","Resistor_SMD:R_1206_3216Metric","~"
+RV1 ,1,"10K","Potentiometer_THT:Potentiometer_Bourns_3266Y_Vertical","~"
+S0 ,1,"Servo0","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~"
+S1 ,1,"Servo1","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~"
+S2 ,1,"Servo2","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~"
+S3 ,1,"Servo3","Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical","~"
+S4 ,1,"B3F-1000","digikey-footprints:Switch_Tactile_THT_B3F-1xxx","https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3f.pdf","","B3F-1000","Switches","https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3f.pdf","/product-detail/en/omron-electronics-inc-emc-div/B3F-1000/SW400-ND/33150","SWITCH TACTILE SPST-NO 0.05A 24V","SW400-ND","Tactile Switches","Omron Electronics Inc-EMC Div","Active"
+U2 ,1,"74164","Package_SO:TSSOP-14_4.4x5mm_P0.65mm",""
+U3 U7 ,2,"24v13_Pololu","js:24v13_Pololu",""
+U1 U4 U5 ,3,"LS7366R","Package_SO:SOIC-14_3.9x8.7mm_P1.27mm",""
+U6 U9 ,2,"TCA9534","Package_SO:SOIC-16W_7.5x10.3mm_P1.27mm","http://www.ti.com/lit/ds/symlink/tca9534.pdf"
+U8 ,1,"D36V50F5_Pololu","js:D36V50F5_Pololu",""
+Y1 Y2 Y3 ,3,"20MHz","Crystal:Crystal_SMD_5032-2Pin_5.0x3.2mm_HandSoldering","~"
