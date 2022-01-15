@@ -13,6 +13,7 @@
 #include <std_msgs/Int32MultiArray.h>
 #include <std_msgs/Int8.h>
 #include <std_msgs/Empty.h>
+#include <std_srvs/Empty.h>
 #include <geometry_msgs/Twist.h>
 #include <image_transport/image_transport.h>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -154,6 +155,7 @@ class Navigation {
     int call_make_plan(double goal_x, double goal_y, double* pose_x, double* pose_y);  //call the planner to test if a plan is found
     void execute_turn();
     int execute_turn2(int reset);
+    void clear_all_costmaps();
     void set_narrow_parameters(int narrow); 
     void set_turn_parameters();
     void init_turn_transforms();
