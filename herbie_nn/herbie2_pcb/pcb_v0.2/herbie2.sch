@@ -2659,4 +2659,44 @@ Text GLabel 7050 4850 0    50   Input ~ 0
 3.3V
 Wire Wire Line
 	7050 4850 7100 4850
+NoConn ~ 5250 4050
+Wire Wire Line
+	5250 4050 5250 3950
+$Comp
+L Connector_Generic:Conn_01x01 J22
+U 1 1 61DD7009
+P 7350 7050
+F 0 "J22" H 7268 6825 50  0000 C CNN
+F 1 "Conn_01x01" H 7268 6916 50  0000 C CNN
+F 2 "Connector_PinHeader_2.00mm:PinHeader_1x01_P2.00mm_Vertical" H 7350 7050 50  0001 C CNN
+F 3 "~" H 7350 7050 50  0001 C CNN
+	1    7350 7050
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	7550 7050 7650 7050
+Wire Wire Line
+	7650 7050 7650 7000
+Wire Wire Line
+	7650 7000 7750 7000
+$Comp
+L Device:R R35
+U 1 1 61E8D6B9
+P 2000 2750
+F 0 "R35" H 2070 2796 50  0000 L CNN
+F 1 "1K" H 2070 2705 50  0000 L CNN
+F 2 "Resistor_SMD:R_1206_3216Metric" V 1930 2750 50  0001 C CNN
+F 3 "~" H 2000 2750 50  0001 C CNN
+	1    2000 2750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2300 2600 2000 2600
+Connection ~ 2300 2600
+Text GLabel 2150 2950 2    50   Input ~ 0
+GND
+Wire Wire Line
+	2000 2900 2000 2950
+Wire Wire Line
+	2000 2950 2150 2950
 $EndSCHEMATC
