@@ -291,6 +291,19 @@ void Navigation::publish_pointcloud() {
    pointcloud_pub_.publish(cloud_msg);
 }
 
+void Navigation::clear_all_costmaps() {
+   dynamic_reconfigure::ReconfigureRequest srv_req;
+   dynamic_reconfigure::ReconfigureResponse srv_resp;
+   dynamic_reconfigure::DoubleParameter double_param;
+   dynamic_reconfigure::Config conf;
+
+   std_srvs::Empty emptymsg;
+   ros::service::call("/move_base/clear_costmaps",emptymsg);
+
+   /* srv_req.config = conf; */
+   /* ros::service::call("/move_base/clear_costmaps", srv_req, srv_resp); */
+}
+
 //set the planning parameters when traversing a narrow hall
 void Navigation::set_narrow_parameters(int narrow) {
    dynamic_reconfigure::ReconfigureRequest srv_req;
@@ -303,7 +316,8 @@ void Navigation::set_narrow_parameters(int narrow) {
    double_param.name = "sim_time";
 
    if (narrow == 1) {
-      double_param.value = 2.2;
+      //double_param.value = 2.4;
+      double_param.value = 4.0;
    } else {
       double_param.value = 2.8;
    }
@@ -328,9 +342,25 @@ void Navigation::set_narrow_parameters(int narrow) {
    double_param.name = "max_vel_x";
 
    if (narrow == 1) {
-      double_param.value = .19;
+      double_param.value = .20;
    } else {
       double_param.value = .33;
+   }
+
+   conf.doubles.push_back(double_param);
+
+   srv_req.config = conf;
+
+   ros::service::call("/move_base/DWAPlannerROS/set_parameters", srv_req, srv_resp);
+
+   // avoid obstacle
+   double_param.name = "occdist_scale";
+
+   if (narrow == 1) {
+      //double_param.value = .04;
+      double_param.value = .01;
+   } else {
+      double_param.value = .02;
    }
 
    conf.doubles.push_back(double_param);
@@ -395,7 +425,7 @@ int Navigation::execute_turn2(int reset_turn) {
    static int reverse_hallway = 0;  //number of the reverse direction hallway
    static float start_turn_heading=0.0;
    int frame_skip = 3; //skip every few frames, so this is not run every frame
-   float rotate_angular_vel = .38;
+   float rotate_angular_vel = .39;
    geometry_msgs::Twist msg;
    geometry_msgs::TransformStamped *t;
    char coord[2];

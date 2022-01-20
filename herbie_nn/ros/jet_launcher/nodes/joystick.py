@@ -335,18 +335,18 @@ class JoystickNode:
             if button8_hold == 5:
                 if servo_toggle == 0:
                     p = Int32MultiArray()
-                    p.data = self.create_servo_packet(0,100)
+                    p.data = self.create_servo_packet(0,5)
                     self.herbie_board_pub.publish(p)
                     p = Int32MultiArray()
-                    p.data = self.create_servo_packet(1,100)
+                    p.data = self.create_servo_packet(1,5)
                     self.herbie_board_pub.publish(p)
                     servo_toggle = 1
                 elif servo_toggle == 1:
                     p = Int32MultiArray()
-                    p.data = self.create_servo_packet(0,1900)
+                    p.data = self.create_servo_packet(0,1995)
                     self.herbie_board_pub.publish(p)
                     p = Int32MultiArray()
-                    p.data = self.create_servo_packet(1,1900)
+                    p.data = self.create_servo_packet(1,1995)
                     self.herbie_board_pub.publish(p)
                     servo_toggle = 2
                 else:
