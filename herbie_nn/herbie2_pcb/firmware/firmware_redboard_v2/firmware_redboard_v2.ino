@@ -12,9 +12,8 @@ extern const unsigned short crctable[256];
 //TCC0 - servos
 //TCC1 - motors
 //
-//GCLK4 - UART
 //GCLK5 - motors and servos
-//GCLK6 - encoders
+//GCLK6 - encoders and SERCOM0 UART
 
 void setup_interrupt() 
 {
@@ -34,7 +33,7 @@ void setup_interrupt()
                       GCLK_CLKCTRL_GEN_GCLK6 |     // Select GCLK6
                       GCLK_CLKCTRL_ID_TC4_TC5;     // Feed the GCLK6 to TC4 and TC5
   while (GCLK->STATUS.bit.SYNCBUSY);               // Wait for synchronization
-  
+
   /////////////////////////////////Timer 5
   TC5->COUNT16.CTRLA.reg |= TC_CTRLA_MODE_COUNT16;  // Set the counter to 16-bit mode
   while (TC5->COUNT16.STATUS.bit.SYNCBUSY);         // Wait for synchronization
@@ -87,8 +86,7 @@ void setup()
   lcdInit();
   init_motors();
   init_servo();
-  //init_lb_uart();
-
+  
   set_motor_speed(0,0);
   set_motor_speed(1,0);
 
@@ -99,6 +97,8 @@ void setup()
 
   // initialize digital pin LED_BUILTIN as an output.
   pinMode(LED_BUILTIN, OUTPUT);
+
+  init_lb_uart(); //initialize the lightbar UART on SERCOM0
 }
 
 int motor_stop_timeout = 0;
@@ -126,7 +126,7 @@ void loop()
     delay(400);
     led_off(1);
 
-    //send_lb_byte(0x21);
+    send_lb_byte(0x21);
   }
 
   while(1) 
