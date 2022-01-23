@@ -250,8 +250,8 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
          //update_goal_callback((const ros::TimerEvent&) ev);
 
          /* usleep(2000000); */
-         clear_all_costmaps();
-         usleep(2000000); 
+         //clear_all_costmaps();
+         //usleep(1000000); 
          update_goal_callback(ev);
 
          goal_timer.start(); //start the goal update timer

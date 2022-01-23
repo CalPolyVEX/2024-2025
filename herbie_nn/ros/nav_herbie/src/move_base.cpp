@@ -167,7 +167,7 @@ int Navigation::get_turn_dir(int temp_loc_estimate) {
          }
       } else if (temp_loc_estimate == 15) {
          /* if (turn_15 % 2 == 0) { */
-         if (rand_turn > 30) {
+         if (rand_turn > 40) {
             direction = 2; //right
             turn_15++;
          } else {
@@ -330,7 +330,7 @@ void Navigation::set_narrow_parameters(int narrow) {
    double_param.name = "path_distance_bias";
 
    if (narrow == 1) {
-      double_param.value = .8;
+      double_param.value = .82;
    } else {
       double_param.value = .6;
    }
@@ -344,20 +344,15 @@ void Navigation::set_narrow_parameters(int narrow) {
    if (narrow == 1) {
       double_param.value = .20;
    } else {
-      double_param.value = .33;
+      double_param.value = .40;
    }
 
    conf.doubles.push_back(double_param);
 
-   srv_req.config = conf;
-
-   ros::service::call("/move_base/DWAPlannerROS/set_parameters", srv_req, srv_resp);
-
-   // avoid obstacle
+   // avoid obstacles
    double_param.name = "occdist_scale";
 
    if (narrow == 1) {
-      //double_param.value = .04;
       double_param.value = .01;
    } else {
       double_param.value = .02;
@@ -368,6 +363,21 @@ void Navigation::set_narrow_parameters(int narrow) {
    srv_req.config = conf;
 
    ros::service::call("/move_base/DWAPlannerROS/set_parameters", srv_req, srv_resp);
+
+   // avoid obstacles
+   /* double_param.name = "occdist_scale"; */
+
+   /* if (narrow == 1) { */
+   /*    double_param.value = .01; */
+   /* } else { */
+   /*    double_param.value = .02; */
+   /* } */
+
+   /* conf.doubles.push_back(double_param); */
+
+   /* srv_req.config = conf; */
+
+   /* ros::service::call("/move_base/DWAPlannerROS/set_parameters", srv_req, srv_resp); */
 
    //change the footprint size when narrow
    /* double_param.name = "footprint_padding"; */
@@ -835,7 +845,7 @@ void Navigation::init_turn_transforms() {
 
    //clockwise loop
    set_turn_entry(8, 1.9, .3, 85); //+90 degrees is counter-clockwise
-   set_turn_entry(11, 1.05, 0.0, -90);
+   set_turn_entry(11, .98, 0.0, -90);
    set_turn_entry(12, 2.0, 0, 90);
    set_turn_entry(15, 1.7, 0, 90);
    set_turn_entry(15, 1.7, 0, -90);
@@ -852,7 +862,7 @@ void Navigation::init_turn_transforms() {
    set_turn_entry(14, .95, 0.1, -90);
    set_turn_entry(13, 1.5, 0, 90);
    set_turn_entry(10, 1.2, 0, -90);
-   set_turn_entry(9, 1.6, 0, -90);
+   set_turn_entry(9, 1.85, 0, -90);
 
    set_turn_entry(28, 1.8, 0, 90);
 
