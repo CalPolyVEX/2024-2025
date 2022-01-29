@@ -1,0 +1,5 @@
+{
+    "board": "SparkFun:samd:RedBoard_Turbo",
+    "port": "/dev/cu.usbmodem141101",
+    "sketch": "i2c_display.ino"
+}
