@@ -123,6 +123,7 @@ class Navigation {
   std::string service_name = "move_base/make_plan";
   std::mutex update_goal_mutex;  //lock this mutex when updating the goal
   std::mutex img_mutex;  //lock this mutex when updating the output image
+  bool autonomous_mode_nav = false;
 
   public:
     Navigation(); 

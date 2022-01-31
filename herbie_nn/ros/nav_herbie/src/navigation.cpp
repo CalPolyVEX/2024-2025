@@ -127,6 +127,7 @@ void Navigation::img_callback(const sensor_msgs::ImageConstPtr& msg) {
 
 //each time the neural network data is published, this callback is run
 void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& nn_msg) {
+   static int nn_data_cb_counter = 0;
    double turn_confidence;
 
    //store pointers to the neural network output
@@ -178,8 +179,35 @@ void Navigation::nn_data_callback(const std_msgs::Float64MultiArray::ConstPtr& n
    }
 
    lcd_update_skip++;
+   nn_data_cb_counter++;
    char coord[2];
    char lcd_msg[32];
+
+   if (autonomous_mode_nav == false) {
+      if (nn_data_cb_counter % 600 == 0) {
+         unsigned short* speed_ptr = (unsigned short*) &lcd_msg[1];
+         lcd_msg[0] = 0;
+         *speed_ptr = 0;
+         create_control_board_msg(6,lcd_msg);
+         usleep(10);
+
+         lcd_msg[0] = 1;
+         *speed_ptr = 0;
+         create_control_board_msg(6,lcd_msg);
+         usleep(10);
+      } else if (nn_data_cb_counter % 300 == 0) {
+         unsigned short* speed_ptr = (unsigned short*) &lcd_msg[1];
+         lcd_msg[0] = 0;
+         *speed_ptr = 1999;
+         create_control_board_msg(6,lcd_msg);
+         usleep(10);
+
+         lcd_msg[0] = 1;
+         *speed_ptr = 1999;
+         create_control_board_msg(6,lcd_msg);
+         usleep(10);
+      }
+   }
 
    if (lcd_update_skip > 2) { //skip a few frames before updating the LCD
       lcd_update_skip = 0;

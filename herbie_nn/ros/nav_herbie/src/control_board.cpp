@@ -80,6 +80,15 @@ void Navigation::create_control_board_msg(int num, void* arg) {
       for (int i=2; i<6; i++) {
          buf[i] = 0; 
       }
+   }  else if (num == 6) { //servo command
+      unsigned char servo_num = *((unsigned char*) arg);
+      unsigned char* servo_speed = ((unsigned char*) arg) + 1;
+      unsigned short position = *((unsigned short*) servo_speed);
+
+      buf[2] = servo_num;    //servo num
+      buf[3] = ((position >> 8) & 0xff);
+      buf[4] = (position  & 0xff);
+      buf[5] = 0;
    } else if (num == 2) { //print string
       char str_buf[32];
       char* str_ptr = (char*) arg;

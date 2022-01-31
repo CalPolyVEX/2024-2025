@@ -785,7 +785,12 @@ void Navigation::update_goal_callback(const ros::TimerEvent& ev) {
 
       std_msgs::Empty m;
       send_goal((const std_msgs::Empty::ConstPtr&)m);
+
+      autonomous_mode_nav = true;
+   } else {
+      autonomous_mode_nav = false;
    }
+
 }
 
 //set transform array entry
