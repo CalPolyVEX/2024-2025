@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    // send_set_lcd(0, 0, fd);
+    send_set_lcd(2, 3, fd);
     send_print_string((uint8_t *)"Hello, World!", fd);
     /* send_set_motor(MOTOR_COMMAND_RIGHT, 40, fd); */
 
@@ -92,21 +92,6 @@ void send_print_string(uint8_t *s, int fd) {
     uint8_t *packet = print_string(len, s);
     /* 2: for null byte and numuint8_ts */
     write(fd, packet, MIN_PACKET_SIZE + len);
-}
-
-uint8_t *LCD_print_str(uint8_t col, uint8_t row, unsigned num_chars,
-                       uint8_t *string) {
-
-    packet[0] = (uint8_t)0xFF;
-    packet[1] = (uint8_t)(num_chars + SET_LCD_PAYLOAD);
-    packet[2] = LCD_PRINT_STR;
-    packet[3] = 0x00;
-    packet[3] = packet[3] | row;
-    packet[3] = packet[3] | (col << 2);
-    memcpy(packet + 4, string, num_chars);
-    calc_crc(4 + num_chars);
-
-    return packet;
 }
 
 /**
@@ -190,6 +175,21 @@ uint8_t *print_string(unsigned num_chars, uint8_t *string) {
     packet[2] = PRINT_STR_CMD;
     memcpy(packet + 3, string, num_chars);
     calc_crc(3 + num_chars);
+
+    return packet;
+}
+
+uint8_t *LCD_print_str(uint8_t col, uint8_t row, unsigned num_chars,
+                       uint8_t *string) {
+
+    packet[0] = (uint8_t)0xFF;
+    packet[1] = (uint8_t)(num_chars + SET_LCD_PAYLOAD);
+    packet[2] = LCD_PRINT_STR;
+    packet[3] = 0x00;
+    packet[3] = packet[3] | row;
+    packet[3] = packet[3] | (col << 2);
+    memcpy(packet + 4, string, num_chars);
+    calc_crc(4 + num_chars);
 
     return packet;
 }

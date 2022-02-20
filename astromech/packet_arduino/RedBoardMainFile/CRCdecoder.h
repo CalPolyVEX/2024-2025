@@ -6,6 +6,7 @@
 hd44780_I2Cexp lcd; // declare lcd object: auto locate & auto config expander chip
 
 // #define DEBUG
+// #define DEBUG2
 
 // LCD geometry
 const int LCD_COLS = 20;
@@ -94,7 +95,7 @@ void eval_input(char *data, int size) {
         lcd.print(data[size - 1], 16);
         delay(2000);
 #endif
-        // return;
+        return;
     }
 
     // Get command
@@ -135,11 +136,13 @@ void eval_input(char *data, int size) {
     // Set LCD cursor
     case 3:
 #ifdef DEBUG
+        lcd.clear();
         lcd.setCursor(0, 0);
-        lcd.print("cursor");
+        lcd.print((int)(((uint8_t)(data[3] && 0xFC)) >> 2));
+        lcd.print((int));
         delay(1000);
 #endif
-        lcd.setCursor(data[3] && 0x03, (data[3] && 0xFC) >> 2);
+        lcd.setCursor(((uint8_t)(data[3] & 0xFC)) >> 2, data[3] & 0x03);
         break;
     // Print string
     case 4:
@@ -149,7 +152,7 @@ void eval_input(char *data, int size) {
         delay(1000);
 #endif
         int end_message = size - 2;
-        lcd.clear();
+        // lcd.clear();
         for (int i = 3; i < end_message; i++)
             lcd.write(data[i]);
         delay(2000);
@@ -221,7 +224,7 @@ void get_input() {
             // readBytes is ignoring the value peeked for some reason
             // This doesn't block because timeout is set to 0
             if ((byte_count =
-                     SerialUSB.readBytes(bytes + 2, payload + 4) + 2) ==
+                     SerialUSB.readBytes(bytes + 2, payload + 3) + 2) ==
                 payload + 5) {
                 eval_input(bytes, byte_count);
             }
