@@ -34,7 +34,7 @@ We can only print one line of the lcd at a time
 #define PRINT_STR_CMD 4
 #define LCD_PRINT_STR 5
 
-#define DEV_F_NAME "/dev/cu.usbmodem144101"
+#define DEV_F_NAME "/dev/cu.usbmodem142101"
 
 uint8_t packet[MAX_PACKET_SIZE];
 
@@ -56,17 +56,18 @@ int main(int argc, char *argv[]) {
     char *curline;
 
     fd = open(DEV_F_NAME, O_WRONLY);
+    // fd = STDOUT_FILENO;
 
     if (fd < 0) {
         perror(DEV_F_NAME);
         exit(EXIT_FAILURE);
     }
 
-    send_set_lcd(0, 0, fd);
+    // send_set_lcd(0, 0, fd);
     send_print_string((uint8_t *)"Hello, World!", fd);
     /* send_set_motor(MOTOR_COMMAND_RIGHT, 40, fd); */
 
-    close(fd);
+    // close(fd);
 
     return 0;
 }

@@ -5,7 +5,7 @@
 
 hd44780_I2Cexp lcd; // declare lcd object: auto locate & auto config expander chip
 
-#define DEBUG
+// #define DEBUG
 
 // LCD geometry
 const int LCD_COLS = 20;
@@ -60,8 +60,7 @@ bool check_crc(char *data, int len) // len is the length including the CRC
     received_crc |= data[len - 1];
 
     // Calculates CRC16 of the (n-2) bytes of data in the packet
-    for (int byte = 1; byte < (len - 2); byte++)
-    {
+    for (int byte = 1; byte < (len - 2); byte++) {
         crc = (crc << 8) ^ crctable[((crc >> 8) ^ data[byte])];
     }
 
@@ -69,29 +68,28 @@ bool check_crc(char *data, int len) // len is the length including the CRC
 }
 
 // Reads the command and returns the value
-unsigned short commandChecker(char *data)
-{
+unsigned short commandChecker(char *data) {
     char command = data[2];
     return short(command);
 }
 
 // Evaluate commands
-void eval_input(char *data, int size)
-{
+void eval_input(char *data, int size) {
 #ifdef DEBUG
+    lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Working?");
-    delay(1000);
-    lcd.print(size);
-    delay(2000);
+    lcd.setCursor(0, 1);
+    lcd.print(int(data[1]));
+    delay(3000);
 #endif
     // Check packet for errors
-    if (!check_crc(data, size))
-    {
+    if (!check_crc(data, size)) {
 #ifdef DEBUG
         lcd.setCursor(0, 0);
         lcd.clear();
-        // lcd.print("Chksum");
+        lcd.print("Chksum");
+        lcd.setCursor(0, 1);
         lcd.print(data[size - 2], 16);
         lcd.print(data[size - 1], 16);
         delay(2000);
@@ -103,12 +101,12 @@ void eval_input(char *data, int size)
     // int command = commandChecker(data);
 
     // Check command and send off payload to correct function
-    switch (data[2])
-    {
+    switch (data[2]) {
     // Set left motor
     case 0:
 #ifdef DEBUG
         lcd.setCursor(0, 0);
+        lcd.clear();
         lcd.print("left");
         delay(1000);
 #endif
@@ -118,6 +116,7 @@ void eval_input(char *data, int size)
     case 1:
 #ifdef DEBUG
         lcd.setCursor(0, 0);
+        lcd.clear();
         lcd.print("right");
         delay(1000);
 #endif
@@ -127,6 +126,7 @@ void eval_input(char *data, int size)
     case 2:
 #ifdef DEBUG
         lcd.setCursor(0, 0);
+        lcd.clear();
         lcd.print("Servo");
         delay(1000);
 #endif
@@ -152,54 +152,90 @@ void eval_input(char *data, int size)
         lcd.clear();
         for (int i = 3; i < end_message; i++)
             lcd.write(data[i]);
-        delay(1000);
+        delay(2000);
         break;
     };
 }
 
 // Get input
-void get_input()
-{
-    static unsigned short int byte_count = 0;
-    static unsigned short int max_byte_count = 5;
-    // If USB is recieving data, collect data
-    if (SerialUSB.available())
-    {
-        char cur_byte;
+// void get_input() {
+//     static unsigned short int byte_count = 0;
+//     static unsigned short int max_byte_count = 5;
+//     // If USB is recieving data, collect data
+//     if (SerialUSB.available()) {
+//         char cur_byte;
 
-        // Get input from serialUSB
-        while (byte_count < max_byte_count)
-        {
-            if (SerialUSB.available()) {
-                cur_byte = SerialUSB.read();
-                // If current byte is the start marker, start reading data
-                if (!byte_count && cur_byte == 0xFF)
-                {
-                    byte_count++;
-                    bytes[0] = 0xFF;
-                    max_byte_count = SerialUSB.peek();
-                    #ifdef DEBUG
-                    lcd.setCursor(0, 1);
-                    lcd.print(max_byte_count);
-                    delay(2000);
-                    #endif
-                }
+//         // Get input from serialUSB
+//         while (byte_count < max_byte_count) {
+//             if (SerialUSB.available()) {
+//                 cur_byte = SerialUSB.read();
+//                 // If current byte is the start marker, start reading data
+//                 if (!byte_count && cur_byte == 0xFF) {
+//                     byte_count++;
+//                     bytes[0] = 0xFF;
+//                     max_byte_count = SerialUSB.peek();
+// #ifdef DEBUG
+//                     lcd.setCursor(0, 1);
+//                     lcd.print(max_byte_count);
+//                     delay(2000);
+// #endif
+//                 }
 
-                // If reading, insert byte into bytes array
-                else if (byte_count)
-                {
-                    bytes[byte_count] = cur_byte;
-                    byte_count++;
-                }
+//                 // If reading, insert byte into bytes array
+//                 else if (byte_count) {
+//                     bytes[byte_count] = cur_byte;
+//                     byte_count++;
+//                 }
+//             }
+//         }
+
+//         // If data was collected, process input
+//         if (byte_count && byte_count == max_byte_count) {
+//             eval_input(bytes, byte_count + 5);
+//             max_byte_count = 5;
+//             byte_count = 0;
+//         }
+//     }
+// }
+
+void get_input() {
+    unsigned short byte_count = 0;
+    unsigned short payload;
+    char cur_byte;
+
+    if (SerialUSB.available()) {
+        cur_byte = SerialUSB.read();
+        if (cur_byte == 0xFF) {
+            byte_count++;
+            bytes[0] = 0xFF;
+            payload = SerialUSB.peek();
+#ifdef DEBUG
+            lcd.clear();
+            lcd.setCursor(0, 0);
+            lcd.print("Payload");
+            lcd.setCursor(0, 1);
+            lcd.print(int(payload));
+            delay(3000);
+#endif
+            bytes[1] = payload;
+            // readBytes is ignoring the value peeked for some reason
+            // This doesn't block because timeout is set to 0
+            if ((byte_count =
+                     SerialUSB.readBytes(bytes + 2, payload + 4) + 2) ==
+                payload + 5) {
+                eval_input(bytes, byte_count);
             }
-        }
+#ifdef DEBUG2
+            lcd.clear();
+            lcd.setCursor(0, 0);
+            lcd.print("payload 2");
+            lcd.setCursor(0, 1);
+            lcd.print((int)byte_count);
+            lcd.setCursor(0, 2);
+            lcd.print((int)bytes[1]);
 
-        // If data was collected, process input
-        if (byte_count && byte_count == max_byte_count)
-        {
-            eval_input(bytes, byte_count + 5);
-            max_byte_count = 5;
-            byte_count = 0;
+            delay(3000);
+#endif
         }
     }
 }
