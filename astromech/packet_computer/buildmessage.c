@@ -1,24 +1,18 @@
-#include <fcntl.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include "buildmessage.h"
 /*
 make a global array for everything
-make command 5 combining 3 and 4
-checksum check the github command
-make a packet, run it here and compare with arduino
-try /dev/.cu in linux
-crc without the marker
+make command 5 combining 3 and 4: done, computer side only, not tested
+checksum check the github command: done, works
+make a packet, run it here and compare with arduino: works
+try /dev/.cu in linux: works
+crc without the marker: done
 no need for numchars: https://github.com/jsseng/ue4/tree/master/herbie_nn/herbie2_pcb/firmware/firmware_redboard_v2
 https://github.com/jsseng/ue4/blob/master/herbie_nn/ros/motor_control/src/pub_odometry.cpp
 
 don't include 0xFF in checksum.
 
-We can only print one line of the lcd at a time
+We can only print one line of the lcd at a time: how to deal with clearing??
 */
-/* 5 for fixed */
 #define MAX_PACKET_SIZE 26
 
 #define MOTOR_CTRL_PAYLOAD 1
@@ -38,22 +32,8 @@ We can only print one line of the lcd at a time
 
 uint8_t packet[MAX_PACKET_SIZE];
 
-uint8_t *set_motor(int direction, uint8_t speed);
-uint8_t *set_servo(uint8_t servo_num, uint8_t position);
-uint8_t *set_LCD(uint8_t col, uint8_t row);
-uint8_t *print_string(unsigned num_chars, uint8_t *string);
-void send_set_motor(int direction, uint8_t speed, int fd);
-void send_set_servo(uint8_t servo_num, uint8_t position, int fd);
-void send_set_lcd(uint8_t col, uint8_t row, int fd);
-void send_print_string(uint8_t *s, int fd);
-uint8_t *calc_crc(int max_ind);
-
 int main(int argc, char *argv[]) {
-    /* code */
-
     int fd;
-    int c;
-    char *curline;
 
     fd = open(DEV_F_NAME, O_WRONLY);
     // fd = STDOUT_FILENO;
@@ -83,13 +63,20 @@ void send_set_servo(uint8_t servo_num, uint8_t position, int fd) {
 }
 
 void send_set_lcd(uint8_t col, uint8_t row, int fd) {
-    uint8_t *packet = set_LCD(col, row);
+    uint8_t *packet = set_lcd(col, row);
     write(fd, packet, MIN_PACKET_SIZE + SET_LCD_PAYLOAD);
 }
 
 void send_print_string(uint8_t *s, int fd) {
     unsigned len = strlen((char *)s);
     uint8_t *packet = print_string(len, s);
+    /* 2: for null byte and numuint8_ts */
+    write(fd, packet, MIN_PACKET_SIZE + len);
+}
+
+void send_print_string_at(uint8_t col, uint8_t row, uint8_t *s, int fd) {
+    unsigned len = strlen((char *)s);
+    uint8_t *packet = print_string_at(col, row, len, s);
     /* 2: for null byte and numuint8_ts */
     write(fd, packet, MIN_PACKET_SIZE + len);
 }
@@ -103,11 +90,6 @@ void send_print_string(uint8_t *s, int fd) {
  * @return uint8_t*
  */
 uint8_t *set_motor(int direction, uint8_t speed) {
-    // , *packet = malloc(MIN_PACKET_SIZE + MOTOR_CTRL_PAYLOAD);
-    // if (!packet) {
-    //     perror("Set Motot packet malloc");
-    //     exit(EXIT_FAILURE);
-    // }
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)(MOTOR_CTRL_PAYLOAD);
     if (direction == MOTOR_COMMAND_LEFT) {
@@ -122,34 +104,21 @@ uint8_t *set_motor(int direction, uint8_t speed) {
 }
 
 uint8_t *set_servo(uint8_t servo_num, uint8_t position) {
-    // uint8_t *chksum, *packet = malloc(MIN_PACKET_SIZE + SERVO_CTRL_PAYLOAD);
-
-    // if (!packet) {
-    //     perror("Set Motot packet malloc");
-    //     exit(EXIT_FAILURE);
-    // }
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)(SERVO_CTRL_PAYLOAD);
     packet[2] = SERVO_CMD;
     packet[3] = servo_num;
     packet[4] = position;
     calc_crc(3 + SERVO_CTRL_PAYLOAD);
-    // chksum = packet + 5;
-    // format_crc(MIN_PACKET_SIZE + SERVO_CTRL_PAYLOAD, packet, chksum);
 
     return packet;
 }
 
-uint8_t *set_LCD(uint8_t col, uint8_t row) {
-    // , *packet = malloc(MIN_PACKET_SIZE + SET_LCD_PAYLOAD);
-    // if (!packet) {
-    //     perror("Set Motot packet malloc");
-    //     exit(EXIT_FAILURE);
-    // }
+uint8_t *set_lcd(uint8_t col, uint8_t row) {
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)(SET_LCD_PAYLOAD);
     packet[2] = SET_CURSOR_CMD;
-    /* 2 LSB for col and 6 MSB are for row*/
+    /* 2 LSB for row and 6 MSB are for col */
     packet[3] = 0x00;
     packet[3] = packet[3] | row;
     packet[3] = packet[3] | (col << 2);
@@ -168,8 +137,6 @@ uint8_t *set_LCD(uint8_t col, uint8_t row) {
  * @return uint8_t*
  */
 uint8_t *print_string(unsigned num_chars, uint8_t *string) {
-    uint8_t *chksum;
-
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)(num_chars);
     packet[2] = PRINT_STR_CMD;
@@ -179,8 +146,8 @@ uint8_t *print_string(unsigned num_chars, uint8_t *string) {
     return packet;
 }
 
-uint8_t *LCD_print_str(uint8_t col, uint8_t row, unsigned num_chars,
-                       uint8_t *string) {
+uint8_t *print_string_at(uint8_t col, uint8_t row, unsigned num_chars,
+                         uint8_t *string) {
 
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)(num_chars + SET_LCD_PAYLOAD);
