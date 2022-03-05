@@ -76,6 +76,7 @@ unsigned short commandChecker(char *data) {
 
 // Evaluate commands
 void eval_input(char *data, int size) {
+    int end_message = size - 2;
 #ifdef DEBUG
     lcd.clear();
     lcd.setCursor(0, 0);
@@ -139,7 +140,7 @@ void eval_input(char *data, int size) {
         lcd.clear();
         lcd.setCursor(0, 0);
         lcd.print((int)(((uint8_t)(data[3] && 0xFC)) >> 2));
-        lcd.print((int));
+        // lcd.print((int));
         delay(1000);
 #endif
         lcd.setCursor(((uint8_t)(data[3] & 0xFC)) >> 2, data[3] & 0x03);
@@ -151,11 +152,16 @@ void eval_input(char *data, int size) {
         lcd.print("print");
         delay(1000);
 #endif
-        int end_message = size - 2;
         // lcd.clear();
         for (int i = 3; i < end_message; i++)
             lcd.write(data[i]);
-        delay(2000);
+        break;
+
+    case 5:
+        // int end_mess2 = size - 2;
+        lcd.setCursor((data[3] & 0xFC) >> 2, data[3] & 0x03);
+        for (int i = 4; i < end_message; i++)
+            lcd.write(data[i]);
         break;
     };
 }

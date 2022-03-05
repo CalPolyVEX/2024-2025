@@ -13,7 +13,7 @@ void setup() {
     }
 
     // Set up the USB reading
-    SerialUSB.begin(38400);
+    SerialUSB.begin(115200);
     SerialUSB.setTimeout(0);
 }
 

@@ -28,26 +28,35 @@ We can only print one line of the lcd at a time: how to deal with clearing??
 #define PRINT_STR_CMD 4
 #define LCD_PRINT_STR 5
 
-#define DEV_F_NAME "/dev/cu.usbmodem142101"
+#define DEV_F_NAME "/dev/cu.usbmodem141301"
 
 uint8_t packet[MAX_PACKET_SIZE];
 
 int main(int argc, char *argv[]) {
     int fd;
+    char buff[1000];
 
     fd = open(DEV_F_NAME, O_WRONLY);
     // fd = STDOUT_FILENO;
+    // int fd_read = open("command", O_RDONLY);
 
     if (fd < 0) {
         perror(DEV_F_NAME);
         exit(EXIT_FAILURE);
     }
-
-    send_set_lcd(2, 3, fd);
-    send_print_string((uint8_t *)"Hello, World!", fd);
+    // read(fd_read, buff, 8);
+    //
+    // send_set_lcd(2, 3, fd);
+    // write(fd, buff, 8);
+    for (int i = 0; i < 100000000; i++) {
+        sprintf(buff, "%d", i);
+        send_print_string_at(0, 0, (uint8_t *)buff, fd);
+        // sleep(2);
+    }
+    // send_print_string_at(2, 3, (uint8_t *)"ello", fd);
     /* send_set_motor(MOTOR_COMMAND_RIGHT, 40, fd); */
 
-    // close(fd);
+    close(fd);
 
     return 0;
 }
@@ -78,7 +87,7 @@ void send_print_string_at(uint8_t col, uint8_t row, uint8_t *s, int fd) {
     unsigned len = strlen((char *)s);
     uint8_t *packet = print_string_at(col, row, len, s);
     /* 2: for null byte and numuint8_ts */
-    write(fd, packet, MIN_PACKET_SIZE + len);
+    write(fd, packet, MIN_PACKET_SIZE + len + SET_LCD_PAYLOAD);
 }
 
 /**
@@ -156,7 +165,7 @@ uint8_t *print_string_at(uint8_t col, uint8_t row, unsigned num_chars,
     packet[3] = packet[3] | row;
     packet[3] = packet[3] | (col << 2);
     memcpy(packet + 4, string, num_chars);
-    calc_crc(4 + num_chars);
+    calc_crc(3 + SET_LCD_PAYLOAD + num_chars);
 
     return packet;
 }
