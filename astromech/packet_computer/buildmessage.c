@@ -27,14 +27,23 @@ We can only print one line of the lcd at a time: how to deal with clearing??
 #define SET_CURSOR_CMD 3
 #define PRINT_STR_CMD 4
 #define LCD_PRINT_STR 5
+#define LCD_CLR_CMD 6
 
-#define DEV_F_NAME "/dev/cu.usbmodem141301"
+#define DEV_F_NAME "/dev/cu.usbmodem144101"
 
 uint8_t packet[MAX_PACKET_SIZE];
+/*
+packet[0] -> start marker (0xFF)
+packet[1] -> payload size
+packet[2] -> command
+packet[3] -> 1st payload byte
+packet[4] -> 2nd payload byte (if applicable)
+packet[5] -> checksum
+*/
 
 int main(int argc, char *argv[]) {
     int fd;
-    char buff[1000];
+    // char buff[1000];
 
     fd = open(DEV_F_NAME, O_WRONLY);
     // fd = STDOUT_FILENO;
@@ -48,13 +57,17 @@ int main(int argc, char *argv[]) {
     //
     // send_set_lcd(2, 3, fd);
     // write(fd, buff, 8);
-    for (int i = 0; i < 100000000; i++) {
-        sprintf(buff, "%d", i);
-        send_print_string_at(0, 0, (uint8_t *)buff, fd);
-        // sleep(2);
-    }
-    // send_print_string_at(2, 3, (uint8_t *)"ello", fd);
-    /* send_set_motor(MOTOR_COMMAND_RIGHT, 40, fd); */
+    // for (int i = 0; i < 100; i++) {
+    //     sprintf(buff, "%d", i);
+    //     send_print_string_at(0, 0, (uint8_t *)buff, fd);
+    //     // sleep(2);
+    // }
+    // send_print_string_at(2, 3, (uint8_t *)"hello", fd);
+    send_clear_lcd(fd);
+    // send_set_motor(MOTOR_COMMAND_LEFT, 127, fd);
+    // send_set_motor(MOTOR_COMMAND_RIGHT, 253, fd);
+    // send_set_servo(3, 127, fd);
+    // send_print_string_at(2, 3, (uint8_t *)"wooooo", fd);
 
     close(fd);
 
@@ -88,6 +101,11 @@ void send_print_string_at(uint8_t col, uint8_t row, uint8_t *s, int fd) {
     uint8_t *packet = print_string_at(col, row, len, s);
     /* 2: for null byte and numuint8_ts */
     write(fd, packet, MIN_PACKET_SIZE + len + SET_LCD_PAYLOAD);
+}
+
+void send_clear_lcd(int fd) {
+    uint8_t *packet = clear_lcd();
+    write(fd, packet, MIN_PACKET_SIZE);
 }
 
 /**
@@ -167,6 +185,14 @@ uint8_t *print_string_at(uint8_t col, uint8_t row, unsigned num_chars,
     memcpy(packet + 4, string, num_chars);
     calc_crc(3 + SET_LCD_PAYLOAD + num_chars);
 
+    return packet;
+}
+
+uint8_t *clear_lcd() {
+    packet[0] = (uint8_t)0xFF;
+    packet[1] = (uint8_t)0;
+    packet[2] = (uint8_t)LCD_CLR_CMD;
+    calc_crc(3);
     return packet;
 }
 
