@@ -1,0 +1,5 @@
+{
+    "board": "SparkFun:samd:RedBoard_Turbo",
+    "programmer": "SparkFun:atmel_ice",
+    "sketch": "astromech/motor_control/RedBoardTurboWorkingServoFile/RedBoardTurboWorkingServoFile.ino"
+}

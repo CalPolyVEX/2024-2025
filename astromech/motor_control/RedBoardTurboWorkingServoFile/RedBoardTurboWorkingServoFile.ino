@@ -7,17 +7,46 @@ unsigned int motor_percentage_2 = 127; //range is 0 (100% backward) to 127 (0% s
 unsigned int servo_percentages[4] = {127, 127, 217, 127}; // Same as Above but for Servos 
 unsigned int current_servo_position[4] = {0, 0, 0, 0}; // The current angle of the servos
 unsigned int target_servo_position[4] = {0, 0, 0, 0}; // The survos will move until their current angle matches these values
+unsigned int waveform_map[4] = {0, 2, 1, 3}; // The Servo Waveform Output indexed by servo number
 
 // WARNING: Only Use Values Between 1 and 253 For Motor Percentage To Keep Motor in Bounds
 
-// Left Motor: Pin 9 (PA07)
-// Right Motor: Pin 8 (PA06)
-// Servo 1: Pin 4 (PA08)
-// Servo 2: Pin 3 (PA09)
-// Servo 3: Pin 10 (PA18)
-// Servo 4: Pin 12 (PA19)
+// Left Motor: Pin 9 (PA07)   On PCB: D9
+// Right Motor: Pin 8 (PA06)  On PCB: D8
+// Servo 0: Pin 4 (PA08)      On PCB: D7 (PA21) WO[7]
+// Servo 1: Pin 3 (PA09)      On PCB: D5 (PA15) WO[5]
+// Servo 2: Pin 10 (PA18)     On PCB: D6 (PA20) WO[6]
+// Servo 3: Pin 12 (PA19)     On PCB: A3 (PA04) WO[0]
 
 float theta = 0;
+
+// Wait for Servo Wavelengths to Sync
+void sync_servos(unsigned short servo_number)
+{
+    switch (servo_number)
+    {
+    case 0:
+    {
+        while (TCC0->SYNCBUSY.bit.CC0) {};
+        break;
+    }
+    case 1:
+    {
+        while (TCC0->SYNCBUSY.bit.CC2) {};
+        break;
+    }
+    case 2:
+    {
+        while (TCC0->SYNCBUSY.bit.CC1) {};
+        break;
+    }
+    case 3:
+    {
+        while (TCC0->SYNCBUSY.bit.CC3) {};
+        break;
+    }
+    }
+}
 
 void setup() {
 
@@ -71,10 +100,6 @@ void setup() {
     // index is pin number - 1 / 2, so 3.
     PORT->Group[0].PMUX[3].reg |= PORT_PMUX_PMUXO_E;
 
-    //set motor dir PA16 to output
-    //PORT->Group[0].DIRSET.reg = PORT_PA16; //set the direction to output
-    //PORT->Group[0].OUTCLR.reg = PORT_PA16; //set the value to output LOW
-
     ///////////////////////////////
     //Right Motor
     //Set the duty cycle to controller speeds
@@ -92,10 +117,6 @@ void setup() {
     // Because this is an even numbered pin the PMUX is E (even) and the PMUX
     // index is pin number / 2, so 3.
     PORT->Group[0].PMUX[3].reg |= PORT_PMUX_PMUXE_E;
-
-    //set motor dir PA18 to output
-    //PORT->Group[0].DIRSET.reg = PORT_PA18; //set the direction to output
-    //PORT->Group[0].OUTCLR.reg = PORT_PA18; //set the value to output LOW
 
     ///////////////////////////////
     //Enable TCC1
@@ -119,67 +140,67 @@ void setup() {
     TCC0->PER.reg = MOTOR_WAVELENGTH;  //this is a 24-bit register
     while (TCC1->SYNCBUSY.bit.PER) {};
 
-    // Servo 1
+    // Servo 0 (D7 PA21 WO[7])
 
-    //set PA08 to output
-    PORT->Group[0].DIRSET.reg |= PORT_PA08; //set the direction to output
-    PORT->Group[0].OUTCLR.reg |= PORT_PA08; //set the value to output LOW
-
-    /* Enable the peripheral multiplexer for the pins. */
-    PORT->Group[0].PINCFG[8].reg |= PORT_PINCFG_PMUXEN;
-
-    // Set PA08's function to function E. Function E is TCC0/WO[0] for PA08.
-    // Because this is an even numbered pin the PMUX is E (even) and the PMUX
-    // index is pin number / 2, so 4.
-    PORT->Group[0].PMUX[4].reg |= PORT_PMUX_PMUXE_E;
-
-    // Servo 2
-
-    //set PA09 to output
-    PORT->Group[0].DIRSET.reg |= PORT_PA09; //set the direction to output
-    PORT->Group[0].OUTCLR.reg |= PORT_PA09; //set the value to output LOW
+    //set PA21 to output
+    PORT->Group[0].DIRSET.reg |= PORT_PA21; //set the direction to output
+    PORT->Group[0].OUTCLR.reg |= PORT_PA21; //set the value to output LOW
 
     /* Enable the peripheral multiplexer for the pins. */
-    PORT->Group[0].PINCFG[9].reg |= PORT_PINCFG_PMUXEN;
+    PORT->Group[0].PINCFG[21].reg |= PORT_PINCFG_PMUXEN;
 
-    // Set PA09's function to function E. Function E is TCC0/WO[1] for PA09.
+    // Set PA21's function to function F. Function F is TCC0/WO[7] for PA21.
     // Because this is an odd numbered pin the PMUX is O (odd) and the PMUX
-    // index is pin number - 1 / 2, so 4.
-    PORT->Group[0].PMUX[4].reg |= PORT_PMUX_PMUXO_E;
+    // index is pin number - 1 / 2, so 10
+    PORT->Group[0].PMUX[10].reg |= PORT_PMUX_PMUXO_F;
 
-    // Servo 3
+    // Servo 1 (D5 PA15 WO[5])
 
-    // Set PA18 to output
-    PORT->Group[0].DIRSET.reg |= PORT_PA18; //set the direction to output
-    PORT->Group[0].OUTCLR.reg |= PORT_PA18; //set the value to output LOW
-
-    /* Enable the peripheral multiplexer for the pins. */
-    PORT->Group[0].PINCFG[18].reg |= PORT_PINCFG_PMUXEN;
-
-    // Set PA18's function to function F. Function F is TCC0/WO[2] for PA18.
-    // Because this is an even numbered pin the PMUX is E (even) and the PMUX
-    // index is pin number / 2, so 9.
-    PORT->Group[0].PMUX[9].reg |= PORT_PMUX_PMUXE_F;
-
-    // Servo 4
-
-    // Set PA19 to output
-    PORT->Group[0].DIRSET.reg |= PORT_PA19; //set the direction to output
-    PORT->Group[0].OUTCLR.reg |= PORT_PA19; //set the value to output LOW
+    //set PA15 to output
+    PORT->Group[0].DIRSET.reg |= PORT_PA15; //set the direction to output
+    PORT->Group[0].OUTCLR.reg |= PORT_PA15; //set the value to output LOW
 
     /* Enable the peripheral multiplexer for the pins. */
-    PORT->Group[0].PINCFG[19].reg |= PORT_PINCFG_PMUXEN;
+    PORT->Group[0].PINCFG[15].reg |= PORT_PINCFG_PMUXEN;
 
-    // Set PA19's function to function F. Function F is TCC0/WO[3] for PA19.
+    // Set PA15's function to function F. Function F is TCC0/WO[5] for PA15.
     // Because this is an odd numbered pin the PMUX is O (odd) and the PMUX
-    // index is pin number - 1 / 2, so 9.
-    PORT->Group[0].PMUX[9].reg |= PORT_PMUX_PMUXO_F;
+    // index is pin number - 1 / 2, so 7.
+    PORT->Group[0].PMUX[7].reg |= PORT_PMUX_PMUXO_F;
+
+    // Servo 2 (D6 PA20 WO[6])
+
+    // Set PA20 to output
+    PORT->Group[0].DIRSET.reg |= PORT_PA20; //set the direction to output
+    PORT->Group[0].OUTCLR.reg |= PORT_PA20; //set the value to output LOW
+
+    /* Enable the peripheral multiplexer for the pins. */
+    PORT->Group[0].PINCFG[20].reg |= PORT_PINCFG_PMUXEN;
+
+    // Set PA20's function to function F. Function F is TCC0/WO[6] for PA20.
+    // Because this is an even numbered pin the PMUX is E (even) and the PMUX
+    // index is pin number / 2, so 10.
+    PORT->Group[0].PMUX[10].reg |= PORT_PMUX_PMUXE_F;
+
+    // Servo 3 (A3 PA04 WO[0])
+
+    // Set PA04 to output
+    PORT->Group[0].DIRSET.reg |= PORT_PA04; //set the direction to output
+    PORT->Group[0].OUTCLR.reg |= PORT_PA04; //set the value to output LOW
+
+    /* Enable the peripheral multiplexer for the pins. */
+    PORT->Group[0].PINCFG[4].reg |= PORT_PINCFG_PMUXEN;
+
+    // Set PA04's function to function E. Function E is TCC0/WO[6] for PA04.
+    // Because this is an even numbered pin the PMUX is E (even) and the PMUX
+    // index is pin number / 2, so 2.
+    PORT->Group[0].PMUX[2].reg |= PORT_PMUX_PMUXE_E;
 
     // Set Waveform Output for All Servos
     for (int i = 0; i < 4; i++)
     {
         //Set the duty cycle to controller speeds
-        TCC0->CC[i].reg = MOTOR_BASE_TIME + (MOTOR_CHANGE_CONST * servo_percentages[i]); //this set the on time of the PWM cycle based on the motor_percentage set by the controller
+        TCC0->CC[waveform_map[i]].reg = MOTOR_BASE_TIME + (MOTOR_CHANGE_CONST * servo_percentages[i]); //this set the on time of the PWM cycle based on the motor_percentage set by the controller
         sync_servos(i);
     }
 
@@ -188,54 +209,54 @@ void setup() {
     while (TCC0->SYNCBUSY.bit.ENABLE) {}; 
 }
 
-// Wait for Servo Wavelengths to Sync
-void sync_servos(unsigned short servo_number)
+// Sets Motor Speed
+void change_motor_speed(unsigned short motor_num, int speed)
 {
-    switch (servo_number)
+    // Left Motor
+    if (!motor_num)
     {
-    case 0:
+        // Calculate speed percentage
+        motor_percentage_1 = 127 + speed;
+
+        // Update timer values
+        TCC1->CC[0].reg = MOTOR_BASE_TIME + (MOTOR_CHANGE_CONST * motor_percentage_2); //this sets the on time of the PWM cycle
+        while (TCC1->SYNCBUSY.bit.CC0) {};
+    }
+
+    // Right Motor
+    else
     {
-        while (TCC0->SYNCBUSY.bit.CC0) {};
-        break;
+        // Calculate speed percentage
+        motor_percentage_2 = 127 + speed;
+
+        // Update timer values
+        TCC1->CC[1].reg = MOTOR_BASE_TIME + (MOTOR_CHANGE_CONST * motor_percentage_1); //this set the on time of the PWM cycle
+        while (TCC1->SYNCBUSY.bit.CC1) {};
     }
-    case 1:
-    {
-        while (TCC0->SYNCBUSY.bit.CC1) {};
-        break;
-    }
-    case 2:
-    {
-        while (TCC0->SYNCBUSY.bit.CC2) {};
-        break;
-    }
-    case 3:
-    {
-        while (TCC0->SYNCBUSY.bit.CC3) {};
-        break;
-    }
-    }
+}
+
+// Sets Servo Angle
+void set_servo_angle(unsigned short servo_num, int position)
+{
+    // Change Percentage
+    servo_percentages[servo_num] = 127 + position;
+
+    // Update Servo
+    TCC0->CC[waveform_map[servo_num]].reg = MOTOR_BASE_TIME + (MOTOR_CHANGE_CONST * servo_percentages[servo_num]); //this sets the on time of the PWM cycle
+    sync_servos(servo_num);
 }
 
 void loop() 
 {
-    // put your main code here, to run repeatedly:
     theta += 0.0002f;
-    motor_percentage_1 = 127 + int(127 * sin(theta));
-    motor_percentage_2 = 127 + int(127 * sin(theta + 3.14));
 
-    TCC1->CC[0].reg = MOTOR_BASE_TIME + (MOTOR_CHANGE_CONST * motor_percentage_2); //this sets the on time of the PWM cycle
-    while (TCC1->SYNCBUSY.bit.CC0) {};
+    // Update Motors
+    change_motor_speed(0, int(127 * sin(theta)));
+    change_motor_speed(1, int(127 * sin(theta + 3.14159f)));
 
-    TCC1->CC[1].reg = MOTOR_BASE_TIME + (MOTOR_CHANGE_CONST * motor_percentage_1); //this set the on time of the PWM cycle
-    while (TCC1->SYNCBUSY.bit.CC1) {};
-
+    // Update Servos
     for (int i = 0; i < 4; i++)
     {
-        // Change Percentage
-        servo_percentages[i] = 127 + int(127 * sin(theta));
-
-        // Update Motor
-        TCC0->CC[i].reg = MOTOR_BASE_TIME + (MOTOR_CHANGE_CONST * servo_percentages[i]); //this sets the on time of the PWM cycle
-        sync_servos(i);
+        set_servo_angle(i, int(127 * sin(theta)));
     }
 }
