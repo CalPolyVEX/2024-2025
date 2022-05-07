@@ -3,7 +3,13 @@
 #include <hd44780.h>                       // main hd44780 header
 #include <hd44780ioClass/hd44780_I2Cexp.h> // i2c expander i/o class header
 
-hd44780_I2Cexp lcd; // declare lcd object: auto locate & auto config expander chip
+#define LCD_ADDRESS 0x27
+
+hd44780_I2Cexp lcd(LCD_ADDRESS); // declare lcd object: auto locate & auto config expander chip
+
+#define DEBUG
+
+bool FAILED = false;
 
 // LCD geometry
 const int LCD_COLS = 20;
@@ -76,6 +82,11 @@ void eval_input(char *data, int size) {
     int end_message = size - 2;
     // Check packet for errors
     if (!check_crc(data, size)) {
+#ifdef DEBUG
+        lcd.setCursor(0, 1);
+        lcd.print("CRCF");
+        FAILED = true;
+#endif
         return;
     }
 
@@ -103,6 +114,10 @@ void eval_input(char *data, int size) {
         break;
 
     case 5: // set cursor then Print string
+        // if (data[4] != '8')
+        if (!FAILED) {
+            lcd.clear();
+        }
         lcd.setCursor((data[3] & 0xFC) >> 2, data[3] & 0x03);
         for (int i = 4; i < end_message; i++)
             lcd.write(data[i]);
@@ -115,24 +130,53 @@ void eval_input(char *data, int size) {
 }
 
 void get_input() {
-    unsigned short byte_count = 0;
-    unsigned short payload;
-    char cur_byte;
+    static uint16_t byte_count = 0;
+    uint16_t test_val;
+    // static uint8_t payload;
+    // static char cur_byte;
 
     if (SerialUSB.available()) {
-        cur_byte = SerialUSB.read();
-        if (cur_byte == 0xFF) {
-            byte_count++;
-            bytes[0] = 0xFF;
-            payload = SerialUSB.peek();
-            bytes[1] = payload;
-            // readBytes is ignoring the value peeked for some reason
-            // This doesn't block because timeout is set to 0
-            if ((byte_count =
-                     SerialUSB.readBytes(bytes + 2, payload + 3) + 2) ==
-                payload + 5) {
-                eval_input(bytes, byte_count);
+        if (byte_count == 0) { // confirming start of packet
+            if ((test_val = SerialUSB.read()) == 0xFF) {
+                bytes[byte_count++] = 0xFF;
+            } else {
+                lcd.setCursor(0, 3);
+                FAILED = true;
+                lcd.print("INVALSTRT");
+                lcd.print(test_val);
             }
+        } else if (byte_count == 1) {
+            // we are already reading a packet
+            // read the payload size
+            bytes[byte_count++] = SerialUSB.read();
+        } else if (byte_count < bytes[1] + 5) {
+            // read until we get everything else
+            bytes[byte_count++] = SerialUSB.read();
+        }
+        if (byte_count >= 2 && byte_count == bytes[1] + 5) {
+            eval_input(bytes, byte_count);
+            byte_count = 0;
         }
     }
+
+    // if (SerialUSB.available()) {
+    //     cur_byte = SerialUSB.read();
+    //     if (cur_byte == 0xFF) {
+    //         byte_count++;
+    //         bytes[0] = 0xFF;
+    //         payload = SerialUSB.read();
+    //         bytes[1] = payload;
+    //         // readBytes is ignoring the value peeked for some reason
+    //         // This doesn't block because timeout is set to 0
+    //         // packet size is only the size of the payload
+    //         while (byte_count < payload + 5) {
+    //             bytes[byte_count++] = SerialUSB.read();
+    //         }
+    //         // if ((byte_count +=
+    //         //          SerialUSB.readBytes(bytes + 2, payload + 3)) ==
+    //         //     payload + 5) {
+    //         //     eval_input(bytes, byte_count);
+    //         // }
+    //     }
+    // }
 }
