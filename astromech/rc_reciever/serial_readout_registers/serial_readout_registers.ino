@@ -41,6 +41,7 @@
  *   enable interrupt requests from SBUSSERCOM
  * PART 4: ARDUINO SERIAL SETUP
  *   set SerialUSB up
+ * PART 4: INTERRUPT HANDLER 
  *   NOTE: this is in the irq handler function for SBUSSERCOM
  *   set newData boolean to true
  *   set regCont to data in DATA register
