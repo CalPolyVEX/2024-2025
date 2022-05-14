@@ -1,0 +1,5 @@
+{
+    "board": "SparkFun:samd:samd21_dev",
+    "port": "/dev/tty.usbmodem141101",
+    "sketch": "astromech/packet_arduino/RedBoardMainFile/RedBoardMainFile.ino"
+}

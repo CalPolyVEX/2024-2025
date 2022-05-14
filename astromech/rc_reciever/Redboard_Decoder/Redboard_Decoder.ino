@@ -44,11 +44,9 @@ void loop()
       if (bufferPosition == DATA_LENGTH) {
         if (dataBuffer[0] == 0x0F && dataBuffer[DATA_LENGTH - 1] == 0x0) {
           parseData();
-          if(SerialUSB.available() > 0) {
-            if(SerialUSB.read() == '1') {
-              printData();
-            }
-          }
+
+          printData();
+
 
           bufferPosition = 0;
           addToBuffer(Serial1.read());

@@ -29,7 +29,7 @@ We can only print one line of the lcd at a time: how to deal with clearing??
 #define LCD_PRINT_STR 5
 #define LCD_CLR_CMD 6
 
-#define DEV_F_NAME "/dev/cu.usbmodem144101"
+#define DEV_F_NAME "/dev/cu.usbmodem142301"
 
 uint8_t packet[MAX_PACKET_SIZE];
 /*
@@ -40,33 +40,38 @@ packet[3] -> 1st payload byte
 packet[4] -> 2nd payload byte (if applicable)
 packet[5] -> checksum
 */
+// all servos are off at 131
 
 int main(int argc, char *argv[]) {
     int fd;
-    // char buff[1000];
+    char buff[1000];
 
-    fd = open(DEV_F_NAME, O_WRONLY);
-    // fd = STDOUT_FILENO;
+    // fd = open(DEV_F_NAME, O_WRONLY);
+    fd = STDOUT_FILENO;
     // int fd_read = open("command", O_RDONLY);
 
     if (fd < 0) {
         perror(DEV_F_NAME);
         exit(EXIT_FAILURE);
     }
-    // read(fd_read, buff, 8);
+    // int bytes_read = read(fd_read, buff, 1000);
+    // printf("bytes read: %d\n", bytes_read);
+
+    // write(fd, buff, bytes_read);
     //
     // send_set_lcd(2, 3, fd);
     // write(fd, buff, 8);
-    // for (int i = 0; i < 100; i++) {
-    //     sprintf(buff, "%d", i);
-    //     send_print_string_at(0, 0, (uint8_t *)buff, fd);
-    //     // sleep(2);
-    // }
-    // send_print_string_at(2, 3, (uint8_t *)"hello", fd);
-    send_clear_lcd(fd);
+    for (int i = 0; i < 100; i++) {
+        sprintf(buff, "%d", i);
+        send_print_string_at(0, 0, (uint8_t *)buff, fd);
+    }
+    // send_print_string_at(0, 0, (uint8_t *)"1", fd);
     // send_set_motor(MOTOR_COMMAND_LEFT, 127, fd);
     // send_set_motor(MOTOR_COMMAND_RIGHT, 253, fd);
-    // send_set_servo(3, 127, fd);
+    // send_set_servo(0, 131, fd);
+    // send_set_servo(1, 131, fd);
+    // send_set_servo(2, 131, fd);
+    // send_set_servo(3, 131, fd);
     // send_print_string_at(2, 3, (uint8_t *)"wooooo", fd);
 
     close(fd);

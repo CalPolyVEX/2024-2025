@@ -1,0 +1,6 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory `/Users/chonein/Documents/Projects/Astromech-11-23/ue4'
+make: Leaving directory `/Users/chonein/Documents/Projects/Astromech-11-23/ue4'
+ 
+make: *** No targets specified and no makefile found.  Stop.
+
