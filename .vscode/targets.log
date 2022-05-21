@@ -7,7 +7,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 
 # This program built for i386-apple-darwin11.3.0
 
-# Make data base, printed on Thu May 12 22:52:41 2022
+# Make data base, printed on Sat May 21 10:08:02 2022
 
 # Variables
 
@@ -40,7 +40,7 @@ VSCODE_VERBOSE_LOGGING = true
 # environment
 __CFBundleIdentifier = com.microsoft.VSCode
 # environment
-VSCODE_IPC_HOOK_EXTHOST = /var/folders/x_/s383zx_n34s2jkgvc2rh1nkc0000gn/T/vscode-ipc-8313bb89-a513-4436-bcb8-140834052610.sock
+VSCODE_IPC_HOOK_EXTHOST = /var/folders/x_/s383zx_n34s2jkgvc2rh1nkc0000gn/T/vscode-ipc-c71ff846-9207-4925-bcdb-7626f52289cf.sock
 # environment
 VSCODE_CWD = /Users/chonein/Documents/Projects/Astromech-11-23/ue4
 # environment
@@ -54,7 +54,7 @@ ELECTRON_RUN_AS_NODE = 1
 # default
 .FEATURES := target-specific order-only second-expansion else-if archives jobserver check-symlink
 # environment
-SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.sCfx0AEjZG/Listeners
+SSH_AUTH_SOCK = /private/tmp/com.apple.launchd.FtkdNRaBAa/Listeners
 # automatic
 %F = $(notdir $%)
 # environment
@@ -72,7 +72,7 @@ MAKEFILEPATH = $(shell /usr/bin/xcode-select -print-path 2>/dev/null || echo /De
 # environment
 VSCODE_CLI = 1
 # environment
-VSCODE_CODE_CACHE_PATH = /Users/chonein/Library/Application Support/Code/CachedData/da15b6fd3ef856477bf6f4fb29ba1b7af717770d
+VSCODE_CODE_CACHE_PATH = /Users/chonein/Library/Application Support/Code/CachedData/c3511e6c69bb39013c4a4b7b9566ec1ca73fc4d5
 # environment
 LOGNAME = chonein
 # environment
@@ -98,7 +98,7 @@ USER = chonein
 # makefile
 .DEFAULT_GOAL := 
 # environment
-TERM_SESSION_ID = E81FAB51-7E9E-42EE-8091-A15E028B1E9C
+TERM_SESSION_ID = 388FE8D6-8FE5-4BC0-83BD-3D24AFE08535
 # environment
 CLASSPATH = /Users/chonein/Documents/junit/junit-4.12.jar:/Users/chonein/Documents/junit/hamcrest-core-1.3.jar::.
 # environment
@@ -116,7 +116,7 @@ TMPDIR = /var/folders/x_/s383zx_n34s2jkgvc2rh1nkc0000gn/T/
 # automatic
 *F = $(notdir $*)
 # environment
-VSCODE_IPC_HOOK = /Users/chonein/Library/Application Support/Code/1.67.1-main.sock
+VSCODE_IPC_HOOK = /Users/chonein/Library/Application Support/Code/1.67.2-main.sock
 # makefile
 MAKEFLAGS = Rrqp
 # environment
@@ -126,7 +126,7 @@ MFLAGS = -Rrqp
 # environment
 TERM_PROGRAM_VERSION = 444
 # environment
-XPC_SERVICE_NAME = application.com.microsoft.VSCode.51965643.51965649.A5FE75CD-5B59-4E61-95CC-1E9C85F07770
+XPC_SERVICE_NAME = application.com.microsoft.VSCode.51965643.51965649.895DADAD-2AC9-4DA4-A5DF-F9D3C262BB26
 # automatic
 +D = $(patsubst %/,%,$(dir $+))
 # automatic
@@ -156,7 +156,7 @@ LANG = C
 # environment
 TERM = ansi
 # environment
-VSCODE_PID = 3745
+VSCODE_PID = 37303
 # variable set hash-table stats:
 # Load=73/1024=7%, Rehash=0, Collisions=1/94=1%
 
@@ -240,7 +240,7 @@ GNUmakefile:
 # strcache size: total = 0 / max = 0 / min = 4096 / avg = 0
 # strcache free: total = 0 / max = 0 / min = 4096 / avg = 0
 
-# Finished Make data base on Thu May 12 22:52:41 2022
+# Finished Make data base on Sat May 21 10:08:02 2022
 
  
 make: *** No rule to make target `all'.  Stop.

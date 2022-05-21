@@ -10,10 +10,10 @@ START_DELAY = 0  # no need to be changed
 # should be 256 or 255 for redboard turbo
 # not quite sure
 # can't be higher
-SERIAL_BUFF_SIZE = 255
+SERIAL_BUFF_SIZE = 32
 # this is the delay between writes
 # each write is buff size
-DELAY_BETWEEN_WRITES = 0.1  # goal is to make this as low as possible
+DELAY_BETWEEN_WRITES = 0.01  # goal is to make this as low as possible
 
 if (len(sys.argv) != 4 and len(sys.argv) != 3):
     print('usage: python3 serial_send.py dev_file baud_rate [input_file]')

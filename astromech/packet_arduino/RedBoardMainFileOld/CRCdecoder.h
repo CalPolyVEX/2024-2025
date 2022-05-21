@@ -4,6 +4,7 @@
 #include <hd44780ioClass/hd44780_I2Cexp.h> // i2c expander i/o class header
 
 #define LCD_ADDRESS 0x27
+// #define MIN_PACKET_SIZE 5
 
 hd44780_I2Cexp lcd(LCD_ADDRESS); // declare lcd object: auto locate & auto config expander chip
 
@@ -149,7 +150,6 @@ void get_input() {
     uint16_t test_val;
     // static uint8_t payload;
     // static char cur_byte;
-
     if (SerialUSB.available()) {
         if (byte_count == 0) { // confirming start of packet
             if ((test_val = SerialUSB.read()) == 0xFF) {
