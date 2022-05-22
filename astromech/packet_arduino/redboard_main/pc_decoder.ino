@@ -135,9 +135,16 @@ void eval_input(uint8_t *data, int size) {
 
 void get_input() {
     static uint16_t byte_count = 0;
+    static uint32_t millis_time = millis();
     uint16_t test_val;
     // static uint8_t payload;
     // static char cur_byte;
+    // if no command decoded in last 1 second
+    if (millis() - millis_time > MOTOR_TIMOUT) {
+        // CHECK IF 127 is the actual minimum speed.
+        change_motor_speed(0, 127);
+        change_motor_speed(1, 127);
+    }
     if (SerialUSB.available()) {
         if (byte_count == 0) { // confirming start of packet
             if ((test_val = SerialUSB.read()) == 0xFF) {
@@ -157,6 +164,7 @@ void get_input() {
         }
         if (byte_count >= 2 && byte_count == bytes[1] + 5) {
             eval_input(bytes, byte_count);
+            millis_time = millis();
             byte_count = 0;
         }
     }
