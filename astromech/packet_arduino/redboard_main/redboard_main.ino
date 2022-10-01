@@ -5,6 +5,7 @@ hd44780_I2Cexp lcd(LCD_ADDRESS); // declare lcd object: auto locate & auto confi
 void setup() {
     // Set up the motors
     motor_setup();
+    receiver_setup();
     int status;
     status = lcd.begin(LCD_COLS, LCD_ROWS);
     if (status) // non zero status means it was unsuccesful
@@ -23,5 +24,10 @@ void loop() {
     // if (rc_toggle) {
     // eval_rc_input()
     // } else {}
-    get_input();
+
+    // Computer Input Mode
+    // get_input();
+
+    // Receiver Mode
+    receiver_loop();
 }
