@@ -1,8 +1,8 @@
 #include "motor_servo_control.h"
 // C++ code
 const uint32_t MOTOR_WAVELENGTH = 960000;                 // wavelength from peak to peak in Hz
-const float MOTOR_BASE_TIME = 47997;                      // value in Hz of high length when speed = 100% backwards
-float MOTOR_CHANGE_CONST = 189;                           // multiplied by percentage to get change in range of wavelength needed
+const float MOTOR_BASE_TIME = 54220;                      // value in Hz of high length when speed = 100% backwards (For Full Range Value is 47997, Lowered for Safety)
+float MOTOR_CHANGE_CONST = 140;                           // multiplied by percentage to get change in range of wavelength needed (For Full Range Value is 189, Lowered for Safety)
 unsigned int motor_percentage_1 = 127;                    // range is 0 (100% backward) to 127 (0% speed) to 254 (100% forward) for left motor
 unsigned int motor_percentage_2 = 127;                    // range is 0 (100% backward) to 127 (0% speed) to 254 (100% forward) for right motor
 unsigned int servo_percentages[4] = {127, 127, 127, 127}; // Same as Above but for Servos
