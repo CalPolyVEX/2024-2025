@@ -270,22 +270,22 @@ void receiver_loop() {
 // This function transforms the current 8 bit packets into 11 bit channels
 void decodeData() {
     // this mess decodes the data bytes into actual channel values
-    channel[0] = (complete_packet[1] | complete_packet[2] << 8) & 0b11111111111;
-    channel[1] = (complete_packet[2] >> 3 | complete_packet[3] << 5) & 0b11111111111;
-    channel[2] = (complete_packet[3] >> 6 | complete_packet[4] << 2 | complete_packet[5] << 10) & 0b11111111111;
-    channel[3] = (complete_packet[5] >> 1 | complete_packet[6] << 7) & 0b11111111111;
-    channel[4] = (complete_packet[6] >> 4 | complete_packet[7] << 4) & 0b11111111111;
-    channel[5] = (complete_packet[7] >> 7 | complete_packet[8] << 1 | complete_packet[9] << 9) & 0b11111111111;
-    channel[6] = (complete_packet[9] >> 2 | complete_packet[10] << 6) & 0b11111111111;
-    channel[7] = (complete_packet[10] >> 5 | complete_packet[11] << 3) & 0b11111111111;
-    channel[8] = (complete_packet[12] | complete_packet[13] << 8) & 0b11111111111;
-    channel[9] = (complete_packet[13] >> 3 | complete_packet[14] << 5) & 0b11111111111;
-    channel[10] = (complete_packet[14] >> 6 | complete_packet[15] << 2 | complete_packet[16] << 10) & 0b11111111111;
-    channel[11] = (complete_packet[16] >> 1 | complete_packet[17] << 7) & 0b11111111111;
-    channel[12] = (complete_packet[17] >> 4 | complete_packet[18] << 4) & 0b11111111111;
-    channel[13] = (complete_packet[18] >> 7 | complete_packet[19] << 1 | complete_packet[20] << 9) & 0b11111111111;
-    channel[14] = (complete_packet[20] >> 2 | complete_packet[21] << 6) & 0b11111111111;
-    channel[15] = (complete_packet[21] >> 5 | complete_packet[22] << 3) & 0b11111111111;
+    channel[0] = (complete_packet[1] | complete_packet[2] << 8) & 0x7FF;
+    channel[1] = (complete_packet[2] >> 3 | complete_packet[3] << 5) & 0x7FF;
+    channel[2] = (complete_packet[3] >> 6 | complete_packet[4] << 2 | complete_packet[5] << 10) & 0x7FF;
+    channel[3] = (complete_packet[5] >> 1 | complete_packet[6] << 7) & 0x7FF;
+    channel[4] = (complete_packet[6] >> 4 | complete_packet[7] << 4) & 0x7FF;
+    channel[5] = (complete_packet[7] >> 7 | complete_packet[8] << 1 | complete_packet[9] << 9) & 0x7FF;
+    channel[6] = (complete_packet[9] >> 2 | complete_packet[10] << 6) & 0x7FF;
+    channel[7] = (complete_packet[10] >> 5 | complete_packet[11] << 3) & 0x7FF;
+    channel[8] = (complete_packet[12] | complete_packet[13] << 8) & 0x7FF;
+    channel[9] = (complete_packet[13] >> 3 | complete_packet[14] << 5) & 0x7FF;
+    channel[10] = (complete_packet[14] >> 6 | complete_packet[15] << 2 | complete_packet[16] << 10) & 0x7FF;
+    channel[11] = (complete_packet[16] >> 1 | complete_packet[17] << 7) & 0x7FF;
+    channel[12] = (complete_packet[17] >> 4 | complete_packet[18] << 4) & 0x7FF;
+    channel[13] = (complete_packet[18] >> 7 | complete_packet[19] << 1 | complete_packet[20] << 9) & 0x7FF;
+    channel[14] = (complete_packet[20] >> 2 | complete_packet[21] << 6) & 0x7FF;
+    channel[15] = (complete_packet[21] >> 5 | complete_packet[22] << 3) & 0x7FF;
 }
 
 void SERCOM2_Handler() {
