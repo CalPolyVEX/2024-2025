@@ -263,6 +263,9 @@ void receiver_loop() {
 
         //input motor values
         control_motors(channel[6], channel[7]);
+
+        //reset the complete_packet buffer
+        complete_packet[0] = 0;
     }
 }
 
