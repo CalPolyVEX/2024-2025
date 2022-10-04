@@ -266,8 +266,8 @@ void receiver_loop() {
     }
 }
 
-// The RC Receiver sends packets where each byte is 11 bits.
-// This function transforms the current 8 bit packets into 11 bit channels
+// The RC Receiver uses a protocol (SBUS) that transmits 11 bit channels
+// This function decodes the 11 bit channels from the byte-sized serial transmissions
 void decodeData() {
     // this mess decodes the data bytes into actual channel values
     channel[0] = (complete_packet[1] | complete_packet[2] << 8) & 0x7FF;
