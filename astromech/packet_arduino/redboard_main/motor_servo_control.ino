@@ -234,7 +234,7 @@ void change_motor_speed(unsigned short motor_num, int speed) {
     // Right Motor2
     else {
         // Calculate speed percentage
-        motor_percentage_2 = speed;
+        motor_percentage_2 = 255 - speed;
 
         // Update timer values
         TCC1->CC[1].reg = MOTOR_BASE_TIME + (MOTOR_CHANGE_CONST * motor_percentage_2); // this set the on time of the PWM cycle

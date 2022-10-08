@@ -254,17 +254,20 @@ void receiver_loop() {
         // Decode Data into cursed 11 bit channels
         decodeData();
 
-        //print out the values of every channel into serial
-        for (int i = 0; i < 16; i++) {
-            SerialUSB.print(channel[i]);
-            SerialUSB.print(" ");
-        }
-        SerialUSB.println(" ");
+        // print out the values of every channel into serial
+        // for (int i = 0; i < 16; i++) {
+        //     SerialUSB.print(channel[i]);
+        //     SerialUSB.print(" ");
+        // }
+        // SerialUSB.println(" ");
 
-        //input motor values
-        control_motors(channel[6], channel[7]);
+        // convert from 11 bit to 8 bit before calling control motors
+        uint8_t ver_8bit = channel[6] * 255 / 2047;
+        uint8_t hor_8bit = channel[7] * 255 / 2047;
+        // input motor values
+        control_motors(ver_8bit, hor_8bit);
 
-        //reset the complete_packet buffer
+        // reset the complete_packet buffer
         complete_packet[0] = 0;
     }
 }
