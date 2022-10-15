@@ -7,7 +7,7 @@
 class Queue;
 
 void receiver_setup();
-void receiver_loop();
+uint8_t receiver_loop();
 void decodeData(); 
 
 #endif

@@ -29,5 +29,15 @@ void loop() {
     // get_input();
 
     // Receiver Mode
-    receiver_loop();
+    // receiver_loop();
+
+    /* NOTE: data cannot be sent by serial from PC
+    to arduino if the VSCode serial monitor is open*/
+
+    // defaults to Receiver Mode
+    // but can switch to Computer Input Mode
+    if(!receiver_loop()) {
+        get_input();
+    }
+    
 }
