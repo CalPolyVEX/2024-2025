@@ -21,15 +21,18 @@ void setup() {
 }
 
 void loop() {
+    // static int i = 0;
     // if (rc_toggle) {
     // eval_rc_input()
     // } else {}
 
     // Computer Input Mode
-    // get_input();
+    // pc_get_input();
+    // receiver_loop();
 
     // Receiver Mode
-    receiver_loop();
+    pc_get_input(receiver_loop());
+    // lcd.write(i++);
 
     /* NOTE: data cannot be sent by serial from PC
     to arduino if the VSCode serial monitor is open*/
