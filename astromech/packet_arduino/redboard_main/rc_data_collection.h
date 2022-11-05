@@ -3,6 +3,7 @@
 
 #include "rc_decoder.h"
 #include "redboard_main.h"
+#include "pc_decoder.h"
 
 class Queue;
 

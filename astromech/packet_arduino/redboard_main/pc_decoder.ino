@@ -133,13 +133,54 @@ void eval_input(uint8_t *data, int size) {
     };
 }
 
-void get_input() {
+// drops data in the Serial buffer
+void pc_dump_input() {
+    static uint16_t byte_count = 0;
+    static uint32_t millis_time = millis();
+    uint16_t test_val;
+    if (millis() - millis_time > MOTOR_TIMOUT) {
+        // CHECK IF 127 is the actual minimum speed.
+        change_motor_speed(0, 127);
+        change_motor_speed(1, 127);
+    }
+    if (SerialUSB.available()) {
+        if (byte_count == 0) { // confirming start of packet
+            if ((test_val = SerialUSB.read()) == 0xFF) {
+                bytes[byte_count++] = 0xFF;
+            } else {
+                lcd.setCursor(0, 3);
+                lcd.print("INVALSTRT");
+                lcd.print(test_val);
+            }
+        } else if (byte_count == 1) {
+            // we are already reading a packet
+            // read the payload size
+            bytes[byte_count++] = SerialUSB.read();
+        } else if (byte_count < bytes[1] + 5) {
+            // read until we get everything else
+            bytes[byte_count++] = SerialUSB.read();
+        }
+        if (byte_count >= 2 && byte_count == bytes[1] + 5) {
+            // don't use command and payload
+            millis_time = millis();
+            byte_count = 0;
+        }
+    }
+}
+
+void pc_get_input(uint8_t to_flush) {
+// void get_input() {
     static uint16_t byte_count = 0;
     static uint32_t millis_time = millis();
     uint16_t test_val;
     // static uint8_t payload;
     // static char cur_byte;
     // if no command decoded in last 1 second
+
+    /* testing buffer rerouting*/
+
+    /* end testing buffer rerouting*/
+
     if (millis() - millis_time > MOTOR_TIMOUT) {
         // CHECK IF 127 is the actual minimum speed.
         change_motor_speed(0, 127);

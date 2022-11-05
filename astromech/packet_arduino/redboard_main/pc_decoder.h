@@ -9,6 +9,8 @@
 bool check_crc(uint8_t *data, int len);
 unsigned short commandChecker(char *data);
 void eval_input(uint8_t *data, int size);
-void get_input();
+void pc_get_input(uint8_t to_flush);
+void pc_dump_input();
+// void get_input();
 
 #endif
