@@ -2,7 +2,7 @@
 #define PC_DECODER_H
 
 #include "motor_servo_control.h"
-#include "redboard_main.h"
+#include "packet_arduino.h"
 
 #define MOTOR_TIMOUT 1000 // ms
 

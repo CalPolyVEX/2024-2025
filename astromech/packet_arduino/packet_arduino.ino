@@ -1,4 +1,4 @@
-#include "redboard_main.h"
+#include "packet_arduino.h"
 
 hd44780_I2Cexp lcd(LCD_ADDRESS); // declare lcd object: auto locate & auto config expander chip
 
@@ -26,7 +26,7 @@ void loop() {
     // } else {}
 
     // Computer Input Mode
-    // get_input();
+    get_input();
 
     // Receiver Mode
     receiver_loop();
