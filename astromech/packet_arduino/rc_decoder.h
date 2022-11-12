@@ -2,7 +2,7 @@
 #define RC_DECODER_H
 
 #include "motor_servo_control.h"
-#include "redboard_main.h"
+#include "packet_arduino.h"
 
 // mapped indices to the global array
 #define RIGHT_STICK_CHANNEL_HOR 0

@@ -46,8 +46,8 @@ int main(int argc, char *argv[]) {
     int fd;
     char buff[1000];
 
-    // fd = open(DEV_F_NAME, O_WRONLY);
-    fd = STDOUT_FILENO;
+    fd = open(DEV_F_NAME, O_WRONLY);
+    // fd = STDOUT_FILENO;
     // int fd_read = open("command", O_RDONLY);
 
     if (fd < 0) {
@@ -61,13 +61,16 @@ int main(int argc, char *argv[]) {
     //
     // send_set_lcd(2, 3, fd);
     // write(fd, buff, 8);
-    // for (int i = 0; i < 100; i++) {
-    //     sprintf(buff, "%d", i);
-    //     send_print_string_at(0, 0, (uint8_t *)buff, fd);
-    // }
+    for (int i = 0; i < 90000; i++) {
+        // sprintf(buff, "%d", i);
+        // send_print_string_at(0, 0, (uint8_t *)buff, fd);
+        send_set_motor(MOTOR_COMMAND_RIGHT, 255, fd);
+    }
     // send_print_string_at(0, 0, (uint8_t *)"1", fd);
-    send_set_motor(MOTOR_COMMAND_LEFT, 200, fd);
-    send_set_motor(MOTOR_COMMAND_RIGHT, 200, fd);
+    for (int i = 0; i < 1000; i++) {
+        send_set_motor(MOTOR_COMMAND_LEFT, 200, fd);
+        send_set_motor(MOTOR_COMMAND_RIGHT, 254, fd);
+    }
     // send_set_servo(0, 131, fd);
     // send_set_servo(1, 131, fd);
     // send_set_servo(2, 131, fd);

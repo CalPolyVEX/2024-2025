@@ -1,55 +1,9 @@
-/*ASSUMPTIONS THAT MIGHT HAUNT ANYBODY DEBUGGING THIS:
- * after enabling RX on serial, baud register can be written to
- */
-
-/* PROCESS
- * PART 0: PRESETUP
- *P  ensure SBUSSERCOM's interrupts are disabled
- *   use PORT peripheral to configure RXPIN and TXPIN to SBUSSERCOM control
- *     NOTE: PULLEN and DRVSTR bits are still controlled by PORT
- *     NOTE TO SELF: could initializing the TXPIN be useless due to it being disabled in the peripheral?
- * PART 1: CLOCK SETUP
- *   set up generic clock generator SERGEN to clock sercom SBUSSERCOM
- *    NOTE: if GCLOCK0 is selected, DO NOT DO THIS
- * PART 2: INITIALIZING SERCOM
- *P  reset to the peripheral and turn it off by writing 1 to CTRLA.SWRST
- *P  wait for sync
- *   set CTRLA.MODE to 0x1 to use the internal clock
- *   set CTRLA.CMODE to 0 to use async transmission
- *   set CTRLA.RXPO to proper pin (NOT standard pin numbers. refer to RXPO on pg 432)
- *   set CTRLA.TXPO as similar to RXPO
- *   set/ensure CTRLB.CHSIZE is set to 0x0 to set charater size to 8 bits
- *    note: sync unnecessary
- *   set CTRLA.DORD to 1 to use LSB character recieving
- *   set CTRLA.FORM to 0x1 to use a parity bit
- *   set/ensure CTRLB.PMODE to 0x0 for even parity
- *    no sync
- *   set CTLRB.SBMODE to 0x1 for 2 stop bits
- *    no sync
- *   set CTRLB.RXEN to 0x1
- *   wait for sync on CTRLB
- *   set BAUD register
- *   set/ensure CTRLB.TXEN to 0x0
- *P  wait for sync
- *   set INTENSET.RXC to 1
- *   set CTRLA.ENABLE to 1 to enable serial
- *   wait for sync
- * PART 3: INTERRUPT ENABLING
- *P  clear pending interrupts from SUBSSERCOM
- *   set priority to 0 for SBUSSERCOM
- *   enable interrupt requests from SBUSSERCOM
- * PART 4: ARDUINO SERIAL SETUP
- *   set SerialUSB up
- *   NOTE: this is in the irq handler function for SBUSSERCOM
- *   set newData boolean to true
- *   set regCont to data in DATA register
- * PART 5: ARDUINO LOOP
- *   if newData
- *    print into console serial regCont
- *    set newData to false
- */
+#include "rc_data_collection.h"
 
 #define PARANOIA // if defined, potentially excessive operations will be done to ensure intended functionality
+#define TOGGL_CHNL 5 // channel associated with the switch that determines whether to get input from RC or PC
+#define TOGGL_VAL_RC 461 // value output by channel used for toggling to RC
+#define TOGGL_VAL_PC 1529 // value output by channel used for toggling to PC
 
 /*
  * USING
@@ -66,8 +20,10 @@
 
 volatile boolean newData = false;
 volatile uint16_t regCont;
+volatile boolean stayInPC = false;
 
 // Queue class
+// Implemented using a circular array
 class Queue {
 public:
     // Initialize Queue Object
@@ -161,20 +117,16 @@ private:
     uint8_t dummy_var;
 };
 
-// Queue object
+// Queue object (acts as a serial buffer)
 Queue queue;
 
-// Array for Complete Packet
+// Array for a Complete SBUS Packet
 uint8_t complete_packet[25];
 
 // Array for channel data
 uint16_t channel[16];
 
-void setup() {
-
-    // init debug led
-    PORT->Group[0].DIRSET.reg = 1 << 17;
-    PORT->Group[0].OUTCLR.reg = 1 << 17;
+void receiver_setup() {
 
 #ifdef PARANOIA
     NVIC_DisableIRQ(SERCOM2_IRQn); // using sercom2
@@ -183,7 +135,6 @@ void setup() {
     // INITIALIZING PADS
     // initialize RX pin to be controlled by serial
     PORT->Group[0].PINCFG[11].bit.PMUXEN = 1; // designate RXPIN as controlled by a peripheral
-    // PORT->Group[0].PMUX[10].reg = PORT_PMUX_PMUXE(2); //set to use multiplexing C function
 
     // initialize TX pin to be controlled by serial
     PORT->Group[0].PINCFG[10].bit.PMUXEN = 1;                           // designate TXPIN as controlled by a peripheral
@@ -281,16 +232,21 @@ void setup() {
     while (TC3->COUNT16.STATUS.bit.SYNCBUSY)
         ;
 
+    // Enable interrupts from the Timer
     NVIC_DisableIRQ(TC3_IRQn);
     NVIC_ClearPendingIRQ(TC3_IRQn);
     NVIC_SetPriority(TC3_IRQn, 0);
     NVIC_EnableIRQ(TC3_IRQn);
-
-    // SerialUSB.begin(9600);
-    // PORT->Group[0].OUTSET.reg = 1 << 17;
 }
 
-void loop() {
+bool receiver_loop() {
+    /* refactored to allow
+    switching between RC and PC */
+
+    // if(stayInPC) {
+    //     pc_get_input(0);
+    // }
+    static bool pc_mode = false;
 
     if (newData) {
 
@@ -303,50 +259,57 @@ void loop() {
         // Test if packet is valid, reset if not
         if (!(complete_packet[0] == 0x0F && complete_packet[24] == 0x0)) {
             queue.reset();
-            return;
+            return 3;
         }
 
         // Decode Data into cursed 11 bit channels
         decodeData();
 
-        // Do stuff to array
-        //    for (int i = 0; i < 25; i++) {
-        //       SerialUSB.print(complete_packet[i], HEX);
-        //        SerialUSB.print(" ");
-        //    }
-        //    SerialUSB.println("");
+        // print out the values of every channel into serial
+        // for (int i = 0; i < 16; i++) {
+        //     SerialUSB.print(channel[i]);
+        //     SerialUSB.print(" ");
+        // }
+        // SerialUSB.println(" ");
 
-        for (int i = 0; i < 16; i++) {
-            SerialUSB.print(channel[i]);
-            SerialUSB.print(" ");
+        if(channel[TOGGL_CHNL] == TOGGL_VAL_PC) {
+            pc_mode = true;
+        } else {
+            // convert from 11 bit to 8 bit before calling control motors
+            uint8_t ver_8bit = channel[6] * 255 / 2047;
+            uint8_t hor_8bit = channel[7] * 255 / 2047;
+            // input motor values
+            control_motors(ver_8bit, hor_8bit);
+            pc_mode = false;
         }
-        SerialUSB.println(" ");
 
-        // SerialUSB.println(regCont, HEX);
+
+        // reset the complete_packet buffer
+        complete_packet[0] = 0;
     }
-
-    // SerialUSB.println(TC3->COUNT16.COUNT.reg);
+    return pc_mode;
 }
 
-// decodes raw SBUS data into channel values
+// The RC Receiver uses a protocol (SBUS) that transmits 11 bit channels
+// This function decodes the 11 bit channels from the byte-sized serial transmissions
 void decodeData() {
     // this mess decodes the data bytes into actual channel values
-    channel[0] = (complete_packet[1] | complete_packet[2] << 8) & 0b11111111111;
-    channel[1] = (complete_packet[2] >> 3 | complete_packet[3] << 5) & 0b11111111111;
-    channel[2] = (complete_packet[3] >> 6 | complete_packet[4] << 2 | complete_packet[5] << 10) & 0b11111111111;
-    channel[3] = (complete_packet[5] >> 1 | complete_packet[6] << 7) & 0b11111111111;
-    channel[4] = (complete_packet[6] >> 4 | complete_packet[7] << 4) & 0b11111111111;
-    channel[5] = (complete_packet[7] >> 7 | complete_packet[8] << 1 | complete_packet[9] << 9) & 0b11111111111;
-    channel[6] = (complete_packet[9] >> 2 | complete_packet[10] << 6) & 0b11111111111;
-    channel[7] = (complete_packet[10] >> 5 | complete_packet[11] << 3) & 0b11111111111;
-    channel[8] = (complete_packet[12] | complete_packet[13] << 8) & 0b11111111111;
-    channel[9] = (complete_packet[13] >> 3 | complete_packet[14] << 5) & 0b11111111111;
-    channel[10] = (complete_packet[14] >> 6 | complete_packet[15] << 2 | complete_packet[16] << 10) & 0b11111111111;
-    channel[11] = (complete_packet[16] >> 1 | complete_packet[17] << 7) & 0b11111111111;
-    channel[12] = (complete_packet[17] >> 4 | complete_packet[18] << 4) & 0b11111111111;
-    channel[13] = (complete_packet[18] >> 7 | complete_packet[19] << 1 | complete_packet[20] << 9) & 0b11111111111;
-    channel[14] = (complete_packet[20] >> 2 | complete_packet[21] << 6) & 0b11111111111;
-    channel[15] = (complete_packet[21] >> 5 | complete_packet[22] << 3) & 0b11111111111;
+    channel[0] = (complete_packet[1] | complete_packet[2] << 8) & 0x7FF;
+    channel[1] = (complete_packet[2] >> 3 | complete_packet[3] << 5) & 0x7FF;
+    channel[2] = (complete_packet[3] >> 6 | complete_packet[4] << 2 | complete_packet[5] << 10) & 0x7FF;
+    channel[3] = (complete_packet[5] >> 1 | complete_packet[6] << 7) & 0x7FF;
+    channel[4] = (complete_packet[6] >> 4 | complete_packet[7] << 4) & 0x7FF;
+    channel[5] = (complete_packet[7] >> 7 | complete_packet[8] << 1 | complete_packet[9] << 9) & 0x7FF;
+    channel[6] = (complete_packet[9] >> 2 | complete_packet[10] << 6) & 0x7FF;
+    channel[7] = (complete_packet[10] >> 5 | complete_packet[11] << 3) & 0x7FF;
+    channel[8] = (complete_packet[12] | complete_packet[13] << 8) & 0x7FF;
+    channel[9] = (complete_packet[13] >> 3 | complete_packet[14] << 5) & 0x7FF;
+    channel[10] = (complete_packet[14] >> 6 | complete_packet[15] << 2 | complete_packet[16] << 10) & 0x7FF;
+    channel[11] = (complete_packet[16] >> 1 | complete_packet[17] << 7) & 0x7FF;
+    channel[12] = (complete_packet[17] >> 4 | complete_packet[18] << 4) & 0x7FF;
+    channel[13] = (complete_packet[18] >> 7 | complete_packet[19] << 1 | complete_packet[20] << 9) & 0x7FF;
+    channel[14] = (complete_packet[20] >> 2 | complete_packet[21] << 6) & 0x7FF;
+    channel[15] = (complete_packet[21] >> 5 | complete_packet[22] << 3) & 0x7FF;
 }
 
 void SERCOM2_Handler() {
