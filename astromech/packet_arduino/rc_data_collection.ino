@@ -1,6 +1,8 @@
 #include "rc_data_collection.h"
 
 #define PARANOIA // if defined, potentially excessive operations will be done to ensure intended functionality
+#define DOME_SERVO 4
+#define DOME_SERVO_NUM 0
 #define TOGGL_CHNL 5 // channel associated with the switch that determines whether to get input from RC or PC
 #define TOGGL_VAL_RC 461 // value output by channel used for toggling to RC
 #define TOGGL_VAL_PC 1529 // value output by channel used for toggling to PC
@@ -278,8 +280,17 @@ bool receiver_loop() {
             // convert from 11 bit to 8 bit before calling control motors
             uint8_t ver_8bit = channel[6] * 255 / 2047;
             uint8_t hor_8bit = channel[7] * 255 / 2047;
+            uint8_t dome_servo_8bit = channel[4] * 255 / 2047;
+            // SerialUSB.print(channel[4]);
+            // SerialUSB.print(" ");
+            // SerialUSB.print(dome_servo_8bit);
+            // SerialUSB.print(" ");
+            // SerialUSB.print(channel[7]);
+            // SerialUSB.print("\n");
+
             // input motor values
             control_motors(ver_8bit, hor_8bit);
+            set_servo_angle(DOME_SERVO_NUM, dome_servo_8bit);
             pc_mode = false;
         }
 
