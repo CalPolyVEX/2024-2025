@@ -2,8 +2,8 @@
 
 #define PARANOIA // if defined, potentially excessive operations will be done to ensure intended functionality
 #define TOGGL_CHNL 5 // channel associated with the switch that determines whether to get input from RC or PC
-#define TOGGL_VAL_PC 461 // value output by channel used for toggling to PC
-#define TOGGL_VAL_RC 1529 // value output by channel used for toggling to RC
+#define TOGGL_VAL_RC 461 // value output by channel used for toggling to RC
+#define TOGGL_VAL_PC 1529 // value output by channel used for toggling to PC
 
 /*
  * USING
@@ -239,44 +239,6 @@ void receiver_setup() {
     NVIC_EnableIRQ(TC3_IRQn);
 }
 
-/* old code*/
-// void receiver_loop() {
-
-//     if (newData) {
-
-//         // Disable newData flag
-//         newData = false;
-
-//         // Dequeue values into array
-//         queue.dequeue_array(25, complete_packet);
-
-//         // Test if packet is valid, reset if not
-//         if (!(complete_packet[0] == 0x0F && complete_packet[24] == 0x0)) {
-//             queue.reset();
-//             return;
-//         }
-
-//         // Decode Data into cursed 11 bit channels
-//         decodeData();
-
-//         // print out the values of every channel into serial
-//         for (int i = 0; i < 16; i++) {
-//             SerialUSB.print(channel[i]);
-//             SerialUSB.print(" ");
-//         }
-//         SerialUSB.println(" ");
-
-//         // convert from 11 bit to 8 bit before calling control motors
-//         uint8_t ver_8bit = channel[6] * 255 / 2047;
-//         uint8_t hor_8bit = channel[7] * 255 / 2047;
-//         // input motor values
-//         control_motors(ver_8bit, hor_8bit);
-
-//         // reset the complete_packet buffer
-//         complete_packet[0] = 0;
-//     }
-// }
-
 bool receiver_loop() {
     /* refactored to allow
     switching between RC and PC */
@@ -302,17 +264,6 @@ bool receiver_loop() {
 
         // Decode Data into cursed 11 bit channels
         decodeData();
-
-        // check for RC vs PC toggle
-        // if(!stayInPC && channel[TOGGL_CHNL] == TOGGL_VAL_PC) {
-        //     // pc_dump_input();
-        //     lcd.clear();
-        //     lcd.print("dump input");
-        //     stayInPC = true;
-        //     // return 0;
-        // } else {
-        //     stayInPC = false;
-        // }
 
         // print out the values of every channel into serial
         // for (int i = 0; i < 16; i++) {
