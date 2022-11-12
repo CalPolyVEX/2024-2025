@@ -3,7 +3,7 @@
     "configurations": [
         {
             "name": "Arduino",
-            "compilerPath": "/Users/chonein/Library/Arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1/bin/arm-none-eabi-g++",
+            "compilerPath": "C:\\Users\\igalt\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\4.8.3-2014q1\\bin\\arm-none-eabi-g++",
             "compilerArgs": [
                 "-mcpu=cortex-m0plus",
                 "-mthumb",
@@ -19,27 +19,27 @@
             ],
             "intelliSenseMode": "gcc-x64",
             "includePath": [
-                "/Users/chonein/Library/Arduino15/packages/arduino/tools/CMSIS/4.5.0/CMSIS/Include/",
-                "/Users/chonein/Library/Arduino15/packages/arduino/tools/CMSIS-Atmel/1.2.0/CMSIS/Device/ATMEL/",
-                "/Users/chonein/Library/Arduino15/packages/SparkFun/hardware/samd/1.8.3/cores/arduino",
-                "/Users/chonein/Library/Arduino15/packages/SparkFun/hardware/samd/1.8.3/variants/SparkFun_RedBoard_Turbo",
-                "/Users/chonein/Library/Arduino15/packages/SparkFun/hardware/samd/1.8.3/libraries/Wire",
-                "/Users/chonein/Documents/Arduino/libraries/hd44780",
-                "/Users/chonein/Library/Arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1/arm-none-eabi/include/c++/4.8.3",
-                "/Users/chonein/Library/Arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1/arm-none-eabi/include/c++/4.8.3/arm-none-eabi",
-                "/Users/chonein/Library/Arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1/arm-none-eabi/include/c++/4.8.3/backward",
-                "/Users/chonein/Library/Arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1/lib/gcc/arm-none-eabi/4.8.3/include",
-                "/Users/chonein/Library/Arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1/lib/gcc/arm-none-eabi/4.8.3/include-fixed",
-                "/Users/chonein/Library/Arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1/arm-none-eabi/include"
+                "C:\\Users\\igalt\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\CMSIS\\4.5.0\\CMSIS\\Include\\",
+                "C:\\Users\\igalt\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\CMSIS-Atmel\\1.2.0\\CMSIS\\Device\\ATMEL\\",
+                "C:\\Users\\igalt\\AppData\\Local\\Arduino15\\packages\\SparkFun\\hardware\\samd\\1.8.3\\cores\\arduino",
+                "C:\\Users\\igalt\\AppData\\Local\\Arduino15\\packages\\SparkFun\\hardware\\samd\\1.8.3\\variants\\SparkFun_RedBoard_Turbo",
+                "C:\\Users\\igalt\\AppData\\Local\\Arduino15\\packages\\SparkFun\\hardware\\samd\\1.8.3\\libraries\\Wire",
+                "C:\\Users\\igalt\\Documents\\Arduino\\libraries\\hd44780",
+                "c:\\users\\igalt\\appdata\\local\\arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\4.8.3-2014q1\\arm-none-eabi\\include\\c++\\4.8.3",
+                "c:\\users\\igalt\\appdata\\local\\arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\4.8.3-2014q1\\arm-none-eabi\\include\\c++\\4.8.3\\arm-none-eabi",
+                "c:\\users\\igalt\\appdata\\local\\arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\4.8.3-2014q1\\arm-none-eabi\\include\\c++\\4.8.3\\backward",
+                "c:\\users\\igalt\\appdata\\local\\arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\4.8.3-2014q1\\lib\\gcc\\arm-none-eabi\\4.8.3\\include",
+                "c:\\users\\igalt\\appdata\\local\\arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\4.8.3-2014q1\\lib\\gcc\\arm-none-eabi\\4.8.3\\include-fixed",
+                "c:\\users\\igalt\\appdata\\local\\arduino15\\packages\\arduino\\tools\\arm-none-eabi-gcc\\4.8.3-2014q1\\arm-none-eabi\\include"
             ],
             "forcedInclude": [
-                "/Users/chonein/Library/Arduino15/packages/SparkFun/hardware/samd/1.8.3/cores/arduino/Arduino.h"
+                "C:\\Users\\igalt\\AppData\\Local\\Arduino15\\packages\\SparkFun\\hardware\\samd\\1.8.3\\cores\\arduino\\Arduino.h"
             ],
             "cStandard": "c11",
             "cppStandard": "c++11",
             "defines": [
                 "F_CPU=48000000L",
-                "ARDUINO=10813",
+                "ARDUINO=10819",
                 "ARDUINO_SAMD_ZERO",
                 "ARDUINO_ARCH_SAMD",
                 "__SAMD21G18A__",
@@ -393,7 +393,8 @@
                 "__ATOMIC_ACQ_REL=4",
                 "__ATOMIC_RELEASE=3",
                 "USBCON"
-            ]
+            ],
+            "configurationProvider": "ms-vscode.makefile-tools"
         }
     ]
 }
