@@ -1,6 +1,9 @@
 #include "rc_data_collection.h"
 
 #define PARANOIA // if defined, potentially excessive operations will be done to ensure intended functionality
+#define TOGGL_CHNL 5 // channel associated with the switch that determines whether to get input from RC or PC
+#define TOGGL_VAL_RC 461 // value output by channel used for toggling to RC
+#define TOGGL_VAL_PC 1529 // value output by channel used for toggling to PC
 
 /*
  * USING
@@ -17,6 +20,7 @@
 
 volatile boolean newData = false;
 volatile uint16_t regCont;
+volatile boolean stayInPC = false;
 
 // Queue class
 // Implemented using a circular array
@@ -235,7 +239,14 @@ void receiver_setup() {
     NVIC_EnableIRQ(TC3_IRQn);
 }
 
-void receiver_loop() {
+bool receiver_loop() {
+    /* refactored to allow
+    switching between RC and PC */
+
+    // if(stayInPC) {
+    //     pc_get_input(0);
+    // }
+    static bool pc_mode = false;
 
     if (newData) {
 
@@ -248,7 +259,7 @@ void receiver_loop() {
         // Test if packet is valid, reset if not
         if (!(complete_packet[0] == 0x0F && complete_packet[24] == 0x0)) {
             queue.reset();
-            return;
+            return 3;
         }
 
         // Decode Data into cursed 11 bit channels
@@ -261,15 +272,22 @@ void receiver_loop() {
         // }
         // SerialUSB.println(" ");
 
-        // convert from 11 bit to 8 bit before calling control motors
-        uint8_t ver_8bit = channel[6] * 255 / 2047;
-        uint8_t hor_8bit = channel[7] * 255 / 2047;
-        // input motor values
-        control_motors(ver_8bit, hor_8bit);
+        if(channel[TOGGL_CHNL] == TOGGL_VAL_PC) {
+            pc_mode = true;
+        } else {
+            // convert from 11 bit to 8 bit before calling control motors
+            uint8_t ver_8bit = channel[6] * 255 / 2047;
+            uint8_t hor_8bit = channel[7] * 255 / 2047;
+            // input motor values
+            control_motors(ver_8bit, hor_8bit);
+            pc_mode = false;
+        }
+
 
         // reset the complete_packet buffer
         complete_packet[0] = 0;
     }
+    return pc_mode;
 }
 
 // The RC Receiver uses a protocol (SBUS) that transmits 11 bit channels

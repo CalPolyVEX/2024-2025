@@ -21,13 +21,45 @@ void setup() {
 }
 
 void loop() {
+    // static int i = 0;
     // if (rc_toggle) {
     // eval_rc_input()
     // } else {}
 
     // Computer Input Mode
-    get_input();
+    // pc_get_input();
+    // receiver_loop();
 
     // Receiver Mode
-    receiver_loop();
+    pc_get_input(receiver_loop());
+    // lcd.write(i++);
+
+    /* NOTE: data cannot be sent by serial from PC
+    to arduino if the VSCode serial monitor is open*/
+
+    // if(!receiver_loop()) {
+    //     digitalWrite(LED_BUILTIN, 1);
+    //     get_input();
+    // }
+    // else {
+    //     if (SerialUSB.available()) {
+    //         SerialUSB.read();
+    //     }
+    // }
+
+    // defaults to Receiver Mode
+    // but can switch to Computer Input Mode
+    // static uint8_t prev=2, cur;
+    // cur = receiver_loop();
+    // if((prev != cur && prev != 2) || (prev == 2 && cur == 1)) {
+    //     if(!prev) { // changing from RC to PC
+    //         SerialUSB.end();
+    //     } else { // staying on PC
+    //         SerialUSB.begin(115200);
+    //     }
+    // }
+    // if(!cur) {
+    //     get_input();
+    // }
+    // prev = cur;
 }
