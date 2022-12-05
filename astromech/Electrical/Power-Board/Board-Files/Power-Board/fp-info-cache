@@ -1,4 +1,4 @@
-20595110292256031
+20596780562966602
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -86463,6 +86463,13 @@ LTC7003
 0
 17
 17
+astromech-footprints
+NTMTS0D6N04CLTXG
+
+
+0
+5
+5
 astromech-footprints
 Relay_socket
 
