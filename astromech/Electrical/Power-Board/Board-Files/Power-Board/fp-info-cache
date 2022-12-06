@@ -1,4 +1,4 @@
-20598450924484983
+20600121289239685
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -86471,6 +86471,13 @@ NTMTS0D6N04CLTXG
 5
 3
 astromech-footprints
+Phoenix-1935161
+
+
+0
+0
+0
+astromech-footprints
 Relay_socket
 
 
@@ -86482,8 +86489,8 @@ Sparkfun-Level-shifter
 
 
 0
-0
-0
+12
+11
 astromech-footprints
 high_amp_jump
 
