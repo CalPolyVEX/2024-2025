@@ -17,3 +17,5 @@ Screw terminals should be inset from the edge of the board to allow for a "wire 
 LTC7003 SNS connections should be Kelvin connected to each other
 LTC7003 capacitor between BST and TS should be kept close to the board
 LTC7003 TS trace should be low resistance (wide and short)
+Make sure to add revision information and dates
+Make sure to add clear labels on all inputs and outputs
