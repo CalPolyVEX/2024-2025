@@ -1,4 +1,4 @@
-20601791655562835
+20603462023255995
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -86443,6 +86443,13 @@ varistor
 2
 2
 astromech-footprints
+10AWG-Power-In
+
+
+0
+0
+0
+astromech-footprints
 500mil_jump
 
 
@@ -86468,8 +86475,8 @@ Molex-393900102
 
 
 0
-0
-0
+2
+2
 astromech-footprints
 NTMTS0D6N04CLTXG
 
