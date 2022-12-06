@@ -2726,7 +2726,7 @@
     (property "Value" "TestPoint" (id 1) (at 80.01 182.88 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
-    (property "Footprint" "" (id 2) (at 78.74 173.99 0)
+    (property "Footprint" "TestPoint:TestPoint_Pad_D2.0mm" (id 2) (at 78.74 173.99 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 78.74 173.99 0)
@@ -3392,7 +3392,7 @@
     (property "Value" "TestPoint" (id 1) (at 191.77 162.56 0)
       (effects (font (size 1.27 1.27)) (justify right))
     )
-    (property "Footprint" "" (id 2) (at 190.5 153.67 0)
+    (property "Footprint" "TestPoint:TestPoint_Pad_D2.0mm" (id 2) (at 190.5 153.67 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 190.5 153.67 0)
@@ -4630,10 +4630,10 @@
       (reference "S1") (unit 1) (value "illuminated_switch") (footprint "")
     )
     (path "/50661fd7-fa27-4270-9a92-8cc6e80783d5"
-      (reference "TP1") (unit 1) (value "TestPoint") (footprint "")
+      (reference "TP1") (unit 1) (value "TestPoint") (footprint "TestPoint:TestPoint_Pad_D2.0mm")
     )
     (path "/9e399eee-ad6f-4fbe-bdf3-b9dd3880e86f"
-      (reference "TP2") (unit 1) (value "TestPoint") (footprint "")
+      (reference "TP2") (unit 1) (value "TestPoint") (footprint "TestPoint:TestPoint_Pad_D2.0mm")
     )
     (path "/a8721d09-e6f1-43a5-9f1e-a0052ba03c26"
       (reference "U1") (unit 1) (value "LTC7003") (footprint "astromech-footprints:LTC7003")
