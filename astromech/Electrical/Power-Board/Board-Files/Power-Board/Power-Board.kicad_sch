@@ -2741,7 +2741,7 @@
   (symbol (lib_id "power:GND") (at 35.56 25.4 0) (unit 1)
     (in_bom yes) (on_board yes)
     (uuid 356829b1-42ed-4cdc-8820-75e54888aa8e)
-    (property "Reference" "#PWR?" (id 0) (at 35.56 31.75 0)
+    (property "Reference" "#PWR0102" (id 0) (at 35.56 31.75 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (id 1) (at 35.56 29.21 0))
@@ -2777,7 +2777,7 @@
     (uuid 3c9f3ffb-d743-4d65-b143-27f5f90f124d)
     (property "Reference" "S1" (id 0) (at 41.91 130.81 0))
     (property "Value" "illuminated_switch" (id 1) (at 41.91 133.35 0))
-    (property "Footprint" "" (id 2) (at 45.72 139.7 0)
+    (property "Footprint" "astromech-footprints:Phoenix-1935187" (id 2) (at 45.72 139.7 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "" (id 3) (at 45.72 139.7 0)
@@ -2919,7 +2919,7 @@
     (uuid 4dfece67-b413-4652-ba85-e9dba6d2ae5c)
     (property "Reference" "SIG-CONV-HV1" (id 0) (at 39.37 13.97 90))
     (property "Value" "Screw_Term_04" (id 1) (at 39.37 16.51 90))
-    (property "Footprint" "" (id 2) (at 38.1 20.32 0)
+    (property "Footprint" "astromech-footprints:Phoenix-1935187" (id 2) (at 38.1 20.32 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 38.1 20.32 0)
@@ -3027,7 +3027,7 @@
     (property "Value" "Screw_Term_03" (id 1) (at 91.44 17.78 90)
       (effects (font (size 1.27 1.27)) (justify right))
     )
-    (property "Footprint" "" (id 2) (at 99.06 20.32 0)
+    (property "Footprint" "astromech-footprints:Phoenix-1935174" (id 2) (at 99.06 20.32 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 99.06 20.32 0)
@@ -3236,7 +3236,7 @@
   (symbol (lib_id "power:GND") (at 114.3 25.4 0) (unit 1)
     (in_bom yes) (on_board yes)
     (uuid 7ca7ab0c-4113-42d0-acc1-1a302a5e661a)
-    (property "Reference" "#PWR?" (id 0) (at 114.3 31.75 0)
+    (property "Reference" "#PWR0104" (id 0) (at 114.3 31.75 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (id 1) (at 114.3 29.21 0))
@@ -3350,7 +3350,7 @@
   (symbol (lib_id "power:GND") (at 96.52 25.4 0) (unit 1)
     (in_bom yes) (on_board yes)
     (uuid 87f0d3b7-16ce-4185-b12a-d46e56bab1b7)
-    (property "Reference" "#PWR?" (id 0) (at 96.52 31.75 0)
+    (property "Reference" "#PWR0103" (id 0) (at 96.52 31.75 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (id 1) (at 96.52 29.21 0))
@@ -3832,7 +3832,7 @@
   (symbol (lib_id "power:GND") (at 52.07 25.4 0) (unit 1)
     (in_bom yes) (on_board yes)
     (uuid b309b963-7984-4e1c-859d-734e1ff9c462)
-    (property "Reference" "#PWR?" (id 0) (at 52.07 31.75 0)
+    (property "Reference" "#PWR0101" (id 0) (at 52.07 31.75 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Value" "GND" (id 1) (at 52.07 29.21 0))
@@ -4302,9 +4302,9 @@
   (symbol (lib_id "Connector:Screw_Terminal_01x04") (at 54.61 20.32 90) (unit 1)
     (in_bom yes) (on_board yes) (fields_autoplaced)
     (uuid e9ec9b66-25f3-4147-b840-d9437db579fb)
-    (property "Reference" "SIG-CONV-HV" (id 0) (at 55.88 13.97 90))
+    (property "Reference" "SIG-CONV-HV2" (id 0) (at 55.88 13.97 90))
     (property "Value" "Screw_Term_04" (id 1) (at 55.88 16.51 90))
-    (property "Footprint" "" (id 2) (at 54.61 20.32 0)
+    (property "Footprint" "astromech-footprints:Phoenix-1935187" (id 2) (at 54.61 20.32 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 54.61 20.32 0)
@@ -4412,7 +4412,7 @@
     (property "Value" "Screw_Term_03" (id 1) (at 109.22 17.78 90)
       (effects (font (size 1.27 1.27)) (justify right))
     )
-    (property "Footprint" "" (id 2) (at 116.84 20.32 0)
+    (property "Footprint" "astromech-footprints:Phoenix-1935174" (id 2) (at 116.84 20.32 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 116.84 20.32 0)
@@ -4588,17 +4588,17 @@
     (path "/05b4c384-7928-439e-832d-53a41ad0b4c2"
       (reference "#PWR051") (unit 1) (value "GND") (footprint "")
     )
-    (path "/356829b1-42ed-4cdc-8820-75e54888aa8e"
-      (reference "#PWR?") (unit 1) (value "GND") (footprint "")
+    (path "/b309b963-7984-4e1c-859d-734e1ff9c462"
+      (reference "#PWR0101") (unit 1) (value "GND") (footprint "")
     )
-    (path "/7ca7ab0c-4113-42d0-acc1-1a302a5e661a"
-      (reference "#PWR?") (unit 1) (value "GND") (footprint "")
+    (path "/356829b1-42ed-4cdc-8820-75e54888aa8e"
+      (reference "#PWR0102") (unit 1) (value "GND") (footprint "")
     )
     (path "/87f0d3b7-16ce-4185-b12a-d46e56bab1b7"
-      (reference "#PWR?") (unit 1) (value "GND") (footprint "")
+      (reference "#PWR0103") (unit 1) (value "GND") (footprint "")
     )
-    (path "/b309b963-7984-4e1c-859d-734e1ff9c462"
-      (reference "#PWR?") (unit 1) (value "GND") (footprint "")
+    (path "/7ca7ab0c-4113-42d0-acc1-1a302a5e661a"
+      (reference "#PWR0104") (unit 1) (value "GND") (footprint "")
     )
     (path "/9bcc4443-db93-4d21-84f6-322e2ec99325"
       (reference "3.3V1") (unit 1) (value "Generic_Power_Out") (footprint "astromech-footprints:Phoenix-1935161")
@@ -4784,19 +4784,19 @@
       (reference "R14") (unit 1) (value "R_CGDAMP") (footprint "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder")
     )
     (path "/3c9f3ffb-d743-4d65-b143-27f5f90f124d"
-      (reference "S1") (unit 1) (value "illuminated_switch") (footprint "")
-    )
-    (path "/e9ec9b66-25f3-4147-b840-d9437db579fb"
-      (reference "SIG-CONV-HV") (unit 1) (value "Screw_Term_04") (footprint "")
+      (reference "S1") (unit 1) (value "illuminated_switch") (footprint "astromech-footprints:Phoenix-1935187")
     )
     (path "/4dfece67-b413-4652-ba85-e9dba6d2ae5c"
-      (reference "SIG-CONV-HV1") (unit 1) (value "Screw_Term_04") (footprint "")
+      (reference "SIG-CONV-HV1") (unit 1) (value "Screw_Term_04") (footprint "astromech-footprints:Phoenix-1935187")
+    )
+    (path "/e9ec9b66-25f3-4147-b840-d9437db579fb"
+      (reference "SIG-CONV-HV2") (unit 1) (value "Screw_Term_04") (footprint "astromech-footprints:Phoenix-1935187")
     )
     (path "/55d6ffdf-a40d-4ab1-8962-bf25d8fa3c2d"
-      (reference "SIG-CONV-LV1") (unit 1) (value "Screw_Term_03") (footprint "")
+      (reference "SIG-CONV-LV1") (unit 1) (value "Screw_Term_03") (footprint "astromech-footprints:Phoenix-1935174")
     )
     (path "/fd23c668-71ee-401e-a8cf-b046be091b7d"
-      (reference "SIG-CONV-LV2") (unit 1) (value "Screw_Term_03") (footprint "")
+      (reference "SIG-CONV-LV2") (unit 1) (value "Screw_Term_03") (footprint "astromech-footprints:Phoenix-1935174")
     )
     (path "/50661fd7-fa27-4270-9a92-8cc6e80783d5"
       (reference "TP1") (unit 1) (value "TestPoint") (footprint "TestPoint:TestPoint_Pad_D2.0mm")
