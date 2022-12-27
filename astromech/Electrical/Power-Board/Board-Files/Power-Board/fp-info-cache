@@ -1,4 +1,4 @@
-20603464327605673
+20605136427943052
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -86457,6 +86457,13 @@ D36V50Fx
 12
 6
 astromech-footprints
+Generic-Fuse
+
+
+0
+0
+0
+astromech-footprints
 LTC7003
 
 
@@ -86490,14 +86497,14 @@ Phoenix-1935174
 
 0
 3
-2
+3
 astromech-footprints
 Phoenix-1935187
 
 
 0
-0
-0
+4
+4
 astromech-footprints
 Relay_socket
 
