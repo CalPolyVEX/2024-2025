@@ -446,7 +446,7 @@
 
   (footprint "astromech-footprints:D36V50Fx" (layer "F.Cu")
     (tedit 0) (tstamp 187187f4-bbe7-4612-9301-0569aad86c8b)
-    (at 100.33 20.32)
+    (at 133.35 42.545)
     (property "Sheetfile" "Power-Board.kicad_sch")
     (property "Sheetname" "")
     (path "/b90d7ced-c107-4650-987d-af45d91d2eed")
@@ -1501,7 +1501,7 @@
 
   (footprint "astromech-footprints:D36V50Fx" (layer "F.Cu")
     (tedit 0) (tstamp 894e4a70-7325-4947-a975-a1aa2f9d1b5f)
-    (at 54.61 29.845)
+    (at 101.6 41.91)
     (property "Sheetfile" "Power-Board.kicad_sch")
     (property "Sheetname" "")
     (path "/efbdab35-fea1-49fc-a788-137897379b0d")
