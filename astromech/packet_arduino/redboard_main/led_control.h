@@ -7,6 +7,7 @@
 void setupLED();
 
 // Send Command to LED Controller
-void sendLEDCommand(uint8_t* package, uint8_t package_size);
+void sendLEDCommand(uint8_t command_major, uint8_t command_minor, uint8_t color, uint8_t speed);
+void sendLEDCommand(uint8_t preset_index);
 
 #endif

@@ -132,8 +132,12 @@ void eval_input(uint8_t *data, int size) {
         lcd.clear();
         break;
 
-    case 7: // Send Command to LED Controller
-        sendLEDCommand(&data[3], end_message - 3);
+    case 7: // Send Command to LED Controller Using Presets
+        sendLEDCommand(data[3]);
+        break;
+
+    case 8: // Send Command to LED Controller Using Raw Commands
+        sendLEDCommand(data[3], data[4], data[5], data[6]);
         break;
     };
 

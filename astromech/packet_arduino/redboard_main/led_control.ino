@@ -20,7 +20,21 @@
 // No Need for a Timer
 
 // Array of Bytes
-uint8_t transmit_bytes[8]{0};
+uint8_t transmit_bytes[13] = {'~', 'R', 'T', 'L', 'E', '0', '0', '0', '0', '0', '0', '0', 13};
+
+// List of Predefined Commands
+uint8_t led_commands[9][4] =
+{
+  {'0', '5', '1', '5'},
+  {'0', '5', '2', '5'},
+  {'0', '5', '3', '5'},
+  {'0', '5', '4', '5'},
+  {'0', '5', '5', '5'},
+  {'0', '5', '6', '5'},
+  {'0', '5', '7', '5'},
+  {'0', '5', '8', '5'},
+  {'0', '5', '9', '5'},
+};
 
 // Index in Byte Array
 uint8_t byte_index = 0;
@@ -92,16 +106,28 @@ void setupLED()
 }
 
 // Send Command to LED Controller
-void sendLEDCommand(uint8_t* package, uint8_t package_size)
+void sendLEDCommand(uint8_t command_major, uint8_t command_minor, uint8_t color, uint8_t speed)
 {
-    // Store Size of Package
-    packet_size = package_size;
-
     // Copy Data of Package Parameter to Transmit Bytes Array
-    //for (uint8_t* package_ptr = package, *bytes_ptr = transmit_bytes; package_ptr != package + packet_size; package_ptr++, bytes_ptr++)
-    //    *bytes_ptr = *package_ptr;
-    for (uint8_t i = 0; i < package_size; i++)
-      transmit_bytes[i] = package[i];
+    transmit_bytes[6] = command_major;
+    transmit_bytes[7] = command_minor;
+    transmit_bytes[8] = color;
+    transmit_bytes[9] = speed;
+
+    // Send First Byte
+    SERCOM4->USART.DATA.bit.DATA = transmit_bytes[0];
+
+    // Reset Byte Index
+    byte_index = 1;
+}
+
+// Send Command to LED Controller
+void sendLEDCommand(uint8_t preset_index)
+{
+    // Copy Data of Package Parameter to Transmit Bytes Array
+    uint8_t* preset = led_commands[preset_index];
+    for (int i = 0; i < 4; i++)
+      transmit_bytes[i + 6] = preset[i];
 
     // Send First Byte
     SERCOM4->USART.DATA.bit.DATA = transmit_bytes[0];
@@ -114,10 +140,9 @@ void SERCOM4_Handler()
 {
     // Reset the Interupt Flag
     SERCOM4->USART.INTFLAG.bit.TXC = 0x1;
-    PORT->Group[0].OUT.reg ^= PORT_PA17;
 
     // If Data is Still Left to be Transmitted, Transmit the Next Byte
-    if (byte_index < packet_size)
+    if (byte_index < 13)
     {
         SERCOM4->USART.DATA.bit.DATA = transmit_bytes[byte_index];
         byte_index++;
