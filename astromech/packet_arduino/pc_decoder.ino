@@ -114,7 +114,9 @@ void eval_input(uint8_t *data, int size, bool pc_mode) {
         break;
 
     case 2: // Set servo
-        set_servo_angle((unsigned short)(data[3]), (unsigned int)(data[4]));
+        if (pc_mode) {
+            set_servo_angle((unsigned short)(data[3]), (unsigned int)(data[4]));
+        }
         break;
 
     case 3: // Set LCD cursor
@@ -199,6 +201,10 @@ void pc_get_input(bool pc_mode) {
         // CHECK IF 127 is the actual minimum speed.
         change_motor_speed(0, 127);
         change_motor_speed(1, 127);
+        set_servo_angle(0, 127);
+        set_servo_angle(1, 127);
+        set_servo_angle(2, 127);
+        set_servo_angle(3, 127);
     }
     if (SerialUSB.available()) {
         if (byte_count == 0) { // confirming start of packet

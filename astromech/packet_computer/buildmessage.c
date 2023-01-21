@@ -73,7 +73,12 @@ int main(int argc, char *argv[]) {
     //     send_set_motor(MOTOR_COMMAND_LEFT, 200, fd);
     //     send_set_motor(MOTOR_COMMAND_RIGHT, 254, fd);
     // }
-    // send_set_servo(0, 131, fd);
+    for (int i = 0; i < 1000; i++) {
+        if(i%100)
+            send_set_servo(0, 250, fd);
+        else
+            send_set_servo(0, 131, fd);
+    }
     // send_set_servo(1, 131, fd);
     // send_set_servo(2, 131, fd);
     // send_set_servo(3, 131, fd);

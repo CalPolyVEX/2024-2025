@@ -1,6 +1,8 @@
 #include "rc_data_collection.h"
 
 #define PARANOIA // if defined, potentially excessive operations will be done to ensure intended functionality
+#define DOME_SERVO 4
+#define DOME_SERVO_NUM 0
 #define TOGGL_CHNL 5 // channel associated with the switch that determines whether to get input from RC or PC
 #define TOGGL_VAL_RC 461 // value output by channel used for toggling to RC
 #define TOGGL_VAL_PC 1529 // value output by channel used for toggling to PC
@@ -242,12 +244,9 @@ void receiver_setup() {
 }
 
 bool receiver_loop() {
-    /* refactored to allow
-    switching between RC and PC */
+    /* main 
+    allows for switching between RC and PC */
 
-    // if(stayInPC) {
-    //     pc_get_input(0);
-    // }
     static bool pc_mode = false;
 
     if (newData) {
@@ -264,10 +263,10 @@ bool receiver_loop() {
             return 3;
         }
 
-        // Decode Data into cursed 11 bit channels
+        // Decode Data into 11 bit channels
         decodeData();
 
-        // print out the values of every channel into serial
+        // TROUBLESHOOTING: print out the values of every channel into serial
         // for (int i = 0; i < 16; i++) {
         //     SerialUSB.print(channel[i]);
         //     SerialUSB.print(" ");
@@ -277,12 +276,25 @@ bool receiver_loop() {
         if(channel[TOGGL_CHNL] == TOGGL_VAL_PC) {
             pc_mode = true;
         } else {
-            // convert from 11 bit to 8 bit before calling control motors
-            uint8_t ver_8bit = channel[6] * 255 / 2047;
-            uint8_t hor_8bit = channel[7] * 255 / 2047;
+            /* change values*/
+            // convert from 11 bit to 8 bit before calling functions
+            uint8_t ver_8bit = channel[6] * 255 / 2047; // motors vertical
+            uint8_t hor_8bit = channel[7] * 255 / 2047; // motors horizontal
+            uint8_t dome_servo_8bit = channel[4] * 255 / 2047; // dome "servo"
+            
             // input motor values
             control_motors(ver_8bit, hor_8bit);
+
+            /* change servo values*/
+            set_servo_angle(DOME_SERVO_NUM, dome_servo_8bit);
+
+            /* change LED values*/
+            
+
+            /* set pc_mode flag to false -> continued
+            rc controller use*/
             pc_mode = false;
+
         }
 
 
