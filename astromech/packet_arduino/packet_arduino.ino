@@ -15,8 +15,8 @@ void setup() {
         hd44780::fatalError(status); // does not return
     }
 
-    // Setup LED Controller
-    setupLED();
+    // Setup Logic Engine Controller
+    setupLogicEngine();
 
     // Set up the USB reading
     SerialUSB.begin(115200);
