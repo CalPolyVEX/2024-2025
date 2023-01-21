@@ -20,7 +20,9 @@
  *   PA11 is connected to D0/RXI on the Redboard
  */
 
+// used for counter to stop reading data and allow the data to be stored
 volatile boolean newData = false;
+// temporary data storage var
 volatile uint16_t regCont;
 volatile boolean stayInPC = false;
 
@@ -151,9 +153,9 @@ void receiver_setup() {
         GCLK_GENCTRL_ID(4) |      // use clock gen 4
         GCLK_GENCTRL_SRC_DFLL48M; // Set Clock to 48 MHz
     GCLK->CLKCTRL.reg =
-        GCLK_CLKCTRL_CLKEN |
-        GCLK_CLKCTRL_GEN_GCLK4 |
-        GCLK_CLKCTRL_ID_SERCOM2_CORE;
+        GCLK_CLKCTRL_CLKEN |          // enable the clock
+        GCLK_CLKCTRL_GEN_GCLK4 |      // enable generic clock generator 4
+        GCLK_CLKCTRL_ID_SERCOM2_CORE; // set clock to SERCOM2_CORE
 
 // INITIALIZING SERIAL
 #ifdef PARANOIA
@@ -217,8 +219,8 @@ void receiver_setup() {
 
     // Set Counting Down Mode
     TC3->COUNT16.CTRLBSET.reg =
-        TC_CTRLBSET_ONESHOT |
-        TC_CTRLBSET_DIR;
+        TC_CTRLBSET_ONESHOT |   // set the countdown condition for setting an interupt when the counter reaches an overflow or underflow
+        TC_CTRLBSET_DIR;        // set the direction to count down
 
     // synchronization will happen, so we must wait
     while (TC3->COUNT16.STATUS.bit.SYNCBUSY)
