@@ -7,6 +7,7 @@ uint16_t rx_crc;
 uint16_t comp_crc;
 #endif
 
+//stores correct values used for checking valid packets
 const uint16_t crctable[256] =
     {
         0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
@@ -134,7 +135,16 @@ void eval_input(uint8_t *data, int size, bool pc_mode) {
     case 6: // clear screen
         lcd.clear();
         break;
+
+    case 7: // Send Command to LED Controller Using Presets
+        sendLEDCommand(data[3]);
+        break;
+
+    case 8: // Send Command to LED Controller Using Raw Commands
+        sendLEDCommand(data[3], data[4], data[5], data[6]);
+        break;
     };
+
 }
 
 // drops data in the Serial buffer
