@@ -18,6 +18,7 @@ We can only print one line of the lcd at a time: how to deal with clearing??
 #define MOTOR_CTRL_PAYLOAD 1
 #define SERVO_CTRL_PAYLOAD 2
 #define SET_LCD_PAYLOAD 1
+#define LED_PRESET_PAYLOAD 1
 
 #define MIN_PACKET_SIZE 5
 
@@ -28,6 +29,7 @@ We can only print one line of the lcd at a time: how to deal with clearing??
 #define PRINT_STR_CMD 4
 #define LCD_PRINT_STR 5
 #define LCD_CLR_CMD 6
+#define LED_PRESET_CMD 7
 
 #define DEV_F_NAME "/dev/cu.usbmodem144101"
 
@@ -201,6 +203,15 @@ uint8_t *clear_lcd() {
     packet[1] = (uint8_t)0;
     packet[2] = (uint8_t)LCD_CLR_CMD;
     calc_crc(3);
+    return packet;
+}
+
+uint8_t *send_led_preset_cmd(uint8_t preset_index) {
+    packet[0] = (uint8_t)0xFF;
+    packet[1] = (uint8_t)LED_PRESET_PAYLOAD;
+    packet[2] = (uint8_t)LCD_CLR_CMD;
+    packet[3] = preset_index;
+    calc_crc(3 + LED_PRESET_CMD);
     return packet;
 }
 
