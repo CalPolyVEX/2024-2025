@@ -1,4 +1,4 @@
-#include "led_control.h"
+#include "logic_engine_control.h"
 
 // LED Controller Uses Pin PA00 for RX and PA01 for TX
 
@@ -23,7 +23,7 @@
 uint8_t transmit_bytes[13] = {'~', 'R', 'T', 'L', 'E', '0', '0', '0', '0', '0', '0', '0', 13};
 
 // List of Predefined Commands
-uint8_t led_commands[9][4] =
+uint8_t logic_engine_commands[9][4] =
 {
   {'0', '5', '1', '5'},
   {'0', '5', '2', '5'},
@@ -42,8 +42,8 @@ uint8_t byte_index = 0;
 // The Size of the Current Byte Packet
 uint8_t packet_size = 0;
 
-// Setup the USART for the LED Controller
-void setupLED()
+// Setup the USART for the Logic Engine Controller
+void setupLogicEngine()
 {
     PORT->Group[1].DIRSET.reg |= PORT_PB08;
     PORT->Group[1].OUTCLR.reg |= PORT_PB08;
@@ -105,8 +105,8 @@ void setupLED()
     byte_index = 0;
 }
 
-// Send Command to LED Controller
-void sendLEDCommand(uint8_t command_major, uint8_t command_minor, uint8_t color, uint8_t speed)
+// Send Command to Logic Engine Controller
+void sendLogicEngineCommand(uint8_t command_major, uint8_t command_minor, uint8_t color, uint8_t speed)
 {
     // Copy Data of Package Parameter to Transmit Bytes Array
     transmit_bytes[6] = command_major;
@@ -121,11 +121,11 @@ void sendLEDCommand(uint8_t command_major, uint8_t command_minor, uint8_t color,
     byte_index = 1;
 }
 
-// Send Command to LED Controller
-void sendLEDCommand(uint8_t preset_index)
+// Send Command to Logic Engine Controller
+void sendLogicEngineCommand(uint8_t preset_index)
 {
     // Copy Data of Package Parameter to Transmit Bytes Array
-    uint8_t* preset = led_commands[preset_index];
+    uint8_t* preset = logic_engine_commands[preset_index];
     for (int i = 0; i < 4; i++)
       transmit_bytes[i + 6] = preset[i];
 

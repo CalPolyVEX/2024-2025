@@ -136,12 +136,12 @@ void eval_input(uint8_t *data, int size, bool pc_mode) {
         lcd.clear();
         break;
 
-    case 7: // Send Command to LED Controller Using Presets
-        sendLEDCommand(data[3]);
+    case 7: // Send Command to Logic Engine Using Presets
+        sendLogicEngineCommand(data[3]);
         break;
 
-    case 8: // Send Command to LED Controller Using Raw Commands
-        sendLEDCommand(data[3], data[4], data[5], data[6]);
+    case 8: // Send Command to Logic Engine Controller Using Raw Commands
+        sendLogicEngineCommand(data[3], data[4], data[5], data[6]);
         break;
     };
 
