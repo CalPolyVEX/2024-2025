@@ -1,0 +1,21 @@
+---DESIGN CONSIDERATIONS---
+LTC7003 should be operated from RUN pin, not INP.
+LTC7003 should have a resistor at the gate of the mosfet it's controlling, who's value can be decided post-manufacture of the board
+LTC7003 should have SNS+ shorted to the high side of its MOSFET
+LTC7003 should have SNS- connected via a resistor to the high side of its MOSFET
+LTC7003 should have a reverse-biased shottky diode connected to the TS pin in order to handle inductive loads
+LTC7003 should have a minimum 0.1uF capacitor between VIN and GND
+LTC7003 should have a decoupling capacitor of minimum 1.0uF between VCC and GND
+LTC7003 should have FAULT pulled up to VCC
+LTC7003 should have OVLO tied to GND if not in use
+LTC7003 should have a minimum 0.1uF capacitor tied between BST and TS
+
+
+
+---LAYOUT CONSIDERATIONS---
+Screw terminals should be inset from the edge of the board to allow for a "wire clamp" on the final board
+LTC7003 SNS connections should be Kelvin connected to each other
+LTC7003 capacitor between BST and TS should be kept close to the board
+LTC7003 TS trace should be low resistance (wide and short)
+Make sure to add revision information and dates
+Make sure to add clear labels on all inputs and outputs
