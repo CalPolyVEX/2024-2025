@@ -1,16 +1,12 @@
 #include "reon_hp_i2c.h"
 
-void setup() {
-    Wire.begin();
-    Wire.onReceive(receiveEvent);
-}
+void send_reon_command(int cmd, int hp_addr) {
+    /* send commands via I2C to the REON holoprojector
+    with address `hp_addr`*/
 
-void loop() {
-    delay(100);
-}
+    Wire.beginTransmission(hp_addr);
 
-void receiveEvent(int how_many) {
-    while(1 < Wire.available()) {
-        Serial.print(Wire.read());
-    }
+    Wire.write(uint8_t(cmd));
+
+    Wire.endTransmission(true);
 }
