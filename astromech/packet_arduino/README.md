@@ -1,5 +1,5 @@
 
-| GCLK number   | Second Header |
+| GCLK number   | Device |
 | ------------- | ------------- |
 | 1  |  |
 | 2  | |
@@ -8,3 +8,10 @@
 | 5  | Logic Engine (Sercom 4), Motor/Servo Timer (TCC0/TCC1) |
 | 6  | |
 
+| Device  | I2C |
+| ------------- | ------------- |
+| Tsunami Audio Board  | 0x13 |
+| LCD | |
+| REON front  | |
+| REON top  | |
+| REON rear  | |
