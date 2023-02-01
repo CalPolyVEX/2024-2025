@@ -3296,7 +3296,7 @@
     (uuid 7805bc1a-2b87-488e-8e19-b22c02acd395)
     (property "Reference" "F8" (id 0) (at 255.27 59.69 90))
     (property "Value" "F_RDRIVE" (id 1) (at 255.27 64.77 90))
-    (property "Footprint" "astromech-footprints:Generic-Fuse" (id 2) (at 255.27 64.008 90)
+    (property "Footprint" "astromech-footprints:10.2mm fuse" (id 2) (at 255.27 64.008 90)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 255.27 62.23 0)
@@ -3923,7 +3923,7 @@
     (uuid b7ad4893-e42f-49a1-9de2-9945510e4aa2)
     (property "Reference" "F7" (id 0) (at 255.27 48.26 90))
     (property "Value" "F_LDRIVE" (id 1) (at 255.27 53.34 90))
-    (property "Footprint" "astromech-footprints:Generic-Fuse" (id 2) (at 255.27 52.578 90)
+    (property "Footprint" "astromech-footprints:10.2mm fuse" (id 2) (at 255.27 52.578 90)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (id 3) (at 255.27 50.8 0)
@@ -4827,10 +4827,10 @@
       (reference "F6") (unit 1) (value "F_JETSON") (footprint "astromech-footprints:Generic-Fuse")
     )
     (path "/b7ad4893-e42f-49a1-9de2-9945510e4aa2"
-      (reference "F7") (unit 1) (value "F_LDRIVE") (footprint "astromech-footprints:Generic-Fuse")
+      (reference "F7") (unit 1) (value "F_LDRIVE") (footprint "astromech-footprints:10.2mm fuse")
     )
     (path "/7805bc1a-2b87-488e-8e19-b22c02acd395"
-      (reference "F8") (unit 1) (value "F_RDRIVE") (footprint "astromech-footprints:Generic-Fuse")
+      (reference "F8") (unit 1) (value "F_RDRIVE") (footprint "astromech-footprints:10.2mm fuse")
     )
     (path "/0c070f96-abff-4c74-bec1-2622a1aef2da"
       (reference "F9") (unit 1) (value "F_HEADMOT") (footprint "astromech-footprints:Generic-Fuse")
