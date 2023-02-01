@@ -12,7 +12,7 @@
  *  Sercom instance: SERCOM2
  *  RX Pin: PA20
  *  TX Pin: PA21
- *  Generic Clock Generator: GCLOCK0
+ *  Generic Clock Generator: GCLOCK4
  */
 
 /* PINOUT NOTES:
