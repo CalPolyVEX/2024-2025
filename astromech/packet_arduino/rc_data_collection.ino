@@ -22,6 +22,9 @@ volatile boolean newData = false;
 volatile uint16_t regCont;
 volatile boolean stayInPC = false;
 
+/* LED setup*/
+
+
 // Queue class
 // Implemented using a circular array
 class Queue {
@@ -273,13 +276,26 @@ bool receiver_loop() {
         // SerialUSB.println(" ");
 
         if(channel[TOGGL_CHNL] == TOGGL_VAL_PC) {
+            led_on(LED2);
             pc_mode = true;
         } else {
+            // indicate reciever mode
+            led_off(LED2);
+
+            /* motor control */
             // convert from 11 bit to 8 bit before calling control motors
             uint8_t ver_8bit = channel[6] * 255 / 2047;
             uint8_t hor_8bit = channel[7] * 255 / 2047;
             // input motor values
             control_motors(ver_8bit, hor_8bit);
+
+            /* REON Holoprojector control */
+            uint8_t reon_val = channel[8] * 255 / 2047; //TODO do scaling
+            send_reon_command(reon_val, HP_FRNT_ADDR);
+            send_reon_command(reon_val, HP_TOP_ADDR);
+            send_reon_command(reon_val, HP_REAR_ADDR);
+
+            // stay in receiver mode
             pc_mode = false;
         }
 

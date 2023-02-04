@@ -20,6 +20,9 @@ void setup() {
     // init I2C for REON holoprojectors
     Wire.begin();
 
+    // init for onboard LEDs
+    setup_i2c();
+
     // Set up the USB reading
     SerialUSB.begin(115200);
     SerialUSB.setTimeout(0);
@@ -36,7 +39,8 @@ void loop() {
     // receiver_loop();
 
     // Receiver Mode
-    // pc_get_input(receiver_loop());
+    led_on(LED1);
+    pc_get_input(receiver_loop());
 
     if(i == 0) {
         send_reon_command(REON_WHITE, 27);
