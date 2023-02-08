@@ -15,3 +15,4 @@
 | REON front  | 0x19 |
 | REON top  | 0x1A |
 | REON rear  | 0x1B |
+| speaker amp | 0x58 |
