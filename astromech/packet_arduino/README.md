@@ -12,6 +12,6 @@
 | ------------- | ------------- |
 | Tsunami Audio Board  | 0x13 |
 | LCD | |
-| REON front  | |
-| REON top  | |
-| REON rear  | |
+| REON front  | 0x19 |
+| REON top  | 0x1A |
+| REON rear  | 0x1B |
