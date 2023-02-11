@@ -2,7 +2,7 @@
 
 #define PARANOIA // if defined, potentially excessive operations will be done to ensure intended functionality
 #define TOGGL_CHNL 5 // channel associated with the switch that determines whether to get input from RC or PC
-#define TOGGL_VAL_RC 461 // value output by channel used for toggling to RC
+#define TOGGL_VAL_RC 995 // value output by channel used for toggling to RC
 #define TOGGL_VAL_PC 1529 // value output by channel used for toggling to PC
 
 /*
@@ -86,6 +86,7 @@ public:
         for (unsigned int i = 0; i < size; i++) {
             // Read Data and Increment Tail
             array[i] = buffer[tail];
+            buffer[tail] = 0;
             data_size--;
             tail++;
 
@@ -101,6 +102,10 @@ public:
         head = 0;
         tail = 0;
         data_size = 0;
+    }
+
+    uint8_t get_data_size() {
+        return data_size;
     }
 
 private:
@@ -265,21 +270,29 @@ bool receiver_loop() {
             return 3;
         }
 
-        // Decode Data into cursed 11 bit channels
-        decodeData();
-
-        // print out the values of every channel into serial
-        // for (int i = 0; i < 16; i++) {
-        //     SerialUSB.print(channel[i]);
+        // print out the values of every complete_packet[i] into serial
+        // for(int i = 0; i < 32; i++) {
+        //     SerialUSB.print(complete_packet[i]);
         //     SerialUSB.print(" ");
         // }
         // SerialUSB.println(" ");
 
+        // Decode Data into cursed 11 bit channels
+        decodeData();
+
+        // print out the values of every channel into serial
+        for (int i = 0; i < 16; i++) {
+            SerialUSB.print(channel[i]);
+            SerialUSB.print(" ");
+        }
+        SerialUSB.println(" ");
+
         if(channel[TOGGL_CHNL] == TOGGL_VAL_PC) {
             led_on(LED2);
             pc_mode = true;
-        } else {
+        } else if(channel[TOGGL_CHNL] == TOGGL_VAL_RC) {
             // indicate reciever mode
+            led_on(LED1);
             led_off(LED2);
 
             /* motor control */
@@ -290,18 +303,21 @@ bool receiver_loop() {
             control_motors(ver_8bit, hor_8bit);
 
             /* REON Holoprojector control */
-            uint8_t reon_val = channel[8] * 255 / 2047; //TODO do scaling
-            send_reon_command(reon_val, HP_FRNT_ADDR);
-            send_reon_command(reon_val, HP_TOP_ADDR);
-            send_reon_command(reon_val, HP_REAR_ADDR);
+            // uint8_t reon_val = channel[8] * 255 / 2047; //TODO do scaling
+            // send_reon_command(reon_val, HP_FRNT_ADDR);
+            // send_reon_command(reon_val, HP_TOP_ADDR);
+            // send_reon_command(reon_val, HP_REAR_ADDR);
 
             // stay in receiver mode
             pc_mode = false;
+        } else {
+            led_off(LED1);
+            led_off(LED2);
         }
 
-
         // reset the complete_packet buffer
-        complete_packet[0] = 0;
+        // complete_packet[0] = 0;
+        channel[TOGGL_CHNL] = 0;
     }
     return pc_mode;
 }
@@ -338,6 +354,11 @@ void SERCOM2_Handler() {
 
     // retrigger
     TC3->COUNT16.CTRLBSET.bit.CMD = 0x1;
+
+    // if(queue.get_data_size() == 25) {
+    //     // SerialUSB.println("new data\n");
+    //     newData = true;
+    // }
 }
 
 void TC3_Handler() {

@@ -39,22 +39,21 @@ void loop() {
     // receiver_loop();
 
     // Receiver Mode
-    led_on(LED1);
     pc_get_input(receiver_loop());
 
-    if(i == 0) {
-        send_reon_command(REON_WHITE, 27);
-        delay(3000);
-        i++;
-    } else if(i == 1) {
-        send_reon_command(REON_OFF, 27);
-        delay(3000);
-        i++;
-    } else if(i == 2) {
-        // send_reon_command(REON_ON, 27);
-        // delay(3000);
-        i = 0;
-    }
+    // if(i == 0) {
+    //     send_reon_command(REON_WHITE, 27);
+    //     delay(3000);
+    //     i++;
+    // } else if(i == 1) {
+    //     send_reon_command(REON_OFF, 27);
+    //     delay(3000);
+    //     i++;
+    // } else if(i == 2) {
+    //     // send_reon_command(REON_ON, 27);
+    //     // delay(3000);
+    //     i = 0;
+    // }
 
     // lcd.write(i++);
 
