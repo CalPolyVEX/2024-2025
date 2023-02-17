@@ -187,15 +187,73 @@ void loop()
             }
 
             break;
+          case 3:  //print integer
+            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
+            if ((check_crc(buf, 8) == 1) && (num_bytes_read != 0)) {
+              int num = ((int)buf[5] << 24) | ((int)buf[4] << 16) | ((int)buf[3] << 8) | ((int)buf[2]);
+              //lcdSetCursor(0, 1);
+              lcdPrintf("%d", num);
+            } else {
+              flush_serial();
+            }
+            break;
+          case 4:  //backlight off
+            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
+
+            if ((check_crc(buf, 8) == 1) && (num_bytes_read != 0)) {
+              backlight_off();
+            } else {
+              flush_serial();
+            }
+
+            break;
+          case 5:  //backlight on
+            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
+
+            if ((check_crc(buf, 8) == 1) && (num_bytes_read != 0)) {
+              backlight_off();
+            } else {
+              flush_serial();
+            }
+
+            break;
+          case 6:  //set servo
+            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
+
+            if ((check_crc(buf, 8) == 1) && (num_bytes_read != 0)) {
+              set_servo(buf[2], ((unsigned short)buf[3] << 8) | (unsigned short)buf[4]);
+            } else {
+              flush_serial();
+            }
+
+            break;
+          case 7:  //LED on
+            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
+
+            if ((check_crc(buf, 8) == 1) && (num_bytes_read != 0)) {
+              led_on(buf[2]);
+            } else {
+              flush_serial();
+            }
+
+            break;
+          case 8:  //LED off
+            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
+
+            if ((check_crc(buf, 8) == 1) && (num_bytes_read != 0)) {
+              led_off(buf[2]);
+            } else {
+              flush_serial();
+            }
+
+            break;
           default:
             flush_serial();
             break;
          }
       
-      
-      
-      } else {
+      } else { //bad address received
         //flush serial buffer
         flush_serial();
       }
