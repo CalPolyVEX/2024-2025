@@ -6,6 +6,9 @@ packet format
 | Clear Screen | 128 | 0 | empty  | empty | empty | empty | CRC1  | CRC2 |
 | Set Cursor | 128 | 1 | row  | column | empty | empty | CRC1  | CRC2 |
 | Print String | 128 | 2 | string length (n) | n bytes... | ... | ... | CRC1  | CRC2 |
+| Print Integer | 128 | 3 | lowest byte | ... | ... | highest byte | CRC1  | CRC2 |
+| Backlight Off | 128 | 4 | empty | empty | empty | empty | CRC1  | CRC2 |
+| Backlight On | 128 | 5 | empty | empty | empty | empty | CRC1  | CRC2 |
 | Set Servo | 128 | 6 | servo num  | servo position high | servo position low | empty | CRC1  | CRC2 |
 | LED On | 128 | 7 | LED number | empty | empty | empty | CRC1  | CRC2 |
 | LED Off | 128 | 8 | LED number | empty | empty | empty | CRC1  | CRC2 |
