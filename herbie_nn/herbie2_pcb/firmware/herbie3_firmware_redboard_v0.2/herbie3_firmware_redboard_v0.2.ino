@@ -1,5 +1,6 @@
 #include <Wire.h>
 #include <TCA9534.h>
+//#include "herbie3_firmware_redboard_v0.2.h"
 
 TCA9534 ioex;
 const uint8_t IOEX_ADDR = 0x20; // A0 = A1 = A2 = 0
@@ -94,6 +95,7 @@ void setup()
 
   delay(200); //wait .2 seconds
   SerialUSB.begin(115200); // Initialize Serial Monitor USB
+  SerialUSB.setTimeout(500); //timeout to 500ms
 
   // initialize digital pin LED_BUILTIN as an output.
   pinMode(LED_BUILTIN, OUTPUT);
@@ -103,13 +105,117 @@ void setup()
 
 int motor_stop_timeout = 0;
 char buf[64];
+int serial_bytes_available = 0;
+unsigned char temp_byte;
+unsigned char sbuf[10];
+int num_bytes_read;
+
+void flush_serial() {
+  while (SerialUSB.available())  //clear out the serial input buffer
+  {
+    SerialUSB.read();
+  } 
+}
 
 void loop()
 {
   int packet_length;
 
+  while(1) 
+  {
+    motor_stop_timeout++;
+    serial_bytes_available = SerialUSB.available();
+
+    if (serial_bytes_available != 0) {
+      motor_stop_timeout = 0;
+
+      num_bytes_read = SerialUSB.readBytes((char*)sbuf, 1); //read address
+
+      if (num_bytes_read == 0) {
+        flush_serial();
+        continue;
+      }
+
+      if (sbuf[0] == 128) { //valid address
+        buf[0] = sbuf[0];
+        num_bytes_read = SerialUSB.readBytes((char*)(buf+1), 1); //read the command byte
+
+        switch (buf[1]) {
+          case 34:  //motor command
+            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6);
+
+            if ((check_crc(buf, 8) == 1) && (num_bytes_read != 0)) {
+                short left_speed = (buf[2] << 8) | buf[3];  //speed is sent high byte first
+                short right_speed = (buf[4] << 8) | buf[5];
+
+                set_motor_speed(0, left_speed); //the speed should be between -2400 and +2400
+                set_motor_speed(1, right_speed);
+            } else {
+              flush_serial();
+            }
+        
+            break;
+          case 1:  //set_cursor command
+            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
+
+            if ((check_crc(buf, 8) == 1) && (num_bytes_read != 0)) {
+              lcdSetCursor(buf[2], buf[3]);
+            } else {
+              flush_serial();
+            }
+
+            break;
+          case 2:  //print string
+            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 1); 
+            num_bytes_read = SerialUSB.readBytes((char*)(buf+3), buf[2]+2); 
+
+
+            if ((check_crc(buf, (buf[2] + 5)) == 1) && (num_bytes_read != 0)) {  //CRC is correct
+              char str[32];
+
+              for (int i = 0; i < buf[2]; i++)
+              {
+                str[i] = buf[3 + i];
+              }
+
+              str[buf[2]] = 0; //set the end of the string to NULL
+
+              //lcdSetCursor(0, 1);
+              lcdPrintf("%s", str);
+            } else {
+              flush_serial();
+            }
+
+            break;
+
+          default:
+            flush_serial();
+            break;
+         }
+      
+      
+      
+      } else {
+        //flush serial buffer
+        flush_serial();
+      }
+    } else {
+      if (motor_stop_timeout >= 3) { //if no command received in 1 second, then stop motors
+        set_motor_speed(0, 0);
+        set_motor_speed(1, 0);
+      }
+
+      if (motor_stop_timeout == 3) {
+        lcdClear();
+        lcdPrintf("--");
+      }      
+    }
+    
+    delayMicroseconds(250); //wait 1ms, otherwise the serial USB port will lock up
+  }
+
   //testing
-  while(1) {
+  /*while(1) {
     led_on(3);
     delay(400);
     led_off(3);
@@ -127,26 +233,6 @@ void loop()
     led_off(1);
 
     send_lb_byte(0x21);
-  }
-
-  while(1) 
-  {
-    motor_stop_timeout++;
-    packet_length = SerialUSB.available();
-    if (packet_length >= 8) //the minimum packet length is 8 bytes
-      break;
-
-    if (motor_stop_timeout > 1000) { //if no command received in 1 second, then stop motors
-      set_motor_speed(0, 0);
-      set_motor_speed(1, 0);
-
-      if (motor_stop_timeout == 1001) {
-        lcdClear();
-        lcdPrintf("--");
-      }
-    }
-
-    delay(1); //delay 1 ms
   }
 
   if (packet_length >= 8) 
@@ -256,12 +342,8 @@ void loop()
         led_off(buf[2]);
       }
     }
-  }
+  }*/
 
-  while (SerialUSB.available())  //clear out the serial input buffer
-  {
-    SerialUSB.read();
-  } 
 
   delayMicroseconds(250); //wait 1ms, otherwise the serial USB port will lock up
 }
