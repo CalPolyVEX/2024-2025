@@ -132,6 +132,7 @@ void loop()
       num_bytes_read = SerialUSB.readBytes((char*)sbuf, 1); //read address
 
       if (num_bytes_read == 0) {
+        sbuf[0] = 0;
         flush_serial();
         continue;
       }
@@ -155,6 +156,15 @@ void loop()
             }
         
             break;
+          case 0:  //clear screen
+            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
+
+            if ((check_crc(buf, 8) == 1) && (num_bytes_read != 0)) {
+              lcdClear();
+            } else {
+              flush_serial();
+            }
+
           case 1:  //set_cursor command
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
@@ -291,119 +301,7 @@ void loop()
     led_off(1);
 
     send_lb_byte(0x21);
-  }
-
-  if (packet_length >= 8) 
-  {
-    SerialUSB.readBytes(buf, packet_length);
-    motor_stop_timeout = 0;
-
-    if (buf[1] == 34) //motor command
-    {
-      //lcdSetCursor(0, 0);
-
-      if (check_crc(buf, 8) == 1) //CRC is correct
-      {
-        short left_speed = (buf[2] << 8) | buf[3];  //speed is sent high byte first
-        short right_speed = (buf[4] << 8) | buf[5];
-
-        set_motor_speed(0, left_speed); //the speed should be between -2400 and +2400
-        set_motor_speed(1, right_speed);
-
-        //lcdSetCursor(0, 0);
-        //lcdPrintf("%d %d", left_speed, right_speed);
-      }
-      else
-      { //bad CRC
-        lcdClear();
-        lcdSetCursor(0, 0);
-        lcdPrintf("bad CRC");
-        led_on(2);
-      }
-    }
-    else if (buf[1] == 0)
-    {
-      //clear screen
-      if (check_crc(buf, 8) == 1) //CRC is correct
-        lcdClear();
-    }
-    else if (buf[1] == 1)
-    {
-      //set cursor
-      //buf[2] = col (0-15)
-      //buf[3] = row (0-1)
-      if (check_crc(buf, 8) == 1) //CRC is correct
-        lcdSetCursor(buf[2], buf[3]);
-    }
-    else if (buf[1] == 2)
-    {
-      //print string
-      //buf[2] = the length of the string in bytes
-      //buf[3-x] = the string data
-      if (check_crc(buf, packet_length) == 1)
-      { //CRC is correct
-        char str[32];
-
-        for (int i = 0; i < buf[2]; i++)
-        {
-          str[i] = buf[3 + i];
-        }
-        str[buf[2]] = 0; //set the end of the string to NULL
-
-        lcdSetCursor(0, 1);
-        lcdPrintf("%s", str);
-      }
-    }
-    else if (buf[1] == 3)
-    {
-      //print int
-      //buf[2-5] = the 4 bytes of the int, sent least significant byte first
-      if (check_crc(buf, 8) == 1)  //CRC is correct
-      { 
-        int num = ((int)buf[5] << 24) | ((int)buf[4] << 16) | ((int)buf[3] << 8) | ((int)buf[2]);
-        lcdSetCursor(0, 1);
-        lcdPrintf("%d", num);
-      }
-    }
-    else if (buf[1] == 4)
-    {
-      //backlight off
-      if (check_crc(buf, 8) == 1)  //CRC is correct
-        backlight_off();
-    }
-    else if (buf[1] == 5)
-    {
-      //backlight on
-      if (check_crc(buf, 8) == 1)  //CRC is correct
-        backlight_on();
-    }
-    else if (buf[1] == 6)
-    {
-      //set servo position
-      //buf[2] = servo number (0-5)
-      //buf[3-4] = position (0-255)
-      set_servo(buf[2], ((unsigned short)buf[3] << 8) | (unsigned short)buf[4]);
-    }
-    else if (buf[1] == 7)
-    {
-      //LED on
-      //buf[2] = led number 
-      if (check_crc(buf, 8) == 1) {  //CRC is correct
-        led_on(buf[2]);
-      }
-    }
-    else if (buf[1] == 8)
-    {
-      //LED off
-      //buf[2] = led number 
-      if (check_crc(buf, 8) == 1) {  //CRC is correct
-        led_off(buf[2]);
-      }
-    }
   }*/
-
-
-  delayMicroseconds(250); //wait 1ms, otherwise the serial USB port will lock up
 }
 
 void TC5_Handler()  // Encoder (ISR) for timer TC5
