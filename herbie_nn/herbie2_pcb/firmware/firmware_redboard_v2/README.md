@@ -1,4 +1,7 @@
 packet format
 
-| motor command | 128 | 34 | left high byte | left low byte |
-| print string  | 128 | 2  | string length | string bytes |
+| Command  | byte 1 | byte 2 | byte 3 | byte 4 | byte 5 | byte 6 | byte 7 | byte 8 |
+| ------------- | ------------- | --- | ------------- | ------------- | --- | ------------- | ------------- | --- |
+| Motor Command  | 128  | 34 | left high byte | left low byte  | right high byte | right low byte | CRC1 | CRC2 |
+| Clear Screen | 128 | 0 | empty  | empty | empty | empty | CRC1  | CRC2 |
+| Print String | 128 | 2 | string length (n) | n bytes... | ... | ... | CRC1  | CRC2 |
