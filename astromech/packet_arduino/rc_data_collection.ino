@@ -1,9 +1,17 @@
 #include "rc_data_collection.h"
 
 #define PARANOIA // if defined, potentially excessive operations will be done to ensure intended functionality
+
+// PC/RC toggle macros
 #define TOGGL_CHNL 5 // channel associated with the switch that determines whether to get input from RC or PC
 #define TOGGL_VAL_RC 995 // value output by channel used for toggling to RC
 #define TOGGL_VAL_PC 1529 // value output by channel used for toggling to PC
+
+// REON holoprojector macros
+#define REON_CHNL 3 // channel associated with controlling the REON holoprojectors
+#define REON_LOW 205    // value associated with REON_OFF
+#define REON_MID 227    // value associated with REON_ON
+#define REON_HIGH 249  // value associated with REON_WHITE
 
 /*
  * USING
@@ -303,10 +311,17 @@ bool receiver_loop() {
             control_motors(ver_8bit, hor_8bit);
 
             /* REON Holoprojector control */
-            // uint8_t reon_val = channel[8] * 255 / 2047; //TODO do scaling
-            // send_reon_command(reon_val, HP_FRNT_ADDR);
-            // send_reon_command(reon_val, HP_TOP_ADDR);
-            // send_reon_command(reon_val, HP_REAR_ADDR);
+            uint8_t reon_val = channel[REON_CHNL]; //TODO do scaling
+            SerialUSB.println(reon_val);
+            if(reon_val == REON_MID)    // temporary conditional structure, replace with scaling
+                reon_val = REON_ON;
+            else if(reon_val == REON_HIGH)
+                reon_val = REON_WHITE;
+            else
+                reon_val = REON_OFF;
+            send_reon_command(reon_val, HP_FRNT_ADDR);
+            send_reon_command(reon_val, HP_TOP_ADDR);
+            send_reon_command(reon_val, HP_REAR_ADDR);
 
             // stay in receiver mode
             pc_mode = false;

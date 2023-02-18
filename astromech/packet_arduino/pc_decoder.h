@@ -3,6 +3,7 @@
 
 #include "motor_servo_control.h"
 #include "packet_arduino.h"
+#include "reon_hp_i2c.h"
 
 #define MOTOR_TIMOUT 1000 // ms
 

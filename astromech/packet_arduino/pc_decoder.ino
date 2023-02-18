@@ -134,6 +134,13 @@ void eval_input(uint8_t *data, int size, bool pc_mode) {
     case 6: // clear screen
         lcd.clear();
         break;
+
+    case 10: // set REON HP sequence for all three HPs
+        if (pc_mode) {
+            send_reon_command(int(data[3]), HP_FRNT_ADDR);
+            send_reon_command(int(data[3]), HP_TOP_ADDR);
+            send_reon_command(int(data[3]), HP_REAR_ADDR);
+        }
     };
 }
 
