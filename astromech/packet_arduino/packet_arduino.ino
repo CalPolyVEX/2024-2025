@@ -3,6 +3,10 @@
 hd44780_I2Cexp lcd(LCD_ADDRESS); // declare lcd object: auto locate & auto config expander chip
 
 void setup() {
+
+    // Setup Wire
+    Wire.begin();
+
     // Set up the motors
     motor_setup();
     receiver_setup();
@@ -21,6 +25,10 @@ void setup() {
     // Set up the USB reading
     SerialUSB.begin(115200);
     SerialUSB.setTimeout(0);
+
+    // Initialize the Amplifier for Sound
+    resetAmplifier();
+    setAmplifierGain(30);
 }
 
 void loop() {

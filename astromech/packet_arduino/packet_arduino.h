@@ -8,6 +8,8 @@
 #include <hd44780.h>                       // main hd44780 header
 #include <hd44780ioClass/hd44780_I2Cexp.h> // i2c expander i/o class header
 
+#include "tsunami_control.h"
+
 #define LCD_COLS 20
 #define LCD_ROWS 4
 #define LCD_ADDRESS 0x27
