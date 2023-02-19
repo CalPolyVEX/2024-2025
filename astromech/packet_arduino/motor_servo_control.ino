@@ -138,14 +138,14 @@ void motor_setup() {
 
     // Use Normal PWM
     TCC0->WAVE.reg = TCC_WAVE_WAVEGEN_NPWM;
-    while (TCC1->SYNCBUSY.bit.WAVE) {
+    while (TCC0->SYNCBUSY.bit.WAVE) {
     };
 
     // The PER register determines the period of the PWM
     // uint32_t period = 960000; //48000000/2400 = 20KHz
 
     TCC0->PER.reg = MOTOR_WAVELENGTH; // this is a 24-bit register
-    while (TCC1->SYNCBUSY.bit.PER) {
+    while (TCC0->SYNCBUSY.bit.PER) {
     };
 
     // Servo 0 (D7 PA21 WO[7])
