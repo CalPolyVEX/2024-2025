@@ -145,8 +145,18 @@ void eval_input(uint8_t *data, int size, bool pc_mode) {
     case 8: // Send Command to Logic Engine Controller Using Raw Commands
         sendLogicEngineCommand(data[3], data[4], data[5], data[6]);
         break;
+
+    case 9: // Send Command to Play a Sound Through the Tsunami (Value 1 = Sound Index, Value 2 = Volume (Signed))
+        playTsunamiSound(data[3], data[4]);
+        break;
+
+    case 10: // Set the Gain of the Amplifier for Sound
+        setAmplifierGain(data[3]);
+        break;
     };
 
+    
+    
 }
 
 // drops data in the Serial buffer
