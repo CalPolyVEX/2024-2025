@@ -102,7 +102,7 @@ void setup()
   init_lb_uart(); //initialize the lightbar UART on SERCOM0
 }
 
-char buf[64];
+char buf[512];
 unsigned char sbuf[10];
 
 void flush_serial() {
@@ -148,6 +148,7 @@ void loop()
     if (serial_bytes_available != 0) {
       motor_stop_timeout = 0;
       led_off(3);
+      led_off(2);
 
       num_bytes_read = SerialUSB.readBytes((char*)sbuf, 1); //read address
 
@@ -165,7 +166,7 @@ void loop()
           case 34:  //motor command
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6);
 
-            if ((check_crc(buf, 8) == 1) && (num_bytes_read == 6)) {
+            if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
                 short left_speed = (buf[2] << 8) | buf[3];  //speed is sent high byte first
                 short right_speed = (buf[4] << 8) | buf[5];
 
@@ -179,7 +180,7 @@ void loop()
           case 0:  //clear screen
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
-            if ((check_crc(buf, 8) == 1) && (num_bytes_read == 6)) {
+            if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
               lcdClear();
             } else {  //bad packet
               flush_serial();
@@ -188,7 +189,7 @@ void loop()
           case 1:  //set_cursor command
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
-            if ((check_crc(buf, 8) == 1) && (num_bytes_read == 6)) {
+            if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
               lcdSetCursor(buf[2], buf[3]);
             } else {  //bad packet
               flush_serial();
@@ -196,21 +197,14 @@ void loop()
 
             break;
           case 2:  //print string
-            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 1); 
+            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 1);  //read string size
             num_bytes_read = SerialUSB.readBytes((char*)(buf+3), buf[2]+2); 
 
+            if ((num_bytes_read == (buf[2]+2)) && (check_crc(buf, (buf[2] + 5)) == 1)) {  //CRC is correct
+              buf[buf[2] + 3] = 0;  //set the end of the string to NULL
 
-            if ((check_crc(buf, (buf[2] + 5)) == 1) && (num_bytes_read == (buf[2]+2))) {  //CRC is correct
-              char str[32];
-
-              for (int i = 0; i < buf[2]; i++)
-              {
-                str[i] = buf[3 + i];
-              }
-
-              str[buf[2]] = 0; //set the end of the string to NULL
-
-              lcdPrintf("%s", str);
+              lcdPrintf("%s", buf+3);
+              led_on(2);
             } else {  //bad packet
               flush_serial();
             }
@@ -219,7 +213,7 @@ void loop()
           case 3:  //print integer
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
-            if ((check_crc(buf, 8) == 1) && (num_bytes_read == 6)) {
+            if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
               int num = ((int)buf[5] << 24) | ((int)buf[4] << 16) | ((int)buf[3] << 8) | ((int)buf[2]);
               //lcdSetCursor(0, 1);
               lcdPrintf("%d", num);
@@ -231,7 +225,7 @@ void loop()
           case 4:  //backlight off
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
-            if ((check_crc(buf, 8) == 1) && (num_bytes_read == 6)) {
+            if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
               backlight_off();
             } else {  //bad packet
               flush_serial();
@@ -241,7 +235,7 @@ void loop()
           case 5:  //backlight on
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
-            if ((check_crc(buf, 8) == 1) && (num_bytes_read == 6)) {
+            if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
               backlight_off();
             } else {  //bad packet
               flush_serial();
@@ -251,7 +245,7 @@ void loop()
           case 6:  //set servo
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
-            if ((check_crc(buf, 8) == 1) && (num_bytes_read == 6)) {
+            if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
               set_servo(buf[2], ((unsigned short)buf[3] << 8) | (unsigned short)buf[4]);
             } else {  // bad packet
               flush_serial();
@@ -261,7 +255,7 @@ void loop()
           case 7:  //LED on
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
-            if ((check_crc(buf, 8) == 1) && (num_bytes_read == 6)) {
+            if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
               led_on(buf[2]);
             } else {  //bad packet
               flush_serial();
@@ -271,7 +265,7 @@ void loop()
           case 8:  //LED off
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
-            if ((check_crc(buf, 8) == 1) && (num_bytes_read == 6)) {
+            if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
               led_off(buf[2]);
             } else {  //bad packet
               flush_serial();
@@ -295,10 +289,13 @@ void loop()
         lcdClear();
         lcdPrintf("--");
         led_on(3);
+        led_off(1);
+        led_off(2);
+        led_off(4);
       }      
     }
     
-    delayMicroseconds(250); //wait 1ms, otherwise the serial USB port will lock up
+    delayMicroseconds(250); //wait 250us, otherwise the serial USB port will lock up
   }
 
   //testing
