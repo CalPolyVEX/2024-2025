@@ -1,6 +1,5 @@
 #include <Wire.h>
 #include <TCA9534.h>
-//#include "herbie3_firmware_redboard_v0.2.h"
 
 TCA9534 ioex;
 const uint8_t IOEX_ADDR = 0x20; // A0 = A1 = A2 = 0
@@ -94,8 +93,8 @@ void setup()
   backlight_on();
 
   delay(200); //wait .2 seconds
-  SerialUSB.begin(115200); // Initialize Serial Monitor USB
-  SerialUSB.setTimeout(500); //timeout to 500ms
+  SerialUSB.begin(921600); // Initialize Serial Monitor USB
+  SerialUSB.setTimeout(300); //timeout to 500ms
 
   // initialize digital pin LED_BUILTIN as an output.
   pinMode(LED_BUILTIN, OUTPUT);
@@ -103,12 +102,8 @@ void setup()
   init_lb_uart(); //initialize the lightbar UART on SERCOM0
 }
 
-int motor_stop_timeout = 0;
 char buf[64];
-int serial_bytes_available = 0;
-unsigned char temp_byte;
 unsigned char sbuf[10];
-int num_bytes_read;
 
 void flush_serial() {
   while (SerialUSB.available())  //clear out the serial input buffer
@@ -120,6 +115,30 @@ void flush_serial() {
 void loop()
 {
   int packet_length;
+  int num_bytes_read;
+  int serial_bytes_available = 0;
+  int motor_stop_timeout = 0;
+
+  //testing
+  /*while(1) {
+    led_on(3);
+    delay(400);
+    led_off(3);
+
+    led_on(4);
+    delay(400);
+    led_off(4);
+
+    led_on(2);
+    delay(400);
+    led_off(2);
+
+    led_on(1);
+    delay(400);
+    led_off(1);
+
+    send_lb_byte(0x21);
+  }*/
 
   while(1) 
   {
@@ -128,6 +147,7 @@ void loop()
 
     if (serial_bytes_available != 0) {
       motor_stop_timeout = 0;
+      led_off(3);
 
       num_bytes_read = SerialUSB.readBytes((char*)sbuf, 1); //read address
 
@@ -145,32 +165,32 @@ void loop()
           case 34:  //motor command
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6);
 
-            if ((check_crc(buf, 8) == 1) && (num_bytes_read != 0)) {
+            if ((check_crc(buf, 8) == 1) && (num_bytes_read == 6)) {
                 short left_speed = (buf[2] << 8) | buf[3];  //speed is sent high byte first
                 short right_speed = (buf[4] << 8) | buf[5];
 
                 set_motor_speed(0, left_speed); //the speed should be between -2400 and +2400
                 set_motor_speed(1, right_speed);
-            } else {
-              flush_serial();
+            } else {  //bad packet
+              flush_serial(); 
             }
         
             break;
           case 0:  //clear screen
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
-            if ((check_crc(buf, 8) == 1) && (num_bytes_read != 0)) {
+            if ((check_crc(buf, 8) == 1) && (num_bytes_read == 6)) {
               lcdClear();
-            } else {
+            } else {  //bad packet
               flush_serial();
             }
 
           case 1:  //set_cursor command
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
-            if ((check_crc(buf, 8) == 1) && (num_bytes_read != 0)) {
+            if ((check_crc(buf, 8) == 1) && (num_bytes_read == 6)) {
               lcdSetCursor(buf[2], buf[3]);
-            } else {
+            } else {  //bad packet
               flush_serial();
             }
 
@@ -180,7 +200,7 @@ void loop()
             num_bytes_read = SerialUSB.readBytes((char*)(buf+3), buf[2]+2); 
 
 
-            if ((check_crc(buf, (buf[2] + 5)) == 1) && (num_bytes_read != 0)) {  //CRC is correct
+            if ((check_crc(buf, (buf[2] + 5)) == 1) && (num_bytes_read == (buf[2]+2))) {  //CRC is correct
               char str[32];
 
               for (int i = 0; i < buf[2]; i++)
@@ -190,9 +210,8 @@ void loop()
 
               str[buf[2]] = 0; //set the end of the string to NULL
 
-              //lcdSetCursor(0, 1);
               lcdPrintf("%s", str);
-            } else {
+            } else {  //bad packet
               flush_serial();
             }
 
@@ -200,20 +219,21 @@ void loop()
           case 3:  //print integer
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
-            if ((check_crc(buf, 8) == 1) && (num_bytes_read != 0)) {
+            if ((check_crc(buf, 8) == 1) && (num_bytes_read == 6)) {
               int num = ((int)buf[5] << 24) | ((int)buf[4] << 16) | ((int)buf[3] << 8) | ((int)buf[2]);
               //lcdSetCursor(0, 1);
               lcdPrintf("%d", num);
-            } else {
+            } else {  //bad packet
               flush_serial();
             }
+            
             break;
           case 4:  //backlight off
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
-            if ((check_crc(buf, 8) == 1) && (num_bytes_read != 0)) {
+            if ((check_crc(buf, 8) == 1) && (num_bytes_read == 6)) {
               backlight_off();
-            } else {
+            } else {  //bad packet
               flush_serial();
             }
 
@@ -221,9 +241,9 @@ void loop()
           case 5:  //backlight on
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
-            if ((check_crc(buf, 8) == 1) && (num_bytes_read != 0)) {
+            if ((check_crc(buf, 8) == 1) && (num_bytes_read == 6)) {
               backlight_off();
-            } else {
+            } else {  //bad packet
               flush_serial();
             }
 
@@ -231,9 +251,9 @@ void loop()
           case 6:  //set servo
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
-            if ((check_crc(buf, 8) == 1) && (num_bytes_read != 0)) {
+            if ((check_crc(buf, 8) == 1) && (num_bytes_read == 6)) {
               set_servo(buf[2], ((unsigned short)buf[3] << 8) | (unsigned short)buf[4]);
-            } else {
+            } else {  // bad packet
               flush_serial();
             }
 
@@ -241,9 +261,9 @@ void loop()
           case 7:  //LED on
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
-            if ((check_crc(buf, 8) == 1) && (num_bytes_read != 0)) {
+            if ((check_crc(buf, 8) == 1) && (num_bytes_read == 6)) {
               led_on(buf[2]);
-            } else {
+            } else {  //bad packet
               flush_serial();
             }
 
@@ -251,9 +271,9 @@ void loop()
           case 8:  //LED off
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
-            if ((check_crc(buf, 8) == 1) && (num_bytes_read != 0)) {
+            if ((check_crc(buf, 8) == 1) && (num_bytes_read == 6)) {
               led_off(buf[2]);
-            } else {
+            } else {  //bad packet
               flush_serial();
             }
 
@@ -268,14 +288,13 @@ void loop()
         flush_serial();
       }
     } else {
-      if (motor_stop_timeout >= 3) { //if no command received in 1 second, then stop motors
+      if (motor_stop_timeout == 4000) { //if no command received in 1 second, then stop motors
         set_motor_speed(0, 0);
         set_motor_speed(1, 0);
-      }
-
-      if (motor_stop_timeout == 3) {
+        
         lcdClear();
         lcdPrintf("--");
+        led_on(3);
       }      
     }
     

@@ -65,12 +65,43 @@ def create_motor_packet(speed_left, speed_right):
 
     return packet
 
-def main():
-    ser = serial.Serial('/dev/ttyACM0', 921600, timeout=1)  # open serial port
-    print(ser.name)         # check which port was really used
-    count = 0
-    last_print_time = 0
+def create_led_packet(num, state):
+    crc = 0
+    packet = bytearray(8)
 
+    packet[0] = 128 #roboclaw address
+
+    if state == 1:
+        packet[1] = 7   #LED on command
+    else:
+        packet[1] = 8   #LED off command
+
+    packet[2] = num; #set the LED number
+    packet[3] = 0;
+    packet[4] = 0;
+    packet[5] = 0;
+
+    #Calculates CRC16 of nBytes of data in byte array message
+    for byte in range(6):
+        crc = (((crc << 8) & 0xffff) ^ crctable[((crc >> 8) ^ packet[byte]) & 0xff]) & 0xffff;
+
+    packet[6] = (crc >> 8) & 0xFF; #send the high byte of the crc
+    packet[7] = crc & 0xFF; #send the low byte of the crc
+
+    return packet
+
+def blink_led(ser):
+    for i in range (3):
+        p = create_led_packet(1,1)
+        ser.write(p)     # turn LED on
+        sleep(.3)
+        p = create_led_packet(1,0)
+        ser.write(p)     # turn LED off
+        sleep(.3)
+
+    ser.close()             # close port
+
+def motor_test(ser):
     while(1):
         for j in range(50):
             for i in range(50):
@@ -88,6 +119,15 @@ def main():
                 hex_bytes = binascii.hexlify(packet)
                 print(hex_bytes) # b'0a160a04' which is twice as long as in_bytes
                 # sleep(.01) #sleep 30ms
+
+def main():
+    ser = serial.Serial('/dev/ttyACM0', 921600, timeout=1)  # open serial port
+    print(ser.name)         # check which port was really used
+    count = 0
+    last_print_time = 0
+
+    blink_led(ser)
+    exit()
 
     # print(ser.read(30))
     print (ser.baudrate)
