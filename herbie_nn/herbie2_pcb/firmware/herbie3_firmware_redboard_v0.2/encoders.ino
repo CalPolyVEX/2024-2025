@@ -327,12 +327,12 @@ void init_encoders()
 
 //*************************************************
 //*****************************************************
-long getChanEncoderValue(int encoder)
+void getChanEncoderValue(int encoder, unsigned char* buf)
 //*****************************************************
 {
-    unsigned int cnt1Value, cnt2Value, cnt3Value, cnt4Value;
-    long result;
-    unsigned char buf[5];
+    //unsigned int cnt1Value, cnt2Value, cnt3Value, cnt4Value;
+    //long result;
+    //unsigned char buf[5];
 
     SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
     setSSEnc(SPI_ENABLE, encoder);
@@ -343,14 +343,14 @@ long getChanEncoderValue(int encoder)
     setSSEnc(SPI_DISABLE, encoder);
     SPI.endTransaction();
 
-    cnt1Value = buf[1];
-    cnt2Value = buf[2];
-    cnt3Value = buf[3];
-    cnt4Value = buf[4];
+    //cnt1Value = buf[1];
+    //cnt2Value = buf[2];
+    //cnt3Value = buf[3];
+    //cnt4Value = buf[4];
 
-    result = ((long)cnt1Value << 24) + ((long)cnt2Value << 16) + ((long)cnt3Value << 8) + (long)cnt4Value;
+    //result = ((long)cnt1Value << 24) + ((long)cnt2Value << 16) + ((long)cnt3Value << 8) + (long)cnt4Value;
 
-    return result;
+    //return result;
 }
 
 //////////////////////////////////////////////////
@@ -430,4 +430,106 @@ void init_servo() {
     //Enable TCC0
     TCC0->CTRLA.reg |= (TCC_CTRLA_ENABLE);
     while (TCC0->SYNCBUSY.bit.ENABLE) {};
+}
+
+void init_servo2() {
+ //////////////////////
+    // Set Up Servos Timer
+
+    // Set prescaler TCCDiv for TCC0
+    TCC0->CTRLA.reg |= TCC_CTRLA_PRESCALER(TCC_CTRLA_PRESCALER_DIV1_Val);  //set prescalar to divide by 1 = 48MHz clock
+
+    // Use Normal PWM
+    TCC0->WAVE.reg = TCC_WAVE_WAVEGEN_NPWM;
+    while (TCC0->SYNCBUSY.bit.WAVE) {};
+
+    //The PER register determines the period of the PWM
+    uint32_t period = 960000; //48000000/960000 = 20ms,  48000 ticks equals 1ms,  48 ticks is 1us
+
+    TCC0->PER.reg = period;  //this is a 24-bit register
+    while (TCC0->SYNCBUSY.bit.PER) {};
+
+    // Servo 0 (D7 PA21 WO[7])
+
+    // set PA21 to output
+    PORT->Group[0].DIRSET.reg |= PORT_PA21; // set the direction to output
+    PORT->Group[0].OUTCLR.reg |= PORT_PA21; // set the value to output LOW
+
+    /* Enable the peripheral multiplexer for the pins. */
+    PORT->Group[0].PINCFG[21].reg |= PORT_PINCFG_PMUXEN;
+
+    // Set PA21's function to function F. Function F is TCC0/WO[7] for PA21.
+    // Because this is an odd numbered pin the PMUX is O (odd) and the PMUX
+    // index is pin number - 1 / 2, so 10
+    PORT->Group[0].PMUX[10].reg |= PORT_PMUX_PMUXO_F;
+
+    // Servo 1 (D5 PA15 WO[5])
+
+    // set PA15 to output
+    PORT->Group[0].DIRSET.reg |= PORT_PA15; // set the direction to output
+    PORT->Group[0].OUTCLR.reg |= PORT_PA15; // set the value to output LOW
+
+    /* Enable the peripheral multiplexer for the pins. */
+    PORT->Group[0].PINCFG[15].reg |= PORT_PINCFG_PMUXEN;
+
+    // Set PA15's function to function F. Function F is TCC0/WO[5] for PA15.
+    // Because this is an odd numbered pin the PMUX is O (odd) and the PMUX
+    // index is pin number - 1 / 2, so 7.
+    PORT->Group[0].PMUX[7].reg |= PORT_PMUX_PMUXO_F;
+
+    // Servo 2 (D6 PA20 WO[6])
+
+    // Set PA20 to output
+    PORT->Group[0].DIRSET.reg |= PORT_PA20; // set the direction to output
+    PORT->Group[0].OUTCLR.reg |= PORT_PA20; // set the value to output LOW
+
+    /* Enable the peripheral multiplexer for the pins. */
+    PORT->Group[0].PINCFG[20].reg |= PORT_PINCFG_PMUXEN;
+
+    // Set PA20's function to function F. Function F is TCC0/WO[6] for PA20.
+    // Because this is an even numbered pin the PMUX is E (even) and the PMUX
+    // index is pin number / 2, so 10.
+    PORT->Group[0].PMUX[10].reg |= PORT_PMUX_PMUXE_F;
+
+    // Servo 3 (A3 PA04 WO[0])
+
+    // Set PA04 to output
+    PORT->Group[0].DIRSET.reg |= PORT_PA04; // set the direction to output
+    PORT->Group[0].OUTCLR.reg |= PORT_PA04; // set the value to output LOW
+
+    /* Enable the peripheral multiplexer for the pins. */
+    PORT->Group[0].PINCFG[4].reg |= PORT_PINCFG_PMUXEN;
+
+    // Set PA04's function to function E. Function E is TCC0/WO[0] for PA04.
+    // Because this is an even numbered pin the PMUX is E (even) and the PMUX
+    // index is pin number / 2, so 2.
+    PORT->Group[0].PMUX[2].reg |= PORT_PMUX_PMUXE_E;
+
+    // set the initial duty cycle for the servos
+    for (int i = 0; i < 4; i++) {
+      TCC0->CC[i].reg = 72000; // set the initial on time to 1.5ms
+      sync_servos(i);
+    }
+
+    // Enable TCC0
+    TCC0->CTRLA.reg |= (TCC_CTRLA_ENABLE);
+    while (TCC0->SYNCBUSY.bit.ENABLE) {};
+}
+
+// Wait for Servo Wavelengths to Sync
+void sync_servos(int servo_number) {
+    switch (servo_number) {
+    case 0:
+        while (TCC0->SYNCBUSY.bit.CC3) {}; // Connecting to servo 0's counter
+        break;
+    case 1:
+        while (TCC0->SYNCBUSY.bit.CC1) {}; // Connecting to servo 1's counter
+        break;
+    case 2:
+        while (TCC0->SYNCBUSY.bit.CC2) {}; // Connecting to servo 2's counter
+        break;
+    case 3:
+        while (TCC0->SYNCBUSY.bit.CC0) {}; // Connecting to servo 3's counter
+        break;
+    }
 }

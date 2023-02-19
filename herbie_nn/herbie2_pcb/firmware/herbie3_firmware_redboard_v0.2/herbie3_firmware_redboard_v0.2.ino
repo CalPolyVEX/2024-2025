@@ -85,7 +85,7 @@ void setup()
   setup_interrupt();
   lcdInit();
   init_motors();
-  init_servo();
+  init_servo2();
   
   set_motor_speed(0,0);
   set_motor_speed(1,0);
@@ -325,56 +325,41 @@ void TC5_Handler()  // Encoder (ISR) for timer TC5
   REG_TC5_INTFLAG = TC_INTFLAG_MC0; // Clear the MC0 interrupt flag
   TC5->COUNT16.COUNT.reg = 0;
 
-  unsigned char buf[13];
+  unsigned char buf[12];
+  unsigned char temp_byte;
   unsigned short crc = 0;
-  unsigned long left_enc_count = getChanEncoderValue(2); 
-  unsigned long right_enc_count = getChanEncoderValue(1);
 
-  buf[0] = 0xff;
+  getChanEncoderValue(2,buf);  //fill the buffer with a 4-byte encoder reading
+  
+  buf[0] = 0xff;       //put the header in the packet
+  temp_byte = buf[4];  //store the LSB byte which will be overwritten by getChanEncoderValue()
 
-  buf[1] = left_enc_count & 0xff;  //send least significant byte first
-  left_enc_count = left_enc_count >> 8;
-  buf[2] = left_enc_count & 0xff;
-  left_enc_count = left_enc_count >> 8;
-  buf[3] = left_enc_count & 0xff;
-  left_enc_count = left_enc_count >> 8;
-  buf[4] = left_enc_count & 0xff;
+  getChanEncoderValue(1, buf+4);
+  buf[4] = temp_byte;  //restore the LSB byte
 
-  buf[5] = right_enc_count & 0xff;
-  right_enc_count = right_enc_count >> 8;
-  buf[6] = right_enc_count & 0xff;
-  right_enc_count = right_enc_count >> 8;
-  buf[7] = right_enc_count & 0xff;
-  right_enc_count = right_enc_count >> 8;
-  buf[8] = right_enc_count & 0xff;
+  buf[9] = 0xff; //send 1 extra byte for future use
 
-  buf[9] = 0xff; //send 2 extra bytes for future use
-  buf[10] = 0xff;
-
-  for (int byte = 0; byte < 11; byte++) //compute the CRC
+  for (int byte = 0; byte < 10; byte++) //compute the CRC
   {
     crc = (crc << 8) ^ crctable[((crc >> 8) ^ buf[byte])];
   }
 
-  buf[11] = (crc >> 8) & 0xFF; //send the high byte of the crc
-  buf[12] = crc & 0xFF;        //send the low byte of the crc
+  buf[10] = (crc >> 8) & 0xFF; //send the high byte of the crc
+  buf[11] = crc & 0xFF;        //send the low byte of the crc
 
-  SerialUSB.write(buf,13);  //send the data
+  SerialUSB.write(buf,12);  //send the data
 }
 
 void set_servo(int num, int position) {
   //the position can run from 0-2000
-  if (num == 0)
-  {
+  if (num == 0) {
     TCC0->CC[3].reg = 48000 + 24*position; 
-  }
-  else if (num == 1)
-  {
+  } else if (num == 1) {
     TCC0->CC[1].reg = 48000 + 24*position;
-  }
-  else if (num == 2)
-  {
+  } else if (num == 2) {
     TCC0->CC[2].reg = 48000 + 24*position;
+  } else if (num == 3) {
+    TCC0->CC[0].reg = 48000 + 24*position;
   }
 }
 

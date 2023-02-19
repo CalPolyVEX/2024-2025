@@ -75,6 +75,3 @@ uint8_t DFLAG_pin = 3;
 
 //LFLAG
 uint8_t LFLAG_pin = 2;
-
-#define Slave_Select_Low PORTB &= ~(1 << PB4)
-#define Slave_Select_High PORTB |= (1 << PB4)
