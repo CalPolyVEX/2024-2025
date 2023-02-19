@@ -1,17 +1,17 @@
-void init_lb_uart(void) {
-  /* Enable APB clock for SERCOM4 */
+void init_lb_uart(void) {  //init UART on SmartPort header (J18 on v0.2 Herbie PCB)
+  /* Enable APB clock for SERCOM0 */
   PM->APBCMASK.reg |= PM_APBCMASK_SERCOM0;
   
   // Feed GCLK6 to SERCOM0
-  GCLK->CLKCTRL.reg = GCLK_CLKCTRL_CLKEN |         // Enable GCLK6 to SERCOM4
+  GCLK->CLKCTRL.reg = GCLK_CLKCTRL_CLKEN |         // Enable GCLK6 to SERCOM0
                       GCLK_CLKCTRL_GEN_GCLK6 |     // Select GCLK6
-                      GCLK_CLKCTRL_ID_SERCOM0_CORE;// Feed GCLK6 to SERCOM4
+                      GCLK_CLKCTRL_ID_SERCOM0_CORE;// Feed GCLK6 to SERCOM0
   while (GCLK->STATUS.bit.SYNCBUSY);               // Wait for synchronization
   
   //set pin direction
   PORT->Group[0].DIRSET.reg = PORT_PA10; //set the direction to output
 
-  // Enable the peripheral multiplexer for the pin PB08.
+  // Enable the peripheral multiplexer for the pin PA10.
   PORT->Group[0].PINCFG[10].reg |= PORT_PINCFG_PMUXEN;
 
   // Set PA10's function to function C. Function C is SERCOM0 for PA10.
@@ -53,6 +53,6 @@ void init_lb_uart(void) {
   SERCOM0->USART.CTRLA.bit.ENABLE = 1;
 }
 
-void send_lb_byte(unsigned char b) {
+void send_lb_byte(unsigned char b) {  //send bytes on SmartPort header (J18 on v0.2 Herbie PCB)
   SERCOM0->USART.DATA.reg = b;
 }

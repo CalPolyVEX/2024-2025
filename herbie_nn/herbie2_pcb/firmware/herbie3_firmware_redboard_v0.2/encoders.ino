@@ -112,8 +112,8 @@ void init_motors() {
     ///////////////////////////////
     //Left Motor
 
-    //Set the duty cycle to 50%
-    TCC1->CC[1].reg = period / 2; //this set the on time of the PWM cycle
+    //Set the duty cycle to 0%
+    TCC1->CC[1].reg = 0; //this set the on time of the PWM cycle
     while (TCC1->SYNCBUSY.bit.CC1) {};
 
     //set PA07 to output
@@ -134,8 +134,8 @@ void init_motors() {
 
     ///////////////////////////////
     //Right Motor
-    //Set the duty cycle to 25%
-    TCC1->CC[0].reg = period / 4; //this sets the on time of the PWM cycle
+    //Set the duty cycle to 0%
+    TCC1->CC[0].reg = 0; //this sets the on time of the PWM cycle
     while (TCC1->SYNCBUSY.bit.CC0) {};
 
     //set PA06 to output

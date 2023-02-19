@@ -42,7 +42,9 @@ void setup_interrupt()
                             TC_CTRLA_ENABLE;           // Enable TC5
   while (TC5->COUNT16.STATUS.bit.SYNCBUSY);         // Wait for synchronization
 
-  REG_TC5_COUNT16_CC0 = 8333;                       // 8333 * (1/250KHz) = .0333s  (30Hz)
+  //REG_TC5_COUNT16_CC0 = 8333;                       // 8333 * (1/250KHz) = .0333s  (30Hz)
+  REG_TC5_COUNT16_CC0 = 5000;                       // 5000 * (1/250KHz) = .020s  (50Hz)
+  
   while (TC5->COUNT16.STATUS.bit.SYNCBUSY);         // Wait for synchronization
 
   NVIC_SetPriority(TC5_IRQn, 2);                    // Set the NVIC priority for TC5 to 1 (second highest priority)
@@ -94,16 +96,16 @@ void setup()
 
   delay(200); //wait .2 seconds
   SerialUSB.begin(921600); // Initialize Serial Monitor USB
-  SerialUSB.setTimeout(300); //timeout to 500ms
+  SerialUSB.setTimeout(300); //timeout to 300ms
 
   // initialize digital pin LED_BUILTIN as an output.
   pinMode(LED_BUILTIN, OUTPUT);
 
-  init_lb_uart(); //initialize the lightbar UART on SERCOM0
+  init_lb_uart(); //initialize the SmartPort TX UART on SERCOM0
 }
 
 char buf[512];
-unsigned char sbuf[10];
+int motor_stop_timeout = 0;
 
 void flush_serial() {
   while (SerialUSB.available())  //clear out the serial input buffer
@@ -112,33 +114,16 @@ void flush_serial() {
   } 
 }
 
+void reset_timeout() {
+  motor_stop_timeout = 0;
+  led_off(3);
+}
+
 void loop()
 {
   int packet_length;
   int num_bytes_read;
   int serial_bytes_available = 0;
-  int motor_stop_timeout = 0;
-
-  //testing
-  /*while(1) {
-    led_on(3);
-    delay(400);
-    led_off(3);
-
-    led_on(4);
-    delay(400);
-    led_off(4);
-
-    led_on(2);
-    delay(400);
-    led_off(2);
-
-    led_on(1);
-    delay(400);
-    led_off(1);
-
-    send_lb_byte(0x21);
-  }*/
 
   while(1) 
   {
@@ -146,20 +131,9 @@ void loop()
     serial_bytes_available = SerialUSB.available();
 
     if (serial_bytes_available != 0) {
-      motor_stop_timeout = 0;
-      led_off(3);
-      led_off(2);
+      num_bytes_read = SerialUSB.readBytes((char*)buf, 1); //read address
 
-      num_bytes_read = SerialUSB.readBytes((char*)sbuf, 1); //read address
-
-      if (num_bytes_read == 0) {
-        sbuf[0] = 0;
-        flush_serial();
-        continue;
-      }
-
-      if (sbuf[0] == 128) { //valid address
-        buf[0] = sbuf[0];
+      if (buf[0] == 128) { //valid address
         num_bytes_read = SerialUSB.readBytes((char*)(buf+1), 1); //read the command byte
 
         switch (buf[1]) {
@@ -172,6 +146,8 @@ void loop()
 
                 set_motor_speed(0, left_speed); //the speed should be between -2400 and +2400
                 set_motor_speed(1, right_speed);
+                reset_timeout();
+                continue;
             } else {  //bad packet
               flush_serial(); 
             }
@@ -182,15 +158,20 @@ void loop()
 
             if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
               lcdClear();
+              reset_timeout();
+              continue;
             } else {  //bad packet
               flush_serial();
             }
 
+            break;
           case 1:  //set_cursor command
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
             if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
               lcdSetCursor(buf[2], buf[3]);
+              reset_timeout();
+              continue;
             } else {  //bad packet
               flush_serial();
             }
@@ -205,6 +186,8 @@ void loop()
 
               lcdPrintf("%s", buf+3);
               led_on(2);
+              reset_timeout();
+              continue;
             } else {  //bad packet
               flush_serial();
             }
@@ -214,9 +197,14 @@ void loop()
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
             if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
-              int num = ((int)buf[5] << 24) | ((int)buf[4] << 16) | ((int)buf[3] << 8) | ((int)buf[2]);
-              //lcdSetCursor(0, 1);
+              int* num_ptr = (int*) &(buf[2]);
+              //int num = ((int)buf[5] << 24) | ((int)buf[4] << 16) | ((int)buf[3] << 8) | ((int)buf[2]);
+              
+              int num = __builtin_bswap32(*num_ptr);  //change byte order
+              
               lcdPrintf("%d", num);
+              reset_timeout();
+              continue;
             } else {  //bad packet
               flush_serial();
             }
@@ -227,6 +215,8 @@ void loop()
 
             if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
               backlight_off();
+              reset_timeout();
+              continue;
             } else {  //bad packet
               flush_serial();
             }
@@ -237,6 +227,8 @@ void loop()
 
             if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
               backlight_off();
+              reset_timeout();
+              continue;
             } else {  //bad packet
               flush_serial();
             }
@@ -247,6 +239,10 @@ void loop()
 
             if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
               set_servo(buf[2], ((unsigned short)buf[3] << 8) | (unsigned short)buf[4]);
+              //set_servo(buf[2], *((unsigned short*) &(buf[3])));
+
+              reset_timeout();
+              continue;
             } else {  // bad packet
               flush_serial();
             }
@@ -257,6 +253,8 @@ void loop()
 
             if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
               led_on(buf[2]);
+              reset_timeout();
+              continue;
             } else {  //bad packet
               flush_serial();
             }
@@ -267,6 +265,8 @@ void loop()
 
             if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
               led_off(buf[2]);
+              reset_timeout();
+              continue;
             } else {  //bad packet
               flush_serial();
             }
@@ -297,27 +297,6 @@ void loop()
     
     delayMicroseconds(250); //wait 250us, otherwise the serial USB port will lock up
   }
-
-  //testing
-  /*while(1) {
-    led_on(3);
-    delay(400);
-    led_off(3);
-
-    led_on(4);
-    delay(400);
-    led_off(4);
-
-    led_on(2);
-    delay(400);
-    led_off(2);
-
-    led_on(1);
-    delay(400);
-    led_off(1);
-
-    send_lb_byte(0x21);
-  }*/
 }
 
 void TC5_Handler()  // Encoder (ISR) for timer TC5
@@ -346,6 +325,8 @@ void TC5_Handler()  // Encoder (ISR) for timer TC5
 
   buf[10] = (crc >> 8) & 0xFF; //send the high byte of the crc
   buf[11] = crc & 0xFF;        //send the low byte of the crc
+
+  //*((unsigned short*) &(buf[10])) = __builtin_bswap16(crc);
 
   SerialUSB.write(buf,12);  //send the data
 }
