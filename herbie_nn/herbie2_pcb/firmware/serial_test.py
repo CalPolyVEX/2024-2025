@@ -65,6 +65,26 @@ def create_motor_packet(speed_left, speed_right):
 
     return packet
 
+def create_clear_screen_packet():
+    crc = 0
+    packet = bytearray(8)
+
+    packet[0] = 128 #roboclaw address
+    packet[1] = 0  #clear screen
+    packet[2] = 0  #clear screen
+    packet[3] = 0  #clear screen
+    packet[4] = 0  #clear screen
+    packet[5] = 0  #clear screen
+
+    #Calculates CRC16 of nBytes of data in byte array message
+    for byte in range(6):
+        crc = (((crc << 8) & 0xffff) ^ crctable[((crc >> 8) ^ packet[byte]) & 0xff]) & 0xffff;
+
+    packet[6] = (crc >> 8) & 0xFF; #send the high byte of the crc
+    packet[7] = crc & 0xFF; #send the low byte of the crc
+
+    return packet
+
 def create_string_packet(str):
     crc = 0
     packet = bytearray(len(str) + 5)
@@ -129,11 +149,23 @@ def blink_led(ser):
 def string_test(ser):
     for i in range (30000):
         p = create_string_packet("testtesttesttest")
+        ser.write(p)     # send string
+        sleep(.0010)
+
+        p = create_led_packet(2,1)
         ser.write(p)     # turn LED on
         sleep(.010)
+
+        p = create_clear_screen_packet()
+        ser.write(p)     # clear screen
+        sleep(.0010)
+
         p = create_led_packet(2,0)
         ser.write(p)     # turn LED off
         sleep(.010)
+
+        #print(str(ser.read(12)))
+
         if i % 1000 == 0:
             print(i)
 
@@ -147,7 +179,7 @@ def motor_test(ser):
                 # p = create_motor_packet(j,i)
                 p = create_motor_packet(240,i)
                 ser.write(p)     # write a string
-                packet = ser.read(13)
+                packet = ser.read(12)
                 last_time = cur_time
                 count += 1
                 # if (count % 30 == 0):
