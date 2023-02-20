@@ -8,7 +8,7 @@ extern const unsigned short crctable[256];
 ///////////////////////////////
 //Timer usage:
 //
-//TC5 - encoder reading (30Hz)
+//TC5 - encoder reading (50Hz)
 //TCC0 - servos
 //TCC1 - motors
 //
@@ -115,8 +115,10 @@ void flush_serial() {
 }
 
 void reset_timeout() {
+  if (motor_stop_timeout > 4000)  //reset the timeout LED
+    led_off(3);
+    
   motor_stop_timeout = 0;
-  led_off(3);
 }
 
 void loop()
@@ -131,6 +133,7 @@ void loop()
     serial_bytes_available = SerialUSB.available();
 
     if (serial_bytes_available != 0) {
+      buf[0] = 0;  //initialize to an invalid address
       num_bytes_read = SerialUSB.readBytes((char*)buf, 1); //read address
 
       if (buf[0] == 128) { //valid address
@@ -185,7 +188,7 @@ void loop()
               buf[buf[2] + 3] = 0;  //set the end of the string to NULL
 
               lcdPrintf("%s", buf+3);
-              led_on(2);
+              //led_on(2);
               reset_timeout();
               continue;
             } else {  //bad packet
@@ -226,7 +229,7 @@ void loop()
             num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
 
             if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
-              backlight_off();
+              backlight_on();
               reset_timeout();
               continue;
             } else {  //bad packet
@@ -286,6 +289,11 @@ void loop()
         set_motor_speed(0, 0);
         set_motor_speed(1, 0);
         
+        set_servo(0,1000);  //set all servos to neutral position
+        set_servo(1,1000);
+        set_servo(2,1000);
+        set_servo(3,1000);
+        
         lcdClear();
         lcdPrintf("--");
         led_on(3);
@@ -305,16 +313,12 @@ void TC5_Handler()  // Encoder (ISR) for timer TC5
   TC5->COUNT16.COUNT.reg = 0;
 
   unsigned char buf[12];
-  unsigned char temp_byte;
   unsigned short crc = 0;
 
-  getChanEncoderValue(2,buf);  //fill the buffer with a 4-byte encoder reading
+  getChanEncoderValue(1, buf+4); //fill the buffer with a 4-byte encoder reading
+  getChanEncoderValue(2, buf);   //fill the buffer with a 4-byte encoder reading
   
-  buf[0] = 0xff;       //put the header in the packet
-  temp_byte = buf[4];  //store the LSB byte which will be overwritten by getChanEncoderValue()
-
-  getChanEncoderValue(1, buf+4);
-  buf[4] = temp_byte;  //restore the LSB byte
+  buf[0] = 0xff; //put the header in the packet
 
   buf[9] = 0xff; //send 1 extra byte for future use
 
@@ -323,10 +327,10 @@ void TC5_Handler()  // Encoder (ISR) for timer TC5
     crc = (crc << 8) ^ crctable[((crc >> 8) ^ buf[byte])];
   }
 
-  buf[10] = (crc >> 8) & 0xFF; //send the high byte of the crc
-  buf[11] = crc & 0xFF;        //send the low byte of the crc
+  //buf[10] = (crc >> 8) & 0xFF; //send the high byte of the crc
+  //buf[11] = crc & 0xFF;        //send the low byte of the crc
 
-  //*((unsigned short*) &(buf[10])) = __builtin_bswap16(crc);
+  *((unsigned short*) &(buf[10])) = __builtin_bswap16(crc);  //store the unsigned short at the last 2 bytes (reversing byte order)
 
   SerialUSB.write(buf,12);  //send the data
 }
