@@ -94,7 +94,7 @@ void setup()
 
   backlight_on();
 
-  delay(200); //wait .2 seconds
+  delay(100); //wait .1 seconds
   SerialUSB.begin(921600); // Initialize Serial Monitor USB
   SerialUSB.setTimeout(300); //timeout to 300ms
 
@@ -106,16 +106,30 @@ void setup()
 
 char buf[512];
 int motor_stop_timeout = 0;
+int serial_flush_led = 0;
 
 void flush_serial() {
   while (SerialUSB.available())  //clear out the serial input buffer
   {
     SerialUSB.read();
   } 
+
+  lcdClear();
+  lcdSetCursor(0,0);
+  lcdPrintf("serial error");
+  delay(10);
+  
+  if (serial_flush_led == 0) {
+    led_on(4);
+    serial_flush_led = 1;
+  } else {
+    led_off(4);
+    serial_flush_led = 0;
+  }
 }
 
 void reset_timeout() {
-  if (motor_stop_timeout > 4000)  //reset the timeout LED
+  if (motor_stop_timeout >= 4000)  //reset the timeout LED
     led_off(3);
     
   motor_stop_timeout = 0;
@@ -126,6 +140,8 @@ void loop()
   int packet_length;
   int num_bytes_read;
   int serial_bytes_available = 0;
+
+  startup_blink();
 
   while(1) 
   {
@@ -188,7 +204,6 @@ void loop()
               buf[buf[2] + 3] = 0;  //set the end of the string to NULL
 
               lcdPrintf("%s", buf+3);
-              //led_on(2);
               reset_timeout();
               continue;
             } else {  //bad packet
@@ -242,7 +257,6 @@ void loop()
 
             if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
               set_servo(buf[2], ((unsigned short)buf[3] << 8) | (unsigned short)buf[4]);
-              //set_servo(buf[2], *((unsigned short*) &(buf[3])));
 
               reset_timeout();
               continue;
@@ -376,4 +390,25 @@ void led_off(int num) {
     ioex.output(2, TCA9534::Level::H);
   else if (num == 1)
     ioex.output(3, TCA9534::Level::H);
+}
+
+void startup_blink() {
+  for (int i=0; i<3; i++) {
+    //startup blink pattern
+    led_on(3);
+    delay(150);
+    led_off(3);
+
+    led_on(4);
+    delay(150);
+    led_off(4);
+
+    led_on(2);
+    delay(150);
+    led_off(2);
+
+    led_on(1);
+    delay(150);
+    led_off(1);
+  }
 }

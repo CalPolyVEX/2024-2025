@@ -55,7 +55,7 @@ int check_crc(char* data, int len) //len is the length including the CRC
 {
     unsigned short crc = 0;
     unsigned short received_crc;
-
+    
     received_crc = data[len-2] << 8; //the crc is the last 2 bytes of the packet
     received_crc |= data[len-1];
 
