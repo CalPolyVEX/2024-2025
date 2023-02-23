@@ -117,7 +117,7 @@ void flush_serial() {
   lcdClear();
   lcdSetCursor(0,0);
   lcdPrintf("serial error");
-  delay(10);
+  delay(50);
   
   if (serial_flush_led == 0) {
     led_on(4);

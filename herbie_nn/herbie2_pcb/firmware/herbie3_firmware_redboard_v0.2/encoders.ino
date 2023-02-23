@@ -3,7 +3,8 @@
 
 #define ENC1_SS 12 //ss
 #define ENC2_SS 13 //ss
-#define SPI_CLK 3500000
+//#define SPI_CLK 3500000
+#define SPI_CLK 3900000 //for the LS7366, 4.166MHz is fastest clock at 3.3V
 
 #define RCLK_SERVO 5
 #define CLK_SERVO 6
@@ -330,27 +331,13 @@ void init_encoders()
 void getChanEncoderValue(int encoder, unsigned char* buf)
 //*****************************************************
 {
-    //unsigned int cnt1Value, cnt2Value, cnt3Value, cnt4Value;
-    //long result;
-    //unsigned char buf[5];
-
-    SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
     setSSEnc(SPI_ENABLE, encoder);
 
     buf[0] = READ_CNTR;
+    //buf[0] = READ_MDR0;
     SPI.transfer(buf,5); //transfer 5 bytes with the first byte being the command READ_CNTR
 
     setSSEnc(SPI_DISABLE, encoder);
-    SPI.endTransaction();
-
-    //cnt1Value = buf[1];
-    //cnt2Value = buf[2];
-    //cnt3Value = buf[3];
-    //cnt4Value = buf[4];
-
-    //result = ((long)cnt1Value << 24) + ((long)cnt2Value << 16) + ((long)cnt3Value << 8) + (long)cnt4Value;
-
-    //return result;
 }
 
 //////////////////////////////////////////////////
