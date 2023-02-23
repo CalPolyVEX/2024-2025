@@ -65,23 +65,37 @@ def create_motor_packet(speed_left, speed_right):
 
     return packet
 
+def create_set_cursor_packet(col, row):
+    crc = 0
+    packet = bytearray(6)
+
+    packet[0] = 128 #roboclaw address
+    packet[1] = 1  #set cursor
+    packet[2] = col  #column
+    packet[3] = row  #row
+
+    #Calculates CRC16 of nBytes of data in byte array message
+    for byte in range(4):
+        crc = (((crc << 8) & 0xffff) ^ crctable[((crc >> 8) ^ packet[byte]) & 0xff]) & 0xffff;
+
+    packet[4] = (crc >> 8) & 0xFF; #send the high byte of the crc
+    packet[5] = crc & 0xFF; #send the low byte of the crc
+
+    return packet
+
 def create_clear_screen_packet():
     crc = 0
-    packet = bytearray(8)
+    packet = bytearray(4)
 
     packet[0] = 128 #roboclaw address
     packet[1] = 0  #clear screen
-    packet[2] = 0  #clear screen
-    packet[3] = 0  #clear screen
-    packet[4] = 0  #clear screen
-    packet[5] = 0  #clear screen
 
     #Calculates CRC16 of nBytes of data in byte array message
-    for byte in range(6):
+    for byte in range(2):
         crc = (((crc << 8) & 0xffff) ^ crctable[((crc >> 8) ^ packet[byte]) & 0xff]) & 0xffff;
 
-    packet[6] = (crc >> 8) & 0xFF; #send the high byte of the crc
-    packet[7] = crc & 0xFF; #send the low byte of the crc
+    packet[2] = (crc >> 8) & 0xFF; #send the high byte of the crc
+    packet[3] = crc & 0xFF; #send the low byte of the crc
 
     return packet
 
@@ -110,7 +124,7 @@ def create_string_packet(str):
 
 def create_led_packet(num, state):
     crc = 0
-    packet = bytearray(8)
+    packet = bytearray(5)
 
     packet[0] = 128 #roboclaw address
 
@@ -120,16 +134,13 @@ def create_led_packet(num, state):
         packet[1] = 8   #LED off command
 
     packet[2] = num; #set the LED number
-    packet[3] = 0;
-    packet[4] = 0;
-    packet[5] = 0;
 
     #Calculates CRC16 of nBytes of data in byte array message
-    for byte in range(6):
+    for byte in range(3):
         crc = (((crc << 8) & 0xffff) ^ crctable[((crc >> 8) ^ packet[byte]) & 0xff]) & 0xffff;
 
-    packet[6] = (crc >> 8) & 0xFF; #send the high byte of the crc
-    packet[7] = crc & 0xFF; #send the low byte of the crc
+    packet[3] = (crc >> 8) & 0xFF; #send the high byte of the crc
+    packet[4] = crc & 0xFF; #send the low byte of the crc
 
     return packet
 
@@ -147,24 +158,37 @@ def blink_led(ser):
     ser.close()             # close port
 
 def string_test(ser):
+    p = create_clear_screen_packet()
+    ser.write(p)     # clear screen
+
     for i in range (30000):
-        p = create_string_packet("testtesttesttest")
+        # p = create_clear_screen_packet()
+        # ser.write(p)     # clear screen
+        # sleep(.000010)
+
+        p = create_set_cursor_packet(3,0)
+        ser.write(p)     # set cursor
+        sleep(.000010)
+        p = create_string_packet(str(float(i)*1.12345))
         ser.write(p)     # send string
-        sleep(.0010)
+        sleep(.000010)
 
         p = create_led_packet(2,1)
         ser.write(p)     # turn LED on
-        sleep(.010)
+        sleep(.000010)
 
-        p = create_clear_screen_packet()
-        ser.write(p)     # clear screen
-        sleep(.0010)
+        p = create_set_cursor_packet(3,1)
+        ser.write(p)     # set cursor
+        sleep(.000010)
+        p = create_string_packet(str(i*2))
+        ser.write(p)     # send string
+        sleep(.000010)
 
         p = create_led_packet(2,0)
         ser.write(p)     # turn LED off
-        sleep(.010)
+        sleep(.0010)
 
-        #print(str(ser.read(12)))
+        print(str(ser.read(11)))
 
         if i % 1000 == 0:
             print(i)

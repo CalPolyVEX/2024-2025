@@ -173,9 +173,9 @@ void loop()
         
             break;
           case 0:  //clear screen
-            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
+            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 2); 
 
-            if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
+            if ((num_bytes_read == 2) && (check_crc(buf, 4) == 1)) {
               lcdClear();
               reset_timeout();
               continue;
@@ -185,9 +185,9 @@ void loop()
 
             break;
           case 1:  //set_cursor command
-            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
+            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 4); 
 
-            if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
+            if ((num_bytes_read == 4) && (check_crc(buf, 6) == 1)) {
               lcdSetCursor(buf[2], buf[3]);
               reset_timeout();
               continue;
@@ -229,9 +229,9 @@ void loop()
             
             break;
           case 4:  //backlight off
-            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
+            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 2); 
 
-            if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
+            if ((num_bytes_read == 2) && (check_crc(buf, 4) == 1)) {
               backlight_off();
               reset_timeout();
               continue;
@@ -241,9 +241,9 @@ void loop()
 
             break;
           case 5:  //backlight on
-            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
+            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 2); 
 
-            if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
+            if ((num_bytes_read == 2) && (check_crc(buf, 4) == 1)) {
               backlight_on();
               reset_timeout();
               continue;
@@ -253,9 +253,9 @@ void loop()
 
             break;
           case 6:  //set servo
-            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
+            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 5); 
 
-            if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
+            if ((num_bytes_read == 5) && (check_crc(buf, 7) == 1)) {
               set_servo(buf[2], ((unsigned short)buf[3] << 8) | (unsigned short)buf[4]);
 
               reset_timeout();
@@ -266,9 +266,9 @@ void loop()
 
             break;
           case 7:  //LED on
-            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
+            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 3); 
 
-            if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
+            if ((num_bytes_read == 3) && (check_crc(buf, 5) == 1)) {
               led_on(buf[2]);
               reset_timeout();
               continue;
@@ -278,9 +278,9 @@ void loop()
 
             break;
           case 8:  //LED off
-            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 6); 
+            num_bytes_read = SerialUSB.readBytes((char*)(buf+2), 3); 
 
-            if ((num_bytes_read == 6) && (check_crc(buf, 8) == 1)) {
+            if ((num_bytes_read == 3) && (check_crc(buf, 5) == 1)) {
               led_off(buf[2]);
               reset_timeout();
               continue;
@@ -326,17 +326,18 @@ void TC5_Handler()  // Encoder (ISR) for timer TC5
   REG_TC5_INTFLAG = TC_INTFLAG_MC0; // Clear the MC0 interrupt flag
   TC5->COUNT16.COUNT.reg = 0;
 
-  unsigned char buf[12];
+  unsigned char buf[11];
   unsigned short crc = 0;
 
   getChanEncoderValue(1, buf+4); //fill the buffer with a 4-byte encoder reading
   getChanEncoderValue(2, buf);   //fill the buffer with a 4-byte encoder reading
-  
-  buf[0] = 0xff; //put the header in the packet
 
-  buf[9] = 0xff; //send 1 extra byte for future use
+  //The encoder packet header is 0x90.  The upper nibble of 0x90 is 0x9 and this leaves
+  //the lower nibble as 0x0.  The lower nibble can be used to send data back to the USB
+  //host in future code revisions
+  buf[0] = 0x90; //put the header in the packet
 
-  for (int byte = 0; byte < 10; byte++) //compute the CRC
+  for (int byte = 0; byte < 9; byte++) //compute the CRC
   {
     crc = (crc << 8) ^ crctable[((crc >> 8) ^ buf[byte])];
   }
@@ -344,9 +345,9 @@ void TC5_Handler()  // Encoder (ISR) for timer TC5
   //buf[10] = (crc >> 8) & 0xFF; //send the high byte of the crc
   //buf[11] = crc & 0xFF;        //send the low byte of the crc
 
-  *((unsigned short*) &(buf[10])) = __builtin_bswap16(crc);  //store the unsigned short at the last 2 bytes (reversing byte order)
+  *((unsigned short*) &(buf[9])) = __builtin_bswap16(crc);  //store the unsigned short at the last 2 bytes (reversing byte order)
 
-  SerialUSB.write(buf,12);  //send the data
+  SerialUSB.write(buf,11);  //send the data
 }
 
 void set_servo(int num, int position) {
