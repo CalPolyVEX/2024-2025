@@ -146,7 +146,7 @@ void receiver_setup() {
 
     // CLOCKING SERIAL
     GCLK->GENDIV.reg = GCLK_GENDIV_DIV(1) | // Divide the 48MHz clock source by divisor 1: 48MHz/1=48MHz
-                       GCLK_GENDIV_ID(5);   // Select Generic Clock (GCLK) 4
+                       GCLK_GENDIV_ID(4);   // Select Generic Clock (GCLK) 4
     GCLK->GENCTRL.reg =
         GCLK_GENCTRL_IDC |
         GCLK_GENCTRL_GENEN |      // enable the clock connection to the peripheral(s)

@@ -53,16 +53,16 @@ void setupLogicEngine()
 
     // CLOCKING SERIAL
     GCLK->GENDIV.reg = GCLK_GENDIV_DIV(250) | // Divide the 48MHz clock source by divisor 1: 48MHz/1=48MHz
-                       GCLK_GENDIV_ID(5);   // Select Generic Clock (GCLK) 5
+                       GCLK_GENDIV_ID(6);   // Select Generic Clock (GCLK) 6
     GCLK->GENCTRL.reg =
         GCLK_GENCTRL_IDC |
         GCLK_GENCTRL_GENEN |      // enable the clock connection to the peripheral(s)
-        GCLK_GENCTRL_ID(5) |      // use clock gen 5
+        GCLK_GENCTRL_ID(6) |      // use clock gen 6
         GCLK_GENCTRL_SRC_DFLL48M; // Set Clock to 48 MHz
     GCLK->CLKCTRL.reg =
         GCLK_CLKCTRL_CLKEN |          // enable the clock
-        GCLK_CLKCTRL_GEN_GCLK5 |      // enable generic clock generator 5
-        GCLK_CLKCTRL_ID_SERCOM4_CORE; // set clock to SERCOM2_CORE
+        GCLK_CLKCTRL_GEN_GCLK6 |      // enable generic clock generator 6
+        GCLK_CLKCTRL_ID_SERCOM4_CORE; // set clock to SERCOM4_CORE
 
     SERCOM4->USART.CTRLA.bit.SWRST = 1; // do a software reset on the serial peripheral
     while (SERCOM4->USART.SYNCBUSY.bit.SWRST);
