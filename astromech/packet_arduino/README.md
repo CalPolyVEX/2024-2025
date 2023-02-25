@@ -5,8 +5,8 @@
 | 2  | |
 | 3  | RC decoder loop (TC3) |
 | 4  | RC decoder loop (Sercom 2) |
-| 5  | Logic Engine (Sercom 4), Servo (TCC0), Motors (TCC1) |
-| 6  | |
+| 5  | Servo (TCC0), Motors (TCC1) |
+| 6  | Logic Engine (Sercom 4) |
 
 | Device  | I2C |
 | ------------- | ------------- |
