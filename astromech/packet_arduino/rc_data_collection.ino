@@ -168,6 +168,7 @@ void receiver_setup() {
     SERCOM2->USART.CTRLB.bit.SBMODE = 0x1; // using 2 stop bits
     SERCOM2->USART.BAUD.reg = 63351;       // set the correct baud register value (calculated based on equation in samd21 datasheet)
                                            // SBUS baudrate is 100000, 8 bit data, even parity, 2 stop bits
+                                           // (48MHz / 16) * (1 - BAUD/65536) = 100K, this gives 63351.466 for BAUD
     SERCOM2->USART.CTRLB.bit.RXEN = 0x1;   // enable Serial RX
     while (SERCOM2->USART.SYNCBUSY.bit.CTRLB)
         ;                                // wait for sync
