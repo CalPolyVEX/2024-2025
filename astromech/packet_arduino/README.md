@@ -24,8 +24,8 @@ Required libraries:
 
 | Command  | byte 1 (header) | byte 2 (payload size) | byte 3 (command) | byte 4 | byte 5 | byte 6 | byte 7 | byte 8 | byte 9 |
 | ------------- | ------------- | --- | ------------- | ------------- | --- | ------------- | ------------- | --- | -- |
-| Left Motor Command  | 0xFF  | 1 | 0 | left low byte  | CRC1 | CRC2 | | |
-| Right Motor Command | 0xFF  | 1 | 1 | left low byte  | CRC1 | CRC2 | | |
+| Left Motor Command  | 0xFF  | 1 | 0 | motor speed | CRC1 | CRC2 | | |
+| Right Motor Command | 0xFF  | 1 | 1 | motor speed | CRC1 | CRC2 | | |
 | Set Servo | 0xFF  | 2 | 2 | servo number | servo position | CRC1 | CRC2 | |
 | LCD Cursor | 0xFF  | 1 | 3 | column (upper 6 bits), row (lower 2 bits) | CRC1 | CRC2 | |
 | Print String | 0xFF  | n | 4 | n-byte payload | CRC1 | CRC2 | |
