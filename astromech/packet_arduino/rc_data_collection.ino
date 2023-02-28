@@ -165,7 +165,7 @@ void receiver_setup() {
 #endif
 
     SERCOM2->USART.CTRLA.bit.MODE = 1;   // using internal clock
-    SERCOM2->USART.CTRLA.bit.CMODE = 0;  // use asyncronous communication
+    SERCOM2->USART.CTRLA.bit.CMODE = 0;  // use asynchronous communication
     SERCOM2->USART.CTRLA.bit.RXPO = 0x3; // PA11 multiplex mode d is sercom2 PAD[3]
     SERCOM2->USART.CTRLA.bit.TXPO = 0x2; // similar but is PAD[0]
 
@@ -226,8 +226,8 @@ void receiver_setup() {
     while (TC3->COUNT16.STATUS.bit.SYNCBUSY)
         ;
 
-    // enable intrrupts
-    TC3->COUNT16.INTENSET.bit.OVF = 1; // enable tc overflow/underflow interupt
+    // enable interrupts
+    TC3->COUNT16.INTENSET.bit.OVF = 1; // enable tc overflow/underflow interrupt
 
     // enable TC
     TC3->COUNT16.CTRLA.bit.ENABLE = 1;
@@ -327,7 +327,7 @@ void decodeData() {
 }
 
 void SERCOM2_Handler() {
-    // Collect Data from RC Reciever and store in RegCont
+    // Collect Data from RC Receiver and store in RegCont
     regCont = SERCOM2->USART.DATA.bit.DATA;
     queue.enqueue(regCont);
 
