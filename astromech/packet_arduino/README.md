@@ -1,3 +1,6 @@
+Required libraries:
+- hd44780 (https://github.com/duinoWitchery/hd44780)
+
 
 | GCLK number   | Device |
 | ------------- | ------------- |
