@@ -27,6 +27,7 @@ volatile boolean stayInPC = false;
 
 // Queue class
 // Implemented using a circular array
+#define QUEUE_BUFFER_SIZE 100
 class Queue {
 public:
     // Initialize Queue Object
@@ -42,7 +43,7 @@ public:
     // Enqueue data
     void enqueue(uint8_t new_data) {
         // If buffer is full, error
-        if (data_size == BUFFER_SIZE) {
+        if (data_size == QUEUE_BUFFER_SIZE) {
             return;
         }
 
@@ -52,7 +53,7 @@ public:
         head++;
 
         // If head is outside buffer size, go back to start of array
-        if (head > BUFFER_SIZE)
+        if (head > QUEUE_BUFFER_SIZE)
             head = 0;
     }
 
@@ -69,7 +70,7 @@ public:
         tail++;
 
         // If tail is outside buffer size, go back to start of array
-        if (tail > BUFFER_SIZE)
+        if (tail > QUEUE_BUFFER_SIZE)
             tail = 0;
 
         // Return data
@@ -90,7 +91,7 @@ public:
             tail++;
 
             // If tail is outside buffer size, go back to start of array
-            if (tail > BUFFER_SIZE)
+            if (tail > QUEUE_BUFFER_SIZE)
                 tail = 0;
         }
     }
@@ -105,7 +106,7 @@ public:
 
 private:
     // Circular Array
-    uint8_t buffer[32];
+    uint8_t buffer[QUEUE_BUFFER_SIZE + 1];
 
     // Head and Tail Markers
     uint8_t head;
@@ -113,9 +114,6 @@ private:
 
     // Number of Data in Buffer
     uint8_t data_size;
-
-    // Constant Size of Buffer
-    uint8_t BUFFER_SIZE = 31;
 
     uint8_t dummy_var;
 };
@@ -187,7 +185,7 @@ void receiver_setup() {
 
     NVIC_SetPriority(SERCOM2_IRQn, 0);                       // set highest priority for SERCOM2
     NVIC_EnableIRQ(SERCOM2_IRQn);                            // enable interrupt requests for SERCOM2
-    SERCOM2->USART.INTENSET.reg = SERCOM_USART_INTENSET_RXC; // enable RX interrupts for when recieving is complete
+    SERCOM2->USART.INTENSET.reg = SERCOM_USART_INTENSET_RXC; // enable RX interrupts for when receiving is complete
 
     // Initialize Clock for Timer
     GCLK->GENDIV.reg = GCLK_GENDIV_DIV(6) | // Divide the 48MHz clock source by divisor 6: 48MHz/6=8MHz
