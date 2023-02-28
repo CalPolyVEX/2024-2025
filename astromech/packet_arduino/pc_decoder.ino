@@ -164,7 +164,7 @@ void pc_dump_input() {
     static uint16_t byte_count = 0;
     static uint32_t millis_time = millis();
     uint16_t test_val;
-    if (millis() - millis_time > MOTOR_TIMOUT) {
+    if (millis() - millis_time > MOTOR_TIMEOUT) {
         // CHECK IF 127 is the actual minimum speed.
         change_motor_speed(0, 127);
         change_motor_speed(1, 127);
@@ -197,7 +197,7 @@ void pc_dump_input() {
 void pc_get_input(bool pc_mode) {
 // void get_input() {
     static uint16_t byte_count = 0;
-    static uint32_t millis_time = millis();
+    static uint32_t last_packet_time = millis();
     uint16_t test_val;
     // static uint8_t payload;
     // static char cur_byte;
@@ -207,7 +207,7 @@ void pc_get_input(bool pc_mode) {
 
     /* end testing buffer rerouting*/
 
-    if (pc_mode && (millis() - millis_time > MOTOR_TIMOUT)) {
+    if (pc_mode && (millis() - last_packet_time > MOTOR_TIMEOUT)) {
         // CHECK IF 127 is the actual minimum speed.
         change_motor_speed(0, 127);
         change_motor_speed(1, 127);
@@ -235,7 +235,7 @@ void pc_get_input(bool pc_mode) {
         }
         if (byte_count >= 2 && byte_count == bytes[1] + 5) {
             eval_input(bytes, byte_count, pc_mode);
-            millis_time = millis();
+            last_packet_time = millis();
             byte_count = 0;
         }
     }

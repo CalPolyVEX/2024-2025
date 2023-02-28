@@ -1,6 +1,5 @@
 #include "rc_data_collection.h"
 
-#define PARANOIA // if defined, potentially excessive operations will be done to ensure intended functionality
 #define DOME_SERVO 4
 #define DOME_SERVO_NUM 0
 #define TOGGL_CHNL 5 // channel associated with the switch that determines whether to get input from RC or PC
@@ -131,10 +130,7 @@ uint8_t complete_packet[25];
 uint16_t channel[16];
 
 void receiver_setup() {
-
-#ifdef PARANOIA
     NVIC_DisableIRQ(SERCOM2_IRQn); // using sercom2
-#endif
 
     // INITIALIZING PADS
     // initialize RX pin to be controlled by serial
@@ -157,12 +153,10 @@ void receiver_setup() {
         GCLK_CLKCTRL_GEN_GCLK4 |      // enable generic clock generator 4
         GCLK_CLKCTRL_ID_SERCOM2_CORE; // set clock to SERCOM2_CORE
 
-// INITIALIZING SERIAL
-#ifdef PARANOIA
+    // INITIALIZING SERIAL
     SERCOM2->USART.CTRLA.bit.SWRST = 1; // do a software reset on the serial peripheral
     while (SERCOM2->USART.SYNCBUSY.bit.SWRST)
         ; // wait for synchronization
-#endif
 
     SERCOM2->USART.CTRLA.bit.MODE = 1;   // using internal clock
     SERCOM2->USART.CTRLA.bit.CMODE = 0;  // use asynchronous communication
@@ -175,22 +169,22 @@ void receiver_setup() {
     SERCOM2->USART.CTRLB.bit.PMODE = 0x0;  // using even parity
     SERCOM2->USART.CTRLB.bit.SBMODE = 0x1; // using 2 stop bits
     SERCOM2->USART.BAUD.reg = 63351;       // set the correct baud register value (calculated based on equation in samd21 datasheet)
+                                           // SBUS baudrate is 100000, 8 bit data, even parity, 2 stop bits
     SERCOM2->USART.CTRLB.bit.RXEN = 0x1;   // enable Serial RX
     while (SERCOM2->USART.SYNCBUSY.bit.CTRLB)
         ;                                // wait for sync
     SERCOM2->USART.CTRLB.bit.TXEN = 0x1; // turn tx pin off
-#ifdef PARANOIA
+
     while (SERCOM2->USART.SYNCBUSY.bit.CTRLB)
         ; // wait for sync
-#endif
+
     SERCOM2->USART.CTRLA.bit.ENABLE = 1; // enable the serial module
     while (SERCOM2->USART.SYNCBUSY.bit.ENABLE)
         ; // wait for syncronization
 
-// ENABLING INTERRUPTS
-#ifdef PARANOIA
+    // ENABLING INTERRUPTS
     NVIC_ClearPendingIRQ(SERCOM2_IRQn); // clear any incoming interrupt requests from SERCOM5
-#endif
+
     NVIC_SetPriority(SERCOM2_IRQn, 0);                       // set highest priority for SERCOM2
     NVIC_EnableIRQ(SERCOM2_IRQn);                            // enable interrupt requests for SERCOM2
     SERCOM2->USART.INTENSET.reg = SERCOM_USART_INTENSET_RXC; // enable RX interrupts for when recieving is complete
@@ -290,13 +284,11 @@ bool receiver_loop() {
 
             /* change LED values*/
             
-
             /* set pc_mode flag to false -> continued
             rc controller use*/
             pc_mode = false;
 
         }
-
 
         // reset the complete_packet buffer
         complete_packet[0] = 0;
