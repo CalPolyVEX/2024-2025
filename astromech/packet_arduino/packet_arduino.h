@@ -4,9 +4,12 @@
 #include "pc_decoder.h"
 #include "rc_data_collection.h"
 #include "reon_hp_i2c.h"
+#include "logic_engine_control.h"
 #include <Wire.h>
 #include <hd44780.h>                       // main hd44780 header
 #include <hd44780ioClass/hd44780_I2Cexp.h> // i2c expander i/o class header
+
+#include "tsunami_control.h"
 
 #define LCD_COLS 20
 #define LCD_ROWS 4

@@ -1,8 +1,8 @@
 #include "rc_data_collection.h"
 
-#define PARANOIA // if defined, potentially excessive operations will be done to ensure intended functionality
-
 // PC/RC toggle macros
+#define DOME_SERVO 4
+#define DOME_SERVO_NUM 0
 #define TOGGL_CHNL 5 // channel associated with the switch that determines whether to get input from RC or PC
 #define TOGGL_VAL_RC 995 // value output by channel used for toggling to RC
 #define TOGGL_VAL_PC 1529 // value output by channel used for toggling to PC
@@ -18,7 +18,7 @@
  *  Sercom instance: SERCOM2
  *  RX Pin: PA20
  *  TX Pin: PA21
- *  Generic Clock Generator: GCLOCK0
+ *  Generic Clock Generator: GCLOCK4
  */
 
 /* PINOUT NOTES:
@@ -26,7 +26,9 @@
  *   PA11 is connected to D0/RXI on the Redboard
  */
 
+// used for counter to stop reading data and allow the data to be stored
 volatile boolean newData = false;
+// temporary data storage var
 volatile uint16_t regCont;
 volatile boolean stayInPC = false;
 
@@ -35,6 +37,7 @@ volatile boolean stayInPC = false;
 
 // Queue class
 // Implemented using a circular array
+#define QUEUE_BUFFER_SIZE 100
 class Queue {
 public:
     // Initialize Queue Object
@@ -50,7 +53,7 @@ public:
     // Enqueue data
     void enqueue(uint8_t new_data) {
         // If buffer is full, error
-        if (data_size == BUFFER_SIZE) {
+        if (data_size == QUEUE_BUFFER_SIZE) {
             return;
         }
 
@@ -60,7 +63,7 @@ public:
         head++;
 
         // If head is outside buffer size, go back to start of array
-        if (head > BUFFER_SIZE)
+        if (head > QUEUE_BUFFER_SIZE)
             head = 0;
     }
 
@@ -77,7 +80,7 @@ public:
         tail++;
 
         // If tail is outside buffer size, go back to start of array
-        if (tail > BUFFER_SIZE)
+        if (tail > QUEUE_BUFFER_SIZE)
             tail = 0;
 
         // Return data
@@ -99,7 +102,7 @@ public:
             tail++;
 
             // If tail is outside buffer size, go back to start of array
-            if (tail > BUFFER_SIZE)
+            if (tail > QUEUE_BUFFER_SIZE)
                 tail = 0;
         }
     }
@@ -118,7 +121,7 @@ public:
 
 private:
     // Circular Array
-    uint8_t buffer[32];
+    uint8_t buffer[QUEUE_BUFFER_SIZE + 1];
 
     // Head and Tail Markers
     uint8_t head;
@@ -126,9 +129,6 @@ private:
 
     // Number of Data in Buffer
     uint8_t data_size;
-
-    // Constant Size of Buffer
-    uint8_t BUFFER_SIZE = 31;
 
     uint8_t dummy_var;
 };
@@ -143,10 +143,7 @@ uint8_t complete_packet[25];
 uint16_t channel[16];
 
 void receiver_setup() {
-
-#ifdef PARANOIA
     NVIC_DisableIRQ(SERCOM2_IRQn); // using sercom2
-#endif
 
     // INITIALIZING PADS
     // initialize RX pin to be controlled by serial
@@ -158,26 +155,24 @@ void receiver_setup() {
 
     // CLOCKING SERIAL
     GCLK->GENDIV.reg = GCLK_GENDIV_DIV(1) | // Divide the 48MHz clock source by divisor 1: 48MHz/1=48MHz
-                       GCLK_GENDIV_ID(5);   // Select Generic Clock (GCLK) 4
+                       GCLK_GENDIV_ID(4);   // Select Generic Clock (GCLK) 4
     GCLK->GENCTRL.reg =
         GCLK_GENCTRL_IDC |
         GCLK_GENCTRL_GENEN |      // enable the clock connection to the peripheral(s)
         GCLK_GENCTRL_ID(4) |      // use clock gen 4
         GCLK_GENCTRL_SRC_DFLL48M; // Set Clock to 48 MHz
     GCLK->CLKCTRL.reg =
-        GCLK_CLKCTRL_CLKEN |
-        GCLK_CLKCTRL_GEN_GCLK4 |
-        GCLK_CLKCTRL_ID_SERCOM2_CORE;
+        GCLK_CLKCTRL_CLKEN |          // enable the clock
+        GCLK_CLKCTRL_GEN_GCLK4 |      // enable generic clock generator 4
+        GCLK_CLKCTRL_ID_SERCOM2_CORE; // set clock to SERCOM2_CORE
 
-// INITIALIZING SERIAL
-#ifdef PARANOIA
+    // INITIALIZING SERIAL
     SERCOM2->USART.CTRLA.bit.SWRST = 1; // do a software reset on the serial peripheral
     while (SERCOM2->USART.SYNCBUSY.bit.SWRST)
         ; // wait for synchronization
-#endif
 
     SERCOM2->USART.CTRLA.bit.MODE = 1;   // using internal clock
-    SERCOM2->USART.CTRLA.bit.CMODE = 0;  // use asyncronous communication
+    SERCOM2->USART.CTRLA.bit.CMODE = 0;  // use asynchronous communication
     SERCOM2->USART.CTRLA.bit.RXPO = 0x3; // PA11 multiplex mode d is sercom2 PAD[3]
     SERCOM2->USART.CTRLA.bit.TXPO = 0x2; // similar but is PAD[0]
 
@@ -187,25 +182,26 @@ void receiver_setup() {
     SERCOM2->USART.CTRLB.bit.PMODE = 0x0;  // using even parity
     SERCOM2->USART.CTRLB.bit.SBMODE = 0x1; // using 2 stop bits
     SERCOM2->USART.BAUD.reg = 63351;       // set the correct baud register value (calculated based on equation in samd21 datasheet)
+                                           // SBUS baudrate is 100000, 8 bit data, even parity, 2 stop bits
+                                           // (48MHz / 16) * (1 - BAUD/65536) = 100K, this gives 63351.466 for BAUD
     SERCOM2->USART.CTRLB.bit.RXEN = 0x1;   // enable Serial RX
     while (SERCOM2->USART.SYNCBUSY.bit.CTRLB)
         ;                                // wait for sync
     SERCOM2->USART.CTRLB.bit.TXEN = 0x1; // turn tx pin off
-#ifdef PARANOIA
+
     while (SERCOM2->USART.SYNCBUSY.bit.CTRLB)
         ; // wait for sync
-#endif
+
     SERCOM2->USART.CTRLA.bit.ENABLE = 1; // enable the serial module
     while (SERCOM2->USART.SYNCBUSY.bit.ENABLE)
         ; // wait for syncronization
 
-// ENABLING INTERRUPTS
-#ifdef PARANOIA
+    // ENABLING INTERRUPTS
     NVIC_ClearPendingIRQ(SERCOM2_IRQn); // clear any incoming interrupt requests from SERCOM5
-#endif
+
     NVIC_SetPriority(SERCOM2_IRQn, 0);                       // set highest priority for SERCOM2
     NVIC_EnableIRQ(SERCOM2_IRQn);                            // enable interrupt requests for SERCOM2
-    SERCOM2->USART.INTENSET.reg = SERCOM_USART_INTENSET_RXC; // enable RX interrupts for when recieving is complete
+    SERCOM2->USART.INTENSET.reg = SERCOM_USART_INTENSET_RXC; // enable RX interrupts for when receiving is complete
 
     // Initialize Clock for Timer
     GCLK->GENDIV.reg = GCLK_GENDIV_DIV(6) | // Divide the 48MHz clock source by divisor 6: 48MHz/6=8MHz
@@ -231,15 +227,15 @@ void receiver_setup() {
 
     // Set Counting Down Mode
     TC3->COUNT16.CTRLBSET.reg =
-        TC_CTRLBSET_ONESHOT |
-        TC_CTRLBSET_DIR;
+        TC_CTRLBSET_ONESHOT |   // set the countdown condition for setting an interupt when the counter reaches an overflow or underflow
+        TC_CTRLBSET_DIR;        // set the direction to count down
 
     // synchronization will happen, so we must wait
     while (TC3->COUNT16.STATUS.bit.SYNCBUSY)
         ;
 
-    // enable intrrupts
-    TC3->COUNT16.INTENSET.bit.OVF = 1; // enable tc overflow/underflow interupt
+    // enable interrupts
+    TC3->COUNT16.INTENSET.bit.OVF = 1; // enable tc overflow/underflow interrupt
 
     // enable TC
     TC3->COUNT16.CTRLA.bit.ENABLE = 1;
@@ -256,12 +252,9 @@ void receiver_setup() {
 }
 
 bool receiver_loop() {
-    /* refactored to allow
-    switching between RC and PC */
+    /* main 
+    allows for switching between RC and PC */
 
-    // if(stayInPC) {
-    //     pc_get_input(0);
-    // }
     static bool pc_mode = false;
 
     if (newData) {
@@ -278,14 +271,13 @@ bool receiver_loop() {
             return 3;
         }
 
-        // print out the values of every complete_packet[i] into serial
-        // for(int i = 0; i < 32; i++) {
-        //     SerialUSB.print(complete_packet[i]);
+        // TROUBLESHOOTING: print out the values of every channel into serial
+        // for (int i = 0; i < 16; i++) {
+        //     SerialUSB.print(channel[i]);
         //     SerialUSB.print(" ");
         // }
         // SerialUSB.println(" ");
-
-        // Decode Data into cursed 11 bit channels
+        // Decode Data into 11 bit channels
         decodeData();
 
         // print out the values of every channel into serial
@@ -307,12 +299,16 @@ bool receiver_loop() {
             // convert from 11 bit to 8 bit before calling control motors
             uint8_t ver_8bit = channel[6] * 255 / 2047;
             uint8_t hor_8bit = channel[7] * 255 / 2047;
+            uint8_t dome_servo_8bit = channel[4] * 255 / 2047; // dome "servo"
             // input motor values
             control_motors(ver_8bit, hor_8bit);
 
+            /* change servo values*/
+            set_servo_angle(DOME_SERVO_NUM, dome_servo_8bit);
+
             /* REON Holoprojector control */
             uint8_t reon_val = channel[REON_CHNL]; //TODO do scaling
-            SerialUSB.println(reon_val);
+            // SerialUSB.println(reon_val);
             if(reon_val == REON_MID)    // temporary conditional structure, replace with scaling
                 reon_val = REON_ON;
             else if(reon_val == REON_HIGH)
@@ -360,7 +356,7 @@ void decodeData() {
 }
 
 void SERCOM2_Handler() {
-    // Collect Data from RC Reciever and store in RegCont
+    // Collect Data from RC Receiver and store in RegCont
     regCont = SERCOM2->USART.DATA.bit.DATA;
     queue.enqueue(regCont);
 

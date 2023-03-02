@@ -25,22 +25,22 @@ unsigned int waveform_map[4] = {3, 1, 2, 0}; // The Servo Waveform Output indexe
 void sync_servos(unsigned short servo_number) {
     switch (servo_number) {
     case 0: {
-        while (TCC0->SYNCBUSY.bit.CC0) {
+        while (TCC0->SYNCBUSY.bit.CC0) { // Connecting to servo 0's counter
         };
         break;
     }
     case 1: {
-        while (TCC0->SYNCBUSY.bit.CC2) {
+        while (TCC0->SYNCBUSY.bit.CC2) { // Connecting to servo 1's counter
         };
         break;
     }
     case 2: {
-        while (TCC0->SYNCBUSY.bit.CC1) {
+        while (TCC0->SYNCBUSY.bit.CC1) { // Connecting to servo 2's counter
         };
         break;
     }
     case 3: {
-        while (TCC0->SYNCBUSY.bit.CC3) {
+        while (TCC0->SYNCBUSY.bit.CC3) { // Connecting to servo 3's counter
         };
         break;
     }
@@ -138,14 +138,14 @@ void motor_setup() {
 
     // Use Normal PWM
     TCC0->WAVE.reg = TCC_WAVE_WAVEGEN_NPWM;
-    while (TCC1->SYNCBUSY.bit.WAVE) {
+    while (TCC0->SYNCBUSY.bit.WAVE) {
     };
 
     // The PER register determines the period of the PWM
     // uint32_t period = 960000; //48000000/2400 = 20KHz
 
     TCC0->PER.reg = MOTOR_WAVELENGTH; // this is a 24-bit register
-    while (TCC1->SYNCBUSY.bit.PER) {
+    while (TCC0->SYNCBUSY.bit.PER) {
     };
 
     // Servo 0 (D7 PA21 WO[7])
@@ -231,7 +231,7 @@ void change_motor_speed(unsigned short motor_num, int speed) {
         };
     }
 
-    // Right Motor2
+    // Right Motor
     else {
         // Calculate speed percentage
         motor_percentage_2 = 255 - speed;

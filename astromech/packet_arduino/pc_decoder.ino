@@ -7,6 +7,7 @@ uint16_t rx_crc;
 uint16_t comp_crc;
 #endif
 
+//stores correct values used for checking valid packets
 const uint16_t crctable[256] =
     {
         0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
@@ -43,7 +44,7 @@ const uint16_t crctable[256] =
         0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0};
 
 // The array of bytes from USB
-uint8_t bytes[256];
+uint8_t bytes[300];
 
 //////////////////////////////////////////////////
 // check_crc - check the crc of the incoming packet
@@ -113,7 +114,9 @@ void eval_input(uint8_t *data, int size, bool pc_mode) {
         break;
 
     case 2: // Set servo
-        set_servo_angle((unsigned short)(data[3]), (unsigned int)(data[4]));
+        if (pc_mode) {
+            set_servo_angle((unsigned short)(data[3]), (unsigned int)(data[4]));
+        }
         break;
 
     case 3: // Set LCD cursor
@@ -135,12 +138,27 @@ void eval_input(uint8_t *data, int size, bool pc_mode) {
         lcd.clear();
         break;
 
+    case 7: // Send Command to Logic Engine Using Presets
+        sendLogicEngineCommand(data[3]);
+        break;
+
+    case 8: // Send Command to Logic Engine Controller Using Raw Commands
+        sendLogicEngineCommand(data[3], data[4], data[5], data[6]);
+        break;
+
+    case 9: // Send Command to Play a Sound Through the Tsunami (Value 1 = Sound Index, Value 2 = Volume (Signed))
+        playTsunamiSound(data[3], data[4]);
+        break;
+
+    case 10: // Set the Gain of the Amplifier for Sound
+        setAmplifierGain(data[3]);
+        break;
+
     case 11: // set REON HP sequence for all three HPs
-        if (pc_mode) {
-            send_reon_command(int(data[3]), HP_FRNT_ADDR);
-            send_reon_command(int(data[3]), HP_TOP_ADDR);
-            send_reon_command(int(data[3]), HP_REAR_ADDR);
-        }
+        send_reon_command(int(data[3]), HP_FRNT_ADDR);
+        send_reon_command(int(data[3]), HP_TOP_ADDR);
+        send_reon_command(int(data[3]), HP_REAR_ADDR);
+        break;
     };
 }
 
@@ -149,7 +167,7 @@ void pc_dump_input() {
     static uint16_t byte_count = 0;
     static uint32_t millis_time = millis();
     uint16_t test_val;
-    if (millis() - millis_time > MOTOR_TIMOUT) {
+    if (millis() - millis_time > MOTOR_TIMEOUT) {
         // CHECK IF 127 is the actual minimum speed.
         change_motor_speed(0, 127);
         change_motor_speed(1, 127);
@@ -180,9 +198,9 @@ void pc_dump_input() {
 }
 
 void pc_get_input(bool pc_mode) {
-// void get_input() {
+    // void get_input() {
     static uint16_t byte_count = 0;
-    static uint32_t millis_time = millis();
+    static uint32_t last_packet_time = millis();
     uint16_t test_val;
     // static uint8_t payload;
     // static char cur_byte;
@@ -192,10 +210,14 @@ void pc_get_input(bool pc_mode) {
 
     /* end testing buffer rerouting*/
 
-    if (pc_mode && (millis() - millis_time > MOTOR_TIMOUT)) {
+    if (pc_mode && (millis() - last_packet_time > MOTOR_TIMEOUT)) {
         // CHECK IF 127 is the actual minimum speed.
         change_motor_speed(0, 127);
         change_motor_speed(1, 127);
+        set_servo_angle(0, 127);
+        set_servo_angle(1, 127);
+        set_servo_angle(2, 127);
+        set_servo_angle(3, 127);
     }
     if (SerialUSB.available()) {
         if (byte_count == 0) { // confirming start of packet
@@ -216,7 +238,7 @@ void pc_get_input(bool pc_mode) {
         }
         if (byte_count >= 2 && byte_count == bytes[1] + 5) {
             eval_input(bytes, byte_count, pc_mode);
-            millis_time = millis();
+            last_packet_time = millis();
             byte_count = 0;
         }
     }

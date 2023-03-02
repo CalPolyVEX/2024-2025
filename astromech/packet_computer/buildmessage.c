@@ -18,6 +18,7 @@ We can only print one line of the lcd at a time: how to deal with clearing??
 #define MOTOR_CTRL_PAYLOAD 1
 #define SERVO_CTRL_PAYLOAD 2
 #define SET_LCD_PAYLOAD 1
+#define LED_PRESET_PAYLOAD 1
 
 #define MIN_PACKET_SIZE 5
 
@@ -28,6 +29,7 @@ We can only print one line of the lcd at a time: how to deal with clearing??
 #define PRINT_STR_CMD 4
 #define LCD_PRINT_STR 5
 #define LCD_CLR_CMD 6
+#define LED_PRESET_CMD 7
 
 #define DEV_F_NAME "/dev/cu.usbmodem144101"
 
@@ -46,8 +48,8 @@ int main(int argc, char *argv[]) {
     int fd;
     char buff[1000];
 
-    fd = open(DEV_F_NAME, O_WRONLY);
-    // fd = STDOUT_FILENO;
+    // fd = open(DEV_F_NAME, O_WRONLY);
+    fd = STDOUT_FILENO;
     // int fd_read = open("command", O_RDONLY);
 
     if (fd < 0) {
@@ -61,21 +63,28 @@ int main(int argc, char *argv[]) {
     //
     // send_set_lcd(2, 3, fd);
     // write(fd, buff, 8);
-    for (int i = 0; i < 90000; i++) {
-        // sprintf(buff, "%d", i);
-        // send_print_string_at(0, 0, (uint8_t *)buff, fd);
-        send_set_motor(MOTOR_COMMAND_RIGHT, 255, fd);
-    }
+    // for (int i = 0; i < 90000; i++) {
+    //     // sprintf(buff, "%d", i);
+    //     // send_print_string_at(0, 0, (uint8_t *)buff, fd);
+    //     send_set_motor(MOTOR_COMMAND_RIGHT, 255, fd);
+    // }
     // send_print_string_at(0, 0, (uint8_t *)"1", fd);
+    // for (int i = 0; i < 1000; i++) {
+    //     send_set_motor(MOTOR_COMMAND_LEFT, 200, fd);
+    //     send_set_motor(MOTOR_COMMAND_RIGHT, 254, fd);
+    // }
     for (int i = 0; i < 1000; i++) {
-        send_set_motor(MOTOR_COMMAND_LEFT, 200, fd);
-        send_set_motor(MOTOR_COMMAND_RIGHT, 254, fd);
+        if(i%100)
+            send_set_servo(0, 250, fd);
+        else
+            send_set_servo(0, 131, fd);
     }
-    // send_set_servo(0, 131, fd);
     // send_set_servo(1, 131, fd);
     // send_set_servo(2, 131, fd);
     // send_set_servo(3, 131, fd);
     // send_print_string_at(2, 3, (uint8_t *)"wooooo", fd);
+    // send_set_lcd(12, 2, fd);
+    send_led_preset_cmd(4, fd);
 
     close(fd);
 
@@ -114,6 +123,11 @@ void send_print_string_at(uint8_t col, uint8_t row, uint8_t *s, int fd) {
 void send_clear_lcd(int fd) {
     uint8_t *packet = clear_lcd();
     write(fd, packet, MIN_PACKET_SIZE);
+}
+
+void send_led_preset_cmd(uint8_t preset_idx, int fd) {
+    uint8_t *packet = led_preset_cmd(preset_idx);
+    write(fd, packet, MIN_PACKET_SIZE + LED_PRESET_PAYLOAD);
 }
 
 /**
@@ -201,6 +215,27 @@ uint8_t *clear_lcd() {
     packet[1] = (uint8_t)0;
     packet[2] = (uint8_t)LCD_CLR_CMD;
     calc_crc(3);
+    return packet;
+}
+// uint8_t *set_lcd(uint8_t col, uint8_t row) {
+//     packet[0] = (uint8_t)0xFF;
+//     packet[1] = (uint8_t)(SET_LCD_PAYLOAD);
+//     packet[2] = SET_CURSOR_CMD;
+//     /* 2 LSB for row and 6 MSB are for col */
+//     packet[3] = 0x00;
+//     packet[3] = packet[3] | row;
+//     packet[3] = packet[3] | (col << 2);
+//     calc_crc(3 + SET_LCD_PAYLOAD);
+
+//     return packet;
+// }
+
+uint8_t *led_preset_cmd(uint8_t preset_index) {
+    packet[0] = (uint8_t)0xFF;
+    packet[1] = (uint8_t)LED_PRESET_PAYLOAD;
+    packet[2] = (uint8_t)LED_PRESET_CMD;
+    packet[3] = preset_index;
+    calc_crc(3 + LED_PRESET_PAYLOAD);
     return packet;
 }
 

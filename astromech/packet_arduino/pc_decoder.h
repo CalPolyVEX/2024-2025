@@ -1,9 +1,11 @@
 #ifndef PC_DECODER_H
 #define PC_DECODER_H
 
+#include "logic_engine_control.h"
 #include "motor_servo_control.h"
 #include "packet_arduino.h"
 #include "reon_hp_i2c.h"
+#include "tsunami_control.h"
 
 #define MOTOR_TIMOUT 1000 // ms
 
