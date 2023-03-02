@@ -153,10 +153,13 @@ void eval_input(uint8_t *data, int size, bool pc_mode) {
     case 10: // Set the Gain of the Amplifier for Sound
         setAmplifierGain(data[3]);
         break;
-    };
 
-    
-    
+    case 11: // set REON HP sequence for all three HPs
+        send_reon_command(int(data[3]), HP_FRNT_ADDR);
+        send_reon_command(int(data[3]), HP_TOP_ADDR);
+        send_reon_command(int(data[3]), HP_REAR_ADDR);
+        break;
+    };
 }
 
 // drops data in the Serial buffer
@@ -195,7 +198,7 @@ void pc_dump_input() {
 }
 
 void pc_get_input(bool pc_mode) {
-// void get_input() {
+    // void get_input() {
     static uint16_t byte_count = 0;
     static uint32_t last_packet_time = millis();
     uint16_t test_val;
