@@ -6,6 +6,7 @@
 #include "rc_decoder.h"
 #include "reon_hp_i2c.h"
 #include "i2c_pin_led.h"
+#include "logic_engine_control.h"
 
 class Queue;
 

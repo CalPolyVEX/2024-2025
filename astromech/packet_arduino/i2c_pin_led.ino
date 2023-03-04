@@ -1,7 +1,7 @@
 #include "i2c_pin_led.h"
 
 TCA9534 ioex;
-const uint8_t IOEX_ADDR = 0x20; // A0 = A1 = A2 = 0
+// const uint8_t IOEX_ADDR = 0x20; // A0 = A1 = A2 = 0
 
 void setup_i2c() 
 {

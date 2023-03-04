@@ -5,6 +5,36 @@
 #include <string.h>
 #include <unistd.h>
 
+/* packet size */
+#define MIN_PACKET_SIZE 5
+#define MAX_PACKET_SIZE 26
+
+/* payload size */
+#define MOTOR_CTRL_PAYLOAD 1
+#define SERVO_CTRL_PAYLOAD 2
+#define SET_LCD_PAYLOAD 1
+#define LED_PRESET_PAYLOAD 1
+#define LED_RAW_PAYLOAD 4
+#define TSUN_SOUND_PAYLOAD 2
+#define TSUN_AMP_PAYLOAD 1
+#define REON_PAYLOAD 2
+
+/* command IDs */
+#define MOTOR_COMMAND_LEFT 0
+#define MOTOR_COMMAND_RIGHT 1
+#define SERVO_CMD 2
+#define SET_CURSOR_CMD 3
+#define PRINT_STR_CMD 4
+#define LCD_PRINT_STR 5
+#define LCD_CLR_CMD 6
+#define LED_PRESET_CMD 7
+#define LED_RAW_CMD 8
+#define TSUN_SOUND 9
+#define TSUN_AMP 10
+#define REON_CMD 11
+
+#define DEV_F_NAME "/dev/cu.usbmodem144101"
+
 /* packet construction */
 uint8_t *set_motor(int direction, uint8_t speed);
 uint8_t *set_servo(uint8_t servo_num, uint8_t position);
