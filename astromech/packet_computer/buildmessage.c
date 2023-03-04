@@ -19,6 +19,7 @@ We can only print one line of the lcd at a time: how to deal with clearing??
 #define SERVO_CTRL_PAYLOAD 2
 #define SET_LCD_PAYLOAD 1
 #define LED_PRESET_PAYLOAD 1
+#define REON_PAYLOAD 2
 
 #define MIN_PACKET_SIZE 5
 
@@ -30,6 +31,7 @@ We can only print one line of the lcd at a time: how to deal with clearing??
 #define LCD_PRINT_STR 5
 #define LCD_CLR_CMD 6
 #define LED_PRESET_CMD 7
+#define REON_CMD 11
 
 #define DEV_F_NAME "/dev/cu.usbmodem144101"
 
@@ -73,18 +75,32 @@ int main(int argc, char *argv[]) {
     //     send_set_motor(MOTOR_COMMAND_LEFT, 200, fd);
     //     send_set_motor(MOTOR_COMMAND_RIGHT, 254, fd);
     // }
-    for (int i = 0; i < 1000; i++) {
-        if(i%100)
-            send_set_servo(0, 250, fd);
-        else
-            send_set_servo(0, 131, fd);
-    }
+
+    /* ############## servo test #################*/
+    // for (int i = 0; i < 1000; i++) {
+    //     if(i%100)
+    //         send_set_servo(0, 250, fd);
+    //     else
+    //         send_set_servo(0, 131, fd);
+    // }
+    /* ############# end servo test ##############*/
+
+    /* ############## reon test #################*/
+    // for (int i = 0; i < 1000; i++) {
+    //     if(i%100)
+    //         send_set_reon(27, 1, fd); // reon rear off
+    //     else
+    //         send_set_reon(27, 2, fd); // reon rear white
+    // }
+    // send_set_reon(27, 2, fd); // reon rear white
+    /* ############# end reon test ##############*/
+
     // send_set_servo(1, 131, fd);
     // send_set_servo(2, 131, fd);
     // send_set_servo(3, 131, fd);
     // send_print_string_at(2, 3, (uint8_t *)"wooooo", fd);
     // send_set_lcd(12, 2, fd);
-    send_led_preset_cmd(4, fd);
+    // send_led_preset_cmd(4, fd);
 
     close(fd);
 
@@ -128,6 +144,11 @@ void send_clear_lcd(int fd) {
 void send_led_preset_cmd(uint8_t preset_idx, int fd) {
     uint8_t *packet = led_preset_cmd(preset_idx);
     write(fd, packet, MIN_PACKET_SIZE + LED_PRESET_PAYLOAD);
+}
+
+void send_set_reon(uint8_t reon_addr, uint8_t reon_state, int fd) {
+    uint8_t *packet = set_reon(reon_addr, reon_state);
+    write(fd, packet, MIN_PACKET_SIZE + REON_PAYLOAD);
 }
 
 /**
@@ -236,6 +257,16 @@ uint8_t *led_preset_cmd(uint8_t preset_index) {
     packet[2] = (uint8_t)LED_PRESET_CMD;
     packet[3] = preset_index;
     calc_crc(3 + LED_PRESET_PAYLOAD);
+    return packet;
+}
+
+uint8_t *set_reon(uint8_t reon_addr, uint8_t reon_state) {
+    packet[0] = (uint8_t)0xFF;
+    packet[1] = (uint8_t)REON_PAYLOAD;
+    packet[2] = (uint8_t)REON_CMD;
+    packet[3] = reon_addr;
+    packet[4] = reon_state;
+    calc_crc(3 + REON_PAYLOAD);
     return packet;
 }
 

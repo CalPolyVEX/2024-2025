@@ -155,9 +155,11 @@ void eval_input(uint8_t *data, int size, bool pc_mode) {
         break;
 
     case 11: // set REON HP sequence for all three HPs
-        send_reon_command(int(data[3]), HP_FRNT_ADDR);
-        send_reon_command(int(data[3]), HP_TOP_ADDR);
-        send_reon_command(int(data[3]), HP_REAR_ADDR);
+        // send_reon_command(int(data[3]), HP_FRNT_ADDR);
+        // send_reon_command(int(data[3]), HP_TOP_ADDR);
+        // send_reon_command(int(data[3]), HP_REAR_ADDR);
+        lcd.print("cmd went through");
+        send_reon_command(int(data[4]), int(data[3]));
         break;
     };
 }
