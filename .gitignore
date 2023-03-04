@@ -1,4 +1,9 @@
-.vscode/
+# do not ignore these
+.vscode/*
+!.vscode/settings.json
+
+# ignore these files
 .DS_Store
 Power-Board-backups
 fp-info-cache
+
