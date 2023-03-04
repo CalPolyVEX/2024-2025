@@ -55,26 +55,3 @@
 #define WRITE_DTR 		0x98
 #define LOAD_CNTR 		0xE0
 #define LOAD_OTR 		  0xE4
-
-//the lines are used by 74HC138 chip to select the cable select lines
-uint8_t nSS_ENC_A2_pin = 10;//C  A2
-uint8_t nSS_ENC_A1_pin = 9; //B  A1 
-uint8_t nSS_ENC_A0_pin = 8; //A  A0
-
-//CLK Select DFLAG DF-F
-uint8_t CLK_SEL_DFAG_pin = 4;
-
-//Enable ENC_SS
-uint8_t EN_ENC_SS_pin = 5;
-
-//Blue LED
-uint8_t LED_ACT_pin = 6;
-
-//DFLAG
-uint8_t DFLAG_pin = 3; 
-
-//LFLAG
-uint8_t LFLAG_pin = 2;
-
-#define Slave_Select_Low PORTB &= ~(1 << PB4)
-#define Slave_Select_High PORTB |= (1 << PB4)

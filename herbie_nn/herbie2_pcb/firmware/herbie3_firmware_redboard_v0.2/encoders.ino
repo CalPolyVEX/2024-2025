@@ -3,7 +3,8 @@
 
 #define ENC1_SS 12 //ss
 #define ENC2_SS 13 //ss
-#define SPI_CLK 3500000
+//#define SPI_CLK 3500000
+#define SPI_CLK 3900000 //for the LS7366, 4.166MHz is fastest clock at 3.3V
 
 #define RCLK_SERVO 5
 #define CLK_SERVO 6
@@ -55,7 +56,7 @@ int check_crc(char* data, int len) //len is the length including the CRC
 {
     unsigned short crc = 0;
     unsigned short received_crc;
-
+    
     received_crc = data[len-2] << 8; //the crc is the last 2 bytes of the packet
     received_crc |= data[len-1];
 
@@ -112,8 +113,8 @@ void init_motors() {
     ///////////////////////////////
     //Left Motor
 
-    //Set the duty cycle to 50%
-    TCC1->CC[1].reg = period / 2; //this set the on time of the PWM cycle
+    //Set the duty cycle to 0%
+    TCC1->CC[1].reg = 0; //this set the on time of the PWM cycle
     while (TCC1->SYNCBUSY.bit.CC1) {};
 
     //set PA07 to output
@@ -134,8 +135,8 @@ void init_motors() {
 
     ///////////////////////////////
     //Right Motor
-    //Set the duty cycle to 25%
-    TCC1->CC[0].reg = period / 4; //this sets the on time of the PWM cycle
+    //Set the duty cycle to 0%
+    TCC1->CC[0].reg = 0; //this sets the on time of the PWM cycle
     while (TCC1->SYNCBUSY.bit.CC0) {};
 
     //set PA06 to output
@@ -327,30 +328,16 @@ void init_encoders()
 
 //*************************************************
 //*****************************************************
-long getChanEncoderValue(int encoder)
+void getChanEncoderValue(int encoder, unsigned char* buf)
 //*****************************************************
 {
-    unsigned int cnt1Value, cnt2Value, cnt3Value, cnt4Value;
-    long result;
-    unsigned char buf[5];
-
-    SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
     setSSEnc(SPI_ENABLE, encoder);
 
     buf[0] = READ_CNTR;
+    //buf[0] = READ_MDR0;
     SPI.transfer(buf,5); //transfer 5 bytes with the first byte being the command READ_CNTR
 
     setSSEnc(SPI_DISABLE, encoder);
-    SPI.endTransaction();
-
-    cnt1Value = buf[1];
-    cnt2Value = buf[2];
-    cnt3Value = buf[3];
-    cnt4Value = buf[4];
-
-    result = ((long)cnt1Value << 24) + ((long)cnt2Value << 16) + ((long)cnt3Value << 8) + (long)cnt4Value;
-
-    return result;
 }
 
 //////////////////////////////////////////////////
@@ -430,4 +417,106 @@ void init_servo() {
     //Enable TCC0
     TCC0->CTRLA.reg |= (TCC_CTRLA_ENABLE);
     while (TCC0->SYNCBUSY.bit.ENABLE) {};
+}
+
+void init_servo2() {
+ //////////////////////
+    // Set Up Servos Timer
+
+    // Set prescaler TCCDiv for TCC0
+    TCC0->CTRLA.reg |= TCC_CTRLA_PRESCALER(TCC_CTRLA_PRESCALER_DIV1_Val);  //set prescalar to divide by 1 = 48MHz clock
+
+    // Use Normal PWM
+    TCC0->WAVE.reg = TCC_WAVE_WAVEGEN_NPWM;
+    while (TCC0->SYNCBUSY.bit.WAVE) {};
+
+    //The PER register determines the period of the PWM
+    uint32_t period = 960000; //48000000/960000 = 20ms,  48000 ticks equals 1ms,  48 ticks is 1us
+
+    TCC0->PER.reg = period;  //this is a 24-bit register
+    while (TCC0->SYNCBUSY.bit.PER) {};
+
+    // Servo 0 (D7 PA21 WO[7])
+
+    // set PA21 to output
+    PORT->Group[0].DIRSET.reg |= PORT_PA21; // set the direction to output
+    PORT->Group[0].OUTCLR.reg |= PORT_PA21; // set the value to output LOW
+
+    /* Enable the peripheral multiplexer for the pins. */
+    PORT->Group[0].PINCFG[21].reg |= PORT_PINCFG_PMUXEN;
+
+    // Set PA21's function to function F. Function F is TCC0/WO[7] for PA21.
+    // Because this is an odd numbered pin the PMUX is O (odd) and the PMUX
+    // index is pin number - 1 / 2, so 10
+    PORT->Group[0].PMUX[10].reg |= PORT_PMUX_PMUXO_F;
+
+    // Servo 1 (D5 PA15 WO[5])
+
+    // set PA15 to output
+    PORT->Group[0].DIRSET.reg |= PORT_PA15; // set the direction to output
+    PORT->Group[0].OUTCLR.reg |= PORT_PA15; // set the value to output LOW
+
+    /* Enable the peripheral multiplexer for the pins. */
+    PORT->Group[0].PINCFG[15].reg |= PORT_PINCFG_PMUXEN;
+
+    // Set PA15's function to function F. Function F is TCC0/WO[5] for PA15.
+    // Because this is an odd numbered pin the PMUX is O (odd) and the PMUX
+    // index is pin number - 1 / 2, so 7.
+    PORT->Group[0].PMUX[7].reg |= PORT_PMUX_PMUXO_F;
+
+    // Servo 2 (D6 PA20 WO[6])
+
+    // Set PA20 to output
+    PORT->Group[0].DIRSET.reg |= PORT_PA20; // set the direction to output
+    PORT->Group[0].OUTCLR.reg |= PORT_PA20; // set the value to output LOW
+
+    /* Enable the peripheral multiplexer for the pins. */
+    PORT->Group[0].PINCFG[20].reg |= PORT_PINCFG_PMUXEN;
+
+    // Set PA20's function to function F. Function F is TCC0/WO[6] for PA20.
+    // Because this is an even numbered pin the PMUX is E (even) and the PMUX
+    // index is pin number / 2, so 10.
+    PORT->Group[0].PMUX[10].reg |= PORT_PMUX_PMUXE_F;
+
+    // Servo 3 (A3 PA04 WO[0])
+
+    // Set PA04 to output
+    PORT->Group[0].DIRSET.reg |= PORT_PA04; // set the direction to output
+    PORT->Group[0].OUTCLR.reg |= PORT_PA04; // set the value to output LOW
+
+    /* Enable the peripheral multiplexer for the pins. */
+    PORT->Group[0].PINCFG[4].reg |= PORT_PINCFG_PMUXEN;
+
+    // Set PA04's function to function E. Function E is TCC0/WO[0] for PA04.
+    // Because this is an even numbered pin the PMUX is E (even) and the PMUX
+    // index is pin number / 2, so 2.
+    PORT->Group[0].PMUX[2].reg |= PORT_PMUX_PMUXE_E;
+
+    // set the initial duty cycle for the servos
+    for (int i = 0; i < 4; i++) {
+      TCC0->CC[i].reg = 72000; // set the initial on time to 1.5ms
+      sync_servos(i);
+    }
+
+    // Enable TCC0
+    TCC0->CTRLA.reg |= (TCC_CTRLA_ENABLE);
+    while (TCC0->SYNCBUSY.bit.ENABLE) {};
+}
+
+// Wait for Servo Wavelengths to Sync
+void sync_servos(int servo_number) {
+    switch (servo_number) {
+    case 0:
+        while (TCC0->SYNCBUSY.bit.CC3) {}; // Connecting to servo 0's counter
+        break;
+    case 1:
+        while (TCC0->SYNCBUSY.bit.CC1) {}; // Connecting to servo 1's counter
+        break;
+    case 2:
+        while (TCC0->SYNCBUSY.bit.CC2) {}; // Connecting to servo 2's counter
+        break;
+    case 3:
+        while (TCC0->SYNCBUSY.bit.CC0) {}; // Connecting to servo 3's counter
+        break;
+    }
 }

@@ -65,12 +65,137 @@ def create_motor_packet(speed_left, speed_right):
 
     return packet
 
-def main():
-    ser = serial.Serial('/dev/ttyACM0', 921600, timeout=1)  # open serial port
-    print(ser.name)         # check which port was really used
-    count = 0
-    last_print_time = 0
+def create_set_cursor_packet(col, row):
+    crc = 0
+    packet = bytearray(6)
 
+    packet[0] = 128 #roboclaw address
+    packet[1] = 1  #set cursor
+    packet[2] = col  #column
+    packet[3] = row  #row
+
+    #Calculates CRC16 of nBytes of data in byte array message
+    for byte in range(4):
+        crc = (((crc << 8) & 0xffff) ^ crctable[((crc >> 8) ^ packet[byte]) & 0xff]) & 0xffff;
+
+    packet[4] = (crc >> 8) & 0xFF; #send the high byte of the crc
+    packet[5] = crc & 0xFF; #send the low byte of the crc
+
+    return packet
+
+def create_clear_screen_packet():
+    crc = 0
+    packet = bytearray(4)
+
+    packet[0] = 128 #roboclaw address
+    packet[1] = 0  #clear screen
+
+    #Calculates CRC16 of nBytes of data in byte array message
+    for byte in range(2):
+        crc = (((crc << 8) & 0xffff) ^ crctable[((crc >> 8) ^ packet[byte]) & 0xff]) & 0xffff;
+
+    packet[2] = (crc >> 8) & 0xFF; #send the high byte of the crc
+    packet[3] = crc & 0xFF; #send the low byte of the crc
+
+    return packet
+
+def create_string_packet(str):
+    crc = 0
+    packet = bytearray(len(str) + 5)
+
+    packet[0] = 128 #roboclaw address
+
+    packet[1] = 2   #string command
+
+    packet[2] = len(str) #set the length
+
+    new_string_bytes = bytes(str,"ascii")
+    for i in range(len(new_string_bytes)):
+        packet[3+i] = new_string_bytes[i]
+
+    #Calculates CRC16 of nBytes of data in byte array message
+    for byte in range(len(str)+3):
+        crc = (((crc << 8) & 0xffff) ^ crctable[((crc >> 8) ^ packet[byte]) & 0xff]) & 0xffff;
+
+    packet[-2] = (crc >> 8) & 0xFF; #send the high byte of the crc
+    packet[-1] = crc & 0xFF; #send the low byte of the crc
+
+    return packet
+
+def create_led_packet(num, state):
+    crc = 0
+    packet = bytearray(5)
+
+    packet[0] = 128 #roboclaw address
+
+    if state == 1:
+        packet[1] = 7   #LED on command
+    else:
+        packet[1] = 8   #LED off command
+
+    packet[2] = num; #set the LED number
+
+    #Calculates CRC16 of nBytes of data in byte array message
+    for byte in range(3):
+        crc = (((crc << 8) & 0xffff) ^ crctable[((crc >> 8) ^ packet[byte]) & 0xff]) & 0xffff;
+
+    packet[3] = (crc >> 8) & 0xFF; #send the high byte of the crc
+    packet[4] = crc & 0xFF; #send the low byte of the crc
+
+    return packet
+
+def blink_led(ser):
+    for i in range (30000):
+        p = create_led_packet(1,1)
+        ser.write(p)     # turn LED on
+        sleep(.020)
+        p = create_led_packet(1,0)
+        ser.write(p)     # turn LED off
+        sleep(.020)
+        if i % 1000 == 0:
+            print(i)
+
+    ser.close()             # close port
+
+def string_test(ser):
+    p = create_clear_screen_packet()
+    ser.write(p)     # clear screen
+
+    for i in range (30000):
+        # p = create_clear_screen_packet()
+        # ser.write(p)     # clear screen
+        # sleep(.000010)
+
+        p = create_set_cursor_packet(3,0)
+        ser.write(p)     # set cursor
+        sleep(.000010)
+        p = create_string_packet(str(float(i)*1.12345))
+        ser.write(p)     # send string
+        sleep(.000010)
+
+        p = create_led_packet(2,1)
+        ser.write(p)     # turn LED on
+        sleep(.000010)
+
+        p = create_set_cursor_packet(3,1)
+        ser.write(p)     # set cursor
+        sleep(.000010)
+        p = create_string_packet(str(i*2))
+        ser.write(p)     # send string
+        sleep(.000010)
+
+        p = create_led_packet(2,0)
+        ser.write(p)     # turn LED off
+        sleep(.0010)
+
+        print(str(ser.read(11)))
+
+        if i % 1000 == 0:
+            print(i)
+
+    ser.close()             # close port
+
+def motor_test(ser):
     while(1):
         for j in range(50):
             for i in range(50):
@@ -78,7 +203,7 @@ def main():
                 # p = create_motor_packet(j,i)
                 p = create_motor_packet(240,i)
                 ser.write(p)     # write a string
-                packet = ser.read(13)
+                packet = ser.read(12)
                 last_time = cur_time
                 count += 1
                 # if (count % 30 == 0):
@@ -88,6 +213,16 @@ def main():
                 hex_bytes = binascii.hexlify(packet)
                 print(hex_bytes) # b'0a160a04' which is twice as long as in_bytes
                 # sleep(.01) #sleep 30ms
+
+def main():
+    ser = serial.Serial('/dev/ttyACM0', 921600, timeout=1)  # open serial port
+    print(ser.name)         # check which port was really used
+    count = 0
+    last_print_time = 0
+
+    #blink_led(ser)
+    string_test(ser)
+    exit()
 
     # print(ser.read(30))
     print (ser.baudrate)
