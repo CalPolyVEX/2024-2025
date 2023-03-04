@@ -9,9 +9,9 @@
 
 // REON holoprojector macros
 #define REON_CHNL 3 // channel associated with controlling the REON holoprojectors
-#define REON_LOW 205    // value associated with REON_OFF
-#define REON_MID 227    // value associated with REON_ON
-#define REON_HIGH 249  // value associated with REON_WHITE
+#define REON_LOW 461    // value associated with REON_OFF
+#define REON_MID 995    // value associated with REON_ON
+#define REON_HIGH 1529  // value associated with REON_WHITE
 
 /*
  * USING
