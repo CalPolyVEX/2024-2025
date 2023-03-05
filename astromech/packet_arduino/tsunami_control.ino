@@ -2,45 +2,41 @@
 #include <Wire.h>
 
 // Send Command to Tsunami to Play a Sound
-void playTsunamiSound(byte index, int volume)
-{
+void playTsunamiSound(byte index, int volume) {
     // Set the Volume of the Track, if Volume is not greater than 10
-    if (volume < 11)
-    {
+    if (volume < 11) {
         unsigned short truncated_volume = (unsigned short)volume;
-        Wire.beginTransmission(TSUNAMI_ADDRESS); // Begin Tsunami Transmission
-        Wire.write(0x08); // Send Command to Set Volume of Sound
-        Wire.write(index); // Least Signifigant Byte for File Index   
-        Wire.write(0x00); // No need for most significant bit
-        Wire.write((uint8_t)(truncated_volume)); // Send Least Signifigant Bit for Volume
+        Wire.beginTransmission(TSUNAMI_ADDRESS);      // Begin Tsunami Transmission
+        Wire.write(0x08);                             // Send Command to Set Volume of Sound
+        Wire.write(index);                            // Least Signifigant Byte for File Index
+        Wire.write(0x00);                             // No need for most significant bit
+        Wire.write((uint8_t)(truncated_volume));      // Send Least Signifigant Bit for Volume
         Wire.write((uint8_t)(truncated_volume >> 8)); // Send Most Signifigant Bit for Volume
-        Wire.endTransmission(); // End Tsunami Transmission
+        Wire.endTransmission();                       // End Tsunami Transmission
     }
 
     // Play the Sound
     Wire.beginTransmission(TSUNAMI_ADDRESS); // Begin Tsunami Transmission
-    Wire.write(0x03); // Send Command to Play a Sound
-    Wire.write(0x01); // Send Control Code to Play a Polyphonic Sound
-    Wire.write(index); // Least Signifigant Byte for File Index
-    Wire.write(0x00); // No need for most signifigant byte
-    Wire.write(0x00); // Stereo Output
-    Wire.endTransmission(); // End Tsunami Transmission
-} 
+    Wire.write(0x03);                        // Send Command to Play a Sound
+    Wire.write(0x01);                        // Send Control Code to Play a Polyphonic Sound
+    Wire.write(index);                       // Least Signifigant Byte for File Index
+    Wire.write(0x00);                        // No need for most signifigant byte
+    Wire.write(0x00);                        // Stereo Output
+    Wire.endTransmission();                  // End Tsunami Transmission
+}
 
 // Send Command to Tsunami to Set Master Volume
-void setTsunamiMasterVolume(int volume)
-{
+void setTsunamiMasterVolume(int volume) {
     unsigned short truncated_volume = (unsigned short)volume;
 
     // Send Command Twice for Each Output
-    for (int i = 0; i < 2; i++)
-    {
-        Wire.beginTransmission(TSUNAMI_ADDRESS); // Begin Tsunami Transmission
-        Wire.write(0x05); // Send Command to Set Master Volume
-        Wire.write(i + 0x06); // Write To Left and Right Outputs
-        Wire.write((uint8_t)(truncated_volume)); // Send Least Signifigant Bit for Volume
+    for (int i = 0; i < 2; i++) {
+        Wire.beginTransmission(TSUNAMI_ADDRESS);      // Begin Tsunami Transmission
+        Wire.write(0x05);                             // Send Command to Set Master Volume
+        Wire.write(i + 0x06);                         // Write To Left and Right Outputs
+        Wire.write((uint8_t)(truncated_volume));      // Send Least Signifigant Bit for Volume
         Wire.write((uint8_t)(truncated_volume >> 8)); // Send Most Signifigant Bit for Volume
-        Wire.endTransmission(); // End Tsunami Transmission
+        Wire.endTransmission();                       // End Tsunami Transmission
     }
 }
 
@@ -48,8 +44,7 @@ void setTsunamiMasterVolume(int volume)
 // Sending Data to Amplifier Changes The Rest of the Register,
 // So We Need to Read it's Current State to Change What We Want
 // Without Changing The Rest of the Register
-byte readAmplifierRegister(byte reg)
-{
+byte readAmplifierRegister(byte reg) {
     // Send Message to Amplifier Asking to Load Specified Register for Reading
     Wire.beginTransmission(AMPLIFIER_ADDRESS);
     Wire.write(reg);
@@ -61,8 +56,7 @@ byte readAmplifierRegister(byte reg)
 }
 
 // Write a Modified Register to the Amplifier
-void writeAmplifierRegister(byte reg, byte data)
-{
+void writeAmplifierRegister(byte reg, byte data) {
     // Send Value to Amplifier
     Wire.beginTransmission(AMPLIFIER_ADDRESS);
     Wire.write(reg);
@@ -71,8 +65,7 @@ void writeAmplifierRegister(byte reg, byte data)
 }
 
 // Reset Values in the Amplifier
-void resetAmplifier()
-{
+void resetAmplifier() {
     // Set Compression Ratio to 0
     writeAmplifierRegister(7, readAmplifierRegister(7) & 252);
 
@@ -90,7 +83,4 @@ void resetAmplifier()
 }
 
 // Set the Gain of the Amplifier
-void setAmplifierGain(byte gain)
-{
-    writeAmplifierRegister(5, gain & 63);
-}
+void setAmplifierGain(byte gain) { writeAmplifierRegister(5, gain & 63); }

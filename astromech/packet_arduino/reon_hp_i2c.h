@@ -6,8 +6,8 @@
 #define HP_REAR_ADDR 27
 
 // REON I2C commands
-#define REON_OFF 1 // off
+#define REON_OFF 1   // off
 #define REON_WHITE 2 // on w/ solid white color
-#define REON_ON 3  // on w/ random colors
+#define REON_ON 3    // on w/ random colors
 
 void send_reon_command(int cmd, int hp_addr);
