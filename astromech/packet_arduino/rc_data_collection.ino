@@ -3,16 +3,20 @@
 // PC/RC toggle macros
 #define DOME_SERVO 4
 #define DOME_SERVO_NUM 0
-#define TOGGL_CHNL                                                                                 \
-    5 // channel associated with the switch that determines whether to get input from RC or PC
-#define TOGGL_VAL_RC 995  // value output by channel used for toggling to RC
-#define TOGGL_VAL_PC 1529 // value output by channel used for toggling to PC
+
+// channel for determining whether to get input from RC or PC
+#define TOGGL_CHNL 5
+#define TOGGL_VAL_RC 995 // toggle to RC
+#define TOGGL_VAL_PC 1529 // toggle to PC
 
 // REON holoprojector macros
-#define REON_CHNL 3   // channel associated with controlling the REON holoprojectors
-#define REON_LOW 205  // value associated with REON_OFF
-#define REON_MID 227  // value associated with REON_ON
-#define REON_HIGH 249 // value associated with REON_WHITE
+#define REON_CHNL 3 // channel for controlling the REON holoprojectors
+#define REON_LOW 461    // maps to REON_OFF
+#define REON_MID 995    // maps to REON_ON
+#define REON_HIGH 1529  // maps to REON_WHITE
+
+// logic engine macros
+#define LOGIC_CHNL 2    // channel for controlling the logic engine
 
 /*
  * USING
@@ -257,6 +261,7 @@ bool receiver_loop() {
     allows for switching between RC and PC */
 
     static bool pc_mode = false;
+    static uint16_t logic_eng_channel = -1;
 
     if (newData) {
 
@@ -282,11 +287,11 @@ bool receiver_loop() {
         decodeData();
 
         // print out the values of every channel into serial
-        for (int i = 0; i < 16; i++) {
-            SerialUSB.print(channel[i]);
-            SerialUSB.print(" ");
-        }
-        SerialUSB.println(" ");
+        // for (int i = 0; i < 16; i++) {
+        //     SerialUSB.print(channel[i]);
+        //     SerialUSB.print(" ");
+        // }
+        // SerialUSB.println(" ");
 
         if (channel[TOGGL_CHNL] == TOGGL_VAL_PC) {
             led_on(LED2);
@@ -308,9 +313,8 @@ bool receiver_loop() {
             set_servo_angle(DOME_SERVO_NUM, dome_servo_8bit);
 
             /* REON Holoprojector control */
-            uint8_t reon_val = channel[REON_CHNL]; // TODO do scaling
-            // SerialUSB.println(reon_val);
-            if (reon_val == REON_MID) // temporary conditional structure, replace with scaling
+            uint16_t reon_val = channel[REON_CHNL];
+            if(reon_val == REON_MID)
                 reon_val = REON_ON;
             else if (reon_val == REON_HIGH)
                 reon_val = REON_WHITE;
@@ -319,6 +323,13 @@ bool receiver_loop() {
             send_reon_command(reon_val, HP_FRNT_ADDR);
             send_reon_command(reon_val, HP_TOP_ADDR);
             send_reon_command(reon_val, HP_REAR_ADDR);
+
+            /* logic engine control */
+            if (logic_eng_channel != (channel[LOGIC_CHNL] * 9 / 2046)) {
+                // logic_eng_channel = channel[LOGIC_CHNL]  * 9 / 2046;
+                SerialUSB.println(logic_eng_channel);
+                sendLogicEngineCommand(logic_eng_channel);
+            } 
 
             // stay in receiver mode
             pc_mode = false;
