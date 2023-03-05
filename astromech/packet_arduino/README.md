@@ -33,6 +33,8 @@
 | REON top  | 0x1A |
 | REON rear  | 0x1B |
 | speaker amp | 0x58 |
+| TCA9534 (i/o expander - old) | 0x20 |
+| TCA9554 (i/o expander - new) | 0x38 |
 
 ---
 
