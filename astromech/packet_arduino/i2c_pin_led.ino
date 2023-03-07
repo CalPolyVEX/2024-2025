@@ -33,25 +33,25 @@ void setup_i2c() {
 // }
 
 void led_on(int num) {
-    // if (num == 4)
-    //   ioex.output(0, TCA9534::Level::L);
-    // else if (num == 3)
-    //   ioex.output(1, TCA9534::Level::L);
-    // else if (num == 2)
-    //   ioex.output(2, TCA9534::Level::L);
-    // else if (num == 1)
-    //   ioex.output(3, TCA9534::Level::L);
-    ioex.output(num, TCA9534::Level::L);
+    if (num == 4)
+        ioex.output(0, TCA9534::Level::L);
+    else if (num == 3)
+        ioex.output(1, TCA9534::Level::L);
+    else if (num == 2)
+        ioex.output(2, TCA9534::Level::L);
+    else if (num == 1)
+        ioex.output(3, TCA9534::Level::L);
+    // ioex.output(num, TCA9534::Level::L);
 }
 
 void led_off(int num) {
-    // if (num == 4)
-    //   ioex.output(0, TCA9534::Level::H);
-    // else if (num == 3)
-    //   ioex.output(1, TCA9534::Level::H);
-    // else if (num == 2)
-    //   ioex.output(2, TCA9534::Level::H);
-    // else if (num == 1)
-    //   ioex.output(3, TCA9534::Level::H);
-    ioex.output(num, TCA9534::Level::H);
+    if (num == 4)
+        ioex.output(0, TCA9534::Level::H);
+    else if (num == 3)
+        ioex.output(1, TCA9534::Level::H);
+    else if (num == 2)
+        ioex.output(2, TCA9534::Level::H);
+    else if (num == 1)
+        ioex.output(3, TCA9534::Level::H);
+    //    ioex.output(num, TCA9534::Level::H);
 }

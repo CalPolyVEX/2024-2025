@@ -35,6 +35,16 @@ void setup() {
     // Initialize the Amplifier for Sound
     resetAmplifier();
     setAmplifierGain(30);
+
+    // startup blink
+    for (int j = 0; j < 2; j++) {
+        for (int i = 1; i <= 4; i++) {
+            led_on(i);
+            delay(100);
+            led_off(i);
+        }
+    }
+    led_off(4);
 }
 
 void loop() {
