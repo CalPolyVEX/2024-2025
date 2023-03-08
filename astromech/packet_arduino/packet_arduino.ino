@@ -3,6 +3,12 @@
 hd44780_I2Cexp lcd(LCD_ADDRESS); // declare lcd object: auto locate & auto config expander chip
 
 void setup() {
+    delay(1000); // give the computer to detect the board before using serial
+
+    // Set up the serial USB
+    SerialUSB.begin(115200);
+    SerialUSB.setTimeout(0);
+    SerialUSB.println("---- Board reset ----");
 
     // Setup Wire
     Wire.begin();
@@ -27,10 +33,6 @@ void setup() {
 
     // Setup Logic Engine Controller
     setupLogicEngine();
-
-    // Set up the USB reading
-    SerialUSB.begin(115200);
-    SerialUSB.setTimeout(0);
 
     // Initialize the Amplifier for Sound
     resetAmplifier();
