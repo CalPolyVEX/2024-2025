@@ -36,6 +36,7 @@ volatile boolean newData = false;
 // temporary data storage var
 volatile uint16_t regCont;
 volatile boolean stayInPC = false;
+uint32_t last_rc_timeout_count = 0;  // holds the time (in milliseconds) of the last SBUS packet received
 
 /* LED setup*/
 
@@ -297,7 +298,7 @@ bool receiver_loop() {
             led_on(LED2);
             pc_mode = true;
         } else if (channel[TOGGL_CHNL] == TOGGL_VAL_RC) {
-            // indicate reciever mode
+            // indicate receiver mode
             led_on(LED1);
             led_off(LED2);
 
@@ -341,7 +342,20 @@ bool receiver_loop() {
         // reset the complete_packet buffer
         // complete_packet[0] = 0;
         channel[TOGGL_CHNL] = 0;
+
+        // reset the RC timeout timer
+        last_rc_timeout_count = millis();
+    } else {
+        // if no new data received from the RC receiver in the last 1000ms,
+        // then assume a RC receiver is unplugged and stop the motors
+        if (millis() > (last_rc_timeout_count + 1000)) {
+            led_on(1);
+            led_on(2);
+            change_motor_speed(0, 127);
+            change_motor_speed(1, 127);
+        }
     }
+
     return pc_mode;
 }
 
