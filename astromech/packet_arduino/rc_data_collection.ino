@@ -370,6 +370,8 @@ bool receiver_loop() {
         } else {
             lost_rc_frame_count = 0;  // reset the lost frame count
         }
+
+        //reverse_decode();
     } else { // if a valid frame received
         // if no new data received from the RC receiver in the last 1000ms,
         // then assume a RC receiver is unplugged and stop the motors
@@ -418,6 +420,41 @@ void decodeData() {
         (complete_packet[18] >> 7 | complete_packet[19] << 1 | complete_packet[20] << 9) & 0x7FF;
     channel[14] = (complete_packet[20] >> 2 | complete_packet[21] << 6) & 0x7FF;
     channel[15] = (complete_packet[21] >> 5 | complete_packet[22] << 3) & 0x7FF;
+}
+
+void reverse_decode() {
+    // this is a function to test decoding of the SBUS packets in reverse byte order
+    uint8_t reverse_packet[25];
+    uint16_t reverse_channel[16];
+
+    for (int i=0; i<25; i++) {
+        complete_packet[i] = 100+i;  // fill in with dummy data
+        reverse_packet[i] = complete_packet[24-i];  // reverse the byte order
+    }
+
+    decodeData(); // decode using the standard approach
+
+    uint32_t* temp_ptr;
+
+    // handle original bytes 1-4
+    temp_ptr = (uint32_t*) &reverse_packet[20];
+    reverse_channel[0] = __builtin_bswap32(*temp_ptr) & 0x7ff;
+    reverse_channel[1] = (__builtin_bswap32(*temp_ptr) >> 11) & 0x7ff;
+
+    // handle original bytes 3-6
+    temp_ptr = (uint32_t*) &reverse_packet[18];
+    reverse_channel[2] = (__builtin_bswap32(*temp_ptr) >> 6) & 0x7ff;
+    reverse_channel[3] = (__builtin_bswap32(*temp_ptr) >> 17) & 0x7ff;
+
+    // print out the results
+    lcd.setCursor(0,0);
+    lcd.print(channel[3]);
+    lcd.print(" ");
+    lcd.print(reverse_channel[3]);
+
+    lcd.print(channel[1]);
+    lcd.print(" ");
+    lcd.print(reverse_channel[1]);
 }
 
 void SERCOM2_Handler() {
