@@ -1,6 +1,7 @@
 #include "packet_arduino.h"
 
 hd44780_I2Cexp lcd(LCD_ADDRESS); // declare lcd object: auto locate & auto config expander chip
+bool lcd_available = false;
 
 void setup() {
     delay(1000); // give the computer to detect the board before using serial
@@ -21,7 +22,14 @@ void setup() {
     status = lcd.begin(LCD_COLS, LCD_ROWS);
     // non zero status means it was unsuccesful
     if (status) {
+        lcd_available = false;
         SerialUSB.println("LCD init failed");
+    } else {
+        lcd_available = true;
+        lcd.clear();
+        delay(1000);
+        lcd.setCursor(0, 0);
+        lcd.print("Astromech");
     }
 #endif
 

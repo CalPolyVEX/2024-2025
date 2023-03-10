@@ -358,10 +358,16 @@ bool receiver_loop() {
                 change_motor_speed(0, 0);
                 change_motor_speed(1, 0);
             }
+
+            if (lcd_available) {
+                lcd.setCursor(0,1);
+                lcd.print("lost RC frames: ");
+                lcd.print(lost_rc_frame_count);
+            }
         } else {
             lost_rc_frame_count = 0;  // reset the lost frame count
         }
-    } else {
+    } else { // if a valid frame received
         // if no new data received from the RC receiver in the last 1000ms,
         // then assume a RC receiver is unplugged and stop the motors
         if (millis() > (last_rc_timeout_count + 1000)) {
@@ -371,6 +377,13 @@ bool receiver_loop() {
             led_on(4);
             change_motor_speed(0, 0);
             change_motor_speed(1, 0);
+
+            if (lcd_available) {
+                lcd.clear();
+                lcd.setCursor(0,1);
+                lcd.print("RC unplugged");
+                delay(100);
+            }
         }
     }
 
