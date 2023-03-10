@@ -1,4 +1,5 @@
 #include "pc_decoder.h"
+#include "pc_decoder_info.h"
 
 // #define DEBUG
 
@@ -135,8 +136,9 @@ void eval_input(uint8_t *data, int size, bool pc_mode) {
         sendLogicEngineCommand(data[3], data[4], data[5], data[6]);
         break;
 
-    // Send Command to Play a Sound Through the Tsunami (Value 1 = Sound Index, Value 2 = Volume (Signed))
-    case TSUN_SOUND_CMD: 
+    // Send Command to Play a Sound Through the Tsunami (Value 1 = Sound Index, Value 2 = Volume
+    // (Signed))
+    case TSUN_SOUND_CMD:
         playTsunamiSound(data[3], data[4]);
         break;
 

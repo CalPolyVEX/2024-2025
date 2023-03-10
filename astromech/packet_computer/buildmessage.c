@@ -1,4 +1,5 @@
 #include "buildmessage.h"
+#include "../packet_arduino/pc_decoder_info.h"
 /*
 make a global array for everything
 make command 5 combining 3 and 4: done, computer side only, not tested
@@ -27,17 +28,8 @@ packet[5] -> checksum
 // all servos are off at 131
 
 int main(int argc, char *argv[]) {
-    int fd;
-    char buff[1000];
+    int fd = STDOUT_FILENO;
 
-    // fd = open(DEV_F_NAME, O_WRONLY);
-    fd = STDOUT_FILENO;
-    // int fd_read = open("command", O_RDONLY);
-
-    if (fd < 0) {
-        perror(DEV_F_NAME);
-        exit(EXIT_FAILURE);
-    }
     // int bytes_read = read(fd_read, buff, 1000);
     // printf("bytes read: %d\n", bytes_read);
 
@@ -67,7 +59,7 @@ int main(int argc, char *argv[]) {
 
     /* ############## reon test #################*/
     for (int i = 0; i < 1000; i++) {
-        if(i%100)
+        if (i % 100)
             send_set_reon(27, 2, fd); // reon rear off
         else
             send_set_reon(27, 2, fd); // reon rear white
@@ -98,7 +90,7 @@ void send_set_servo(uint8_t servo_num, uint8_t position, int fd) {
 }
 
 void send_set_lcd(uint8_t col, uint8_t row, int fd) {
-    uint8_t *packet = set_lcd(col, row);
+    uint8_t *packet = set_cursor_lcd(col, row);
     write(fd, packet, MIN_PACKET_SIZE + SET_LCD_PAYLOAD);
 }
 
@@ -122,23 +114,26 @@ void send_clear_lcd(int fd) {
 }
 
 void send_led_preset_cmd(uint8_t preset_idx, int fd) {
-    uint8_t *packet = led_preset_cmd(preset_idx);
+    uint8_t *packet = logic_preset_cmd(preset_idx);
     write(fd, packet, MIN_PACKET_SIZE + LED_PRESET_PAYLOAD);
 }
 
-void send_led_raw_cmd(uint8_t command_major, uint8_t command_minor, uint8_t color, uint8_t speed, int fd) {
-    uint8_t *packet = led_preset_cmd(uint8_t command_major, uint8_t command_minor, uint8_t color, uint8_t speed);
+void send_led_raw_cmd(uint8_t command_major, uint8_t command_minor, uint8_t color, uint8_t speed,
+                      int fd) {
+    uint8_t *packet = logic_raw_cmd(command_major, command_minor, color, speed);
     write(fd, packet, MIN_PACKET_SIZE + LED_RAW_PAYLOAD);
 }
 
 void send_tsun_sound_cmd(uint8_t preset_idx, int fd) {
-    uint8_t *packet = led_preset_cmd(preset_idx);
-    write(fd, packet, MIN_PACKET_SIZE + LED_PRESET_PAYLOAD);
+    /* TODO */
+    // uint8_t *packet = logic_preset_cmd(preset_idx);
+    // write(fd, packet, MIN_PACKET_SIZE + LED_PRESET_PAYLOAD);
 }
 
 void send_tsun_amp_cmd(uint8_t preset_idx, int fd) {
-    uint8_t *packet = led_preset_cmd(preset_idx);
-    write(fd, packet, MIN_PACKET_SIZE + LED_PRESET_PAYLOAD);
+    /* TODO */
+    // uint8_t *packet = logic_preset_cmd(preset_idx);
+    // write(fd, packet, MIN_PACKET_SIZE + LED_PRESET_PAYLOAD);
 }
 
 void send_set_reon(uint8_t reon_addr, uint8_t reon_state, int fd) {
@@ -157,10 +152,10 @@ void send_set_reon(uint8_t reon_addr, uint8_t reon_state, int fd) {
 uint8_t *set_motor(int direction, uint8_t speed) {
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)(MOTOR_CTRL_PAYLOAD);
-    if (direction == MOTOR_COMMAND_LEFT) {
-        packet[2] = MOTOR_COMMAND_LEFT;
+    if (direction == LEFT_MOTOR_CMD) {
+        packet[2] = LEFT_MOTOR_CMD;
     } else {
-        packet[2] = MOTOR_COMMAND_RIGHT;
+        packet[2] = RIGHT_MOTOR_CMD;
     }
     packet[3] = speed;
     calc_crc(3 + MOTOR_CTRL_PAYLOAD);
@@ -179,10 +174,10 @@ uint8_t *set_servo(uint8_t servo_num, uint8_t position) {
     return packet;
 }
 
-uint8_t *set_lcd(uint8_t col, uint8_t row) {
+uint8_t *set_cursor_lcd(uint8_t col, uint8_t row) {
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)(SET_LCD_PAYLOAD);
-    packet[2] = SET_CURSOR_CMD;
+    packet[2] = LCD_CURSOR_CMD;
     /* 2 LSB for row and 6 MSB are for col */
     packet[3] = 0x00;
     packet[3] = packet[3] | row;
@@ -204,7 +199,7 @@ uint8_t *set_lcd(uint8_t col, uint8_t row) {
 uint8_t *print_string(unsigned num_chars, uint8_t *string) {
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)(num_chars);
-    packet[2] = PRINT_STR_CMD;
+    packet[2] = LCD_PRINT_STR_CMD;
     memcpy(packet + 3, string, num_chars);
     calc_crc(3 + num_chars);
 
@@ -215,7 +210,7 @@ uint8_t *print_string_at(uint8_t col, uint8_t row, unsigned num_chars, uint8_t *
 
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)(num_chars + SET_LCD_PAYLOAD);
-    packet[2] = LCD_PRINT_STR;
+    packet[2] = LCD_CURSOR_PRINT_CMD;
     packet[3] = 0x00;
     packet[3] = packet[3] | row;
     packet[3] = packet[3] | (col << 2);
@@ -228,36 +223,24 @@ uint8_t *print_string_at(uint8_t col, uint8_t row, unsigned num_chars, uint8_t *
 uint8_t *clear_lcd() {
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)0;
-    packet[2] = (uint8_t)LCD_CLR_CMD;
+    packet[2] = (uint8_t)LCD_CLEAR_CMD;
     calc_crc(3);
     return packet;
 }
-// uint8_t *set_lcd(uint8_t col, uint8_t row) {
-//     packet[0] = (uint8_t)0xFF;
-//     packet[1] = (uint8_t)(SET_LCD_PAYLOAD);
-//     packet[2] = SET_CURSOR_CMD;
-//     /* 2 LSB for row and 6 MSB are for col */
-//     packet[3] = 0x00;
-//     packet[3] = packet[3] | row;
-//     packet[3] = packet[3] | (col << 2);
-//     calc_crc(3 + SET_LCD_PAYLOAD);
 
-//     return packet;
-// }
-
-uint8_t *led_preset_cmd(uint8_t preset_index) {
+uint8_t *logic_preset_cmd(uint8_t preset_index) {
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)LED_PRESET_PAYLOAD;
-    packet[2] = (uint8_t)LED_PRESET_CMD;
+    packet[2] = (uint8_t)LOGIC_PRESET_CMD;
     packet[3] = preset_index;
     calc_crc(3 + LED_PRESET_PAYLOAD);
     return packet;
 }
 
-uint8_t *led_raw_cmd(uint8_t command_major, uint8_t command_minor, uint8_t color, uint8_t speed) {
+uint8_t *logic_raw_cmd(uint8_t command_major, uint8_t command_minor, uint8_t color, uint8_t speed) {
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)LED_RAW_PAYLOAD;
-    packet[2] = (uint8_t)LED_RAW_CMD;
+    packet[2] = (uint8_t)LOGIC_RAW_CMD;
     packet[3] = command_major;
     packet[4] = command_minor;
     packet[5] = color;
@@ -276,8 +259,15 @@ uint8_t *set_reon(uint8_t reon_addr, uint8_t reon_state) {
     return packet;
 }
 
+void insert_header(uint8_t payload_len, uint8_t cmd) {
+    packet[0] = 0xFF;
+    packet[1] = payload_len;
+    packet[2] = cmd;
+}
+
 uint8_t *calc_crc(int max_ind) {
-    /* calculate crc16 (source: ue4/herbie_nn/ros/motor_control/src/pub_odometry.cpp)*/
+    /* calculate crc16 (source:
+     * ue4/herbie_nn/ros/motor_control/src/pub_odometry.cpp)*/
     unsigned short crc = 0;
     int byte;
     const unsigned short crctable[256] = {
