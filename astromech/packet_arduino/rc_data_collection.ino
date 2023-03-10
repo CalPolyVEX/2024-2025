@@ -36,7 +36,8 @@ volatile boolean newData = false;
 // temporary data storage var
 volatile uint16_t regCont;
 volatile boolean stayInPC = false;
-uint32_t last_rc_timeout_count = 0;  // holds the time (in milliseconds) of the last SBUS packet received
+uint32_t last_rc_timeout_count = 0; // holds the time (in milliseconds) of the last SBUS packet received
+uint32_t lost_rc_frame_count = 0;   // the number of lost frames from the transmitter
 
 /* LED setup*/
 
@@ -345,14 +346,31 @@ bool receiver_loop() {
 
         // reset the RC timeout timer
         last_rc_timeout_count = millis();
+
+        if ((complete_packet[23] & 0x04) != 0) { // if the lost frame bit is set
+            lost_rc_frame_count++;
+
+            if (lost_rc_frame_count > 100) {
+                led_on(1);
+                led_on(2);
+                led_on(3);
+                led_on(4);
+                change_motor_speed(0, 0);
+                change_motor_speed(1, 0);
+            }
+        } else {
+            lost_rc_frame_count = 0;  // reset the lost frame count
+        }
     } else {
         // if no new data received from the RC receiver in the last 1000ms,
         // then assume a RC receiver is unplugged and stop the motors
         if (millis() > (last_rc_timeout_count + 1000)) {
             led_on(1);
             led_on(2);
-            change_motor_speed(0, 127);
-            change_motor_speed(1, 127);
+            led_on(3);
+            led_on(4);
+            change_motor_speed(0, 0);
+            change_motor_speed(1, 0);
         }
     }
 
