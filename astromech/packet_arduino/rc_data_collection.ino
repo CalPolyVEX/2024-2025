@@ -43,7 +43,7 @@ uint32_t lost_rc_frame_count = 0;   // the number of lost frames from the transm
 
 // Queue class
 // Implemented using a circular array
-#define QUEUE_BUFFER_SIZE 100
+#define QUEUE_BUFFER_SIZE 300
 class Queue {
 public:
     // Initialize Queue Object
@@ -350,13 +350,16 @@ bool receiver_loop() {
         if ((complete_packet[23] & 0x04) != 0) { // if the lost frame bit is set
             lost_rc_frame_count++;
 
-            if (lost_rc_frame_count > 100) {
+            // if the frames are lost for about 1 second (100 frames), then
+            // disable the motors
+            if (lost_rc_frame_count > 100) { 
                 led_on(1);
                 led_on(2);
                 led_on(3);
                 led_on(4);
                 change_motor_speed(0, 0);
                 change_motor_speed(1, 0);
+                queue.reset();
             }
 
             if (lcd_available) {
@@ -377,6 +380,7 @@ bool receiver_loop() {
             led_on(4);
             change_motor_speed(0, 0);
             change_motor_speed(1, 0);
+            queue.reset();
 
             if (lcd_available) {
                 lcd.clear();
