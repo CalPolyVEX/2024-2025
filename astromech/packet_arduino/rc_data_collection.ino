@@ -38,12 +38,13 @@ volatile uint16_t regCont;
 volatile boolean stayInPC = false;
 uint32_t last_rc_timeout_count =
     0; // holds the time (in milliseconds) of the last SBUS packet received
+uint32_t lost_rc_frame_count = 0; // the number of lost frames from the transmitter
 
 /* LED setup*/
 
 // Queue class
 // Implemented using a circular array
-#define QUEUE_BUFFER_SIZE 100
+#define QUEUE_BUFFER_SIZE 300
 class Queue {
 public:
     // Initialize Queue Object
@@ -263,7 +264,7 @@ bool receiver_loop() {
     allows for switching between RC and PC */
 
     static bool pc_mode = false;
-    static uint16_t logic_eng_channel = -1;
+    static uint16_t logic_eng_idx = -1;
 
     if (newData) {
 
@@ -286,7 +287,8 @@ bool receiver_loop() {
         // }
         // SerialUSB.println(" ");
         // Decode Data into 11 bit channels
-        decodeData();
+        // decodeData();
+        reverse_decode();
 
         // print out the values of every channel into serial
         // for (int i = 0; i < 16; i++) {
@@ -327,10 +329,10 @@ bool receiver_loop() {
             send_reon_command(reon_val, HP_REAR_ADDR);
 
             /* logic engine control */
-            if (logic_eng_channel != (channel[LOGIC_CHNL] * 9 / 2046)) {
-                // logic_eng_channel = channel[LOGIC_CHNL]  * 9 / 2046;
-                SerialUSB.println(logic_eng_channel);
-                sendLogicEngineCommand(logic_eng_channel);
+            uint16_t temp_logic_idx;
+            if (logic_eng_idx != (temp_logic_idx = channel[LOGIC_CHNL] * 9 / 2046)) {
+                logic_eng_idx = temp_logic_idx;
+                sendLogicEngineCommand(logic_eng_idx);
             }
 
             // stay in receiver mode
@@ -346,14 +348,51 @@ bool receiver_loop() {
 
         // reset the RC timeout timer
         last_rc_timeout_count = millis();
-    } else {
+
+        if ((complete_packet[23] & 0x04) != 0) { // if the lost frame bit is set
+            lost_rc_frame_count++;
+
+            // if the frames are lost for about 1 second (100 frames), then
+            // disable the motors
+            if (lost_rc_frame_count > 100) {
+                led_off(LED1);
+                led_off(LED2);
+                led_on(LED3);
+                led_on(LED4);
+                change_motor_speed(0, 127);
+                change_motor_speed(1, 127);
+                queue.reset();
+            }
+
+            lcd.setCursor(0, 1);
+            lcd.print("lost RC frames: ");
+            lcd.print(lost_rc_frame_count);
+        } else {
+            led_off(LED3);
+            led_off(LED4);
+            lost_rc_frame_count = 0; // reset the lost frame count
+        }
+
+        // reverse_decode();
+    } else { // if a valid frame received
         // if no new data received from the RC receiver in the last 1000ms,
         // then assume a RC receiver is unplugged and stop the motors
         if (millis() > (last_rc_timeout_count + 1000)) {
-            led_on(1);
-            led_on(2);
+            led_off(LED1);
+            led_off(LED2);
+            led_on(LED3);
+            led_on(LED4);
             change_motor_speed(0, 127);
             change_motor_speed(1, 127);
+            queue.reset();
+
+            lcd.clear();
+            lcd.setCursor(0, 1);
+            lcd.print("RC unplugged");
+            delay(100);
+        } else {
+            led_off(LED3);
+            led_off(LED4);
         }
     }
 
@@ -384,6 +423,80 @@ void decodeData() {
         (complete_packet[18] >> 7 | complete_packet[19] << 1 | complete_packet[20] << 9) & 0x7FF;
     channel[14] = (complete_packet[20] >> 2 | complete_packet[21] << 6) & 0x7FF;
     channel[15] = (complete_packet[21] >> 5 | complete_packet[22] << 3) & 0x7FF;
+}
+
+void reverse_decode() {
+    // this is a function to test decoding of the SBUS packets in reverse byte order
+    uint16_t reverse_channel[16];
+
+    // for (int i=0; i<25; i++) {
+    //     complete_packet[i] = 100+i;  // fill in with dummy data
+    // }
+
+    // decodeData(); // decode using the standard approach
+
+    uint32_t *temp_ptr;
+
+    // The ARM architecture automatically reverses the byte order when loading a
+    // uint32_t.  This means we do not have to reverse the byte order manually as
+    // long as a pointer to a uint32_t is used to reference the data.
+
+    // handle original bytes 1-4
+    temp_ptr = (uint32_t *)&complete_packet[1];
+    reverse_channel[0] = (*temp_ptr) & 0x7ff;
+    reverse_channel[1] = (*temp_ptr >> 11) & 0x7ff;
+
+    // handle original bytes 3-6
+    temp_ptr = (uint32_t *)&complete_packet[3];
+    reverse_channel[2] = (*temp_ptr >> 6) & 0x7ff;
+    reverse_channel[3] = (*temp_ptr >> 17) & 0x7ff;
+
+    // handle original bytes 6-9
+    temp_ptr = (uint32_t *)&complete_packet[6];
+    reverse_channel[4] = (*temp_ptr >> 4) & 0x7ff;
+
+    // handle original bytes 7-10
+    temp_ptr = (uint32_t *)&complete_packet[7];
+    reverse_channel[5] = (*temp_ptr >> 7) & 0x7ff;
+    reverse_channel[6] = (*temp_ptr >> 18) & 0x7ff;
+
+    // handle original bytes 10-13
+    temp_ptr = (uint32_t *)&complete_packet[10];
+    reverse_channel[7] = (*temp_ptr >> 5) & 0x7ff;
+    reverse_channel[8] = (*temp_ptr >> 16) & 0x7ff;
+
+    // handle original bytes 13-16
+    temp_ptr = (uint32_t *)&complete_packet[13];
+    reverse_channel[9] = (*temp_ptr >> 3) & 0x7ff;
+    reverse_channel[10] = (*temp_ptr >> 14) & 0x7ff;
+
+    // handle original bytes 16-19
+    temp_ptr = (uint32_t *)&complete_packet[16];
+    reverse_channel[11] = (*temp_ptr >> 1) & 0x7ff;
+    reverse_channel[12] = (*temp_ptr >> 12) & 0x7ff;
+
+    // handle original bytes 18-21
+    temp_ptr = (uint32_t *)&complete_packet[18];
+    reverse_channel[13] = (*temp_ptr >> 7) & 0x7ff;
+    reverse_channel[14] = (*temp_ptr >> 18) & 0x7ff;
+
+    // handle original bytes 21-22
+    temp_ptr = (uint32_t *)&complete_packet[21];
+    reverse_channel[15] = (*temp_ptr >> 5) & 0x7ff;
+
+    // print out the results to compare the optimized vs. original version
+    // lcd.setCursor(0,0);
+    // lcd.print(channel[15]);
+    // lcd.print(" ");
+    // lcd.print(reverse_channel[15]);
+    // lcd.print(" ");
+
+    // lcd.print(channel[14]);
+    // lcd.print(" ");
+    // lcd.print(reverse_channel[14]);
+
+    // copy channel data to global buffer
+    memcpy(channel, reverse_channel, 16 * sizeof(uint16_t));
 }
 
 void SERCOM2_Handler() {

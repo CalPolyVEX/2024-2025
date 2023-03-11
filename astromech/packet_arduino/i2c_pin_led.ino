@@ -9,17 +9,17 @@ void setup_i2c() {
     ioex.setDeviceAddress(IOEX_ADDR); // A0 = A1 = A2 = 0
     ioex.config(TCA9534::Config::IN); // set all pins to input
 
-    ioex.config(LED1, TCA9534::Config::OUT); // change port P1 to output
-    ioex.output(LED1, TCA9534::Level::H);    // turn off LED1
+    ioex.config(3, TCA9534::Config::OUT); // change port P1 to output
+    ioex.output(3, TCA9534::Level::H);    // turn off LED1
 
-    ioex.config(LED2, TCA9534::Config::OUT); // change port P1 to output
-    ioex.output(LED2, TCA9534::Level::H);    // turn off LED2
+    ioex.config(2, TCA9534::Config::OUT); // change port P1 to output
+    ioex.output(2, TCA9534::Level::H);    // turn off LED2
 
-    ioex.config(LED3, TCA9534::Config::OUT); // change port P1 to output
-    ioex.output(LED3, TCA9534::Level::H);    // turn off LED3
+    ioex.config(1, TCA9534::Config::OUT); // change port P1 to output
+    ioex.output(1, TCA9534::Level::H);    // turn off LED3
 
-    ioex.config(LED4, TCA9534::Config::OUT); // change port P1 to output
-    ioex.output(LED4, TCA9534::Level::H);    // turn off LED4
+    ioex.config(0, TCA9534::Config::OUT); // change port P1 to output
+    ioex.output(0, TCA9534::Level::H);    // turn off LED4
 
     //   ioex.config(7, TCA9534::Config::OUT); // set backlight control pin
 }

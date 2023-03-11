@@ -21,12 +21,12 @@ void setup() {
     status = lcd.begin(LCD_COLS, LCD_ROWS);
     // non zero status means it was unsuccesful
     if (status) {
-        SerialUSB.println("LCD init failed");
+        lcd.clear();
+        delay(1000);
+        lcd.setCursor(0, 0);
+        lcd.print("Astromech");
     }
 #endif
-
-    // init I2C for REON holoprojectors
-    Wire.begin();
 
     // init for onboard LEDs
     setup_i2c();
@@ -46,7 +46,6 @@ void setup() {
             led_off(i);
         }
     }
-    led_off(4);
 }
 
 void loop() {
