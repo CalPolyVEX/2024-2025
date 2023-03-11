@@ -80,63 +80,63 @@ int main(int argc, char *argv[]) {
 }
 
 void send_set_motor(int direction, uint8_t speed, int fd) {
-    uint8_t *packet = set_motor(direction, speed);
-    write(fd, packet, MIN_PACKET_SIZE + MOTOR_CTRL_PAYLOAD);
+    uint8_t packet_len = set_motor(direction, speed);
+    write(fd, packet, packet_len);
 }
 
 void send_set_servo(uint8_t servo_num, uint8_t position, int fd) {
-    uint8_t *packet = set_servo(servo_num, position);
-    write(fd, packet, MIN_PACKET_SIZE + SERVO_CTRL_PAYLOAD);
+    uint8_t packet_len = set_servo(servo_num, position);
+    write(fd, packet, packet_len);
 }
 
 void send_set_lcd(uint8_t col, uint8_t row, int fd) {
-    uint8_t *packet = set_cursor_lcd(col, row);
-    write(fd, packet, MIN_PACKET_SIZE + SET_LCD_PAYLOAD);
+    uint8_t packet_len = set_cursor_lcd(col, row);
+    write(fd, packet, packet_len);
 }
 
 void send_print_string(uint8_t *s, int fd) {
     unsigned len = strlen((char *)s);
-    uint8_t *packet = print_string(len, s);
+    uint8_t packet_len = print_string(len, s);
     /* 2: for null byte and numuint8_ts */
-    write(fd, packet, MIN_PACKET_SIZE + len);
+    write(fd, packet, packet_len);
 }
 
 void send_print_string_at(uint8_t col, uint8_t row, uint8_t *s, int fd) {
     unsigned len = strlen((char *)s);
-    uint8_t *packet = print_string_at(col, row, len, s);
+    uint8_t packet_len = print_string_at(col, row, len, s);
     /* 2: for null byte and numuint8_ts */
-    write(fd, packet, MIN_PACKET_SIZE + len + SET_LCD_PAYLOAD);
+    write(fd, packet, packet_len);
 }
 
 void send_clear_lcd(int fd) {
-    uint8_t *packet = clear_lcd();
-    write(fd, packet, MIN_PACKET_SIZE);
+    uint8_t packet_len = clear_lcd();
+    write(fd, packet, packet_len);
 }
 
 void send_led_preset_cmd(uint8_t preset_idx, int fd) {
-    uint8_t *packet = logic_preset_cmd(preset_idx);
-    write(fd, packet, MIN_PACKET_SIZE + LOGIC_PRESET_PAYLOAD);
+    uint8_t packet_len = logic_preset_cmd(preset_idx);
+    write(fd, packet, packet_len);
 }
 
 void send_led_raw_cmd(uint8_t command_major, uint8_t command_minor, uint8_t color, uint8_t speed,
                       int fd) {
-    uint8_t *packet = logic_raw_cmd(command_major, command_minor, color, speed);
-    write(fd, packet, MIN_PACKET_SIZE + LOGIC_RAW_PAYLOAD);
+    uint8_t packet_len = logic_raw_cmd(command_major, command_minor, color, speed);
+    write(fd, packet, packet_len);
 }
 
 void send_tsun_sound_cmd(uint8_t preset_idx, uint8_t volume, int fd) {
-    uint8_t *packet = tsunami_sound_cmd(preset_idx, volume);
-    write(fd, packet, MIN_PACKET_SIZE + TSUN_SOUND_PAYLOAD);
+    uint8_t packet_len = tsunami_sound_cmd(preset_idx, volume);
+    write(fd, packet, packet_len);
 }
 
 void send_tsun_amp_cmd(uint8_t gain, int fd) {
-    uint8_t *packet = tsunami_amp_cmd(gain);
-    write(fd, packet, MIN_PACKET_SIZE + TSUN_AMP_PAYLOAD);
+    uint8_t packet_len = tsunami_amp_cmd(gain);
+    write(fd, packet, packet_len);
 }
 
 void send_set_reon(uint8_t reon_addr, uint8_t reon_state, int fd) {
-    uint8_t *packet = set_reon(reon_addr, reon_state);
-    write(fd, packet, MIN_PACKET_SIZE + REON_PAYLOAD);
+    uint8_t packet_len = set_reon(reon_addr, reon_state);
+    write(fd, packet, packet_len);
 }
 
 /**
@@ -147,7 +147,7 @@ void send_set_reon(uint8_t reon_addr, uint8_t reon_state, int fd) {
  * @param speed
  * @return uint8_t*
  */
-uint8_t *set_motor(int direction, uint8_t speed) {
+uint8_t set_motor(int direction, uint8_t speed) {
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)(MOTOR_CTRL_PAYLOAD);
     if (direction == LEFT_MOTOR_CMD) {
@@ -158,10 +158,10 @@ uint8_t *set_motor(int direction, uint8_t speed) {
     packet[3] = speed;
     calc_crc(3 + MOTOR_CTRL_PAYLOAD);
 
-    return packet;
+    return MIN_PACKET_SIZE + MOTOR_CTRL_PAYLOAD;
 }
 
-uint8_t *set_servo(uint8_t servo_num, uint8_t position) {
+uint8_t set_servo(uint8_t servo_num, uint8_t position) {
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)(SERVO_CTRL_PAYLOAD);
     packet[2] = SERVO_CMD;
@@ -169,10 +169,10 @@ uint8_t *set_servo(uint8_t servo_num, uint8_t position) {
     packet[4] = position;
     calc_crc(3 + SERVO_CTRL_PAYLOAD);
 
-    return packet;
+    return MIN_PACKET_SIZE + SERVO_CTRL_PAYLOAD;
 }
 
-uint8_t *set_cursor_lcd(uint8_t col, uint8_t row) {
+uint8_t set_cursor_lcd(uint8_t col, uint8_t row) {
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)(SET_LCD_PAYLOAD);
     packet[2] = LCD_CURSOR_CMD;
@@ -182,7 +182,7 @@ uint8_t *set_cursor_lcd(uint8_t col, uint8_t row) {
     packet[3] = packet[3] | (col << 2);
     calc_crc(3 + SET_LCD_PAYLOAD);
 
-    return packet;
+    return MIN_PACKET_SIZE + SET_LCD_PAYLOAD;
 }
 
 /**
@@ -194,18 +194,17 @@ uint8_t *set_cursor_lcd(uint8_t col, uint8_t row) {
  * @param string
  * @return uint8_t*
  */
-uint8_t *print_string(unsigned num_chars, uint8_t *string) {
+uint8_t print_string(unsigned num_chars, uint8_t *string) {
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)(num_chars);
     packet[2] = LCD_PRINT_STR_CMD;
     memcpy(packet + 3, string, num_chars);
     calc_crc(3 + num_chars);
 
-    return packet;
+    return MIN_PACKET_SIZE + num_chars;
 }
 
-uint8_t *print_string_at(uint8_t col, uint8_t row, unsigned num_chars, uint8_t *string) {
-
+uint8_t print_string_at(uint8_t col, uint8_t row, unsigned num_chars, uint8_t *string) {
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)(num_chars + SET_LCD_PAYLOAD);
     packet[2] = LCD_CURSOR_PRINT_CMD;
@@ -215,27 +214,27 @@ uint8_t *print_string_at(uint8_t col, uint8_t row, unsigned num_chars, uint8_t *
     memcpy(packet + 4, string, num_chars);
     calc_crc(3 + SET_LCD_PAYLOAD + num_chars);
 
-    return packet;
+    return MIN_PACKET_SIZE + SET_LCD_PAYLOAD + num_chars;
 }
 
-uint8_t *clear_lcd() {
+uint8_t clear_lcd() {
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)0;
     packet[2] = (uint8_t)LCD_CLEAR_CMD;
     calc_crc(3);
-    return packet;
+    return MIN_PACKET_SIZE;
 }
 
-uint8_t *logic_preset_cmd(uint8_t preset_index) {
+uint8_t logic_preset_cmd(uint8_t preset_index) {
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)LOGIC_PRESET_PAYLOAD;
     packet[2] = (uint8_t)LOGIC_PRESET_CMD;
     packet[3] = preset_index;
     calc_crc(3 + LOGIC_PRESET_PAYLOAD);
-    return packet;
+    return MIN_PACKET_SIZE + LOGIC_PRESET_PAYLOAD;
 }
 
-uint8_t *logic_raw_cmd(uint8_t command_major, uint8_t command_minor, uint8_t color, uint8_t speed) {
+uint8_t logic_raw_cmd(uint8_t command_major, uint8_t command_minor, uint8_t color, uint8_t speed) {
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)LOGIC_RAW_PAYLOAD;
     packet[2] = (uint8_t)LOGIC_RAW_CMD;
@@ -244,32 +243,32 @@ uint8_t *logic_raw_cmd(uint8_t command_major, uint8_t command_minor, uint8_t col
     packet[5] = color;
     packet[6] = speed;
     calc_crc(3 + LOGIC_RAW_PAYLOAD);
-    return packet;
+    return MIN_PACKET_SIZE + LOGIC_PRESET_PAYLOAD;
 }
 
-uint8_t *tsunami_sound_cmd(uint8_t preset_index, uint8_t volume) {
+uint8_t tsunami_sound_cmd(uint8_t preset_index, uint8_t volume) {
     insert_header(TSUN_SOUND_PAYLOAD, TSUN_SOUND_CMD);
     packet[3] = preset_index;
     packet[4] = volume;
     calc_crc(3 + TSUN_SOUND_PAYLOAD);
-    return packet;
+    return MIN_PACKET_SIZE + TSUN_SOUND_PAYLOAD;
 }
 
-uint8_t *tsunami_amp_cmd(uint8_t gain) {
+uint8_t tsunami_amp_cmd(uint8_t gain) {
     insert_header(TSUN_AMP_PAYLOAD, TSUN_AMP_CMD);
     packet[3] = gain;
     calc_crc(3 + TSUN_AMP_PAYLOAD);
-    return packet;
+    return MIN_PACKET_SIZE + TSUN_AMP_PAYLOAD;
 }
 
-uint8_t *set_reon(uint8_t reon_addr, uint8_t reon_state) {
+uint8_t set_reon(uint8_t reon_addr, uint8_t reon_state) {
     packet[0] = (uint8_t)0xFF;
     packet[1] = (uint8_t)REON_PAYLOAD;
     packet[2] = (uint8_t)REON_CMD;
     packet[3] = reon_addr;
     packet[4] = reon_state;
     calc_crc(3 + REON_PAYLOAD);
-    return packet;
+    return MIN_PACKET_SIZE + REON_PAYLOAD;
 }
 
 void insert_header(uint8_t payload_len, uint8_t cmd) {
