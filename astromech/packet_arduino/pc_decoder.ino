@@ -135,8 +135,9 @@ void eval_input(uint8_t *data, int size, bool pc_mode) {
         sendLogicEngineCommand(data[3], data[4], data[5], data[6]);
         break;
 
-    // Send Command to Play a Sound Through the Tsunami (Value 1 = Sound Index, Value 2 = Volume (Signed))
-    case TSUN_SOUND_CMD: 
+    // Send Command to Play a Sound Through the Tsunami (Value 1 = Sound Index, Value 2 = Volume
+    // (Signed))
+    case TSUN_SOUND_CMD:
         playTsunamiSound(data[3], data[4]);
         break;
 
@@ -148,7 +149,8 @@ void eval_input(uint8_t *data, int size, bool pc_mode) {
         send_reon_command(int(data[4]), int(data[3]));
         break;
 
-    case PSI_CMD: // Set Command to set Light Sequence Both PSIs (Look to PSI Github for Valid Command Numbers)
+    case PSI_CMD: // Set Command to set Light Sequence Both PSIs (Look to PSI Github for Valid
+                  // Command Numbers)
         sendPSICommand(data[3]);
         break;
     };
@@ -207,7 +209,7 @@ void pc_get_input(bool pc_mode) {
         change_motor_speed(0, 0);
         change_motor_speed(1, 0);
         set_servo_angle(0, 0);
-        set_servo_angle(1, );
+        set_servo_angle(1, 0);
         set_servo_angle(2, 0);
         set_servo_angle(3, 0);
     }
