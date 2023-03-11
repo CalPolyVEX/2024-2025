@@ -160,9 +160,9 @@ void pc_dump_input() {
     static uint32_t millis_time = millis();
     uint16_t test_val;
     if (millis() - millis_time > MOTOR_TIMEOUT) {
-        // CHECK IF 127 is the actual minimum speed.
-        change_motor_speed(0, 127);
-        change_motor_speed(1, 127);
+        // CHECK IF 0 is the actual minimum speed.
+        change_motor_speed(0, 0);
+        change_motor_speed(1, 0);
     }
     if (SerialUSB.available()) {
         if (byte_count == 0) { // confirming start of packet
@@ -203,13 +203,13 @@ void pc_get_input(bool pc_mode) {
     /* end testing buffer rerouting*/
 
     if (pc_mode && (millis() - last_packet_time > MOTOR_TIMEOUT)) {
-        // CHECK IF 127 is the actual minimum speed.
-        change_motor_speed(0, 127);
-        change_motor_speed(1, 127);
-        set_servo_angle(0, 127);
-        set_servo_angle(1, 127);
-        set_servo_angle(2, 127);
-        set_servo_angle(3, 127);
+        // CHECK IF 0 is the actual minimum speed.
+        change_motor_speed(0, 0);
+        change_motor_speed(1, 0);
+        set_servo_angle(0, 0);
+        set_servo_angle(1, );
+        set_servo_angle(2, 0);
+        set_servo_angle(3, 0);
     }
     if (SerialUSB.available()) {
         if (byte_count == 0) { // confirming start of packet

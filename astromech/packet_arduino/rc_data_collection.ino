@@ -360,8 +360,8 @@ bool receiver_loop() {
                 led_off(LED2);
                 led_on(LED3);
                 led_on(LED4);
-                change_motor_speed(0, 127);
-                change_motor_speed(1, 127);
+                change_motor_speed(0, 0);
+                change_motor_speed(1, 0);
                 queue.reset();
             }
 
@@ -383,8 +383,8 @@ bool receiver_loop() {
             led_off(LED2);
             led_on(LED3);
             led_on(LED4);
-            change_motor_speed(0, 127);
-            change_motor_speed(1, 127);
+            change_motor_speed(0, 0);
+            change_motor_speed(1, 0);
             queue.reset();
 
             lcd.clear();

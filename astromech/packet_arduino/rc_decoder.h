@@ -9,6 +9,6 @@
 #define RIGHT_STICK_CHANNEL_VER 1
 
 void eval_rc_input();
-void control_motors(uint8_t hor_val, uint8_t ver_val);
+void control_motors(byte hor_val, byte ver_val);
 
 #endif
