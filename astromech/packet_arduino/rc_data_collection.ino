@@ -6,17 +6,17 @@
 
 // channel for determining whether to get input from RC or PC
 #define TOGGL_CHNL 5
-#define TOGGL_VAL_RC 995 // toggle to RC
+#define TOGGL_VAL_RC 995  // toggle to RC
 #define TOGGL_VAL_PC 1529 // toggle to PC
 
 // REON holoprojector macros
-#define REON_CHNL 3 // channel for controlling the REON holoprojectors
-#define REON_LOW 461    // maps to REON_OFF
-#define REON_MID 995    // maps to REON_ON
-#define REON_HIGH 1529  // maps to REON_WHITE
+#define REON_CHNL 3    // channel for controlling the REON holoprojectors
+#define REON_LOW 461   // maps to REON_OFF
+#define REON_MID 995   // maps to REON_ON
+#define REON_HIGH 1529 // maps to REON_WHITE
 
 // logic engine macros
-#define LOGIC_CHNL 2    // channel for controlling the logic engine
+#define LOGIC_CHNL 2 // channel for controlling the logic engine
 
 /*
  * USING
@@ -36,8 +36,9 @@ volatile boolean newData = false;
 // temporary data storage var
 volatile uint16_t regCont;
 volatile boolean stayInPC = false;
-uint32_t last_rc_timeout_count = 0; // holds the time (in milliseconds) of the last SBUS packet received
-uint32_t lost_rc_frame_count = 0;   // the number of lost frames from the transmitter
+uint32_t last_rc_timeout_count =
+    0; // holds the time (in milliseconds) of the last SBUS packet received
+uint32_t lost_rc_frame_count = 0; // the number of lost frames from the transmitter
 
 /* LED setup*/
 
@@ -185,10 +186,10 @@ void receiver_setup() {
     SERCOM2->USART.CTRLA.bit.FORM = 0x1;   // using 1 parity bit
     SERCOM2->USART.CTRLB.bit.PMODE = 0x0;  // using even parity
     SERCOM2->USART.CTRLB.bit.SBMODE = 0x1; // using 2 stop bits
-    SERCOM2->USART.BAUD
-        .reg = 63351; // set the correct baud register value (calculated based on equation in samd21
-                      // datasheet) SBUS baudrate is 100000, 8 bit data, even parity, 2 stop bits
-                      // (48MHz / 16) * (1 - BAUD/65536) = 100K, this gives 63351.466 for BAUD
+    SERCOM2->USART.BAUD.reg =
+        63351; // set the correct baud register value (calculated based on equation in samd21
+               // datasheet) SBUS baudrate is 100000, 8 bit data, even parity, 2 stop bits
+               // (48MHz / 16) * (1 - BAUD/65536) = 100K, this gives 63351.466 for BAUD
     SERCOM2->USART.CTRLB.bit.RXEN = 0x1; // enable Serial RX
     while (SERCOM2->USART.SYNCBUSY.bit.CTRLB)
         ;                                // wait for sync
@@ -263,7 +264,7 @@ bool receiver_loop() {
     allows for switching between RC and PC */
 
     static bool pc_mode = false;
-    static uint16_t logic_eng_channel = -1;
+    static uint16_t logic_eng_idx = -1;
 
     if (newData) {
 
@@ -286,7 +287,8 @@ bool receiver_loop() {
         // }
         // SerialUSB.println(" ");
         // Decode Data into 11 bit channels
-        decodeData();
+        // decodeData();
+        reverse_decode();
 
         // print out the values of every channel into serial
         // for (int i = 0; i < 16; i++) {
@@ -316,7 +318,7 @@ bool receiver_loop() {
 
             /* REON Holoprojector control */
             uint16_t reon_val = channel[REON_CHNL];
-            if(reon_val == REON_MID)
+            if (reon_val == REON_MID)
                 reon_val = REON_ON;
             else if (reon_val == REON_HIGH)
                 reon_val = REON_WHITE;
@@ -327,11 +329,12 @@ bool receiver_loop() {
             send_reon_command(reon_val, HP_REAR_ADDR);
 
             /* logic engine control */
-            if (logic_eng_channel != (channel[LOGIC_CHNL] * 9 / 2046)) {
-                // logic_eng_channel = channel[LOGIC_CHNL]  * 9 / 2046;
-                SerialUSB.println(logic_eng_channel);
-                sendLogicEngineCommand(logic_eng_channel);
-            } 
+            uint16_t temp_logic_idx;
+            if (logic_eng_idx != (temp_logic_idx = channel[LOGIC_CHNL] * 9 / 2046)) {
+                logic_eng_idx = temp_logic_idx;
+                SerialUSB.println(logic_eng_idx);
+                sendLogicEngineCommand(logic_eng_idx);
+            }
 
             // stay in receiver mode
             pc_mode = false;
@@ -352,26 +355,24 @@ bool receiver_loop() {
 
             // if the frames are lost for about 1 second (100 frames), then
             // disable the motors
-            if (lost_rc_frame_count > 100) { 
+            if (lost_rc_frame_count > 100) {
                 led_on(1);
                 led_on(2);
                 led_on(3);
                 led_on(4);
-                change_motor_speed(0, 0);
-                change_motor_speed(1, 0);
+                change_motor_speed(0, 127);
+                change_motor_speed(1, 127);
                 queue.reset();
             }
 
-            if (lcd_available) {
-                lcd.setCursor(0,1);
-                lcd.print("lost RC frames: ");
-                lcd.print(lost_rc_frame_count);
-            }
+            lcd.setCursor(0, 1);
+            lcd.print("lost RC frames: ");
+            lcd.print(lost_rc_frame_count);
         } else {
-            lost_rc_frame_count = 0;  // reset the lost frame count
+            lost_rc_frame_count = 0; // reset the lost frame count
         }
 
-        //reverse_decode();
+        // reverse_decode();
     } else { // if a valid frame received
         // if no new data received from the RC receiver in the last 1000ms,
         // then assume a RC receiver is unplugged and stop the motors
@@ -380,16 +381,14 @@ bool receiver_loop() {
             led_on(2);
             led_on(3);
             led_on(4);
-            change_motor_speed(0, 0);
-            change_motor_speed(1, 0);
+            change_motor_speed(0, 127);
+            change_motor_speed(1, 127);
             queue.reset();
 
-            if (lcd_available) {
-                lcd.clear();
-                lcd.setCursor(0,1);
-                lcd.print("RC unplugged");
-                delay(100);
-            }
+            lcd.clear();
+            lcd.setCursor(0, 1);
+            lcd.print("RC unplugged");
+            delay(100);
         }
     }
 
@@ -432,53 +431,53 @@ void reverse_decode() {
 
     // decodeData(); // decode using the standard approach
 
-    uint32_t* temp_ptr;
+    uint32_t *temp_ptr;
 
     // The ARM architecture automatically reverses the byte order when loading a
     // uint32_t.  This means we do not have to reverse the byte order manually as
-    // long as a pointer to a uint32_t is used to reference the data.  
+    // long as a pointer to a uint32_t is used to reference the data.
 
     // handle original bytes 1-4
-    temp_ptr = (uint32_t*) &complete_packet[1];
+    temp_ptr = (uint32_t *)&complete_packet[1];
     reverse_channel[0] = (*temp_ptr) & 0x7ff;
     reverse_channel[1] = (*temp_ptr >> 11) & 0x7ff;
 
     // handle original bytes 3-6
-    temp_ptr = (uint32_t*) &complete_packet[3];
+    temp_ptr = (uint32_t *)&complete_packet[3];
     reverse_channel[2] = (*temp_ptr >> 6) & 0x7ff;
     reverse_channel[3] = (*temp_ptr >> 17) & 0x7ff;
 
     // handle original bytes 6-9
-    temp_ptr = (uint32_t*) &complete_packet[6];
+    temp_ptr = (uint32_t *)&complete_packet[6];
     reverse_channel[4] = (*temp_ptr >> 4) & 0x7ff;
 
     // handle original bytes 7-10
-    temp_ptr = (uint32_t*) &complete_packet[7];
+    temp_ptr = (uint32_t *)&complete_packet[7];
     reverse_channel[5] = (*temp_ptr >> 7) & 0x7ff;
     reverse_channel[6] = (*temp_ptr >> 18) & 0x7ff;
 
     // handle original bytes 10-13
-    temp_ptr = (uint32_t*) &complete_packet[10];
+    temp_ptr = (uint32_t *)&complete_packet[10];
     reverse_channel[7] = (*temp_ptr >> 5) & 0x7ff;
     reverse_channel[8] = (*temp_ptr >> 16) & 0x7ff;
 
     // handle original bytes 13-16
-    temp_ptr = (uint32_t*) &complete_packet[13];
+    temp_ptr = (uint32_t *)&complete_packet[13];
     reverse_channel[9] = (*temp_ptr >> 3) & 0x7ff;
     reverse_channel[10] = (*temp_ptr >> 14) & 0x7ff;
 
     // handle original bytes 16-19
-    temp_ptr = (uint32_t*) &complete_packet[16];
+    temp_ptr = (uint32_t *)&complete_packet[16];
     reverse_channel[11] = (*temp_ptr >> 1) & 0x7ff;
     reverse_channel[12] = (*temp_ptr >> 12) & 0x7ff;
 
     // handle original bytes 18-21
-    temp_ptr = (uint32_t*) &complete_packet[18];
+    temp_ptr = (uint32_t *)&complete_packet[18];
     reverse_channel[13] = (*temp_ptr >> 7) & 0x7ff;
     reverse_channel[14] = (*temp_ptr >> 18) & 0x7ff;
 
     // handle original bytes 21-22
-    temp_ptr = (uint32_t*) &complete_packet[21];
+    temp_ptr = (uint32_t *)&complete_packet[21];
     reverse_channel[15] = (*temp_ptr >> 5) & 0x7ff;
 
     // print out the results to compare the optimized vs. original version
@@ -491,6 +490,9 @@ void reverse_decode() {
     // lcd.print(channel[14]);
     // lcd.print(" ");
     // lcd.print(reverse_channel[14]);
+
+    // copy channel data to global buffer
+    memcpy(channel, reverse_channel, 16 * sizeof(uint16_t));
 }
 
 void SERCOM2_Handler() {
