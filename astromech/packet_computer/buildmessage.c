@@ -43,10 +43,10 @@ int main(int argc, char *argv[]) {
     //     send_set_motor(MOTOR_COMMAND_RIGHT, 255, fd);
     // }
     // send_print_string_at(0, 0, (uint8_t *)"1", fd);
-    // for (int i = 0; i < 1000; i++) {
-    //     send_set_motor(MOTOR_COMMAND_LEFT, 200, fd);
-    //     send_set_motor(MOTOR_COMMAND_RIGHT, 254, fd);
-    // }
+    for (int i = 0; i < 1000; i++) {
+        // send_set_motor(LEFT_MOTOR_CMD, 10, fd);
+        send_set_motor(RIGHT_MOTOR_CMD, 0, fd);
+    }
 
     /* ############## servo test #################*/
     // for (int i = 0; i < 1000; i++) {
@@ -58,13 +58,13 @@ int main(int argc, char *argv[]) {
     /* ############# end servo test ##############*/
 
     /* ############## reon test #################*/
-    for (int i = 0; i < 1000; i++) {
-        if (i % 100)
-            send_set_reon(27, 2, fd); // reon rear off
-        else
-            send_set_reon(27, 2, fd); // reon rear white
-    }
-    send_set_reon(27, 2, fd); // reon rear white
+    // for (int i = 0; i < 1000; i++) {
+    //     if (i % 100)
+    //         send_set_reon(27, 2, fd); // reon rear off
+    //     else
+    //         send_set_reon(27, 2, fd); // reon rear white
+    // }
+    // send_set_reon(27, 3, fd); // reon rear white
     /* ############# end reon test ##############*/
 
     // send_set_servo(1, 131, fd);
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void send_set_motor(int direction, uint8_t speed, int fd) {
+void send_set_motor(int direction, int8_t speed, int fd) {
     uint8_t packet_len = set_motor(direction, speed);
     write(fd, packet, packet_len);
 }

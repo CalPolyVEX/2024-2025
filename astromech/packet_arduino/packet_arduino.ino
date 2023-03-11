@@ -16,7 +16,7 @@ void setup() {
     // Set up the motors
     motor_setup();
     receiver_setup();
-#ifdef LCD_DEBUG
+
     int status;
     status = lcd.begin(LCD_COLS, LCD_ROWS);
     // non zero status means it was unsuccesful
@@ -26,7 +26,6 @@ void setup() {
         lcd.setCursor(0, 0);
         lcd.print("Astromech");
     }
-#endif
 
     // init for onboard LEDs
     setup_i2c();
