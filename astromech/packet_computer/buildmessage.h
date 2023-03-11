@@ -33,7 +33,7 @@ uint8_t tsunami_amp_cmd(uint8_t gain);
 uint8_t set_reon(uint8_t reon_addr, uint8_t reon_state);
 
 /* writing packet to file */
-void send_set_motor(int direction, uint8_t speed, int fd);
+void send_set_motor(int direction, int8_t speed, int fd);
 void send_set_servo(uint8_t servo_num, uint8_t position, int fd);
 void send_set_lcd(uint8_t col, uint8_t row, int fd);
 void send_print_string(uint8_t *s, int fd);
