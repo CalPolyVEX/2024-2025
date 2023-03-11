@@ -6,6 +6,7 @@
 #include "packet_arduino.h"
 #include "reon_hp_i2c.h"
 #include "tsunami_control.h"
+#include "psi_control.h"
 
 #define MOTOR_TIMEOUT 1000 // ms
 
@@ -22,6 +23,7 @@
 #define TSUN_SOUND_CMD 9
 #define TSUN_AMP_CMD 10
 #define REON_CMD 11
+#define PSI_CMD 12
 
 bool check_crc(uint8_t *data, int len);
 unsigned short commandChecker(char *data);

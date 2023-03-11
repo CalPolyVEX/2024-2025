@@ -28,9 +28,6 @@ void setup() {
     }
 #endif
 
-    // init I2C for REON holoprojectors
-    Wire.begin();
-
     // init for onboard LEDs
     setup_i2c();
 

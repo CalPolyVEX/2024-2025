@@ -147,6 +147,10 @@ void eval_input(uint8_t *data, int size, bool pc_mode) {
     case REON_CMD: // set REON HP sequence for all three HPs
         send_reon_command(int(data[4]), int(data[3]));
         break;
+
+    case PSI_CMD: // Set Command to set Light Sequence Both PSIs (Look to PSI Github for Valid Command Numbers)
+        sendPSICommand(data[3]);
+        break;
     };
 }
 
