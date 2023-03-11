@@ -13,8 +13,8 @@
 #define MOTOR_CTRL_PAYLOAD 1
 #define SERVO_CTRL_PAYLOAD 2
 #define SET_LCD_PAYLOAD 1
-#define LED_PRESET_PAYLOAD 1
-#define LED_RAW_PAYLOAD 4
+#define LOGIC_PRESET_PAYLOAD 1
+#define LOGIC_RAW_PAYLOAD 4
 #define TSUN_SOUND_PAYLOAD 2
 #define TSUN_AMP_PAYLOAD 1
 #define REON_PAYLOAD 2
@@ -41,6 +41,8 @@ uint8_t *print_string(unsigned num_chars, uint8_t *string);
 uint8_t *print_string_at(uint8_t col, uint8_t row, unsigned num_chars, uint8_t *string);
 uint8_t *clear_lcd();
 uint8_t *logic_preset_cmd(uint8_t preset_index);
+uint8_t *tsunami_sound_cmd(uint8_t preset_index, uint8_t volume);
+uint8_t *tsunami_amp_cmd(uint8_t gain);
 uint8_t *set_reon(uint8_t reon_addr, uint8_t reon_state);
 
 /* writing packet to file */
@@ -52,6 +54,8 @@ void send_print_string_at(uint8_t col, uint8_t row, uint8_t *s, int fd);
 void send_clear_lcd(int fd);
 void send_led_preset_cmd(uint8_t preset_idx, int fd);
 uint8_t *logic_raw_cmd(uint8_t command_major, uint8_t command_minor, uint8_t color, uint8_t speed);
+void send_tsun_sound_cmd(uint8_t preset_idx, uint8_t volume, int fd);
+void send_tsun_amp_cmd(uint8_t gain, int fd);
 void send_set_reon(uint8_t reon_addr, uint8_t reon_state, int fd);
 
 void insert_header(uint8_t payload_len, uint8_t cmd);

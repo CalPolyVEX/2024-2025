@@ -115,25 +115,23 @@ void send_clear_lcd(int fd) {
 
 void send_led_preset_cmd(uint8_t preset_idx, int fd) {
     uint8_t *packet = logic_preset_cmd(preset_idx);
-    write(fd, packet, MIN_PACKET_SIZE + LED_PRESET_PAYLOAD);
+    write(fd, packet, MIN_PACKET_SIZE + LOGIC_PRESET_PAYLOAD);
 }
 
 void send_led_raw_cmd(uint8_t command_major, uint8_t command_minor, uint8_t color, uint8_t speed,
                       int fd) {
     uint8_t *packet = logic_raw_cmd(command_major, command_minor, color, speed);
-    write(fd, packet, MIN_PACKET_SIZE + LED_RAW_PAYLOAD);
+    write(fd, packet, MIN_PACKET_SIZE + LOGIC_RAW_PAYLOAD);
 }
 
-void send_tsun_sound_cmd(uint8_t preset_idx, int fd) {
-    /* TODO */
-    // uint8_t *packet = logic_preset_cmd(preset_idx);
-    // write(fd, packet, MIN_PACKET_SIZE + LED_PRESET_PAYLOAD);
+void send_tsun_sound_cmd(uint8_t preset_idx, uint8_t volume, int fd) {
+    uint8_t *packet = tsunami_sound_cmd(preset_idx, volume);
+    write(fd, packet, MIN_PACKET_SIZE + TSUN_SOUND_PAYLOAD);
 }
 
-void send_tsun_amp_cmd(uint8_t preset_idx, int fd) {
-    /* TODO */
-    // uint8_t *packet = logic_preset_cmd(preset_idx);
-    // write(fd, packet, MIN_PACKET_SIZE + LED_PRESET_PAYLOAD);
+void send_tsun_amp_cmd(uint8_t gain, int fd) {
+    uint8_t *packet = tsunami_amp_cmd(gain);
+    write(fd, packet, MIN_PACKET_SIZE + TSUN_AMP_PAYLOAD);
 }
 
 void send_set_reon(uint8_t reon_addr, uint8_t reon_state, int fd) {
@@ -230,22 +228,37 @@ uint8_t *clear_lcd() {
 
 uint8_t *logic_preset_cmd(uint8_t preset_index) {
     packet[0] = (uint8_t)0xFF;
-    packet[1] = (uint8_t)LED_PRESET_PAYLOAD;
+    packet[1] = (uint8_t)LOGIC_PRESET_PAYLOAD;
     packet[2] = (uint8_t)LOGIC_PRESET_CMD;
     packet[3] = preset_index;
-    calc_crc(3 + LED_PRESET_PAYLOAD);
+    calc_crc(3 + LOGIC_PRESET_PAYLOAD);
     return packet;
 }
 
 uint8_t *logic_raw_cmd(uint8_t command_major, uint8_t command_minor, uint8_t color, uint8_t speed) {
     packet[0] = (uint8_t)0xFF;
-    packet[1] = (uint8_t)LED_RAW_PAYLOAD;
+    packet[1] = (uint8_t)LOGIC_RAW_PAYLOAD;
     packet[2] = (uint8_t)LOGIC_RAW_CMD;
     packet[3] = command_major;
     packet[4] = command_minor;
     packet[5] = color;
     packet[6] = speed;
-    calc_crc(3 + LED_RAW_PAYLOAD);
+    calc_crc(3 + LOGIC_RAW_PAYLOAD);
+    return packet;
+}
+
+uint8_t *tsunami_sound_cmd(uint8_t preset_index, uint8_t volume) {
+    insert_header(TSUN_SOUND_PAYLOAD, TSUN_SOUND_CMD);
+    packet[3] = preset_index;
+    packet[4] = volume;
+    calc_crc(3 + TSUN_SOUND_PAYLOAD);
+    return packet;
+}
+
+uint8_t *tsunami_amp_cmd(uint8_t gain) {
+    insert_header(TSUN_AMP_PAYLOAD, TSUN_AMP_CMD);
+    packet[3] = gain;
+    calc_crc(3 + TSUN_AMP_PAYLOAD);
     return packet;
 }
 
