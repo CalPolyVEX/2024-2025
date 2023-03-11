@@ -356,10 +356,10 @@ bool receiver_loop() {
             // if the frames are lost for about 1 second (100 frames), then
             // disable the motors
             if (lost_rc_frame_count > 100) {
-                led_on(1);
-                led_on(2);
-                led_on(3);
-                led_on(4);
+                led_off(LED1);
+                led_off(LED2);
+                led_on(LED3);
+                led_on(LED4);
                 change_motor_speed(0, 127);
                 change_motor_speed(1, 127);
                 queue.reset();
@@ -369,6 +369,8 @@ bool receiver_loop() {
             lcd.print("lost RC frames: ");
             lcd.print(lost_rc_frame_count);
         } else {
+            led_off(LED3);
+            led_off(LED4);
             lost_rc_frame_count = 0; // reset the lost frame count
         }
 
@@ -377,10 +379,10 @@ bool receiver_loop() {
         // if no new data received from the RC receiver in the last 1000ms,
         // then assume a RC receiver is unplugged and stop the motors
         if (millis() > (last_rc_timeout_count + 1000)) {
-            led_on(1);
-            led_on(2);
-            led_on(3);
-            led_on(4);
+            led_off(LED1);
+            led_off(LED2);
+            led_on(LED3);
+            led_on(LED4);
             change_motor_speed(0, 127);
             change_motor_speed(1, 127);
             queue.reset();
@@ -389,6 +391,9 @@ bool receiver_loop() {
             lcd.setCursor(0, 1);
             lcd.print("RC unplugged");
             delay(100);
+        } else {
+            led_off(LED3);
+            led_off(LED4);
         }
     }
 

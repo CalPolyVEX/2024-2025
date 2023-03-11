@@ -4,10 +4,10 @@
 
 #include <Wire.h>
 
-#define LED1 3
+#define LED1 1
 #define LED2 2
-#define LED3 1
-#define LED4 0
+#define LED3 3
+#define LED4 4
 
 // #define IOEX_ADDR (const uint8_t) 0x38
 #define IOEX_ADDR (const uint8_t)0x20
