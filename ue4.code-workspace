@@ -1,0 +1,25 @@
+{
+	"folders": [
+		{
+			"name": "ue4",
+			"path": "."
+		},
+		{
+			"name": "Astromech",
+			"path": "./astromech"
+		},
+		{
+			"name": "Herbie NN",
+			"path": "./herbie_nn"
+		},
+		{
+			"name": "Herbie 1",
+			"path": "./herbie1"
+		},
+		{
+			"name": "Herbie 1.5",
+			"path": "./herbie1.5"
+		}
+	],
+	"settings": {}
+}

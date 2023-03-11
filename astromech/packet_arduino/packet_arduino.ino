@@ -3,6 +3,12 @@
 hd44780_I2Cexp lcd(LCD_ADDRESS); // declare lcd object: auto locate & auto config expander chip
 
 void setup() {
+    delay(1000); // give the computer to detect the board before using serial
+
+    // Set up the serial USB
+    SerialUSB.begin(115200);
+    SerialUSB.setTimeout(0);
+    SerialUSB.println("---- Board reset ----");
 
     // Setup Wire
     Wire.begin();
@@ -13,11 +19,9 @@ void setup() {
 #ifdef LCD_DEBUG
     int status;
     status = lcd.begin(LCD_COLS, LCD_ROWS);
-    if (status) // non zero status means it was unsuccesful
-    {
-        // hd44780 has a fatalError() routine that blinks an led if possible
-        // begin() failed so blink error code using the onboard LED if possible
-        hd44780::fatalError(status); // does not return
+    // non zero status means it was unsuccesful
+    if (status) {
+        SerialUSB.println("LCD init failed");
     }
 #endif
 
@@ -30,13 +34,19 @@ void setup() {
     // Setup Logic Engine Controller
     setupLogicEngine();
 
-    // Set up the USB reading
-    SerialUSB.begin(115200);
-    SerialUSB.setTimeout(0);
-
     // Initialize the Amplifier for Sound
     resetAmplifier();
     setAmplifierGain(30);
+
+    // startup blink
+    for (int j = 0; j < 2; j++) {
+        for (int i = 1; i <= 4; i++) {
+            led_on(i);
+            delay(100);
+            led_off(i);
+        }
+    }
+    led_off(4);
 }
 
 void loop() {

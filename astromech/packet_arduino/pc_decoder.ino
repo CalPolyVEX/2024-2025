@@ -90,64 +90,62 @@ void eval_input(uint8_t *data, int size, bool pc_mode) {
 
     // Check command and send off payload to correct function
     switch (data[2]) {
-    case 0: // Set left motor
+    case LEFT_MOTOR_CMD: // Set left motor
         if (pc_mode) {
             change_motor_speed(0, int(data[3]));
         }
         break;
 
-    case 1: // Set right motor
+    case RIGHT_MOTOR_CMD: // Set right motor
         if (pc_mode) {
             change_motor_speed(1, int(data[3]));
         }
         break;
 
-    case 2: // Set servo
+    case SERVO_CMD: // Set servo
         if (pc_mode) {
             set_servo_angle((unsigned short)(data[3]), (unsigned int)(data[4]));
         }
         break;
 
-    case 3: // Set LCD cursor
+    case LCD_CURSOR_CMD: // Set LCD cursor
         lcd.setCursor(((uint8_t)(data[3] & 0xFC)) >> 2, data[3] & 0x03);
         break;
 
-    case 4: // Print string
+    case LCD_PRINT_STR_CMD: // Print string
         for (int i = 3; i < end_message; i++)
             lcd.write(data[i]);
         break;
 
-    case 5: // set cursor then Print string
+    case LCD_CURSOR_PRINT_CMD: // set cursor then Print string
         lcd.setCursor((data[3] & 0xFC) >> 2, data[3] & 0x03);
         for (int i = 4; i < end_message; i++)
             lcd.write(data[i]);
         break;
 
-    case 6: // clear screen
+    case LCD_CLEAR_CMD: // clear screen
         lcd.clear();
         break;
 
-    case 7: // Send Command to Logic Engine Using Presets
+    case LOGIC_PRESET_CMD: // Send Command to Logic Engine Using Presets
         sendLogicEngineCommand(data[3]);
         break;
 
-    case 8: // Send Command to Logic Engine Controller Using Raw Commands
+    case LOGIC_RAW_CMD: // Send Command to Logic Engine Controller Using Raw Commands
         sendLogicEngineCommand(data[3], data[4], data[5], data[6]);
         break;
 
-    case 9: // Send Command to Play a Sound Through the Tsunami (Value 1 = Sound Index, Value 2 =
-            // Volume (Signed))
+    // Send Command to Play a Sound Through the Tsunami (Value 1 = Sound Index, Value 2 = Volume (Signed))
+    case TSUN_SOUND_CMD: 
         playTsunamiSound(data[3], data[4]);
         break;
 
-    case 10: // Set the Gain of the Amplifier for Sound
+    case TSUN_AMP_CMD: // Set the Gain of the Amplifier for Sound
         setAmplifierGain(data[3]);
         break;
 
-    case 11: // set REON HP sequence for all three HPs
-        send_reon_command(int(data[3]), HP_FRNT_ADDR);
-        send_reon_command(int(data[3]), HP_TOP_ADDR);
-        send_reon_command(int(data[3]), HP_REAR_ADDR);
+    case REON_CMD: // set REON HP sequence for all three HPs
+        send_reon_command(int(data[4]), int(data[3]));
         break;
     };
 }
