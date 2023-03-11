@@ -46,7 +46,6 @@ void setup() {
             led_off(i);
         }
     }
-    led_off(4);
 }
 
 void loop() {
