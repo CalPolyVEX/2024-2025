@@ -6,17 +6,17 @@
 
 // channel for determining whether to get input from RC or PC
 #define TOGGL_CHNL 5
-#define TOGGL_VAL_RC 995 // toggle to RC
+#define TOGGL_VAL_RC 995  // toggle to RC
 #define TOGGL_VAL_PC 1529 // toggle to PC
 
 // REON holoprojector macros
-#define REON_CHNL 3 // channel for controlling the REON holoprojectors
-#define REON_LOW 461    // maps to REON_OFF
-#define REON_MID 995    // maps to REON_ON
-#define REON_HIGH 1529  // maps to REON_WHITE
+#define REON_CHNL 3    // channel for controlling the REON holoprojectors
+#define REON_LOW 461   // maps to REON_OFF
+#define REON_MID 995   // maps to REON_ON
+#define REON_HIGH 1529 // maps to REON_WHITE
 
 // logic engine macros
-#define LOGIC_CHNL 2    // channel for controlling the logic engine
+#define LOGIC_CHNL 2 // channel for controlling the logic engine
 
 /*
  * USING
@@ -36,7 +36,8 @@ volatile boolean newData = false;
 // temporary data storage var
 volatile uint16_t regCont;
 volatile boolean stayInPC = false;
-uint32_t last_rc_timeout_count = 0;  // holds the time (in milliseconds) of the last SBUS packet received
+uint32_t last_rc_timeout_count =
+    0; // holds the time (in milliseconds) of the last SBUS packet received
 
 /* LED setup*/
 
@@ -184,10 +185,10 @@ void receiver_setup() {
     SERCOM2->USART.CTRLA.bit.FORM = 0x1;   // using 1 parity bit
     SERCOM2->USART.CTRLB.bit.PMODE = 0x0;  // using even parity
     SERCOM2->USART.CTRLB.bit.SBMODE = 0x1; // using 2 stop bits
-    SERCOM2->USART.BAUD
-        .reg = 63351; // set the correct baud register value (calculated based on equation in samd21
-                      // datasheet) SBUS baudrate is 100000, 8 bit data, even parity, 2 stop bits
-                      // (48MHz / 16) * (1 - BAUD/65536) = 100K, this gives 63351.466 for BAUD
+    SERCOM2->USART.BAUD.reg =
+        63351; // set the correct baud register value (calculated based on equation in samd21
+               // datasheet) SBUS baudrate is 100000, 8 bit data, even parity, 2 stop bits
+               // (48MHz / 16) * (1 - BAUD/65536) = 100K, this gives 63351.466 for BAUD
     SERCOM2->USART.CTRLB.bit.RXEN = 0x1; // enable Serial RX
     while (SERCOM2->USART.SYNCBUSY.bit.CTRLB)
         ;                                // wait for sync
@@ -308,14 +309,14 @@ bool receiver_loop() {
             uint8_t hor_8bit = channel[7] * 255 / 2047;
             uint8_t dome_servo_8bit = channel[4] * 255 / 2047; // dome "servo"
             // input motor values
-            control_motors(ver_8bit, hor_8bit);
+            control_motors_joystick(ver_8bit, hor_8bit);
 
             /* change servo values*/
             set_servo_angle(DOME_SERVO_NUM, dome_servo_8bit);
 
             /* REON Holoprojector control */
             uint16_t reon_val = channel[REON_CHNL];
-            if(reon_val == REON_MID)
+            if (reon_val == REON_MID)
                 reon_val = REON_ON;
             else if (reon_val == REON_HIGH)
                 reon_val = REON_WHITE;
@@ -330,7 +331,7 @@ bool receiver_loop() {
                 // logic_eng_channel = channel[LOGIC_CHNL]  * 9 / 2046;
                 SerialUSB.println(logic_eng_channel);
                 sendLogicEngineCommand(logic_eng_channel);
-            } 
+            }
 
             // stay in receiver mode
             pc_mode = false;
