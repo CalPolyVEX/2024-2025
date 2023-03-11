@@ -246,7 +246,7 @@ uint8_t logic_raw_cmd(uint8_t command_major, uint8_t command_minor, uint8_t colo
     return MIN_PACKET_SIZE + LOGIC_PRESET_PAYLOAD;
 }
 
-uint8_t tsunami_sound_cmd(uint8_t preset_index, uint8_t volume) {
+uint8_t tsunami_sound_cmd(uint8_t preset_index, int8_t volume) {
     insert_header(TSUN_SOUND_PAYLOAD, TSUN_SOUND_CMD);
     packet[3] = preset_index;
     packet[4] = volume;
