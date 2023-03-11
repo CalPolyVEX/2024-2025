@@ -351,8 +351,8 @@ bool receiver_loop() {
         if (millis() > (last_rc_timeout_count + 1000)) {
             led_on(1);
             led_on(2);
-            change_motor_speed(0, 127);
-            change_motor_speed(1, 127);
+            change_motor_speed(0, 0);
+            change_motor_speed(1, 0);
         }
     }
 
