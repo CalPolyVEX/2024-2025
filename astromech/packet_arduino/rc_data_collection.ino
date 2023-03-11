@@ -424,37 +424,73 @@ void decodeData() {
 
 void reverse_decode() {
     // this is a function to test decoding of the SBUS packets in reverse byte order
-    uint8_t reverse_packet[25];
     uint16_t reverse_channel[16];
 
-    for (int i=0; i<25; i++) {
-        complete_packet[i] = 100+i;  // fill in with dummy data
-        reverse_packet[i] = complete_packet[24-i];  // reverse the byte order
-    }
+    // for (int i=0; i<25; i++) {
+    //     complete_packet[i] = 100+i;  // fill in with dummy data
+    // }
 
-    decodeData(); // decode using the standard approach
+    // decodeData(); // decode using the standard approach
 
     uint32_t* temp_ptr;
 
+    // The ARM architecture automatically reverses the byte order when loading a
+    // uint32_t.  This means we do not have to reverse the byte order manually as
+    // long as a pointer to a uint32_t is used to reference the data.  
+
     // handle original bytes 1-4
-    temp_ptr = (uint32_t*) &reverse_packet[20];
-    reverse_channel[0] = __builtin_bswap32(*temp_ptr) & 0x7ff;
-    reverse_channel[1] = (__builtin_bswap32(*temp_ptr) >> 11) & 0x7ff;
+    temp_ptr = (uint32_t*) &complete_packet[1];
+    reverse_channel[0] = (*temp_ptr) & 0x7ff;
+    reverse_channel[1] = (*temp_ptr >> 11) & 0x7ff;
 
     // handle original bytes 3-6
-    temp_ptr = (uint32_t*) &reverse_packet[18];
-    reverse_channel[2] = (__builtin_bswap32(*temp_ptr) >> 6) & 0x7ff;
-    reverse_channel[3] = (__builtin_bswap32(*temp_ptr) >> 17) & 0x7ff;
+    temp_ptr = (uint32_t*) &complete_packet[3];
+    reverse_channel[2] = (*temp_ptr >> 6) & 0x7ff;
+    reverse_channel[3] = (*temp_ptr >> 17) & 0x7ff;
 
-    // print out the results
-    lcd.setCursor(0,0);
-    lcd.print(channel[3]);
-    lcd.print(" ");
-    lcd.print(reverse_channel[3]);
+    // handle original bytes 6-9
+    temp_ptr = (uint32_t*) &complete_packet[6];
+    reverse_channel[4] = (*temp_ptr >> 4) & 0x7ff;
 
-    lcd.print(channel[1]);
-    lcd.print(" ");
-    lcd.print(reverse_channel[1]);
+    // handle original bytes 7-10
+    temp_ptr = (uint32_t*) &complete_packet[7];
+    reverse_channel[5] = (*temp_ptr >> 7) & 0x7ff;
+    reverse_channel[6] = (*temp_ptr >> 18) & 0x7ff;
+
+    // handle original bytes 10-13
+    temp_ptr = (uint32_t*) &complete_packet[10];
+    reverse_channel[7] = (*temp_ptr >> 5) & 0x7ff;
+    reverse_channel[8] = (*temp_ptr >> 16) & 0x7ff;
+
+    // handle original bytes 13-16
+    temp_ptr = (uint32_t*) &complete_packet[13];
+    reverse_channel[9] = (*temp_ptr >> 3) & 0x7ff;
+    reverse_channel[10] = (*temp_ptr >> 14) & 0x7ff;
+
+    // handle original bytes 16-19
+    temp_ptr = (uint32_t*) &complete_packet[16];
+    reverse_channel[11] = (*temp_ptr >> 1) & 0x7ff;
+    reverse_channel[12] = (*temp_ptr >> 12) & 0x7ff;
+
+    // handle original bytes 18-21
+    temp_ptr = (uint32_t*) &complete_packet[18];
+    reverse_channel[13] = (*temp_ptr >> 7) & 0x7ff;
+    reverse_channel[14] = (*temp_ptr >> 18) & 0x7ff;
+
+    // handle original bytes 21-22
+    temp_ptr = (uint32_t*) &complete_packet[21];
+    reverse_channel[15] = (*temp_ptr >> 5) & 0x7ff;
+
+    // print out the results to compare the optimized vs. original version
+    // lcd.setCursor(0,0);
+    // lcd.print(channel[15]);
+    // lcd.print(" ");
+    // lcd.print(reverse_channel[15]);
+    // lcd.print(" ");
+
+    // lcd.print(channel[14]);
+    // lcd.print(" ");
+    // lcd.print(reverse_channel[14]);
 }
 
 void SERCOM2_Handler() {
