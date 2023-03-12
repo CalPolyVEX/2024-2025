@@ -1,4 +1,5 @@
 #include "pc_decoder.h"
+#include "pc_decoder_info.h"
 
 // #define DEBUG
 
@@ -149,46 +150,11 @@ void eval_input(uint8_t *data, int size, bool pc_mode) {
         send_reon_command(int(data[4]), int(data[3]));
         break;
 
-    case PSI_CMD: // Set Command to set Light Sequence Both PSIs (Look to PSI Github for Valid
-                  // Command Numbers)
+    case PSI_PRO_CMD: // Set Command to set Light Sequence Both PSIs (Look to PSI Github for Valid
+                      // Command Numbers)
         sendPSICommand(data[3]);
         break;
     };
-}
-
-// drops data in the Serial buffer
-void pc_dump_input() {
-    static uint16_t byte_count = 0;
-    static uint32_t millis_time = millis();
-    uint16_t test_val;
-    if (millis() - millis_time > MOTOR_TIMEOUT) {
-        // CHECK IF 0 is the actual minimum speed.
-        change_motor_speed(0, 0);
-        change_motor_speed(1, 0);
-    }
-    if (SerialUSB.available()) {
-        if (byte_count == 0) { // confirming start of packet
-            if ((test_val = SerialUSB.read()) == 0xFF) {
-                bytes[byte_count++] = 0xFF;
-            } else {
-                lcd.setCursor(0, 3);
-                lcd.print("INVALSTRT");
-                lcd.print(test_val);
-            }
-        } else if (byte_count == 1) {
-            // we are already reading a packet
-            // read the payload size
-            bytes[byte_count++] = SerialUSB.read();
-        } else if (byte_count < bytes[1] + 5) {
-            // read until we get everything else
-            bytes[byte_count++] = SerialUSB.read();
-        }
-        if (byte_count >= 2 && byte_count == bytes[1] + 5) {
-            // don't use command and payload
-            millis_time = millis();
-            byte_count = 0;
-        }
-    }
 }
 
 void pc_get_input(bool pc_mode) {

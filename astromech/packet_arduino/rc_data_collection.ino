@@ -311,7 +311,7 @@ bool receiver_loop() {
             uint8_t hor_8bit = channel[7] * 255 / 2047;
             uint8_t dome_servo_8bit = channel[4] * 255 / 2047; // dome "servo"
             // input motor values
-            control_motors(ver_8bit, hor_8bit);
+            control_motors_joystick(ver_8bit, hor_8bit);
 
             /* change servo values*/
             set_servo_angle(DOME_SERVO_NUM, dome_servo_8bit);
@@ -332,7 +332,6 @@ bool receiver_loop() {
             uint16_t temp_logic_idx;
             if (logic_eng_idx != (temp_logic_idx = channel[LOGIC_CHNL] * 9 / 2046)) {
                 logic_eng_idx = temp_logic_idx;
-                SerialUSB.println(logic_eng_idx);
                 sendLogicEngineCommand(logic_eng_idx);
             }
 

@@ -9,6 +9,7 @@ void motor_setup();
 
 // These Functions Set the Speed of the Specified Moter/Servo
 // The Speed is Clamped to Values Between -100 and 100
+void control_motors_joystick(uint8_t ver_val, uint8_t hor_val);
 void change_motor_speed(uint8_t motor_num, byte speed);
 void set_servo_angle(uint8_t servo_num, byte speed);
 

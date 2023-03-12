@@ -242,6 +242,25 @@ void motor_setup() {
     };
 }
 
+/** Control motors using joystick
+ * currently, the range of ver_val and hor_val is between 0 and 255
+ */
+void control_motors_joystick(uint8_t ver_val, uint8_t hor_val) {
+    // These calculations might need to be
+    // changed based on calibrations!!
+    // center both values at 0
+    int16_t hor_val_origin = hor_val - 127;
+    int16_t left_motor = (int16_t)ver_val + hor_val_origin;
+    int16_t right_motor = (int16_t)ver_val - hor_val_origin;
+    // The Clamping of Values is Now Done in the Motor Servo Control
+    // ver_val represents throttle, hor_val represents steering
+
+    // set left motor: throttle + steering
+    change_motor_speed(0, left_motor - 127);
+    // set right motor: throttle - steering
+    change_motor_speed(1, right_motor - 127);
+}
+
 // Sets Motor Speed
 void change_motor_speed(uint8_t motor_num, byte speed) {
 
@@ -287,8 +306,7 @@ void set_servo_angle(uint8_t servo_num, byte speed) {
 
 // Transform a Signed Byte Between -100 and 100 to an Unsigned Byte Centered Around 127
 // Also Performs Clamping of Speed Between -100 and 100
-uint8_t transformSpeed(byte speed)
-{
+uint8_t transformSpeed(byte speed) {
     // Clamp Speed Between -100 and 100
     if (speed > 100)
         speed = 100;
