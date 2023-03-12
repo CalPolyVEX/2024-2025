@@ -8,10 +8,10 @@ const float MOTOR_BASE_TIME = 54220;
 // multiplied by percentage to get change in range of wavelength needed (For
 // Full Range Value is 189, Lowered for Safety)
 float MOTOR_CHANGE_CONST = 140;
-// range is 0 (100% backward) to 127 (0% speed) to 254 (100% forward) for left
+// range is 27 (100% backward) to 127 (0% speed) to 227 (100% forward) for left
 // motor
 unsigned int motor_percentage_1 = 127;
-// range is 0 (100% backward) to 127 (0% speed) to 254 (100% forward) for right
+// range is 27 (100% backward) to 127 (0% speed) to 227 (100% forward) for right
 // motor
 unsigned int motor_percentage_2 = 127;
 // Same as Above but for Servos
@@ -23,7 +23,7 @@ unsigned int servo_percentages[4] = {127, 127, 127, 127};
 // unsigned int waveform_map[4] = {0, 2, 1, 3};
 // The Servo Waveform Output indexed by servo number
 unsigned int waveform_map[4] = {3, 1, 2, 0};
-// WARNING: Only Use Values Between 1 and 253 For Motor Percentage To Keep Motor
+// WARNING: Only Use Values Between 27 and 227 For Motor Percentage To Keep Motor
 // in Bounds
 
 // Left Motor: Pin 9 (PA07)   On PCB: D9
@@ -36,7 +36,7 @@ unsigned int waveform_map[4] = {3, 1, 2, 0};
 // float theta = 0;
 
 // Wait for Servo Wavelengths to Sync
-void sync_servos(unsigned short servo_number) {
+void sync_servos(uint8_t servo_number) {
     switch (servo_number) {
     case 0: {
         while (TCC0->SYNCBUSY.bit.CC0) { // Connecting to servo 0's counter
@@ -252,33 +252,23 @@ void control_motors_joystick(uint8_t ver_val, uint8_t hor_val) {
     int16_t hor_val_origin = hor_val - 127;
     int16_t left_motor = (int16_t)ver_val + hor_val_origin;
     int16_t right_motor = (int16_t)ver_val - hor_val_origin;
-    // keep values within bounds
-    if (left_motor > 255) {
-        left_motor = 255;
-    } else if (left_motor < 0) {
-        left_motor = 0;
-    }
-    if (right_motor > 255) {
-        right_motor = 255;
-    } else if (right_motor < 0) {
-        right_motor = 0;
-    }
-
+    // The Clamping of Values is Now Done in the Motor Servo Control
     // ver_val represents throttle, hor_val represents steering
 
     // set left motor: throttle + steering
-    change_motor_speed(0, left_motor);
+    change_motor_speed(0, left_motor - 127);
     // set right motor: throttle - steering
-    change_motor_speed(1, right_motor);
+    change_motor_speed(1, right_motor - 127);
 }
 
 // Sets Motor Speed
-void change_motor_speed(unsigned short motor_num, int speed) {
+void change_motor_speed(uint8_t motor_num, byte speed) {
+
     // Left Motor
     if (motor_num) {
 
         // Calculate speed percentage
-        motor_percentage_1 = speed;
+        motor_percentage_1 = transformSpeed(speed);
 
         // Update timer values
         TCC1->CC[0].reg =
@@ -291,7 +281,7 @@ void change_motor_speed(unsigned short motor_num, int speed) {
     // Right Motor
     else {
         // Calculate speed percentage
-        motor_percentage_2 = 255 - speed;
+        motor_percentage_2 = 255 - transformSpeed(speed);
 
         // Update timer values
         TCC1->CC[1].reg =
@@ -303,13 +293,26 @@ void change_motor_speed(unsigned short motor_num, int speed) {
 }
 
 // Sets Servo Angle
-void set_servo_angle(unsigned short servo_num, unsigned position) {
+void set_servo_angle(uint8_t servo_num, byte speed) {
     // Change Percentage
-    servo_percentages[servo_num] = position;
+    servo_percentages[servo_num] = transformSpeed(speed);
 
     // Update Servo
     TCC0->CC[waveform_map[servo_num]].reg =
         MOTOR_BASE_TIME + (MOTOR_CHANGE_CONST *
                            servo_percentages[servo_num]); // this sets the on time of the PWM cycle
     sync_servos(servo_num);
+}
+
+// Transform a Signed Byte Between -100 and 100 to an Unsigned Byte Centered Around 127
+// Also Performs Clamping of Speed Between -100 and 100
+uint8_t transformSpeed(byte speed) {
+    // Clamp Speed Between -100 and 100
+    if (speed > 100)
+        speed = 100;
+    else if (speed < -100)
+        speed = -100;
+
+    // Transform Value into an Unsigned Byte
+    return 127 + speed;
 }

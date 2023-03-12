@@ -1,9 +1,20 @@
 #ifndef MOTOR_SERVO_CONTROL_H
 #define MOTOR_SERVO_CONTROL_H
 
-void sync_servos(unsigned short servo_number);
+// Waits for the Servos to be Synced
+void sync_servos(uint8_t servo_number);
+
+// Intialize Moter and Servo Timers Through This Function
 void motor_setup();
-void change_motor_speed(unsigned short motor_num, int speed);
-void set_servo_angle(unsigned short servo_num, unsigned position);
+
+// These Functions Set the Speed of the Specified Moter/Servo
+// The Speed is Clamped to Values Between -100 and 100
+void control_motors_joystick(uint8_t ver_val, uint8_t hor_val);
+void change_motor_speed(uint8_t motor_num, byte speed);
+void set_servo_angle(uint8_t servo_num, byte speed);
+
+// Transform a Signed Byte Between -100 and 100 to an Unsigned Byte Centered Around 127
+// Also Performs Clamping of Speed Between -100 and 100
+uint8_t transformSpeed(byte speed);
 
 #endif
