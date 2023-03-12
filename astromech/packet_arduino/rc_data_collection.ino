@@ -287,6 +287,7 @@ bool receiver_loop() {
         // Decode Data into 11 bit channels
         // decodeData();
         reverse_decode();
+        //reverse_decode2();
 
         // print out the values of every channel into serial
         // for (int i = 0; i < 16; i++) {
@@ -449,6 +450,58 @@ void reverse_decode() {
 
     // copy channel data to global buffer
     //memcpy(channel, reverse_channel, 16 * sizeof(uint16_t));
+}
+
+void reverse_decode2() {
+    uint8_t reverse_channel[16];
+    uint32_t *temp_ptr32;
+    uint64_t *temp_ptr64;
+    uint64_t val;
+
+    // This function addresses memory using a 64-bit integer.  The idea
+    // is to reverse 8 bytes at a time for more efficiency.
+
+    // handle original bytes 1-8
+    temp_ptr64 = (uint64_t *)&complete_packet[1];
+    val = *temp_ptr64;
+    channel[0] = (val) & 0x7ff;
+    channel[1] = (val >> 11) & 0x7ff;
+    channel[2] = (val >> 22) & 0x7ff;
+    channel[3] = (val >> 33) & 0x7ff;
+    channel[4] = (val >> 44) & 0x7ff;
+
+    // handle original bytes 7-14
+    temp_ptr64 = (uint64_t *)&complete_packet[7];
+    val = *temp_ptr64;
+    channel[5] = (val >>  7) & 0x7ff;
+    channel[6] = (val >> 18) & 0x7ff;
+    channel[7] = (val >> 29) & 0x7ff;
+    channel[8] = (val >> 40) & 0x7ff;
+    channel[9] = (val >> 51) & 0x7ff;
+
+    // handle original bytes 14-21
+    temp_ptr64 = (uint64_t *)&complete_packet[14];
+    val = *temp_ptr64;
+    channel[10] = (val >>  6) & 0x7ff;
+    channel[11] = (val >> 17) & 0x7ff;
+    channel[12] = (val >> 28) & 0x7ff;
+    channel[13] = (val >> 39) & 0x7ff;
+    channel[14] = (val >> 50) & 0x7ff;
+
+    // handle original bytes 21-22
+    temp_ptr32 = (uint32_t *)&complete_packet[21];
+    channel[15] = (*temp_ptr32 >> 5) & 0x7ff;
+
+    // print out the results to compare the optimized vs. original version
+    // lcd.setCursor(0,0);
+    // lcd.print(channel[15]);
+    // lcd.print(" ");
+    // lcd.print(reverse_channel[15]);
+    // lcd.print(" ");
+
+    // lcd.print(channel[14]);
+    // lcd.print(" ");
+    // lcd.print(reverse_channel[14]);
 }
 
 void SERCOM2_Handler() {
