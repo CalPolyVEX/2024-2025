@@ -40,8 +40,6 @@ uint32_t last_rc_timeout_count =
     0; // holds the time (in milliseconds) of the last SBUS packet received
 uint32_t lost_rc_frame_count = 0; // the number of lost frames from the transmitter
 
-/* LED setup*/
-
 // Queue class
 // Implemented using a circular array
 #define QUEUE_BUFFER_SIZE 300
@@ -372,8 +370,6 @@ bool receiver_loop() {
             led_off(LED4);
             lost_rc_frame_count = 0; // reset the lost frame count
         }
-
-        // reverse_decode();
     } else { // if a valid frame received
         // if no new data received from the RC receiver in the last 1000ms,
         // then assume a RC receiver is unplugged and stop the motors
@@ -401,40 +397,7 @@ bool receiver_loop() {
 
 // The RC Receiver uses a protocol (SBUS) that transmits 11 bit channels
 // This function decodes the 11 bit channels from the byte-sized serial transmissions
-void decodeData() {
-    // this mess decodes the data bytes into actual channel values
-    channel[0] = (complete_packet[1] | complete_packet[2] << 8) & 0x7FF;
-    channel[1] = (complete_packet[2] >> 3 | complete_packet[3] << 5) & 0x7FF;
-    channel[2] =
-        (complete_packet[3] >> 6 | complete_packet[4] << 2 | complete_packet[5] << 10) & 0x7FF;
-    channel[3] = (complete_packet[5] >> 1 | complete_packet[6] << 7) & 0x7FF;
-    channel[4] = (complete_packet[6] >> 4 | complete_packet[7] << 4) & 0x7FF;
-    channel[5] =
-        (complete_packet[7] >> 7 | complete_packet[8] << 1 | complete_packet[9] << 9) & 0x7FF;
-    channel[6] = (complete_packet[9] >> 2 | complete_packet[10] << 6) & 0x7FF;
-    channel[7] = (complete_packet[10] >> 5 | complete_packet[11] << 3) & 0x7FF;
-    channel[8] = (complete_packet[12] | complete_packet[13] << 8) & 0x7FF;
-    channel[9] = (complete_packet[13] >> 3 | complete_packet[14] << 5) & 0x7FF;
-    channel[10] =
-        (complete_packet[14] >> 6 | complete_packet[15] << 2 | complete_packet[16] << 10) & 0x7FF;
-    channel[11] = (complete_packet[16] >> 1 | complete_packet[17] << 7) & 0x7FF;
-    channel[12] = (complete_packet[17] >> 4 | complete_packet[18] << 4) & 0x7FF;
-    channel[13] =
-        (complete_packet[18] >> 7 | complete_packet[19] << 1 | complete_packet[20] << 9) & 0x7FF;
-    channel[14] = (complete_packet[20] >> 2 | complete_packet[21] << 6) & 0x7FF;
-    channel[15] = (complete_packet[21] >> 5 | complete_packet[22] << 3) & 0x7FF;
-}
-
 void reverse_decode() {
-    // this is a function to test decoding of the SBUS packets in reverse byte order
-    uint16_t reverse_channel[16];
-
-    // for (int i=0; i<25; i++) {
-    //     complete_packet[i] = 100+i;  // fill in with dummy data
-    // }
-
-    // decodeData(); // decode using the standard approach
-
     uint32_t *temp_ptr;
 
     // The ARM architecture automatically reverses the byte order when loading a
@@ -443,60 +406,49 @@ void reverse_decode() {
 
     // handle original bytes 1-4
     temp_ptr = (uint32_t *)&complete_packet[1];
-    reverse_channel[0] = (*temp_ptr) & 0x7ff;
-    reverse_channel[1] = (*temp_ptr >> 11) & 0x7ff;
+    channel[0] = (*temp_ptr) & 0x7ff;
+    channel[1] = (*temp_ptr >> 11) & 0x7ff;
 
     // handle original bytes 3-6
     temp_ptr = (uint32_t *)&complete_packet[3];
-    reverse_channel[2] = (*temp_ptr >> 6) & 0x7ff;
-    reverse_channel[3] = (*temp_ptr >> 17) & 0x7ff;
+    channel[2] = (*temp_ptr >> 6) & 0x7ff;
+    channel[3] = (*temp_ptr >> 17) & 0x7ff;
 
     // handle original bytes 6-9
     temp_ptr = (uint32_t *)&complete_packet[6];
-    reverse_channel[4] = (*temp_ptr >> 4) & 0x7ff;
+    channel[4] = (*temp_ptr >> 4) & 0x7ff;
 
     // handle original bytes 7-10
     temp_ptr = (uint32_t *)&complete_packet[7];
-    reverse_channel[5] = (*temp_ptr >> 7) & 0x7ff;
-    reverse_channel[6] = (*temp_ptr >> 18) & 0x7ff;
+    channel[5] = (*temp_ptr >> 7) & 0x7ff;
+    channel[6] = (*temp_ptr >> 18) & 0x7ff;
 
     // handle original bytes 10-13
     temp_ptr = (uint32_t *)&complete_packet[10];
-    reverse_channel[7] = (*temp_ptr >> 5) & 0x7ff;
-    reverse_channel[8] = (*temp_ptr >> 16) & 0x7ff;
+    channel[7] = (*temp_ptr >> 5) & 0x7ff;
+    channel[8] = (*temp_ptr >> 16) & 0x7ff;
 
     // handle original bytes 13-16
     temp_ptr = (uint32_t *)&complete_packet[13];
-    reverse_channel[9] = (*temp_ptr >> 3) & 0x7ff;
-    reverse_channel[10] = (*temp_ptr >> 14) & 0x7ff;
+    channel[9] = (*temp_ptr >> 3) & 0x7ff;
+    channel[10] = (*temp_ptr >> 14) & 0x7ff;
 
     // handle original bytes 16-19
     temp_ptr = (uint32_t *)&complete_packet[16];
-    reverse_channel[11] = (*temp_ptr >> 1) & 0x7ff;
-    reverse_channel[12] = (*temp_ptr >> 12) & 0x7ff;
+    channel[11] = (*temp_ptr >> 1) & 0x7ff;
+    channel[12] = (*temp_ptr >> 12) & 0x7ff;
 
     // handle original bytes 18-21
     temp_ptr = (uint32_t *)&complete_packet[18];
-    reverse_channel[13] = (*temp_ptr >> 7) & 0x7ff;
-    reverse_channel[14] = (*temp_ptr >> 18) & 0x7ff;
+    channel[13] = (*temp_ptr >> 7) & 0x7ff;
+    channel[14] = (*temp_ptr >> 18) & 0x7ff;
 
     // handle original bytes 21-22
     temp_ptr = (uint32_t *)&complete_packet[21];
-    reverse_channel[15] = (*temp_ptr >> 5) & 0x7ff;
-
-    // print out the results to compare the optimized vs. original version
-    // lcd.setCursor(0,0);
-    // lcd.print(channel[15]);
-    // lcd.print(" ");
-    // lcd.print(reverse_channel[15]);
-    // lcd.print(" ");
-
-    // lcd.print(channel[14]);
-    // lcd.print(" ");
-    // lcd.print(reverse_channel[14]);
+    channel[15] = (*temp_ptr >> 5) & 0x7ff;
 
     // copy channel data to global buffer
-    memcpy(channel, reverse_channel, 16 * sizeof(uint16_t));
+    //memcpy(channel, reverse_channel, 16 * sizeof(uint16_t));
 }
 
 void SERCOM2_Handler() {
