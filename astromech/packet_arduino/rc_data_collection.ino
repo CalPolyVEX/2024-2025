@@ -32,9 +32,9 @@
  */
 
 // used for counter to stop reading data and allow the data to be stored
-volatile boolean newData = false;
+volatile boolean new_sbus_packet = false;
 // temporary data storage var
-volatile uint16_t regCont;
+volatile uint16_t incoming_rc_byte; // a temporary for the incoming RC data
 volatile boolean stayInPC = false;
 uint32_t last_rc_timeout_count =
     0; // holds the time (in milliseconds) of the last SBUS packet received
@@ -140,7 +140,7 @@ private:
 Queue queue;
 
 // Array for a Complete SBUS Packet
-uint8_t complete_packet[25];
+uint8_t sbus_packet[25];
 
 // Array for channel data
 uint16_t channel[16];
@@ -212,8 +212,7 @@ void receiver_setup() {
     GCLK->GENDIV.reg =
         GCLK_GENDIV_DIV(6) | // Divide the 48MHz clock source by divisor 6: 48MHz/6=8MHz
         GCLK_GENDIV_ID(3);   // Select Generic Clock (GCLK) 3
-    GCLK->GENCTRL.reg = GCLK_GENCTRL_SRC_DFLL48M | // use OSC8M as clock source (with division
-                                                   // factor of 8, a 1MHz signal is made)
+    GCLK->GENCTRL.reg = GCLK_GENCTRL_SRC_DFLL48M | // use DFLL48M as clock source
                         GCLK_GENCTRL_GENEN |       // indicates the generator should be started
                         GCLK_GENCTRL_ID(3);        // apply this all to the proper generator
     // connect to specified gclock mux
@@ -264,16 +263,16 @@ bool receiver_loop() {
     static bool pc_mode = false;
     static uint16_t logic_eng_idx = -1;
 
-    if (newData) {
+    if (new_sbus_packet) {
 
-        // Disable newData flag
-        newData = false;
+        // Disable new_sbus_packet flag
+        new_sbus_packet = false;
 
         // Dequeue values into array
-        queue.dequeue_array(25, complete_packet);
+        queue.dequeue_array(25, sbus_packet);
 
         // Test if packet is valid, reset if not
-        if (!(complete_packet[0] == 0x0F && complete_packet[24] == 0x0)) {
+        if (!(sbus_packet[0] == 0x0F && sbus_packet[24] == 0x0)) {
             queue.reset();
             return 3;
         }
@@ -341,18 +340,18 @@ bool receiver_loop() {
             led_off(LED2);
         }
 
-        // reset the header and footer of the complete_packet buffer by
+        // reset the header and footer of the sbus_packet buffer by
         // setting the bytes to incorrect values and this prevents reusing 
         // data from a previous packet
-        complete_packet[0] = 0;
-        complete_packet[24] = 0xff;
+        sbus_packet[0] = 0;
+        sbus_packet[24] = 0xff;
 
         channel[TOGGL_CHNL] = 0;
 
         // reset the RC timeout timer
         last_rc_timeout_count = millis();
 
-        if ((complete_packet[23] & 0x04) != 0) { // if the lost frame bit is set
+        if ((sbus_packet[23] & 0x04) != 0) { // if the lost frame bit is set
             lost_rc_frame_count++;
 
             // if the frames are lost for about 1 second (100 frames), then
@@ -368,16 +367,21 @@ bool receiver_loop() {
             }
 
             lcd.setCursor(0, 1);
-            lcd.print("lost RC frames: ");
+            lcd.print("lost RC frames:");
             lcd.print(lost_rc_frame_count);
         } else {
             led_off(LED3);
             led_off(LED4);
             lost_rc_frame_count = 0; // reset the lost frame count
         }
-    } else { // if a valid frame received
+
+        // lcd.setCursor(0, 3);
+        // lcd.print("time:");
+        // lcd.print(process_time);
+        // lcd.print(" ");
+    } else { 
         // if no new data received from the RC receiver in the last 1000ms,
-        // then assume a RC receiver is unplugged and stop the motors
+        // then assume the RC receiver is unplugged and stop the motors
         if (millis() > (last_rc_timeout_count + 1000)) {
             led_off(LED1);
             led_off(LED2);
@@ -410,46 +414,46 @@ void reverse_decode() {
     // long as a pointer to a uint32_t is used to reference the data.
 
     // handle original bytes 1-4
-    temp_ptr = (uint32_t *)&complete_packet[1];
+    temp_ptr = (uint32_t *)&sbus_packet[1];
     channel[0] = (*temp_ptr) & 0x7ff;
     channel[1] = (*temp_ptr >> 11) & 0x7ff;
 
     // handle original bytes 3-6
-    temp_ptr = (uint32_t *)&complete_packet[3];
+    temp_ptr = (uint32_t *)&sbus_packet[3];
     channel[2] = (*temp_ptr >> 6) & 0x7ff;
     channel[3] = (*temp_ptr >> 17) & 0x7ff;
 
     // handle original bytes 6-9
-    temp_ptr = (uint32_t *)&complete_packet[6];
+    temp_ptr = (uint32_t *)&sbus_packet[6];
     channel[4] = (*temp_ptr >> 4) & 0x7ff;
 
     // handle original bytes 7-10
-    temp_ptr = (uint32_t *)&complete_packet[7];
+    temp_ptr = (uint32_t *)&sbus_packet[7];
     channel[5] = (*temp_ptr >> 7) & 0x7ff;
     channel[6] = (*temp_ptr >> 18) & 0x7ff;
 
     // handle original bytes 10-13
-    temp_ptr = (uint32_t *)&complete_packet[10];
+    temp_ptr = (uint32_t *)&sbus_packet[10];
     channel[7] = (*temp_ptr >> 5) & 0x7ff;
     channel[8] = (*temp_ptr >> 16) & 0x7ff;
 
     // handle original bytes 13-16
-    temp_ptr = (uint32_t *)&complete_packet[13];
+    temp_ptr = (uint32_t *)&sbus_packet[13];
     channel[9] = (*temp_ptr >> 3) & 0x7ff;
     channel[10] = (*temp_ptr >> 14) & 0x7ff;
 
     // handle original bytes 16-19
-    temp_ptr = (uint32_t *)&complete_packet[16];
+    temp_ptr = (uint32_t *)&sbus_packet[16];
     channel[11] = (*temp_ptr >> 1) & 0x7ff;
     channel[12] = (*temp_ptr >> 12) & 0x7ff;
 
     // handle original bytes 18-21
-    temp_ptr = (uint32_t *)&complete_packet[18];
+    temp_ptr = (uint32_t *)&sbus_packet[18];
     channel[13] = (*temp_ptr >> 7) & 0x7ff;
     channel[14] = (*temp_ptr >> 18) & 0x7ff;
 
     // handle original bytes 21-22
-    temp_ptr = (uint32_t *)&complete_packet[21];
+    temp_ptr = (uint32_t *)&sbus_packet[21];
     channel[15] = (*temp_ptr >> 5) & 0x7ff;
 
     // copy channel data to global buffer
@@ -466,7 +470,7 @@ void reverse_decode2() {
     // is to reverse 8 bytes at a time for more efficiency.
 
     // handle original bytes 1-8
-    temp_ptr64 = (uint64_t *)&complete_packet[1];
+    temp_ptr64 = (uint64_t *)&sbus_packet[1];
     val = *temp_ptr64;
     channel[0] = (val) & 0x7ff;
     channel[1] = (val >> 11) & 0x7ff;
@@ -475,7 +479,7 @@ void reverse_decode2() {
     channel[4] = (val >> 44) & 0x7ff;
 
     // handle original bytes 7-14
-    temp_ptr64 = (uint64_t *)&complete_packet[7];
+    temp_ptr64 = (uint64_t *)&sbus_packet[7];
     val = *temp_ptr64;
     channel[5] = (val >>  7) & 0x7ff;
     channel[6] = (val >> 18) & 0x7ff;
@@ -484,7 +488,7 @@ void reverse_decode2() {
     channel[9] = (val >> 51) & 0x7ff;
 
     // handle original bytes 14-21
-    temp_ptr64 = (uint64_t *)&complete_packet[14];
+    temp_ptr64 = (uint64_t *)&sbus_packet[14];
     val = *temp_ptr64;
     channel[10] = (val >>  6) & 0x7ff;
     channel[11] = (val >> 17) & 0x7ff;
@@ -493,7 +497,7 @@ void reverse_decode2() {
     channel[14] = (val >> 50) & 0x7ff;
 
     // handle original bytes 21-22
-    temp_ptr32 = (uint32_t *)&complete_packet[21];
+    temp_ptr32 = (uint32_t *)&sbus_packet[21];
     channel[15] = (*temp_ptr32 >> 5) & 0x7ff;
 
     // print out the results to compare the optimized vs. original version
@@ -509,26 +513,29 @@ void reverse_decode2() {
 }
 
 void SERCOM2_Handler() {
-    // Collect Data from RC Receiver and store in RegCont
-    regCont = SERCOM2->USART.DATA.bit.DATA;
-    queue.enqueue(regCont);
+    // This interrupt handler is called every 120us after a new
+    // byte is received from the RC receiver
 
-    // Start TC from Top Value
-    TC3->COUNT16.COUNT.reg = 2000;
+    // Collect data from RC receiver and store in incoming_rc_byte
+    incoming_rc_byte = SERCOM2->USART.DATA.bit.DATA;
+    queue.enqueue(incoming_rc_byte);
+
+    // Start TC from Top Value - this interrupt will trigger if no new bytes
+    // are received after 2000/8MHz = 250us
+    TC3->COUNT16.COUNT.reg = 2000; 
 
     // retrigger
     TC3->COUNT16.CTRLBSET.bit.CMD = 0x1;
-
-    // if(queue.get_data_size() == 25) {
-    //     // SerialUSB.println("new data\n");
-    //     newData = true;
-    // }
 }
 
 void TC3_Handler() {
+    // This interrupt handler is triggered after the last byte of an SBUS
+    // packet is received.  The serial input will go idle and TC3 countdown
+    // will trigger.
+
     // Clear Flag
     TC3->COUNT16.INTFLAG.bit.OVF = 1;
 
     // Decode
-    newData = true;
+    new_sbus_packet = true;
 }
