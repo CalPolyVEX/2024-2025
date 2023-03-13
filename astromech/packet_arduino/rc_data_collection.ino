@@ -341,8 +341,12 @@ bool receiver_loop() {
             led_off(LED2);
         }
 
-        // reset the complete_packet buffer
-        // complete_packet[0] = 0;
+        // reset the header and footer of the complete_packet buffer by
+        // setting the bytes to incorrect values and this prevents reusing 
+        // data from a previous packet
+        complete_packet[0] = 0;
+        complete_packet[24] = 0xff;
+
         channel[TOGGL_CHNL] = 0;
 
         // reset the RC timeout timer
