@@ -306,9 +306,9 @@ bool receiver_loop() {
 
             /* motor control */
             // convert from 11 bit to 8 bit before calling control motors
-            uint8_t ver_8bit = channel[6] * 255 / 2047;
-            uint8_t hor_8bit = channel[7] * 255 / 2047;
-            uint8_t dome_servo_8bit = channel[4] * 255 / 2047; // dome "servo"
+            uint8_t ver_8bit = channel[6] >> 3;
+            uint8_t hor_8bit = channel[7] >> 3;
+            uint8_t dome_servo_8bit = channel[4] >> 3; // dome "servo"
             // input motor values
             control_motors_joystick(ver_8bit, hor_8bit);
 
