@@ -36,13 +36,13 @@ volatile boolean new_sbus_packet = false;
 // temporary data storage var
 volatile uint16_t incoming_rc_byte; // a temporary for the incoming RC data
 volatile boolean stayInPC = false;
-uint32_t last_rc_timeout_count =
+uint32_t last_sbus_valid_time =
     0; // holds the time (in milliseconds) of the last SBUS packet received
 uint32_t lost_rc_frame_count = 0; // the number of lost frames from the transmitter
 
 // Queue class
 // Implemented using a circular array
-#define QUEUE_BUFFER_SIZE 300
+#define QUEUE_BUFFER_SIZE 250 // should not be bigger than a uint8_t (255)
 class Queue {
 public:
     // Initialize Queue Object
@@ -348,8 +348,9 @@ bool receiver_loop() {
 
         channel[TOGGL_CHNL] = 0;
 
-        // reset the RC timeout timer
-        last_rc_timeout_count = millis();
+        // reset the RC timeout timer by recording the time that the last
+        // valid SBUS packet was received
+        last_sbus_valid_time = millis();
 
         if ((sbus_packet[23] & 0x04) != 0) { // if the lost frame bit is set
             lost_rc_frame_count++;
@@ -382,7 +383,7 @@ bool receiver_loop() {
     } else { 
         // if no new data received from the RC receiver in the last 1000ms,
         // then assume the RC receiver is unplugged and stop the motors
-        if (millis() > (last_rc_timeout_count + 1000)) {
+        if (millis() > (last_sbus_valid_time + 1000)) {
             led_off(LED1);
             led_off(LED2);
             led_on(LED3);
