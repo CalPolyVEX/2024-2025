@@ -1,39 +1,49 @@
 #include "motor_servo_control.h"
 // C++ code
-// wavelength from peak to peak in Hz
+// The TCC0 (servos) and TCC1 (motors) timers run at 48MHz.  The period of the 
+// PWM period of the left/right motors and servos is 48000000/960000 = 50Hz.
 const uint32_t MOTOR_WAVELENGTH = 960000;
-// value in Hz of high length when speed = 100% backwards (For Full Range Value
-// is 47997, Lowered for Safety)
+
+// The MOTOR_BASE_TIME is the default on time for a servo/motor signal.  
+// The computation for the signal 'on' time is:  
+// MOTOR_BASE_TIME + (MOTOR_CHANGE_CONST * motor_value) / 48000000, so the
+// default 'on' time for a servo in neutral position is:
+//
+// 54220 + (140 * 127) = 72000, and 72000/48000000 = 1.5ms (neutral servo position)
+//
 const float MOTOR_BASE_TIME = 54220;
-// multiplied by percentage to get change in range of wavelength needed (For
+
+// multiplied by the motor_value to get change in range of wavelength needed (For
 // Full Range Value is 189, Lowered for Safety)
 float MOTOR_CHANGE_CONST = 140;
+
 // range is 27 (100% backward) to 127 (0% speed) to 227 (100% forward) for left
-// motor
-unsigned int motor_percentage_1 = 127;
+// motor, initialize to the stopped value of 127
+unsigned int motor_value_left = 127;
+
 // range is 27 (100% backward) to 127 (0% speed) to 227 (100% forward) for right
-// motor
-unsigned int motor_percentage_2 = 127;
+// motor, initialize to the stopped value of 127
+unsigned int motor_value_right = 127;
+
 // Same as Above but for Servos
-unsigned int servo_percentages[4] = {127, 127, 127, 127};
+unsigned int servo_value[4] = {127, 127, 127, 127};
+
 // The current angle of the servos
 // unsigned int current_servo_position[4] = {0, 0, 0, 0};
-// The survos will move until their current angle matches these values
+// The servos will move until their current angle matches these values
 // unsigned int target_servo_position[4] = {0, 0, 0, 0};
 // unsigned int waveform_map[4] = {0, 2, 1, 3};
 // The Servo Waveform Output indexed by servo number
 unsigned int waveform_map[4] = {3, 1, 2, 0};
-// WARNING: Only Use Values Between 27 and 227 For Motor Percentage To Keep Motor
+// WARNING: Only Use Values Between 27 and 227 For Motor Value To Keep Motor
 // in Bounds
 
-// Left Motor: Pin 9 (PA07)   On PCB: D9
-// Right Motor: Pin 8 (PA06)  On PCB: D8
-// Servo 0: Pin 4 (PA08)      On PCB: D7 (PA21) WO[7]
-// Servo 1: Pin 3 (PA09)      On PCB: D5 (PA15) WO[5]
-// Servo 2: Pin 10 (PA18)     On PCB: D6 (PA20) WO[6]
-// Servo 3: Pin 12 (PA19)     On PCB: A3 (PA04) WO[0]
-
-// float theta = 0;
+// Left Motor:  On PCB: D9 (PA07)
+// Right Motor: On PCB: D8 (PA06) 
+// Servo 0:     On PCB: D7 (PA21) WO[7]
+// Servo 1:     On PCB: D5 (PA15) WO[5]
+// Servo 2:     On PCB: D6 (PA20) WO[6]
+// Servo 3:     On PCB: A3 (PA04) WO[0]
 
 // Wait for Servo Wavelengths to Sync
 void sync_servos(uint8_t servo_number) {
@@ -95,8 +105,7 @@ void motor_setup() {
     };
 
     // The PER register determines the period of the PWM
-    // uint32_t period = 960000; //48000000/2400 = 20KHz
-
+    // uint32_t period = 960000; //48000000/960000 = 50Hz
     TCC1->PER.reg = MOTOR_WAVELENGTH; // this is a 24-bit register
     while (TCC1->SYNCBUSY.bit.PER) {
     };
@@ -105,9 +114,9 @@ void motor_setup() {
     // Left Motor
 
     // Set the duty cycle to controller speeds
-    // this set the on time of the PWM cycle based on the motor_percentage set by
+    // this set the on time of the PWM cycle based on the motor value set by
     // the controller
-    TCC1->CC[1].reg = MOTOR_BASE_TIME + (MOTOR_CHANGE_CONST * motor_percentage_1);
+    TCC1->CC[1].reg = MOTOR_BASE_TIME + (MOTOR_CHANGE_CONST * motor_value_left);
     while (TCC1->SYNCBUSY.bit.CC1) {
     };
 
@@ -125,10 +134,11 @@ void motor_setup() {
 
     ///////////////////////////////
     // Right Motor
+
     // Set the duty cycle to controller speeds
-    // this set the on time of the PWM cycle based on the motor_percentage set by
+    // this set the on time of the PWM cycle based on the motor value set by
     // the controller
-    TCC1->CC[0].reg = MOTOR_BASE_TIME + (MOTOR_CHANGE_CONST * motor_percentage_2);
+    TCC1->CC[0].reg = MOTOR_BASE_TIME + (MOTOR_CHANGE_CONST * motor_value_right);
     while (TCC1->SYNCBUSY.bit.CC0) {
     };
 
@@ -163,7 +173,7 @@ void motor_setup() {
     };
 
     // The PER register determines the period of the PWM
-    // uint32_t period = 960000; //48000000/2400 = 20KHz
+    // uint32_t period = 960000; //48000000/960000 = 50Hz
 
     TCC0->PER.reg = MOTOR_WAVELENGTH; // this is a 24-bit register
     while (TCC0->SYNCBUSY.bit.PER) {
@@ -231,8 +241,8 @@ void motor_setup() {
         TCC0->CC[waveform_map[i]].reg =
             MOTOR_BASE_TIME +
             (MOTOR_CHANGE_CONST *
-             servo_percentages[i]); // this set the on time of the PWM cycle based
-                                    // on the motor_percentage set by the controller
+             servo_value[i]); // this set the on time of the PWM cycle based
+                                    // on the motor_value set by the controller
         sync_servos(i);
     }
 
@@ -263,30 +273,28 @@ void control_motors_joystick(uint8_t ver_val, uint8_t hor_val) {
 
 // Sets Motor Speed
 void change_motor_speed(uint8_t motor_num, byte speed) {
-
     // Left Motor
     if (motor_num) {
-
-        // Calculate speed percentage
-        motor_percentage_1 = transformSpeed(speed);
+        // Calculate speed value
+        motor_value_left = transformSpeed(speed);
 
         // Update timer values
         TCC1->CC[0].reg =
             MOTOR_BASE_TIME +
-            (MOTOR_CHANGE_CONST * motor_percentage_1); // this sets the on time of the PWM cycle
+            (MOTOR_CHANGE_CONST * motor_value_left); // this sets the on time of the PWM cycle
         while (TCC1->SYNCBUSY.bit.CC0) {
         };
     }
 
     // Right Motor
     else {
-        // Calculate speed percentage
-        motor_percentage_2 = 255 - transformSpeed(speed);
+        // Calculate speed value
+        motor_value_right = 255 - transformSpeed(speed);
 
         // Update timer values
         TCC1->CC[1].reg =
             MOTOR_BASE_TIME +
-            (MOTOR_CHANGE_CONST * motor_percentage_2); // this set the on time of the PWM cycle
+            (MOTOR_CHANGE_CONST * motor_value_right); // this set the on time of the PWM cycle
         while (TCC1->SYNCBUSY.bit.CC1) {
         };
     }
@@ -294,13 +302,13 @@ void change_motor_speed(uint8_t motor_num, byte speed) {
 
 // Sets Servo Angle
 void set_servo_angle(uint8_t servo_num, byte speed) {
-    // Change Percentage
-    servo_percentages[servo_num] = transformSpeed(speed);
+    // Change Value
+    servo_value[servo_num] = transformSpeed(speed);
 
     // Update Servo
     TCC0->CC[waveform_map[servo_num]].reg =
         MOTOR_BASE_TIME + (MOTOR_CHANGE_CONST *
-                           servo_percentages[servo_num]); // this sets the on time of the PWM cycle
+                           servo_value[servo_num]); // this sets the on time of the PWM cycle
     sync_servos(servo_num);
 }
 
