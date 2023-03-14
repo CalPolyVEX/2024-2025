@@ -380,6 +380,8 @@ bool receiver_loop() {
         // lcd.print("time:");
         // lcd.print(process_time);
         // lcd.print(" ");
+        //print_all_channels();
+        //delay(10);
     } else { 
         // if no new data received from the RC receiver in the last 1000ms,
         // then assume the RC receiver is unplugged and stop the motors
@@ -539,4 +541,16 @@ void TC3_Handler() {
 
     // Decode
     new_sbus_packet = true;
+}
+
+void print_all_channels() {
+    // display all 16 RC channels to the LCD
+    char buf[30];
+
+    for (int i=0; i<4; i++) {
+        lcd.setCursor(0,i);
+        sprintf(buf, "%4d %4d %4d %4d ", channel[4*i+0], channel[4*i+1],
+            channel[4*i+2], channel[4*i+3]);
+        lcd.print(buf);
+    }
 }
