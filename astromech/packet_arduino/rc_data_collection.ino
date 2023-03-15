@@ -274,7 +274,7 @@ bool receiver_loop() {
         // Test if packet is valid, reset if not
         if (!(sbus_packet[0] == 0x0F && sbus_packet[24] == 0x0)) {
             queue.reset();
-            return 3;
+            return false;
         }
 
         // TROUBLESHOOTING: print out the values of every channel into serial
