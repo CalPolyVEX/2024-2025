@@ -47,11 +47,13 @@
 | Left Motor Command  | 0xFF  | 1 | 0 | motor speed | CRC1 | CRC2 | | |
 | Right Motor Command | 0xFF  | 1 | 1 | motor speed | CRC1 | CRC2 | | |
 | Set Servo | 0xFF  | 2 | 2 | servo number | servo position | CRC1 | CRC2 | |
-| Set LCD Cursor | 0xFF  | 1 | 3 | column (upper 6 bits), row (lower 2 bits) | CRC1 | CRC2 | |
-| Print String | 0xFF  | n | 4 | n-byte payload | CRC1 | CRC2 | |
-| Set Cursor & Print String | 0xFF  | n | 5 | col (upper 6 bits), row (lower 2 bits) | (n-1)-byte string | CRC1 | CRC2 | |
-| Clear Screen | 0xFF  | 0 | 6 | CRC1 | CRC2 | |
-| Logic Engine Preset | 0xFF  | 1 | 7 | byte 1 | CRC1 | CRC2 | |
-| Logic Engine Raw Command | 0xFF  | 4 | 8 | byte 1 | byte 2 | byte 3 | byte 4 | CRC1 | CRC2 | |
-| Play Tsunami Sound | 0xFF  | 2 | 9 | byte 1 | byte 2 | CRC1 | CRC2 | |
-| Set Amplifier Gain | 0xFF  | 1 | 10 | byte 1 | CRC1 | CRC2 | |
+| Set LCD Cursor | 0xFF  | 1 | 10 | column (upper 6 bits), row (lower 2 bits) | CRC1 | CRC2 | |
+| Print String | 0xFF  | n | 11 | n-byte payload | CRC1 | CRC2 | |
+| Set Cursor & Print String | 0xFF  | n | 12 | col (upper 6 bits), row (lower 2 bits) | (n-1)-byte string | CRC1 | CRC2 | |
+| Clear Screen | 0xFF  | 0 | 13 | CRC1 | CRC2 | |
+| Logic Engine Preset | 0xFF  | 1 | 20 | byte 1 | CRC1 | CRC2 | |
+| Logic Engine Raw Command | 0xFF  | 4 | 21 | byte 1 | byte 2 | byte 3 | byte 4 | CRC1 | CRC2 | |
+| Play Tsunami Sound | 0xFF  | 2 | 30 | byte 1 | byte 2 | CRC1 | CRC2 | |
+| Set Amplifier Gain | 0xFF  | 1 | 31 | byte 1 | CRC1 | CRC2 | |
+| PSI Pro | 0xFF  | 1 | 40 | byte 1 | CRC1 | CRC2 | |
+| REON | 0xFF  | 1 | 50 | byte 1 | CRC1 | CRC2 | |
