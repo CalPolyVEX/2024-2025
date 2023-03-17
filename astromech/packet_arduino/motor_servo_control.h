@@ -10,11 +10,11 @@ void motor_setup();
 // These Functions Set the Speed of the Specified Motor/Servo
 // The Speed is Clamped to Values Between -100 and 100
 void control_motors_joystick(uint8_t ver_val, uint8_t hor_val);
-void change_motor_speed(uint8_t motor_num, byte speed);
-void set_servo_angle(uint8_t servo_num, byte speed);
+void change_motor_speed(uint8_t motor_num, int8_t speed);
+void set_servo_angle(uint8_t servo_num, int8_t speed);
 
 // Transform a Signed Byte Between -100 and 100 to an Unsigned Byte Centered Around 127
 // Also Performs Clamping of Speed Between -100 and 100
-uint8_t transformSpeed(byte speed);
+uint8_t transformSpeed(int8_t speed);
 
 #endif
