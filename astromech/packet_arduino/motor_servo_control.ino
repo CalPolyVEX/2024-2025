@@ -272,7 +272,7 @@ void control_motors_joystick(uint8_t ver_val, uint8_t hor_val) {
 }
 
 // Sets Motor Speed
-void change_motor_speed(uint8_t motor_num, byte speed) {
+void change_motor_speed(uint8_t motor_num, int8_t speed) {
     // Left Motor
     if (motor_num) {
         // Calculate speed value
@@ -301,7 +301,7 @@ void change_motor_speed(uint8_t motor_num, byte speed) {
 }
 
 // Sets Servo Angle
-void set_servo_angle(uint8_t servo_num, byte speed) {
+void set_servo_angle(uint8_t servo_num, int8_t speed) {
     // Change Value
     servo_value[servo_num] = transformSpeed(speed);
 
@@ -314,7 +314,7 @@ void set_servo_angle(uint8_t servo_num, byte speed) {
 
 // Transform a Signed Byte Between -100 and 100 to an Unsigned Byte Centered Around 127
 // Also Performs Clamping of Speed Between -100 and 100
-uint8_t transformSpeed(byte speed) {
+uint8_t transformSpeed(int8_t speed) {
     // Clamp Speed Between -100 and 100
     if (speed > 100)
         speed = 100;
