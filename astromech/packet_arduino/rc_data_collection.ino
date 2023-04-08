@@ -18,6 +18,9 @@
 // logic engine macros
 #define LOGIC_CHNL 2 // channel for controlling the logic engine
 
+// PSI macros
+// #define PSI_CHNL 6 // channel for controlling the logic engine [WIP]
+
 /*
  * USING
  *  Sercom instance: SERCOM2
@@ -314,6 +317,17 @@ bool receiver_loop() {
             /* change servo values*/
             set_servo_angle(DOME_SERVO_NUM, dome_servo_8bit);
 
+            /* logic engine control */
+            uint16_t temp_logic_idx;
+            if (logic_eng_idx != (temp_logic_idx = channel[LOGIC_CHNL] * 9 / 2046)) {
+                logic_eng_idx = temp_logic_idx;
+                SerialUSB.println(logic_eng_idx);
+                sendLogicEngineCommand(logic_eng_idx);
+            }
+
+            /* soundboard control */
+            // WIP
+
             /* REON Holoprojector control */
             uint16_t reon_val = channel[REON_CHNL];
             if (reon_val == REON_MID)
@@ -326,12 +340,12 @@ bool receiver_loop() {
             send_reon_command(reon_val, HP_TOP_ADDR);
             send_reon_command(reon_val, HP_REAR_ADDR);
 
-            /* logic engine control */
-            uint16_t temp_logic_idx;
-            if (logic_eng_idx != (temp_logic_idx = channel[LOGIC_CHNL] * 9 / 2046)) {
-                logic_eng_idx = temp_logic_idx;
-                sendLogicEngineCommand(logic_eng_idx);
-            }
+            /* PSI control [WIP]*/
+            // uint16_t psi_val, temp_psi_val;
+            // if (psi_val != (temp_psi_val = channel[PSI_CHNL])) {
+            //     psi_val = temp_psi_val;
+            //     sendPSICommand(psi_val);
+            // }
 
             // stay in receiver mode
             pc_mode = false;
