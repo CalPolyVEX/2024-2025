@@ -10,7 +10,7 @@
 #include <Wire.h>
 #include <hd44780.h>                       // main hd44780 header
 #include <hd44780ioClass/hd44780_I2Cexp.h> // i2c expander i/o class header
-
+#include "nvm_control.h"
 #include "tsunami_control.h"
 
 #define LCD_COLS 20

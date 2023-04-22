@@ -24,7 +24,7 @@ void setup() {
         delay(1000);
         lcd.setCursor(0, 0);
         lcd.print("Astromech");
-    }
+    }*/
 
     // init for onboard LEDs
     setup_i2c();
