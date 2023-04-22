@@ -288,8 +288,8 @@ bool receiver_loop() {
         // SerialUSB.println(" ");
         // Decode Data into 11 bit channels
         // decodeData();
-        reverse_decode();
-        //reverse_decode2();
+        // reverse_decode();
+        reverse_decode2();
 
         // print out the values of every channel into serial
         // for (int i = 0; i < 16; i++) {

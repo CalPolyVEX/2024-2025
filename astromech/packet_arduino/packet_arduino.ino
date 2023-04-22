@@ -1,7 +1,6 @@
 #include "packet_arduino.h"
 
 hd44780_I2Cexp lcd(LCD_ADDRESS); // declare lcd object: auto locate & auto config expander chip
-
 void setup() {
     delay(1000); // give the computer to detect the board before using serial
 
@@ -17,11 +16,10 @@ void setup() {
     motor_setup();
     receiver_setup();
 
-    int status;
-    //status = lcd.begin(LCD_COLS, LCD_ROWS);
+    int lcd_status;
+    lcd_status = lcd.begin(LCD_COLS, LCD_ROWS);
     // non zero status means it was unsuccesful
-    /*
-    if (status) {
+    if (lcd_status) {
         lcd.clear();
         delay(1000);
         lcd.setCursor(0, 0);
@@ -46,21 +44,50 @@ void setup() {
             led_off(i);
         }
     }
+
+    for (int i = 5; i < 15; i++) {
+        uint8_t val = btn_read(i);
+        lcd.clear();
+        delay(1000);
+        lcd.setCursor(0, 0);
+        lcd.print(i);
+        lcd.print(" ");
+        lcd.print(val);
+    }
+
+    // check for debug mode activation
+    int debug_status = btn_read(DB1); // get DB1 value
+    if(debug_status && lcd_status) {
+        delay(1000);
+        lcd.setCursor(1, 0);
+        lcd.print("Debug Mode Initiated");
+        debug_loop();
+        exit(0);
+    } else {
+        delay(1000);
+        lcd.setCursor(1, 0);
+        lcd.print("Receiver Mode Initiated");
+    }
 }
 
 void loop() {
-    static int i = 0;
+
+    /* NOTE: data cannot be sent by serial from PC
+    to arduino if the VSCode serial monitor is open*/
+
+    // Receiver Mode
+    pc_get_input(receiver_loop());
+
+}
+
+// old loop() contents
     // if (rc_toggle) {
-    // eval_rc_input()
+        // eval_rc_input()
     // } else {}
 
     // Computer Input Mode
     // pc_get_input();
     // receiver_loop();
-
-    // Receiver Mode
-    pc_get_input(receiver_loop());
-
     // if(i == 0) {
     //     send_reon_command(REON_WHITE, 27);
     //     delay(3000);
@@ -105,4 +132,3 @@ void loop() {
     //     get_input();
     // }
     // prev = cur;
-}
