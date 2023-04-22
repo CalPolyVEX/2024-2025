@@ -18,14 +18,15 @@ void setup() {
     receiver_setup();
 
     int status;
-    status = lcd.begin(LCD_COLS, LCD_ROWS);
+    //status = lcd.begin(LCD_COLS, LCD_ROWS);
     // non zero status means it was unsuccesful
+    /*
     if (status) {
         lcd.clear();
         delay(1000);
         lcd.setCursor(0, 0);
         lcd.print("Astromech");
-    }
+    }*/
 
     // init for onboard LEDs
     setup_i2c();
