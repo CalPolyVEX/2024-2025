@@ -255,24 +255,39 @@ void motor_setup() {
 /** Control motors using joystick
  * currently, the range of ver_val and hor_val is between 0 and 255
  */
-void control_motors_joystick(uint8_t ver_val, uint8_t hor_val) {
+void control_motors_joystick(uint16_t ver_val, uint16_t hor_val) {
     // These calculations might need to be
     // changed based on calibrations!!
     // center both values at 0
-    int16_t hor_val_origin = hor_val - 127;
-    int16_t left_motor = (int16_t)ver_val + hor_val_origin;
-    int16_t right_motor = (int16_t)ver_val - hor_val_origin;
+    int16_t hor_val_origin = hor_val - 124;
+    int16_t ver_val_origin = ver_val - 124;
+    int16_t left_motor = ver_val_origin + hor_val_origin;
+    int16_t right_motor = ver_val_origin - hor_val_origin;
     // The Clamping of Values is Now Done in the Motor Servo Control
     // ver_val represents throttle, hor_val represents steering
 
+    int16_t left_speed = ((left_motor * 100) >> 9);
+    int16_t right_speed = ((right_motor * 100) >> 9);
+
+    // Clamp Speed if Less Than 3
+    if (abs(left_speed) < 3)
+      left_speed = 0;
+    if (abs(right_speed) < 3)
+      right_speed = 0;
+
+    // SerialUSB.print(left_speed);
+    // SerialUSB.print(" ");
+    // SerialUSB.print(right_speed);
+    // SerialUSB.print("\n");
+
     // set left motor: throttle + steering
-    change_motor_speed(0, left_motor - 127);
+    change_motor_speed(0, -left_speed);
     // set right motor: throttle - steering
-    change_motor_speed(1, right_motor - 127);
+    change_motor_speed(1, -right_speed);
 }
 
 // Sets Motor Speed
-void change_motor_speed(uint8_t motor_num, int8_t speed) {
+void change_motor_speed(uint8_t motor_num, int16_t speed) {
     // Left Motor
     if (motor_num) {
         // Calculate speed value
@@ -301,7 +316,7 @@ void change_motor_speed(uint8_t motor_num, int8_t speed) {
 }
 
 // Sets Servo Angle
-void set_servo_angle(uint8_t servo_num, int8_t speed) {
+void set_servo_angle(uint8_t servo_num, int16_t speed) {
     // Change Value
     servo_value[servo_num] = transformSpeed(speed);
 
@@ -314,7 +329,7 @@ void set_servo_angle(uint8_t servo_num, int8_t speed) {
 
 // Transform a Signed Byte Between -100 and 100 to an Unsigned Byte Centered Around 127
 // Also Performs Clamping of Speed Between -100 and 100
-uint8_t transformSpeed(int8_t speed) {
+uint8_t transformSpeed(int16_t speed) {
     // Clamp Speed Between -100 and 100
     if (speed > 100)
         speed = 100;
