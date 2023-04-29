@@ -16,9 +16,11 @@ void setup() {
     motor_setup();
     receiver_setup();
 
+
     int lcd_status;
     lcd_status = lcd.begin(LCD_COLS, LCD_ROWS);
     // non zero status means it was unsuccesful
+    /*
     if (lcd_status) {
         lcd.clear();
         delay(1000);

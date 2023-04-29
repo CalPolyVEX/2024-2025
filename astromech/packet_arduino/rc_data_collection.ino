@@ -281,22 +281,23 @@ bool receiver_loop() {
         }
 
         // TROUBLESHOOTING: print out the values of every channel into serial
-        // for (int i = 0; i < 16; i++) {
-        //     SerialUSB.print(channel[i]);
-        //     SerialUSB.print(" ");
-        // }
-        // SerialUSB.println(" ");
-        // Decode Data into 11 bit channels
-        // decodeData();
-        // reverse_decode();
+        //for (int i = 0; i < 16; i++) {
+        //    SerialUSB.print(channel[i]);
+        //    SerialUSB.print(" ");
+        //}
+        //SerialUSB.println(" ");
+
+        //Decode Data into 11 bit channels
+        //decodeData();
+        //reverse_decode();
         reverse_decode2();
 
         // print out the values of every channel into serial
         // for (int i = 0; i < 16; i++) {
-        //     SerialUSB.print(channel[i]);
-        //     SerialUSB.print(" ");
-        // }
-        // SerialUSB.println(" ");
+        //      SerialUSB.print(channel[i]);
+        //      SerialUSB.print(" ");
+        //  }
+        //  SerialUSB.println(" ");
 
         if (channel[TOGGL_CHNL] == TOGGL_VAL_PC) {
             led_on(LED2);
@@ -308,11 +309,18 @@ bool receiver_loop() {
 
             /* motor control */
             // convert from 11 bit to 8 bit before calling control motors
-            uint8_t ver_8bit = channel[6] >> 3;
-            uint8_t hor_8bit = channel[7] >> 3;
-            uint8_t dome_servo_8bit = channel[4] >> 3; // dome "servo"
+            uint16_t ver_8bit = channel[6] >> 3;
+            uint16_t hor_8bit = channel[7] >> 3;
+            //uint8_t dome_servo_8bit = channel[4] >> 3; // dome "servo"
+            int16_t dome_servo_8bit = (channel[4] - 995) >> 4;
             // input motor values
+            //SerialUSB.print(dome_servo_8bit);
+            //SerialUSB.print("  ");
             control_motors_joystick(ver_8bit, hor_8bit);
+            //SerialUSB.print(hor_8bit);
+            //SerialUSB.print("  ");
+            //SerialUSB.print(ver_8bit);
+            //SerialUSB.print("\n");
 
             /* change servo values*/
             set_servo_angle(DOME_SERVO_NUM, dome_servo_8bit);
@@ -378,6 +386,7 @@ bool receiver_loop() {
                 led_on(LED4);
                 change_motor_speed(0, 0);
                 change_motor_speed(1, 0);
+                set_servo_angle(0, 0);
                 queue.reset();
             }
 
@@ -406,6 +415,7 @@ bool receiver_loop() {
             led_on(LED4);
             change_motor_speed(0, 0);
             change_motor_speed(1, 0);
+            set_servo_angle(0, 0);
             queue.reset();
 
             lcd.clear();

@@ -1,11 +1,11 @@
 #include "debug_mode.h"
 
-TCA9534 ioex;
+extern TCA9534 ioex;
 
 uint8_t btn_read(int num) {
     /* reads the value of debug
     button DB1, 2, or 3*/
-    return ioex.input(num);
+    //return ioex.input(num);
 }
 
 void debug_loop() {
