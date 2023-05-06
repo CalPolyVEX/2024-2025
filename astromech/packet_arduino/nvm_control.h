@@ -39,12 +39,34 @@ private:
   const uint32_t flash_size;
 };
 
+class FlashStorageBase
+{
+  public:
+
+    virtual void read(void* data) { flash.read(data); }
+
+    virtual void write(void* data)
+    {
+      flash.erase();
+      flash.write(&data);
+    }
+
+
+  protected:
+
+    FlashStorageBase(const void* flash_addr, const int size)
+      : flash(flash_addr, size){};
+
+    FlashClass flash;
+};
+
 template <class T>
-class FlashStorageClass
+class FlashStorageClass : public FlashStorageBase
 {
 public:
-  FlashStorageClass(const void* flash_addr)
-    : flash(flash_addr, sizeof(T)){};
+  FlashStorageClass(const void* flash_addr) 
+    : FlashStorageBase(flash_addr, sizeof(T)){};
+    //: flash(flash_addr, sizeof(T)){};
 
   // Write data into flash memory.
   // Compiler is able to optimize parameter copy.
@@ -65,9 +87,6 @@ public:
     read(&data);
     return data;
   }
-
-private:
-  FlashClass flash;
 };
 
 #endif

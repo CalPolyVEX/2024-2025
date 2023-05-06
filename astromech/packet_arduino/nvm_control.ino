@@ -28,9 +28,6 @@
 // SO ROWS CAN BE ERASED. THE UNWRITTEN BUFFERS NEED TO BE
 // WRITTEN WITH THE NEW DATA TO PREVENT DATA LOSS
 
-// The Buffer for a Single Row
-byte row_buffer[256] = { 0 };
-
 static const uint32_t pageSizes[] = { 8, 16, 32, 64, 128, 256, 512, 1024 };
 
 FlashClass::FlashClass(const void* flash_addr, uint32_t size)

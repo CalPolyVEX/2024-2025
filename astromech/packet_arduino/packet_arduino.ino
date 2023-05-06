@@ -47,14 +47,16 @@ void setup() {
         }
     }
 
-    for (int i = 5; i < 15; i++) {
-        uint8_t val = btn_read(i);
-        lcd.clear();
-        delay(1000);
-        lcd.setCursor(0, 0);
-        lcd.print(i);
-        lcd.print(" ");
-        lcd.print(val);
+    while(1) {
+        for (int i = 5; i < 15; i++) {
+            uint8_t val = btn_read(i);
+            lcd.clear();
+            delay(1000);
+            lcd.setCursor(0, 0);
+            lcd.print(i);
+            lcd.print(" ");
+            lcd.print(val);
+        }
     }
 
     // check for debug mode activation
