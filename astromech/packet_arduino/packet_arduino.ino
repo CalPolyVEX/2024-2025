@@ -47,17 +47,18 @@ void setup() {
         }
     }
 
-    while(1) {
-        for (int i = 5; i < 15; i++) {
-            uint8_t val = btn_read(i);
-            lcd.clear();
-            delay(1000);
-            lcd.setCursor(0, 0);
-            lcd.print(i);
-            lcd.print(" ");
-            lcd.print(val);
-        }
-    }
+    // debug button testing
+    // DB0 -> 4, DB1 -> 5, DB2 -> 6
+    // while(1) {
+    //     for (int i = 4; i < 7; i++) {
+    //         uint8_t val = btn_read(i);
+    //         lcd.setCursor(0, i-4);
+    //         lcd.print(" ");
+    //         lcd.print(val);
+    //         delay(100);
+    //     }
+    //     // lcd.clear();
+    // }
 
     // check for debug mode activation
     int debug_status = btn_read(DB1); // get DB1 value
