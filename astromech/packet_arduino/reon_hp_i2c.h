@@ -11,3 +11,6 @@
 #define REON_ON 3    // on w/ random colors
 
 void send_reon_command(int cmd, int hp_addr);
+
+// Holoprojector Debug
+void update_holoprojector_debug(int value);

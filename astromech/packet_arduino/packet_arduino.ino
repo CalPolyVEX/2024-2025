@@ -47,12 +47,16 @@ void setup() {
         }
     }
 
+    // intialize debug buttons and functions
+    initialize_debug();
+
     // debug button testing
     // DB0 -> 4, DB1 -> 5, DB2 -> 6
     // while(1) {
     //     for (int i = 4; i < 7; i++) {
     //         uint8_t val = btn_read(i);
     //         lcd.setCursor(0, i-4);
+    //         lcd.print(i);
     //         lcd.print(" ");
     //         lcd.print(val);
     //         delay(100);
@@ -61,17 +65,18 @@ void setup() {
     // }
 
     // check for debug mode activation
-    int debug_status = btn_read(DB1); // get DB1 value
-    if(debug_status && lcd_status) {
-        delay(1000);
+    int debug_status = get_btn_val(DB2); // get DB2 value
+    if(!debug_status) {
         lcd.setCursor(1, 0);
-        lcd.print("Debug Mode Initiated");
+        lcd.print("Debug Mode Start");
+        delay(1000);
+        while (!get_btn_val(DB2)); // Wait for Button to Stop Being Pressed
         debug_loop();
         exit(0);
     } else {
-        delay(1000);
         lcd.setCursor(1, 0);
-        lcd.print("Receiver Mode Initiated");
+        lcd.print("Receiver Mode Start");
+        delay(1000);
     }
 }
 

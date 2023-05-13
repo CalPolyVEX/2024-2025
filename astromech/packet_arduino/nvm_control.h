@@ -48,7 +48,7 @@ class FlashStorageBase
     virtual void write(void* data)
     {
       flash.erase();
-      flash.write(&data);
+      flash.write(data);
     }
 
 

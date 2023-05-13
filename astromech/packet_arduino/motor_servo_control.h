@@ -23,4 +23,13 @@ void set_max_motor_speed(int new_max);
 // Sets the Motor Speed Scalar
 void set_motor_speed_scalar(int new_scalar);
 
+// Sets the Bias of the Motor Speed
+void set_motor_speed_bias(int new_bias);
+
+// Sets the Max Servo Speed from Debugger
+void set_max_servo_speed(int new_max);
+
+// Sets the Servo Speed Scalar
+void set_servo_speed_scalar(int new_scalar);
+
 #endif

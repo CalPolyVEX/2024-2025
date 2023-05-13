@@ -52,6 +52,9 @@ int min_motor_speed = -100;
 // Motor Speed Scalar
 int motor_speed_scalar = 0;
 
+// Bias for the Motor Speed
+int motor_speed_bias = 0;
+
 // Min/Max Servo Speed for Debugger
 int max_servo_speed = 100;
 int min_servo_speed = -100;
@@ -302,6 +305,11 @@ void control_motors_joystick(uint16_t ver_val, uint16_t hor_val) {
 
 // Sets Motor Speed
 void change_motor_speed(uint8_t motor_num, int16_t speed) {
+
+    // Apply the Bias
+    if (abs(speed) > 5)
+        speed += motor_speed_bias;
+
     // Left Motor
     if (motor_num) {
         // Calculate speed value
@@ -375,8 +383,28 @@ void set_max_motor_speed(int new_max)
     min_motor_speed = -absolute_max;
 }
 
+// Sets the Bias of the Motor Speed
+void set_motor_speed_bias(int new_bias)
+{
+    motor_speed_bias = new_bias;
+}
+
 // Sets the Motor Speed Scalar
 void set_motor_speed_scalar(int new_scalar)
 {
     motor_speed_scalar = abs(new_scalar);
+}
+
+// Sets the Max Servo Speed from Debugger
+void set_max_servo_speed(int new_max)
+{
+    int absolute_max = abs(new_max);
+    max_servo_speed = absolute_max;
+    min_servo_speed = -absolute_max;
+}
+
+// Sets the Servo Speed Scalar
+void set_servo_speed_scalar(int new_scalar)
+{
+    servo_speed_scalar = abs(new_scalar); 
 }

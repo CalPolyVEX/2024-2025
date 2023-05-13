@@ -10,3 +10,14 @@ void send_reon_command(int cmd, int hp_addr) {
 
     Wire.endTransmission(true);
 }
+
+// Holoprojector Debug
+void update_holoprojector_debug(int value)
+{
+    // Get the Address and the Color
+    int address = floor(value / 3);
+    int color = value - (3 * address);
+
+    // Send the Command
+    send_reon_command(color + REON_OFF, address + HP_FRNT_ADDR);
+}
