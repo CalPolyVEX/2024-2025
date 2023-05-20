@@ -40,7 +40,7 @@ uint8_t packet_size = 0;
 void setupLogicEngine() {
     PORT->Group[1].DIRSET.reg |= PORT_PB08;
     PORT->Group[1].OUTCLR.reg |= PORT_PB08;
-    // PORT->Group[1].DIR.reg |= PORT_PB08;
+    PORT->Group[1].DIR.reg |= PORT_PB08;
 
     NVIC_DisableIRQ(SERCOM4_IRQn);
 
@@ -127,6 +127,12 @@ void sendLogicEngineCommand(uint8_t preset_index) {
 
     // Reset Byte Index
     byte_index = 1;
+}
+
+// Send command to logic engine controller during debugging
+void update_logic_engine_debug(int value) {
+    // value matches up to preset indices
+    sendLogicEngineCommand(uint8_t(value));
 }
 
 void SERCOM4_Handler() {

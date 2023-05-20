@@ -28,4 +28,7 @@ void resetAmplifier();
 // Set the Gain of the Amplifier
 void setAmplifierGain(byte gain);
 
+// Debug Function for Tsunami
+void update_tsunami_debug(int value);
+
 #endif

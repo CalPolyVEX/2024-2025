@@ -24,3 +24,10 @@ void sendPSICommand(byte command)
     Wire.write('\r');   // End Character for Command
     Wire.endTransmission();
 }
+
+// Update PSI from debug
+void update_psi_debug(int value)
+{
+  // Send Command
+  sendPSICommand(value);
+}

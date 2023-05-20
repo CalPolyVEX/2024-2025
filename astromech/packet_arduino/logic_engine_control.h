@@ -11,4 +11,6 @@ void sendLogicEngineCommand(uint8_t command_major, uint8_t command_minor, uint8_
                             uint8_t speed);
 void sendLogicEngineCommand(uint8_t preset_index);
 
+void update_logic_engine_debug(int value);
+
 #endif

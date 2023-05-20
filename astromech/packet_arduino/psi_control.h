@@ -8,4 +8,7 @@
 
 void sendPSICommand(byte command);
 
+// Update PSI from debug
+void update_psi_debug(int value);
+
 #endif

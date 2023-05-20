@@ -45,6 +45,23 @@ unsigned int waveform_map[4] = {3, 1, 2, 0};
 // Servo 2:     On PCB: D6 (PA20) WO[6]
 // Servo 3:     On PCB: A3 (PA04) WO[0]
 
+// Min/Max Motor Speed for Debugger
+int max_motor_speed = 100;
+int min_motor_speed = -100;
+
+// Motor Speed Scalar
+int motor_speed_scalar = 0;
+
+// Bias for the Motor Speed
+int motor_speed_bias = 0;
+
+// Min/Max Servo Speed for Debugger
+int max_servo_speed = 100;
+int min_servo_speed = -100;
+
+// Servo Speed Scalar
+int servo_speed_scalar = 0;
+
 // Wait for Servo Wavelengths to Sync
 void sync_servos(uint8_t servo_number) {
     switch (servo_number) {
@@ -288,10 +305,15 @@ void control_motors_joystick(uint16_t ver_val, uint16_t hor_val) {
 
 // Sets Motor Speed
 void change_motor_speed(uint8_t motor_num, int16_t speed) {
+
+    // Apply the Bias
+    if (abs(speed) > 5)
+        speed += motor_speed_bias;
+
     // Left Motor
     if (motor_num) {
         // Calculate speed value
-        motor_value_left = transformSpeed(speed);
+        motor_value_left = transformSpeed(speed, min_motor_speed, max_motor_speed, motor_speed_scalar);
 
         // Update timer values
         TCC1->CC[0].reg =
@@ -304,7 +326,7 @@ void change_motor_speed(uint8_t motor_num, int16_t speed) {
     // Right Motor
     else {
         // Calculate speed value
-        motor_value_right = 255 - transformSpeed(speed);
+        motor_value_right = 255 - transformSpeed(speed, min_motor_speed, max_motor_speed, motor_speed_scalar);
 
         // Update timer values
         TCC1->CC[1].reg =
@@ -318,7 +340,7 @@ void change_motor_speed(uint8_t motor_num, int16_t speed) {
 // Sets Servo Angle
 void set_servo_angle(uint8_t servo_num, int16_t speed) {
     // Change Value
-    servo_value[servo_num] = transformSpeed(speed);
+    servo_value[servo_num] = transformSpeed(speed, min_servo_speed, max_servo_speed, servo_speed_scalar);
 
     // Update Servo
     TCC0->CC[waveform_map[servo_num]].reg =
@@ -329,13 +351,60 @@ void set_servo_angle(uint8_t servo_num, int16_t speed) {
 
 // Transform a Signed Byte Between -100 and 100 to an Unsigned Byte Centered Around 127
 // Also Performs Clamping of Speed Between -100 and 100
-uint8_t transformSpeed(int16_t speed) {
-    // Clamp Speed Between -100 and 100
-    if (speed > 100)
-        speed = 100;
-    else if (speed < -100)
-        speed = -100;
+uint8_t transformSpeed(int16_t speed, int min_speed, int max_speed, int scalar) {
+
+    // Apply the Scalar
+    if (speed > 0) {
+        speed += scalar;
+        if (speed < 0)
+            speed = 0;
+    }
+    else {
+        speed -= scalar;
+        if (speed > 0)
+            speed = 0;
+    }
+
+    // Clamp Speed Between Min and Max Speed
+    if (speed > max_speed)
+        speed = max_speed;
+    else if (speed < min_speed)
+        speed = min_speed;
 
     // Transform Value into an Unsigned Byte
     return 127 + speed;
+}
+
+// Sets the Max Motor Speed from Debugger
+void set_max_motor_speed(int new_max)
+{
+    int absolute_max = abs(new_max);
+    max_motor_speed = absolute_max;
+    min_motor_speed = -absolute_max;
+}
+
+// Sets the Bias of the Motor Speed
+void set_motor_speed_bias(int new_bias)
+{
+    motor_speed_bias = new_bias;
+}
+
+// Sets the Motor Speed Scalar
+void set_motor_speed_scalar(int new_scalar)
+{
+    motor_speed_scalar = abs(new_scalar);
+}
+
+// Sets the Max Servo Speed from Debugger
+void set_max_servo_speed(int new_max)
+{
+    int absolute_max = abs(new_max);
+    max_servo_speed = absolute_max;
+    min_servo_speed = -absolute_max;
+}
+
+// Sets the Servo Speed Scalar
+void set_servo_speed_scalar(int new_scalar)
+{
+    servo_speed_scalar = abs(new_scalar); 
 }
