@@ -1,6 +1,7 @@
 #include "debug_mode.h"
 #include "motor_servo_control.h"
 #include "reon_hp_i2c.h"
+#include "logic_engine_control.h"
 #include "packet_arduino.h"
 
 extern TCA9534 ioex;
@@ -9,6 +10,9 @@ struct DebugFunction
 {
     // The Address of the NVM Data
     FlashStorageBase* address;
+
+    /* Function Pointer for Quick Tests of Components */
+    void (*funct_ptr)(int);
 
     // The LCD Text to be Displayed When Selected
     char* lcd_text;
@@ -28,23 +32,23 @@ struct DebugFunction
 
 // Motor Min/Max Speed Debug
 FlashStorage(min_max_motor_speed_debug, int);
-char* min_max_motor_speed_text = "Min/Max Motor Spd: ";
+char* min_max_motor_speed_text = "Min/Max Motor Spd:";
 
 // Motor Speed Scalar Debug
 FlashStorage(motor_speed_scalar_debug, int);
-char* motor_speed_scalar_text = "Motor Spd Scalar: ";
+char* motor_speed_scalar_text = "Motor Spd Scalar:";
 
 // Motor Speed Bias Debug
 FlashStorage(motor_speed_bias_debug, int);
-char* motor_speed_bias_text = "Motor Spd Bias: ";
+char* motor_speed_bias_text = "Motor Spd Bias:";
 
 // Servo Min/Max Speed Debug
 FlashStorage(min_max_servo_speed_debug, int);
-char* min_max_servo_speed_text = "Min/Max Servo Spd: ";
+char* min_max_servo_speed_text = "Min/Max Servo Spd:";
 
 // Servo Speed Scalar Debug
 FlashStorage(servo_speed_scalar_debug, int);
-char* servo_speed_scalar_text = "Servo Spd Scalar: ";
+char* servo_speed_scalar_text = "Servo Spd Scalar:";
 
 // Logic Engine Debug
 FlashStorage(logic_engine_debug, int);
@@ -68,6 +72,9 @@ DebugFunction debug_list[DEBUG_MODE_COUNT];
 // The Current Index in the Look-Up Table
 int look_up_index = 0;
 
+/* Empty Function for Debug Functions Without a Test Function */
+void emtpy_debug_test_function(int value) {}
+
 void initialize_debug()
 {
     // Initialize All of the Debug Functions for the Look-Up Table
@@ -76,42 +83,73 @@ void initialize_debug()
     debug_list[MIN_MAX_MOTOR_SPEED_DEBUG].address = &min_max_motor_speed_debug;
     debug_list[MIN_MAX_MOTOR_SPEED_DEBUG].lcd_text = min_max_motor_speed_text;
     debug_list[MIN_MAX_MOTOR_SPEED_DEBUG].min_val = 0;
-    debug_list[MIN_MAX_MOTOR_SPEED_DEBUG].max_val = 0;
+    debug_list[MIN_MAX_MOTOR_SPEED_DEBUG].max_val = 126;
+    debug_list[MIN_MAX_MOTOR_SPEED_DEBUG].mod_val = 2;
+    debug_list[MIN_MAX_MOTOR_SPEED_DEBUG].funct_ptr = &emtpy_debug_test_function;
 
     // Initialize Motor Speed Scalar Debug
     debug_list[MOTOR_SPEED_SCALAR_DEBUG].address = &motor_speed_scalar_debug;
     debug_list[MOTOR_SPEED_SCALAR_DEBUG].lcd_text = motor_speed_scalar_text;
+    debug_list[MOTOR_SPEED_SCALAR_DEBUG].min_val = -30;
+    debug_list[MOTOR_SPEED_SCALAR_DEBUG].max_val = 30;
+    debug_list[MOTOR_SPEED_SCALAR_DEBUG].mod_val = 2;
+    debug_list[MOTOR_SPEED_SCALAR_DEBUG].funct_ptr = &emtpy_debug_test_function;
 
     // Initialize Motor Speed Bias Debug
     debug_list[MOTOR_SPEED_BIAS_DEBUG].address = &motor_speed_bias_debug;
     debug_list[MOTOR_SPEED_BIAS_DEBUG].lcd_text = motor_speed_bias_text;
+    debug_list[MOTOR_SPEED_SCALAR_DEBUG].min_val = -50;
+    debug_list[MOTOR_SPEED_SCALAR_DEBUG].max_val = 50;
+    debug_list[MOTOR_SPEED_SCALAR_DEBUG].mod_val = 2;
+    debug_list[MOTOR_SPEED_SCALAR_DEBUG].funct_ptr = &emtpy_debug_test_function;
 
     // Initialize Servo Speed Debug
     debug_list[MIN_MAX_SERVO_SPEED_DEBUG].address = &min_max_servo_speed_debug;
     debug_list[MIN_MAX_SERVO_SPEED_DEBUG].lcd_text = min_max_servo_speed_text;
+    debug_list[MIN_MAX_SERVO_SPEED_DEBUG].min_val = 0;
+    debug_list[MIN_MAX_SERVO_SPEED_DEBUG].max_val = 126;
+    debug_list[MIN_MAX_SERVO_SPEED_DEBUG].mod_val = 2;
+    debug_list[MIN_MAX_SERVO_SPEED_DEBUG].funct_ptr = &emtpy_debug_test_function;
 
     // Initialize Servo Speed Scalar Debug
     debug_list[SERVO_SPEED_SCALAR_DEBUG].address = &servo_speed_scalar_debug;
     debug_list[SERVO_SPEED_SCALAR_DEBUG].lcd_text = servo_speed_scalar_text;
+    debug_list[SERVO_SPEED_SCALAR_DEBUG].min_val = -30;
+    debug_list[SERVO_SPEED_SCALAR_DEBUG].max_val = 30;
+    debug_list[SERVO_SPEED_SCALAR_DEBUG].mod_val = 2;
+    debug_list[SERVO_SPEED_SCALAR_DEBUG].funct_ptr = &emtpy_debug_test_function;
 
     // Initialize Logic Engine Debug
     debug_list[LOGIC_ENGINE_DEBUG].address = &logic_engine_debug;
     debug_list[LOGIC_ENGINE_DEBUG].lcd_text = logic_engine_text;   
+    debug_list[LOGIC_ENGINE_DEBUG].min_val = 0;
+    debug_list[LOGIC_ENGINE_DEBUG].max_val = 8;
+    debug_list[LOGIC_ENGINE_DEBUG].mod_val = 1;
+    debug_list[LOGIC_ENGINE_DEBUG].funct_ptr = &update_logic_engine_debug;
     
     // Initialize Tsunami Debug
     debug_list[SOUNDBOARD_DEBUG].address = &tsunami_debug;
     debug_list[SOUNDBOARD_DEBUG].lcd_text = tsunami_text;   
-    
+    debug_list[SOUNDBOARD_DEBUG].min_val = 1;
+    debug_list[SOUNDBOARD_DEBUG].max_val = 16;
+    debug_list[SOUNDBOARD_DEBUG].mod_val = 1;
+    debug_list[SOUNDBOARD_DEBUG].funct_ptr = &update_tsunami_debug;
+
     // Initialize HP Debug
     debug_list[HOLOPROJECTOR_DEBUG].address = &hp_debug;
     debug_list[HOLOPROJECTOR_DEBUG].lcd_text = hp_text;   
     debug_list[HOLOPROJECTOR_DEBUG].min_val = 0;
     debug_list[HOLOPROJECTOR_DEBUG].max_val = 8;
     debug_list[HOLOPROJECTOR_DEBUG].mod_val = 1;
+    debug_list[HOLOPROJECTOR_DEBUG].funct_ptr = &update_holoprojector_debug;
 
     // Initialize PSI Debug
     debug_list[PSI_DEBUG].address = &psi_debug;
     debug_list[PSI_DEBUG].lcd_text = psi_text;
+    debug_list[PSI_DEBUG].min_val = 0;
+    debug_list[PSI_DEBUG].max_val = 16;
+    debug_list[PSI_DEBUG].mod_val = 1;
+    debug_list[PSI_DEBUG].funct_ptr = &update_psi_debug;
 
     // Read the Flash Detection Flag. If 0, Board Has Been Flashed
     FlashStorage(flash_detector, bool);
@@ -155,7 +193,8 @@ void initialize_debug()
     set_servo_speed_scalar(debug_list[SERVO_SPEED_SCALAR_DEBUG].value);
 
     // Update Holoprojector
-    update_holoprojector_debug(debug_list[HOLOPROJECTOR_DEBUG].value);
+    /* update_holoprojector_debug(debug_list[HOLOPROJECTOR_DEBUG].value);*/
+
 }
 
 void reset_to_default()
@@ -178,8 +217,17 @@ void reset_to_default()
     // Store Default Servo Speed Scalar
     debug_list[SERVO_SPEED_SCALAR_DEBUG].value = 0;
 
+    // Store Default Logic Engine Preset
+    debug_list[LOGIC_ENGINE_DEBUG].value = 0;
+
+    // Store Default Tsunami Sound
+    debug_list[SOUNDBOARD_DEBUG].value = 1;
+
     // Store Default Holoprojector Value
     debug_list[HOLOPROJECTOR_DEBUG].value = 0;
+
+    // Store Default PSI Value
+    debug_list[PSI_DEBUG].value = 0;
 
     // Write Each of the Values
     DebugFunction* end = debug_list + DEBUG_MODE_COUNT;
@@ -225,7 +273,8 @@ void debug_loop() {
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.write(debug_list[0].lcd_text);
-    lcd.write(debug_list[0].value + '0');
+    lcd.setCursor(0,1);
+    lcd.print(debug_list[0].value);
     lcd.write(" ");
     lcd.setCursor(0,3);
     lcd.write("...selecting...");
@@ -265,6 +314,10 @@ void debug_loop() {
 
                 // Write to Flash
                 debug_list[debug_idx].address->write(&debug_list[debug_idx].value);
+
+                // If Test Function Exists, Call It
+                debug_list[debug_idx].funct_ptr(debug_list[debug_idx].value);
+
             } else if(!db0) {
                 // decrease value
                 debug_list[debug_idx].value -= debug_list[debug_idx].mod_val;
@@ -272,7 +325,7 @@ void debug_loop() {
                     // overshooting case handling
                     debug_list[debug_idx].value = debug_list[debug_idx].min_val;
                     // indicate minimum reached
-                    lcd.setCursor(0, 1);
+                    lcd.setCursor(0, 2);
                     lcd.write("Min value!");
                     delay(500);
                 }
@@ -283,7 +336,7 @@ void debug_loop() {
                     // overshooting case handling
                     debug_list[debug_idx].value = debug_list[debug_idx].max_val;
                     // indicate maximum reached
-                    lcd.setCursor(0, 1);
+                    lcd.setCursor(0, 2);
                     lcd.write("Max value!");
                     delay(500);
                 }
@@ -295,10 +348,9 @@ void debug_loop() {
             // update LCD
             lcd.clear();
             lcd.setCursor(0, 0);
-            //lcd.write(debug_idx + '0');
-            //lcd.write(" ");
             lcd.write(debug_list[debug_idx].lcd_text);
-            lcd.write(debug_list[debug_idx].value + '0');
+            lcd.setCursor(0,1);
+            lcd.print(debug_list[debug_idx].value);
             lcd.write(" ");
             lcd.setCursor(0,3);
             if(mod_check)

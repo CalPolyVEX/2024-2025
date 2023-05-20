@@ -84,3 +84,10 @@ void resetAmplifier() {
 
 // Set the Gain of the Amplifier
 void setAmplifierGain(byte gain) { writeAmplifierRegister(5, gain & 63); }
+
+// Debug Function for Tsunami
+void update_tsunami_debug(int value)
+{
+    // Send Command Based on Value With Volume of 10
+    playTsunamiSound(value, 10);
+}
