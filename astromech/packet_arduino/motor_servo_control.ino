@@ -311,7 +311,7 @@ void change_motor_speed(uint8_t motor_num, int16_t speed) {
         speed += motor_speed_bias;
 
     // Left Motor
-    if (motor_num) {
+    if (!motor_num) {
         // Calculate speed value
         motor_value_left = transformSpeed(speed, min_motor_speed, max_motor_speed, motor_speed_scalar);
 
@@ -372,7 +372,7 @@ uint8_t transformSpeed(int16_t speed, int min_speed, int max_speed, int scalar) 
         speed = min_speed;
 
     // Transform Value into an Unsigned Byte
-    return 127 + speed;
+    return 127 - speed;
 }
 
 // Sets the Max Motor Speed from Debugger
