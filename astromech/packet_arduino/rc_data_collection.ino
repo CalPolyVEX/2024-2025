@@ -1,25 +1,34 @@
 #include "rc_data_collection.h"
 
+// drive motor channels
+#define FORWARD_CHNL 6
+#define TURNING_CHNL 7
+
 // PC/RC toggle macros
-#define DOME_SERVO 4
+#define DOME_SERVO 14
 #define DOME_SERVO_NUM 0
 
 // channel for determining whether to get input from RC or PC
-#define TOGGL_CHNL 5
-#define TOGGL_VAL_RC 995  // toggle to RC
-#define TOGGL_VAL_PC 1529 // toggle to PC
+#define TOGGL_CHNL 15
+#define TOGGL_VAL_RC 0    // toggle to RC
+#define TOGGL_VAL_PC 2046 // toggle to PC
 
 // REON holoprojector macros
-#define REON_CHNL 3    // channel for controlling the REON holoprojectors
-#define REON_LOW 461   // maps to REON_OFF
+#define REON_CHNL 13   // channel for controlling the REON holoprojectors
+#define REON_LOW 0     // maps to REON_OFF
 #define REON_MID 995   // maps to REON_ON
-#define REON_HIGH 1529 // maps to REON_WHITE
+#define REON_HIGH 2046 // maps to REON_WHITE
 
 // logic engine macros
 #define LOGIC_CHNL 2 // channel for controlling the logic engine
 
 // PSI macros
 // #define PSI_CHNL 6 // channel for controlling the logic engine [WIP]
+
+// SBUS packet format defines
+#define SBUS_HEADER_BYTE 0
+#define SBUS_FOOTER_BYTE 24
+#define SBUS_FRAME_FAILSAFE_BYTE 23
 
 /*
  * USING
@@ -42,102 +51,6 @@ volatile boolean stayInPC = false;
 uint32_t last_sbus_valid_time =
     0; // holds the time (in milliseconds) of the last SBUS packet received
 uint32_t lost_rc_frame_count = 0; // the number of lost frames from the transmitter
-
-// Queue class
-// Implemented using a circular array
-#define QUEUE_BUFFER_SIZE 250 // should not be bigger than a uint8_t (255)
-class Queue {
-public:
-    // Initialize Queue Object
-    Queue() {
-        // Set Head and Tail Initial Values
-        head = 0;
-        tail = 0;
-        data_size = 0;
-
-        dummy_var = 0;
-    }
-
-    // Enqueue data
-    void enqueue(uint8_t new_data) {
-        // If buffer is full, error
-        if (data_size == QUEUE_BUFFER_SIZE) {
-            return;
-        }
-
-        // Insert Data and Increment Head
-        buffer[head] = new_data;
-        data_size++;
-        head++;
-
-        // If head is outside buffer size, go back to start of array
-        if (head > QUEUE_BUFFER_SIZE)
-            head = 0;
-    }
-
-    // Dequeue Data
-    uint8_t dequeue() {
-        // If buffer is Empty, error
-        if (!data_size) {
-            return 0xf;
-        }
-
-        // Read Data and Increment Tail
-        dummy_var = buffer[tail];
-        data_size--;
-        tail++;
-
-        // If tail is outside buffer size, go back to start of array
-        if (tail > QUEUE_BUFFER_SIZE)
-            tail = 0;
-
-        // Return data
-        return dummy_var;
-    }
-
-    // Dequeues Data into Array
-    uint8_t dequeue_array(unsigned int size, uint8_t *array) {
-        // Test if there is sufficient data
-        if (data_size < size) {
-            return 0xf;
-        }
-
-        for (unsigned int i = 0; i < size; i++) {
-            // Read Data and Increment Tail
-            array[i] = buffer[tail];
-            buffer[tail] = 0;
-            data_size--;
-            tail++;
-
-            // If tail is outside buffer size, go back to start of array
-            if (tail > QUEUE_BUFFER_SIZE)
-                tail = 0;
-        }
-    }
-
-    // Reset the queue
-    void reset() {
-        // Set Head and Tail Initial Values
-        head = 0;
-        tail = 0;
-        data_size = 0;
-    }
-
-    uint8_t get_data_size() { return data_size; }
-
-private:
-    // Circular Array
-    uint8_t buffer[QUEUE_BUFFER_SIZE + 1];
-
-    // Head and Tail Markers
-    uint8_t head;
-    uint8_t tail;
-
-    // Number of Data in Buffer
-    uint8_t data_size;
-
-    uint8_t dummy_var;
-};
 
 // Queue object (acts as a serial buffer)
 Queue queue;
@@ -265,17 +178,32 @@ bool receiver_loop() {
 
     static bool pc_mode = false;
     static uint16_t logic_eng_idx = -1;
+    static int print_channel_counter = 0;
+    static bool print_channels_mode = false;
+    static int receiver_mode_counter = 0;
+
+    // If DB0 is pressed while the code is running, the RC channel information
+    // will be displayed on the LCD
+    if (print_channel_counter == 300) { //periodically check is button 0 is held down
+        print_channel_counter = 0;
+
+        //if the button is held down, then toggle displaying the channels
+        if (get_btn_val(DB0) == 0) { 
+            print_channels_mode = !print_channels_mode; 
+        } 
+    } else {
+        print_channel_counter++;
+    }
 
     if (new_sbus_packet) {
-
-        // Disable new_sbus_packet flag
+        // Reset new_sbus_packet flag
         new_sbus_packet = false;
 
         // Dequeue values into array
         queue.dequeue_array(25, sbus_packet);
 
         // Test if packet is valid, reset if not
-        if (!(sbus_packet[0] == 0x0F && sbus_packet[24] == 0x0)) {
+        if (!(sbus_packet[SBUS_HEADER_BYTE] == 0x0F && sbus_packet[SBUS_FOOTER_BYTE] == 0x0)) {
             queue.reset();
             return false;
         }
@@ -288,8 +216,6 @@ bool receiver_loop() {
         //SerialUSB.println(" ");
 
         //Decode Data into 11 bit channels
-        //decodeData();
-        //reverse_decode();
         reverse_decode2();
 
         // print out the values of every channel into serial
@@ -299,20 +225,41 @@ bool receiver_loop() {
         //  }
         //  SerialUSB.println(" ");
 
-        if (channel[TOGGL_CHNL] == TOGGL_VAL_PC) {
+        if (channel[TOGGL_CHNL] == TOGGL_VAL_PC) { // if the toggle is set to receive commands from the PC
+            // indicate receiving RC signals with a blinking LED
+            if (receiver_mode_counter > 125) {
+                receiver_mode_counter = 0;
+                led_off(LED1);
+            } else if (receiver_mode_counter > 120) {
+                receiver_mode_counter++;
+                led_on(LED1);
+            } else {
+                receiver_mode_counter++;
+            }
+
             led_on(LED2);
             pc_mode = true;
-        } else if (channel[TOGGL_CHNL] == TOGGL_VAL_RC) {
-            // indicate receiver mode
-            led_on(LED1);
-            led_off(LED2);
+        } else if (channel[TOGGL_CHNL] == TOGGL_VAL_RC) { // if the toggle is set to receive commands from the RC transmitter
+            // indicate receiving RC signals with a blinking LED
+            if (receiver_mode_counter > 125) {
+                receiver_mode_counter = 0;
+                led_off(LED1);
+            } else if (receiver_mode_counter > 120) {
+                receiver_mode_counter++;
+                led_on(LED1);
+            } else {
+                receiver_mode_counter++;
+                led_off(LED2);
+            }
 
             /* motor control */
             // convert from 11 bit to 8 bit before calling control motors
-            uint16_t ver_8bit = channel[6] >> 3;
-            uint16_t hor_8bit = channel[7] >> 3;
+            uint16_t ver_8bit = channel[FORWARD_CHNL] >> 3;
+            uint16_t hor_8bit = channel[TURNING_CHNL] >> 3;
             //uint8_t dome_servo_8bit = channel[4] >> 3; // dome "servo"
-            int16_t dome_servo_8bit = (channel[4] - 995) >> 4;
+            //int16_t dome_servo_8bit = (channel[4] - 995) >> 4;
+            int16_t dome_servo_8bit = (channel[DOME_SERVO] - 999) >> 4;
+
             // input motor values
             //SerialUSB.print(dome_servo_8bit);
             //SerialUSB.print("  ");
@@ -344,9 +291,13 @@ bool receiver_loop() {
                 reon_val = REON_WHITE;
             else
                 reon_val = REON_OFF;
-            send_reon_command(reon_val, HP_FRNT_ADDR);
-            send_reon_command(reon_val, HP_TOP_ADDR);
-            send_reon_command(reon_val, HP_REAR_ADDR);
+
+            // send the REON command periodically and not with every packet
+            if (receiver_mode_counter == 100) { 
+                send_reon_command(reon_val, HP_FRNT_ADDR);
+                send_reon_command(reon_val, HP_TOP_ADDR);
+                send_reon_command(reon_val, HP_REAR_ADDR);
+            }
 
             /* PSI control [WIP]*/
             // uint16_t psi_val, temp_psi_val;
@@ -365,16 +316,21 @@ bool receiver_loop() {
         // reset the header and footer of the sbus_packet buffer by
         // setting the bytes to incorrect values and this prevents reusing 
         // data from a previous packet
-        sbus_packet[0] = 0;
-        sbus_packet[24] = 0xff;
+        sbus_packet[SBUS_HEADER_BYTE] = 0;
+        sbus_packet[SBUS_FOOTER_BYTE] = 0xff;
+        if (print_channels_mode == true) {
+            print_all_channels();
+        }
 
-        channel[TOGGL_CHNL] = 0;
+        //reset the RC/PC toggle to an undefined value of 2047
+        channel[TOGGL_CHNL] = 2047; 
 
         // reset the RC timeout timer by recording the time that the last
         // valid SBUS packet was received
         last_sbus_valid_time = millis();
 
-        if ((sbus_packet[23] & 0x04) != 0) { // if the lost frame bit is set
+        // if the lost frame bit is set
+        if ((sbus_packet[SBUS_FRAME_FAILSAFE_BYTE] & 0x04) != 0) { 
             lost_rc_frame_count++;
 
             // if the frames are lost for about 1 second (100 frames), then
@@ -399,12 +355,6 @@ bool receiver_loop() {
             lost_rc_frame_count = 0; // reset the lost frame count
         }
 
-        // lcd.setCursor(0, 3);
-        // lcd.print("time:");
-        // lcd.print(process_time);
-        // lcd.print(" ");
-        //print_all_channels();
-        //delay(10);
     } else { 
         // if no new data received from the RC receiver in the last 1000ms,
         // then assume the RC receiver is unplugged and stop the motors
@@ -431,64 +381,7 @@ bool receiver_loop() {
     return pc_mode;
 }
 
-// The RC Receiver uses a protocol (SBUS) that transmits 11 bit channels
-// This function decodes the 11 bit channels from the byte-sized serial transmissions
-void reverse_decode() {
-    uint32_t *temp_ptr;
-
-    // The ARM architecture automatically reverses the byte order when loading a
-    // uint32_t.  This means we do not have to reverse the byte order manually as
-    // long as a pointer to a uint32_t is used to reference the data.
-
-    // handle original bytes 1-4
-    temp_ptr = (uint32_t *)&sbus_packet[1];
-    channel[0] = (*temp_ptr) & 0x7ff;
-    channel[1] = (*temp_ptr >> 11) & 0x7ff;
-
-    // handle original bytes 3-6
-    temp_ptr = (uint32_t *)&sbus_packet[3];
-    channel[2] = (*temp_ptr >> 6) & 0x7ff;
-    channel[3] = (*temp_ptr >> 17) & 0x7ff;
-
-    // handle original bytes 6-9
-    temp_ptr = (uint32_t *)&sbus_packet[6];
-    channel[4] = (*temp_ptr >> 4) & 0x7ff;
-
-    // handle original bytes 7-10
-    temp_ptr = (uint32_t *)&sbus_packet[7];
-    channel[5] = (*temp_ptr >> 7) & 0x7ff;
-    channel[6] = (*temp_ptr >> 18) & 0x7ff;
-
-    // handle original bytes 10-13
-    temp_ptr = (uint32_t *)&sbus_packet[10];
-    channel[7] = (*temp_ptr >> 5) & 0x7ff;
-    channel[8] = (*temp_ptr >> 16) & 0x7ff;
-
-    // handle original bytes 13-16
-    temp_ptr = (uint32_t *)&sbus_packet[13];
-    channel[9] = (*temp_ptr >> 3) & 0x7ff;
-    channel[10] = (*temp_ptr >> 14) & 0x7ff;
-
-    // handle original bytes 16-19
-    temp_ptr = (uint32_t *)&sbus_packet[16];
-    channel[11] = (*temp_ptr >> 1) & 0x7ff;
-    channel[12] = (*temp_ptr >> 12) & 0x7ff;
-
-    // handle original bytes 18-21
-    temp_ptr = (uint32_t *)&sbus_packet[18];
-    channel[13] = (*temp_ptr >> 7) & 0x7ff;
-    channel[14] = (*temp_ptr >> 18) & 0x7ff;
-
-    // handle original bytes 21-22
-    temp_ptr = (uint32_t *)&sbus_packet[21];
-    channel[15] = (*temp_ptr >> 5) & 0x7ff;
-
-    // copy channel data to global buffer
-    //memcpy(channel, reverse_channel, 16 * sizeof(uint16_t));
-}
-
 void reverse_decode2() {
-    uint8_t reverse_channel[16];
     uint32_t *temp_ptr32;
     uint64_t *temp_ptr64;
     uint64_t val;
@@ -526,17 +419,6 @@ void reverse_decode2() {
     // handle original bytes 21-22
     temp_ptr32 = (uint32_t *)&sbus_packet[21];
     channel[15] = (*temp_ptr32 >> 5) & 0x7ff;
-
-    // print out the results to compare the optimized vs. original version
-    // lcd.setCursor(0,0);
-    // lcd.print(channel[15]);
-    // lcd.print(" ");
-    // lcd.print(reverse_channel[15]);
-    // lcd.print(" ");
-
-    // lcd.print(channel[14]);
-    // lcd.print(" ");
-    // lcd.print(reverse_channel[14]);
 }
 
 void SERCOM2_Handler() {
