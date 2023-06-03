@@ -21,20 +21,20 @@
 // No Need for a Timer
 
 // Array of Bytes
-uint8_t transmit_bytes[13] = {'~', 'R', 'T', 'L', 'E', '0', '0', '0', '0', '0', '0', '0', 13};
+uint8_t l_engine_transmit_bytes[13] = {'~', 'R', 'T', 'L', 'E', '0', '0', '0', '0', '0', '0', '0', 13};
 
 // List of Predefined Commands
-uint8_t logic_engine_commands[9][4] = {
+uint8_t l_engine_commands[9][4] = {
     {'0', '5', '1', '5'}, {'0', '5', '2', '5'}, {'0', '5', '3', '5'},
     {'0', '5', '4', '5'}, {'0', '5', '5', '5'}, {'0', '5', '6', '5'},
     {'0', '5', '7', '5'}, {'0', '5', '8', '5'}, {'0', '5', '9', '5'},
 };
 
 // Index in Byte Array
-uint8_t byte_index = 0;
+uint8_t l_engine_byte_index = 0;
 
 // The Size of the Current Byte Packet
-uint8_t packet_size = 0;
+uint8_t l_engine_packet_size = 0;
 
 // Setup the USART for the Logic Engine Controller
 void setupLogicEngine() {
@@ -96,37 +96,37 @@ void setupLogicEngine() {
                                                              // recieving is complete
 
     // Reset Byte Index
-    byte_index = 0;
+    l_engine_byte_index = 0;
 }
 
 // Send Command to Logic Engine Controller
 void sendLogicEngineCommand(uint8_t command_major, uint8_t command_minor, uint8_t color,
                             uint8_t speed) {
     // Copy Data of Package Parameter to Transmit Bytes Array
-    transmit_bytes[6] = command_major;
-    transmit_bytes[7] = command_minor;
-    transmit_bytes[8] = color;
-    transmit_bytes[9] = speed;
+    l_engine_transmit_bytes[6] = command_major;
+    l_engine_transmit_bytes[7] = command_minor;
+    l_engine_transmit_bytes[8] = color;
+    l_engine_transmit_bytes[9] = speed;
 
     // Send First Byte
-    SERCOM4->USART.DATA.bit.DATA = transmit_bytes[0];
+    SERCOM4->USART.DATA.bit.DATA = l_engine_transmit_bytes[0];
 
     // Reset Byte Index
-    byte_index = 1;
+    l_engine_byte_index = 1;
 }
 
 // Send Command to Logic Engine Controller
 void sendLogicEngineCommand(uint8_t preset_index) {
     // Copy Data of Package Parameter to Transmit Bytes Array
-    uint8_t *preset = logic_engine_commands[preset_index];
+    uint8_t *preset = l_engine_commands[preset_index];
     for (int i = 0; i < 4; i++)
-        transmit_bytes[i + 6] = preset[i];
+        l_engine_transmit_bytes[i + 6] = preset[i];
 
     // Send First Byte
-    SERCOM4->USART.DATA.bit.DATA = transmit_bytes[0];
+    SERCOM4->USART.DATA.bit.DATA = l_engine_transmit_bytes[0];
 
     // Reset Byte Index
-    byte_index = 1;
+    l_engine_byte_index = 1;
 }
 
 // Send command to logic engine controller during debugging
@@ -140,8 +140,8 @@ void SERCOM4_Handler() {
     SERCOM4->USART.INTFLAG.bit.TXC = 0x1;
 
     // If Data is Still Left to be Transmitted, Transmit the Next Byte
-    if (byte_index < 13) {
-        SERCOM4->USART.DATA.bit.DATA = transmit_bytes[byte_index];
-        byte_index++;
+    if (l_engine_byte_index < 13) {
+        SERCOM4->USART.DATA.bit.DATA = l_engine_transmit_bytes[l_engine_byte_index];
+        l_engine_byte_index++;
     }
 }
