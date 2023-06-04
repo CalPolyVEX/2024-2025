@@ -16,25 +16,37 @@
 // Upon Request to Send Packet, sendLEDCommand Will be Called.
 // This Function Will Store The Data to be Transmitted, Its Size, Reset the
 // Iterator, and Activate the First Byte to be Transmitted For Each Transmitted
-// Byte that is Complete, an Interupt Will be Called, Requesting the Next Byte
+// Byte that is Complete, an Interrupt Will be Called, Requesting the Next Byte
 // Increment the Iterator, but if Iterator Equals Packet Size, Stop Transmitting
 // No Need for a Timer
 
+// Protocol documentation: 
+//   https://github.com/reeltwo/WLogicEngine32#wlogicengine32-specific-marcduino-commands
+// For each command, '~RTLE' is sent followed by an integer in the format LEECSNN
+
+#define L_ENGINE_PACKET_SIZE 13 // number of bytes in Logic Engine specific command
+#define ASCII_CARRIAGE_RETURN 13
+
 // Array of Bytes
-uint8_t l_engine_transmit_bytes[13] = {'~', 'R', 'T', 'L', 'E', '0', '0', '0', '0', '0', '0', '0', 13};
+uint8_t l_engine_transmit_bytes[L_ENGINE_PACKET_SIZE] = 
+    {'~', 'R', 'T', 'L', 'E', '0', '0', '0', '0', '0', '0', '0', ASCII_CARRIAGE_RETURN};
 
 // List of Predefined Commands
+// In these predefined commands, L is not sent and defaults to 0
 uint8_t l_engine_commands[9][4] = {
-    {'0', '5', '1', '5'}, {'0', '5', '2', '5'}, {'0', '5', '3', '5'},
-    {'0', '5', '4', '5'}, {'0', '5', '5', '5'}, {'0', '5', '6', '5'},
-    {'0', '5', '7', '5'}, {'0', '5', '8', '5'}, {'0', '5', '9', '5'},
+    {'0', '5', '1', '5'}, // EE=05 (single color), C=1 (red),    S=5 (default speed)
+    {'0', '5', '2', '5'}, // EE=05 (single color), C=2 (orange), S=5 (default speed)
+    {'0', '5', '3', '5'}, // EE=05 (single color), C=3 (yellow), S=5 (default speed)
+    {'0', '5', '4', '5'}, // EE=05 (single color), C=4 (green),  S=5 (default speed)
+    {'0', '5', '5', '5'}, // EE=05 (single color), C=5 (cyan),   S=5 (default speed)
+    {'0', '5', '6', '5'}, // EE=05 (single color), C=6 (blue),   S=5 (default speed)
+    {'0', '5', '7', '5'}, // EE=05 (single color), C=7 (purple), S=5 (default speed)
+    {'0', '5', '8', '5'}, // EE=05 (single color), C=8 (magenta),S=5 (default speed)
+    {'0', '5', '9', '5'}, // EE=05 (single color), C=9 (pink),   S=5 (default speed)
 };
 
-// Index in Byte Array
+// Index in Byte Array (used by the interrupt handler to count # of bytes sent)
 uint8_t l_engine_byte_index = 0;
-
-// The Size of the Current Byte Packet
-uint8_t l_engine_packet_size = 0;
 
 // Setup the USART for the Logic Engine Controller
 void setupLogicEngine() {
@@ -88,7 +100,7 @@ void setupLogicEngine() {
     while (SERCOM4->USART.SYNCBUSY.bit.ENABLE)
         ; // wait for syncronization
 
-    // Enable the Transmit Complete Interupt
+    // Enable the Transmit Complete Interrupt
     NVIC_ClearPendingIRQ(SERCOM4_IRQn); // clear any incoming interrupt requests from SERCOM4
     NVIC_SetPriority(SERCOM4_IRQn, 0);  // set highest priority for SERCOM4
     NVIC_EnableIRQ(SERCOM4_IRQn);       // enable interrupt requests for SERCOM4
@@ -129,6 +141,25 @@ void sendLogicEngineCommand(uint8_t preset_index) {
     l_engine_byte_index = 1;
 }
 
+// Send String to Logic Engine 
+void sendLogicEngineString(char* str, int display_num) {
+    char s[100];
+    s[0] = '@';
+    s[1] = display_num + 48; //1=front top, 2=front bottom, 3=rear
+    s[2] = 'M';
+
+    // Copy Data of Package Parameter to Transmit Bytes Array
+    strcpy(&s[3], str); 
+    s[strlen(str) + 3] = ASCII_CARRIAGE_RETURN; // add final carriage return
+
+    // Send First Byte
+    SERCOM4->USART.DATA.bit.DATA = s[0];
+
+    // Reset Byte Index
+    // this will cause the interrupt handler to stop after all bytes have been sent
+    l_engine_byte_index = L_ENGINE_PACKET_SIZE - (3 + strlen(s));
+}
+
 // Send command to logic engine controller during debugging
 void update_logic_engine_debug(int value) {
     // value matches up to preset indices
@@ -136,12 +167,15 @@ void update_logic_engine_debug(int value) {
 }
 
 void SERCOM4_Handler() {
-    // Reset the Interupt Flag
+    // Reset the Interrupt Flag
     SERCOM4->USART.INTFLAG.bit.TXC = 0x1;
 
     // If Data is Still Left to be Transmitted, Transmit the Next Byte
-    if (l_engine_byte_index < 13) {
+    if (l_engine_byte_index < L_ENGINE_PACKET_SIZE) {
         SERCOM4->USART.DATA.bit.DATA = l_engine_transmit_bytes[l_engine_byte_index];
         l_engine_byte_index++;
+    } else {
+        // once the transmission is done, reset the byte index to indicate the UART is idle
+        l_engine_byte_index = 0;
     }
 }

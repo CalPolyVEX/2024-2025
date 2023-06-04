@@ -9,7 +9,7 @@
 #define LED3 3
 #define LED4 4
 
-#define IOEX_ADDR (const uint8_t) 0x38
+#define IOEX_ADDR (const uint8_t) 0x38 // I2C address of the TCA9554A
 
 void setup_i2c();
 void led_on(int num);
