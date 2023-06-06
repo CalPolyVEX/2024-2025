@@ -1,5 +1,10 @@
 #include "psi_control.h"
 
+// PSI Pro documentation:  https://github.com/nhutchison/PSIPro
+
+// PSI Pro addressing:  (0) - all, (4) - front, (5) - rear
+// PSI Pro commands:  (0) - off, (17) - red, (18) - green
+
 void sendPSICommand(byte command)
 {
     // The Bytes in Binary Coded Decimal
@@ -16,11 +21,11 @@ void sendPSICommand(byte command)
       bcd[1] = 0x30 + bcd[1];
 
     Wire.beginTransmission(PSI_ADDRESS);
-    Wire.write('0');    // Writing to All PSI Pros
+    Wire.write('0');    // Writing to All PSI Pros (0)
     Wire.write('T');    // T
     if (bcd[1] != 0)    // Write 10's Digit of Command if Command > 9
       Wire.write(bcd[1]);
-    Wire.write(bcd[0]); // Write 1's Digit of Command Allways
+    Wire.write(bcd[0]); // Write 1's Digit of Command Always
     Wire.write('\r');   // End Character for Command
     Wire.endTransmission();
 }

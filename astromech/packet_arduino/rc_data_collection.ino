@@ -1,29 +1,40 @@
 #include "rc_data_collection.h"
 
+// RC channels 0,1,3,4,5 produce different ranges from the other channels.
+// They produce values from 461-1529.  The other channels produce values
+// in the range 174-1815.
+
 // drive motor channels
 #define FORWARD_CHNL 6
 #define TURNING_CHNL 7
 
 // PC/RC toggle macros
-#define DOME_SERVO 14
+#define DOME_CHNL 14
 #define DOME_SERVO_NUM 0
 
 // channel for determining whether to get input from RC or PC
 #define TOGGL_CHNL 15
-#define TOGGL_VAL_RC 0    // toggle to RC
-#define TOGGL_VAL_PC 2046 // toggle to PC
+#define TOGGL_VAL_RC 174   // toggle to RC
+#define TOGGL_VAL_PC 1815 // toggle to PC
 
 // REON holoprojector macros
 #define REON_CHNL 13   // channel for controlling the REON holoprojectors
-#define REON_LOW 0     // maps to REON_OFF
+#define REON_LOW 174     // maps to REON_OFF
 #define REON_MID 995   // maps to REON_ON
-#define REON_HIGH 2046 // maps to REON_WHITE
+#define REON_HIGH 1815 // maps to REON_WHITE
 
 // logic engine macros
 #define LOGIC_CHNL 2 // channel for controlling the logic engine
 
 // PSI macros
 // #define PSI_CHNL 6 // channel for controlling the logic engine [WIP]
+
+// Tsunami
+#define TSUNAMI_SELECT_CHNL 8  // the channel to select which sound to play
+#define TSUNAMI_TRIGGER_CHNL 0 // the channel to trigger playing a sound
+#define TSUNAMI_MIN_VAL 174
+#define TSUNAMI_MAX_VAL 1815
+#define TSUNAMI_NUM_SOUNDS 3
 
 // SBUS packet format defines
 #define SBUS_HEADER_BYTE 0
@@ -181,15 +192,24 @@ bool receiver_loop() {
     static int print_channel_counter = 0;
     static bool print_channels_mode = false;
     static int receiver_mode_counter = 0;
+    static uint32_t last_reon_time = 0;
+    static uint32_t last_sound_time = 0;
+    static uint32_t current_time = 0;
 
     // If DB0 is pressed while the code is running, the RC channel information
     // will be displayed on the LCD
     if (print_channel_counter == 300) { //periodically check is button 0 is held down
         print_channel_counter = 0;
 
-        //if the button is held down, then toggle displaying the channels
+        //if the button 0 is held down, then toggle displaying the channels
         if (get_btn_val(DB0) == 0) { 
             print_channels_mode = !print_channels_mode; 
+        } 
+
+        //if the button 1 is held down, then disable displaying the channels
+        if (get_btn_val(DB1) == 0) {
+            print_channels_mode = false;
+            lcd.clear();
         } 
     } else {
         print_channel_counter++;
@@ -227,10 +247,10 @@ bool receiver_loop() {
 
         if (channel[TOGGL_CHNL] == TOGGL_VAL_PC) { // if the toggle is set to receive commands from the PC
             // indicate receiving RC signals with a blinking LED
-            if (receiver_mode_counter > 125) {
+            if (receiver_mode_counter > 105) {
                 receiver_mode_counter = 0;
                 led_off(LED1);
-            } else if (receiver_mode_counter > 120) {
+            } else if (receiver_mode_counter > 100) {
                 receiver_mode_counter++;
                 led_on(LED1);
             } else {
@@ -241,10 +261,10 @@ bool receiver_loop() {
             pc_mode = true;
         } else if (channel[TOGGL_CHNL] == TOGGL_VAL_RC) { // if the toggle is set to receive commands from the RC transmitter
             // indicate receiving RC signals with a blinking LED
-            if (receiver_mode_counter > 125) {
+            if (receiver_mode_counter > 105) {
                 receiver_mode_counter = 0;
                 led_off(LED1);
-            } else if (receiver_mode_counter > 120) {
+            } else if (receiver_mode_counter > 100) {
                 receiver_mode_counter++;
                 led_on(LED1);
             } else {
@@ -252,13 +272,15 @@ bool receiver_loop() {
                 led_off(LED2);
             }
 
+            current_time = millis();
+
             /* motor control */
             // convert from 11 bit to 8 bit before calling control motors
             uint16_t ver_8bit = channel[FORWARD_CHNL] >> 3;
             uint16_t hor_8bit = channel[TURNING_CHNL] >> 3;
             //uint8_t dome_servo_8bit = channel[4] >> 3; // dome "servo"
             //int16_t dome_servo_8bit = (channel[4] - 995) >> 4;
-            int16_t dome_servo_8bit = (channel[DOME_SERVO] - 999) >> 4;
+            int16_t dome_servo_8bit = (channel[DOME_CHNL] - 999) >> 4;
 
             // input motor values
             //SerialUSB.print(dome_servo_8bit);
@@ -281,6 +303,20 @@ bool receiver_loop() {
             }
 
             /* soundboard control */
+            if (current_time > (last_sound_time + 1000) && channel[TSUNAMI_TRIGGER_CHNL] > 1000) {
+                char buf[10];
+                int sound_step = (TSUNAMI_MAX_VAL - TSUNAMI_MIN_VAL) / TSUNAMI_NUM_SOUNDS;
+                int sound_val = channel[TSUNAMI_SELECT_CHNL] / sound_step;
+
+                playTsunamiSound(sound_val,10);    
+                lcd.clear();
+                lcd.print("playing ");
+
+                sprintf(buf, "%4d ", sound_val);
+                lcd.print(buf);
+                last_sound_time = current_time;
+            }
+
             // WIP
 
             /* REON Holoprojector control */
@@ -292,11 +328,12 @@ bool receiver_loop() {
             else
                 reon_val = REON_OFF;
 
-            // send the REON command periodically and not with every packet
-            if (receiver_mode_counter == 100) { 
+            // send the REON command every 500ms
+            if (current_time > (last_reon_time + 500)) { 
                 send_reon_command(reon_val, HP_FRNT_ADDR);
                 send_reon_command(reon_val, HP_TOP_ADDR);
                 send_reon_command(reon_val, HP_REAR_ADDR);
+                last_reon_time = current_time;
             }
 
             /* PSI control [WIP]*/
@@ -329,8 +366,10 @@ bool receiver_loop() {
         // valid SBUS packet was received
         last_sbus_valid_time = millis();
 
-        // if the lost frame bit is set
-        if ((sbus_packet[SBUS_FRAME_FAILSAFE_BYTE] & 0x04) != 0) { 
+        // if the lost frame bit is set or if the channel data is 
+        // set to 640 (transmitter off value)
+        if (((sbus_packet[SBUS_FRAME_FAILSAFE_BYTE] & 0x04) != 0) || 
+            ((channel[0] == 640) && (channel[1] == 640))) { 
             lost_rc_frame_count++;
 
             // if the frames are lost for about 1 second (100 frames), then

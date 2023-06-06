@@ -1,9 +1,9 @@
 #ifndef TSUNAMI_CONTROL_H
 #define TSUNAMI_CONTROL_H
 
-// Note: The RC Reciever Will use the Top-Right Levers to
+// Note: The RC Receiver Will use the Top-Right Levers to
 // Select and Play Sounds. The Top Lever Will be Used to Select
-// a Sounnd, Where Pulling the Level Up then Pushing it Back to Center
+// a Sound, Where Pulling the Level Up then Pushing it Back to Center
 // Will Increment a Value, and Pushing it Down and Pulling it Back to
 // Center Will Decrement a Value. This Value, ranging from 1 to N, Where
 // N is the Number of Loaded Tracks, Will Determine Which Track to Play.

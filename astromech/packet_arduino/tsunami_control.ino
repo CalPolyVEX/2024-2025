@@ -1,6 +1,9 @@
 #include "tsunami_control.h"
 #include <Wire.h>
 
+// Tsunami user's guide:  
+// https://cdn.sparkfun.com/assets/e/9/9/8/e/Tsunami_UserGuide_20230114.pdf
+
 // Send Command to Tsunami to Play a Sound
 void playTsunamiSound(byte index, int volume) {
     // Set the Volume of the Track, if Volume is not greater than 10
