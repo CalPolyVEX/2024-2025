@@ -291,7 +291,7 @@ bool receiver_loop() {
             //SerialUSB.print(ver_8bit);
             //SerialUSB.print("\n");
 
-            /* change servo values*/
+            /* Set dome rotation speed */
             set_servo_angle(DOME_SERVO_NUM, dome_servo_8bit);
 
             /* logic engine control */
@@ -302,7 +302,7 @@ bool receiver_loop() {
                 sendLogicEngineCommand(logic_eng_idx);
             }
 
-            /* soundboard control */
+            /* Tsunami sound board - limit to play 1 sound file per second */
             if (current_time > (last_sound_time + 1000) && channel[TSUNAMI_TRIGGER_CHNL] > 1000) {
                 char buf[10];
                 int sound_step = (TSUNAMI_MAX_VAL - TSUNAMI_MIN_VAL) / TSUNAMI_NUM_SOUNDS;
@@ -317,8 +317,6 @@ bool receiver_loop() {
                 last_sound_time = current_time;
             }
 
-            // WIP
-
             /* REON Holoprojector control */
             uint16_t reon_val = channel[REON_CHNL];
             if (reon_val == REON_MID)
@@ -329,11 +327,11 @@ bool receiver_loop() {
                 reon_val = REON_OFF;
 
             // send the REON command every 500ms
-            if (current_time > (last_reon_time + 500)) { 
+            if (millis() > (last_reon_time + 1500)) { 
                 send_reon_command(reon_val, HP_FRNT_ADDR);
                 send_reon_command(reon_val, HP_TOP_ADDR);
                 send_reon_command(reon_val, HP_REAR_ADDR);
-                last_reon_time = current_time;
+                last_reon_time = millis();
             }
 
             /* PSI control [WIP]*/
@@ -391,6 +389,9 @@ bool receiver_loop() {
         } else {
             led_off(LED3);
             led_off(LED4);
+
+            if (lost_rc_frame_count != 0) 
+                lcd.clear();
             lost_rc_frame_count = 0; // reset the lost frame count
         }
 
