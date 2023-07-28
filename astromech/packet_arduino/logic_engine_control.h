@@ -13,5 +13,6 @@ void sendLogicEngineCommand(uint8_t preset_index);
 void sendLogicEngineString(char* str, int display_num);
 
 void update_logic_engine_debug(int value);
+void displayRedAlert();
 
 #endif

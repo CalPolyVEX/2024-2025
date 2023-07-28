@@ -33,16 +33,18 @@ uint8_t l_engine_transmit_bytes[L_ENGINE_PACKET_SIZE] =
 
 // List of Predefined Commands
 // In these predefined commands, L is not sent and defaults to 0
-uint8_t l_engine_commands[9][4] = {
-    {'0', '5', '1', '5'}, // EE=05 (single color), C=1 (red),    S=5 (default speed)
-    {'0', '5', '2', '5'}, // EE=05 (single color), C=2 (orange), S=5 (default speed)
-    {'0', '5', '3', '5'}, // EE=05 (single color), C=3 (yellow), S=5 (default speed)
-    {'0', '5', '4', '5'}, // EE=05 (single color), C=4 (green),  S=5 (default speed)
-    {'0', '5', '5', '5'}, // EE=05 (single color), C=5 (cyan),   S=5 (default speed)
-    {'0', '5', '6', '5'}, // EE=05 (single color), C=6 (blue),   S=5 (default speed)
-    {'0', '5', '7', '5'}, // EE=05 (single color), C=7 (purple), S=5 (default speed)
-    {'0', '5', '8', '5'}, // EE=05 (single color), C=8 (magenta),S=5 (default speed)
-    {'0', '5', '9', '5'}, // EE=05 (single color), C=9 (pink),   S=5 (default speed)
+uint8_t l_engine_commands[10][7] = {
+    //L,   E    E,   C,   S,   N    N
+    {'0', '0', '5', '1', '5', '0', '0'}, // EE=05 (single color), C=1 (red),    S=5 (default speed)
+    {'0', '0', '5', '2', '5', '0', '0'}, // EE=05 (single color), C=2 (orange), S=5 (default speed)
+    {'0', '0', '5', '3', '5', '0', '0'}, // EE=05 (single color), C=3 (yellow), S=5 (default speed)
+    {'0', '0', '5', '4', '5', '0', '0'}, // EE=05 (single color), C=4 (green),  S=5 (default speed)
+    {'0', '0', '5', '5', '5', '0', '0'}, // EE=05 (single color), C=5 (cyan),   S=5 (default speed)
+    {'0', '0', '5', '6', '5', '0', '0'}, // EE=05 (single color), C=6 (blue),   S=5 (default speed)
+    {'0', '0', '5', '7', '5', '0', '0'}, // EE=05 (single color), C=7 (purple), S=5 (default speed)
+    {'0', '0', '5', '8', '5', '0', '0'}, // EE=05 (single color), C=8 (magenta),S=5 (default speed)
+    {'0', '0', '5', '9', '5', '0', '0'}, // EE=05 (single color), C=9 (pink),   S=5 (default speed)
+    {'0', '1', '5', '9', '5', '0', '0'}  //display text (UNTESTED CODE)
 };
 
 // Index in Byte Array (used by the interrupt handler to count # of bytes sent)
@@ -131,8 +133,8 @@ void sendLogicEngineCommand(uint8_t command_major, uint8_t command_minor, uint8_
 void sendLogicEngineCommand(uint8_t preset_index) {
     // Copy Data of Package Parameter to Transmit Bytes Array
     uint8_t *preset = l_engine_commands[preset_index];
-    for (int i = 0; i < 4; i++)
-        l_engine_transmit_bytes[i + 6] = preset[i];
+    for (int i = 0; i < 7; i++)
+        l_engine_transmit_bytes[i + 5] = preset[i];
 
     // Send First Byte
     SERCOM4->USART.DATA.bit.DATA = l_engine_transmit_bytes[0];
@@ -141,7 +143,7 @@ void sendLogicEngineCommand(uint8_t preset_index) {
     l_engine_byte_index = 1;
 }
 
-// Send String to Logic Engine 
+// Send String to Logic Engine (UNTESTED CODE)
 void sendLogicEngineString(char* str, int display_num) {
     char s[100];
     s[0] = '@';
@@ -157,7 +159,45 @@ void sendLogicEngineString(char* str, int display_num) {
 
     // Reset Byte Index
     // this will cause the interrupt handler to stop after all bytes have been sent
-    l_engine_byte_index = L_ENGINE_PACKET_SIZE - (3 + strlen(s));
+    //l_engine_byte_index = L_ENGINE_PACKET_SIZE - (4 + strlen(s));
+    l_engine_byte_index = 1;
+}
+
+void displayRedAlert(){
+    l_engine_transmit_bytes[2] = '@';
+    l_engine_transmit_bytes[3] = 2 + 48; //1=front top, 2=front bottom, 3=rear
+    l_engine_transmit_bytes[4] = 'M';
+    l_engine_transmit_bytes[5] = 'C';
+    l_engine_transmit_bytes[6] = 'h';
+    l_engine_transmit_bytes[7] = 'e';
+    l_engine_transmit_bytes[8] = 's';
+    l_engine_transmit_bytes[9] = 't';
+    l_engine_transmit_bytes[10] = 'e';
+    l_engine_transmit_bytes[11] = 'r';
+
+    l_engine_transmit_bytes[12] = ASCII_CARRIAGE_RETURN;
+
+    // Send First Byte
+    SERCOM4->USART.DATA.bit.DATA = l_engine_transmit_bytes[2];
+
+    l_engine_byte_index = 3;  //index of the second byte to send
+}
+
+void adjustBrightness(){
+    char s[100];
+    l_engine_transmit_bytes[8] = '@';
+    l_engine_transmit_bytes[9] = 0 + 48; //1=front top, 2=front bottom, 3=rear
+    l_engine_transmit_bytes[10] = 'O';
+    l_engine_transmit_bytes[11] = 0;
+
+    l_engine_transmit_bytes[12] = ASCII_CARRIAGE_RETURN;
+
+    // Send First Byte
+    SERCOM4->USART.DATA.bit.DATA = l_engine_transmit_bytes[8];
+
+    l_engine_byte_index = 9;  //index of the second byte to send
+
+
 }
 
 // Send command to logic engine controller during debugging
