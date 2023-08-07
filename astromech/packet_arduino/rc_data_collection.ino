@@ -201,8 +201,7 @@ void receiver_setup() {
 }
 
 bool receiver_loop() {
-    /* main
-    allows for switching between RC and PC */
+    /* main loop - allows for switching between RC and PC */
 
     static bool pc_mode = false;
     static uint16_t logic_eng_idx = -1;
@@ -244,8 +243,6 @@ bool receiver_loop() {
     } 
     else{//SerialUSB.print("1529\n");
     }
-    
-    
 
     // If DB0 is pressed while the code is running, the RC channel information
     // will be displayed on the LCD
@@ -267,6 +264,7 @@ bool receiver_loop() {
     }
 
     if (new_sbus_packet) {
+
         //Christine's Logic Board
         if (channel[5]==461 && !logicFlashing){
           //displayRedAlert();
@@ -280,7 +278,6 @@ bool receiver_loop() {
         else if(channel[5]!=461){
           logicFlashing = false;
         }
-
 
         // Reset new_sbus_packet flag
         new_sbus_packet = false;
@@ -568,10 +565,10 @@ void print_all_channels() {
 void playAudio() {
     char buf[10];
     int sound_step = (TSUNAMI_MAX_VAL - TSUNAMI_MIN_VAL) / TSUNAMI_NUM_SOUNDS;
-    int sound_val = ((channel[TSUNAMI_SELECT_CHNL]) - 174) / sound_step + 1;
+    int sound_val = (channel[TSUNAMI_SELECT_CHNL] - 174) / sound_step + 1;
     
     if (channel[TSUNAMI_TRIGGER_CHNL] > 1000) { // if the black trigger button is pressed
-        if ((first_press_time == 0)) { // if the button is pressed for the first time
+        if (first_press_time == 0) { // if the button is pressed for the first time
             first_press_time = millis();
         } else if ((millis() - first_press_time) > 350) { //long press
             if (is_playing) {
@@ -579,7 +576,8 @@ void playAudio() {
                 stopTracks();
             } else {
                 is_playing = true;
-                if (channel[TSUNAMI_ALT_CHNL] < 1000){ // if alt switch is not flipped
+
+                if (channel[TSUNAMI_ALT_CHNL] < 1000) { // if alt switch is not flipped
                     if (channel[TSUNAMI_SELECT_CHNL] < 200) {
                         playTsunamiSound(1, 10);
                     } else if (channel[TSUNAMI_SELECT_CHNL] < 1000) {
@@ -603,9 +601,9 @@ void playAudio() {
         }
     }
 
-    else{ //short press
-        if(first_press_time != 0){
-            if (channel[TSUNAMI_ALT_CHNL] < 1000){
+    else { //short press
+        if(first_press_time != 0) {
+            if (channel[TSUNAMI_ALT_CHNL] < 1000) { // if alt switch is not flipped
                 if (channel[TSUNAMI_SELECT_CHNL] < 200) {
                     playTsunamiSound(4, 10);
                 } else if (channel[TSUNAMI_SELECT_CHNL] < 1000) {
@@ -642,8 +640,3 @@ void playAudio() {
     lcd.print(buf);
 }
 
-void stopTracks() {
-    Wire.beginTransmission(TSUNAMI_ADDRESS);      // Begin Tsunami Transmission
-    Wire.write(0x04);                             // Send Command to Stop All Tracks
-    Wire.endTransmission();                       // End Tsunami Transmission
-}

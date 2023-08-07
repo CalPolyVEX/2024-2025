@@ -22,6 +22,9 @@ void playTsunamiSound(byte index, int volume);
 // Send Command to Tsunami to Set Master Volume
 void setTsunamiMasterVolume(int volume);
 
+// Send Command to Tsunami to Stop playing all tracks
+void stopTracks();
+
 // Reset Values in the Amplifier
 void resetAmplifier();
 

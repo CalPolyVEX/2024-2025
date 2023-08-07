@@ -43,6 +43,12 @@ void setTsunamiMasterVolume(int volume) {
     }
 }
 
+void stopTracks() {
+    Wire.beginTransmission(TSUNAMI_ADDRESS);      // Begin Tsunami Transmission
+    Wire.write(0x04);                             // Send Command to Stop All Tracks
+    Wire.endTransmission();                       // End Tsunami Transmission
+}
+
 // Read a Register from the Amplifier
 // Sending Data to Amplifier Changes The Rest of the Register,
 // So We Need to Read it's Current State to Change What We Want
