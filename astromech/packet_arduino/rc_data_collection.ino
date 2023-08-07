@@ -29,18 +29,37 @@
 // PSI macros
 // #define PSI_CHNL 6 // channel for controlling the logic engine [WIP]
 
+
 // Tsunami
-#define TSUNAMI_SELECT_CHNL 8  // the channel to select which sound to play
-#define TSUNAMI_TRIGGER_CHNL 0 // the channel to trigger playing a sound
+#define TSUNAMI_SELECT_CHNL 8  // the channel to select which sound to play (SD)
+#define TSUNAMI_TRIGGER_CHNL 0 // the channel to trigger playing a sound (SI)
 #define TSUNAMI_MIN_VAL 174
 #define TSUNAMI_MAX_VAL 1815
 #define TSUNAMI_NUM_SOUNDS 3
+#define TSUNAMI_VOLUME_CHNL 1 //the channel to change the volume
+#define TSUNAMI_MIN_VOLUME 32 //value subtracted to determine the minimum volume
+#define TSUNAMI_VOLUME_RANGE 18 //difference between max and min volumes
+#define TSUNAMI_ALT_CHNL 10 //one way switch to access alternate sounds
 
 // SBUS packet format defines
 #define SBUS_HEADER_BYTE 0
 #define SBUS_FOOTER_BYTE 24
 #define SBUS_FRAME_FAILSAFE_BYTE 23
 
+//Christine's LED
+uint16_t flashCounter = 0;
+bool logicFlashing = false; 
+
+
+
+
+bool ledState = LOW;
+uint32_t first_press_time = 0;
+static uint32_t last_sound_time = 0;
+static uint32_t current_sound_time = 0;
+
+static bool is_playing = false; 
+static uint16_t current_volume = 0;
 /*
  * USING
  *  Sercom instance: SERCOM2
@@ -73,6 +92,7 @@ uint8_t sbus_packet[25];
 uint16_t channel[16];
 
 void receiver_setup() {
+
     NVIC_DisableIRQ(SERCOM2_IRQn); // using sercom2
 
     // INITIALIZING PADS
@@ -193,8 +213,42 @@ bool receiver_loop() {
     static bool print_channels_mode = false;
     static int receiver_mode_counter = 0;
     static uint32_t last_reon_time = 0;
-    static uint32_t last_sound_time = 0;
-    static uint32_t current_time = 0;
+
+    //Christine's Test Lights
+    if (channel[3]==461){
+      //SerialUSB.print("461\n");
+
+      if (flashCounter==0){
+        led_on(LED2);
+        flashCounter++;
+      }
+      else if (flashCounter<900){
+        flashCounter++;
+      }
+      else if (flashCounter==900){
+        led_off(LED2);
+        flashCounter++;
+      }
+      else if (flashCounter<1800){
+        flashCounter++;
+      }
+      else if(flashCounter==1800){
+        flashCounter=0;
+      }
+      //LED STUFF
+      /*led_on(LED2);
+      delay(200);
+      led_off(LED2);
+      delay(200);*/
+    }
+    else if (channel[3]==995){
+      //SerialUSB.print("995\n");
+      led_off(LED2);
+    } 
+    else{//SerialUSB.print("1529\n");
+    }
+    
+    
 
     // If DB0 is pressed while the code is running, the RC channel information
     // will be displayed on the LCD
@@ -216,6 +270,21 @@ bool receiver_loop() {
     }
 
     if (new_sbus_packet) {
+        //Christine's Logic Board
+        if (channel[5]==461 && !logicFlashing){
+          //displayRedAlert();
+          //delay(7000);
+          sendLogicEngineCommand(0);
+          //sendLogicEngineString("Hello    ", 1);
+          //
+          //adjustBrightness();
+          logicFlashing = true; 
+        }
+        else if(channel[5]!=461){
+          logicFlashing = false;
+        }
+
+
         // Reset new_sbus_packet flag
         new_sbus_packet = false;
 
@@ -272,7 +341,7 @@ bool receiver_loop() {
                 led_off(LED2);
             }
 
-            current_time = millis();
+            current_sound_time = millis();
 
             /* motor control */
             // convert from 11 bit to 8 bit before calling control motors
@@ -303,18 +372,15 @@ bool receiver_loop() {
             }
 
             /* Tsunami sound board - limit to play 1 sound file per second */
-            if (current_time > (last_sound_time + 1000) && channel[TSUNAMI_TRIGGER_CHNL] > 1000) {
-                char buf[10];
-                int sound_step = (TSUNAMI_MAX_VAL - TSUNAMI_MIN_VAL) / TSUNAMI_NUM_SOUNDS;
-                int sound_val = channel[TSUNAMI_SELECT_CHNL] / sound_step;
-
-                playTsunamiSound(sound_val,10);    
-                lcd.clear();
-                lcd.print("playing ");
-
-                sprintf(buf, "%4d ", sound_val);
-                lcd.print(buf);
-                last_sound_time = current_time;
+            if (current_sound_time > (last_sound_time + 1000) ){
+                playAudio();
+            }
+            if (abs(current_volume - channel[TSUNAMI_VOLUME_CHNL]) > 5){
+                current_volume = channel[TSUNAMI_VOLUME_CHNL];
+                int volume = ((channel[TSUNAMI_VOLUME_CHNL]-461)/(1068/TSUNAMI_VOLUME_RANGE))-TSUNAMI_MIN_VOLUME;
+                setTsunamiMasterVolume(volume);
+                SerialUSB.print(volume);
+                SerialUSB.print("\n");
             }
 
             /* REON Holoprojector control */
@@ -353,7 +419,8 @@ bool receiver_loop() {
         // data from a previous packet
         sbus_packet[SBUS_HEADER_BYTE] = 0;
         sbus_packet[SBUS_FOOTER_BYTE] = 0xff;
-        if (print_channels_mode == true) {
+        //if (print_channels_mode == true) {
+        if (1 == 1) {
             print_all_channels();
         }
 
@@ -499,4 +566,113 @@ void print_all_channels() {
             channel[4*i+2], channel[4*i+3]);
         lcd.print(buf);
     }
+}
+
+void playAudio(){
+    char buf[10];
+    int sound_step = (TSUNAMI_MAX_VAL - TSUNAMI_MIN_VAL) / TSUNAMI_NUM_SOUNDS;
+    int sound_val = ((channel[TSUNAMI_SELECT_CHNL]) - 174) / sound_step + 1;
+    
+    if (channel[TSUNAMI_TRIGGER_CHNL] > 1000)
+    {
+        if ((first_press_time == 0))
+        {
+            first_press_time = millis();
+        }
+        else if ((millis() - first_press_time) > 350) //long press
+        {
+            if (is_playing){
+                is_playing = false;
+                stopTracks();
+            }
+            else{
+                is_playing = true;
+                if (channel[TSUNAMI_ALT_CHNL]<1000){ //if alt switch is not flipped
+                    if (channel[TSUNAMI_SELECT_CHNL] < 200)
+                    {
+                        playTsunamiSound(1, 10);
+                    }
+                    else if (channel[TSUNAMI_SELECT_CHNL] < 1000)
+                    {
+                        playTsunamiSound(2, 10);
+                    }
+                    else if (channel[TSUNAMI_SELECT_CHNL] < 2000)
+                    {
+                        playTsunamiSound(3, 10);
+                    }
+                }
+                else{
+                    if (channel[TSUNAMI_SELECT_CHNL] < 200)
+                    {
+                        playTsunamiSound(7, 10);
+                    }
+                    else if (channel[TSUNAMI_SELECT_CHNL] < 1000)
+                    {
+                        playTsunamiSound(8, 10);
+                    }
+                    else if (channel[TSUNAMI_SELECT_CHNL] < 2000)
+                    {
+                        playTsunamiSound(9, 10);
+                    }
+
+                }
+            }
+            first_press_time = 0;
+            last_sound_time = current_sound_time;
+        }
+    }
+
+    else{ //short press
+        if(first_press_time!=0){
+            if (channel[TSUNAMI_ALT_CHNL]<1000){
+                if (channel[TSUNAMI_SELECT_CHNL] < 200)
+                {
+                    playTsunamiSound(4, 10);
+                }
+                else if (channel[TSUNAMI_SELECT_CHNL] < 1000)
+                {
+                    playTsunamiSound(5, 10);
+                }
+                else if (channel[TSUNAMI_SELECT_CHNL] < 2000)
+                {
+                    playTsunamiSound(6, 10);
+                }
+            }
+            else{
+                if (channel[TSUNAMI_SELECT_CHNL] < 200)
+                {
+                    playTsunamiSound(10, 10);
+                }
+                else if (channel[TSUNAMI_SELECT_CHNL] < 1000)
+                {
+                    playTsunamiSound(11, 10);
+                }
+                else if (channel[TSUNAMI_SELECT_CHNL] < 2000)
+                {
+                    playTsunamiSound(12, 10);
+                }
+            }
+            first_press_time=0;
+            last_sound_time = current_sound_time;
+        }
+    }
+
+    /*
+    // playTsunamiSound(sound_val,10);
+*/
+
+    lcd.clear();
+    lcd.print("playing ");
+    //SerialUSB.print("sound_val: ");
+    //SerialUSB.print(sound_val);
+    //SerialUSB.print("\n");
+
+    sprintf(buf, "%4d ", sound_val);
+    lcd.print(buf);
+}
+
+void stopTracks(){
+    Wire.beginTransmission(TSUNAMI_ADDRESS);      // Begin Tsunami Transmission
+    Wire.write(0x04);                             // Send Command to Stop All Tracks
+    Wire.endTransmission();                       // End Tsunami Transmission
 }

@@ -35,7 +35,7 @@ uint8_t l_engine_transmit_bytes[L_ENGINE_PACKET_SIZE] =
 // In these predefined commands, L is not sent and defaults to 0
 uint8_t l_engine_commands[10][7] = {
     //L,   E    E,   C,   S,   N    N
-    {'0', '0', '5', '1', '5', '0', '0'}, // EE=05 (single color), C=1 (red),    S=5 (default speed)
+    {'0', '0', '6', '1', '5', '0', '0'}, // EE=05 (single color), C=1 (red),    S=5 (default speed)
     {'0', '0', '5', '2', '5', '0', '0'}, // EE=05 (single color), C=2 (orange), S=5 (default speed)
     {'0', '0', '5', '3', '5', '0', '0'}, // EE=05 (single color), C=3 (yellow), S=5 (default speed)
     {'0', '0', '5', '4', '5', '0', '0'}, // EE=05 (single color), C=4 (green),  S=5 (default speed)

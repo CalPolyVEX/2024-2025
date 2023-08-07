@@ -109,5 +109,7 @@ private:
 void receiver_setup();
 bool receiver_loop();
 void decodeData();
+void playAudio();
+void stopTracks();
 
 #endif

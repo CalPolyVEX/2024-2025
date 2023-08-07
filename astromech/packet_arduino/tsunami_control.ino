@@ -36,9 +36,9 @@ void setTsunamiMasterVolume(int volume) {
     for (int i = 0; i < 2; i++) {
         Wire.beginTransmission(TSUNAMI_ADDRESS);      // Begin Tsunami Transmission
         Wire.write(0x05);                             // Send Command to Set Master Volume
-        Wire.write(i + 0x06);                         // Write To Left and Right Outputs
-        Wire.write((uint8_t)(truncated_volume));      // Send Least Signifigant Bit for Volume
-        Wire.write((uint8_t)(truncated_volume >> 8)); // Send Most Signifigant Bit for Volume
+        Wire.write(i + 0x00);                         // Write To Left and Right Outputs
+        Wire.write((uint8_t)(truncated_volume & 0xff));      // Send Least Signifigant Byte for Volume
+        Wire.write((uint8_t)((truncated_volume >> 8) & 0xff)); // Send Most Signifigant Byte for Volume
         Wire.endTransmission();                       // End Tsunami Transmission
     }
 }
