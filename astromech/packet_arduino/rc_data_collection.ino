@@ -31,6 +31,8 @@
 
 // Tsunami
 #define TSUNAMI_SELECT_CHNL 8  // the channel to select which sound to play (SD)
+#define TSUNAMI_MIN_SELECT 174
+#define TSUNAMI_MID_SELECT 995
 #define TSUNAMI_TRIGGER_CHNL 0 // the channel to trigger playing a sound (SI)
 #define TSUNAMI_MIN_VAL 174
 #define TSUNAMI_MAX_VAL 1815
@@ -39,6 +41,7 @@
 #define TSUNAMI_MIN_VOLUME 32 //value subtracted to determine the minimum volume
 #define TSUNAMI_VOLUME_RANGE 18 //difference between max and min volumes
 #define TSUNAMI_ALT_CHNL 10 //one way switch to access alternate sounds
+
 
 // SBUS packet format defines
 #define SBUS_HEADER_BYTE 0
@@ -369,6 +372,7 @@ bool receiver_loop() {
             if (current_sound_time > (last_sound_time + 1000) ){
                 playAudio();
             }
+
             if (abs(current_volume - channel[TSUNAMI_VOLUME_CHNL]) > 5){
                 current_volume = channel[TSUNAMI_VOLUME_CHNL];
                 int volume = ((channel[TSUNAMI_VOLUME_CHNL]-461)/(1068/TSUNAMI_VOLUME_RANGE))-TSUNAMI_MIN_VOLUME;
@@ -566,11 +570,13 @@ void playAudio() {
     char buf[10];
     int sound_step = (TSUNAMI_MAX_VAL - TSUNAMI_MIN_VAL) / TSUNAMI_NUM_SOUNDS;
     int sound_val = (channel[TSUNAMI_SELECT_CHNL] - 174) / sound_step + 1;
+    static int long_press_time;
     
     if (channel[TSUNAMI_TRIGGER_CHNL] > 1000) { // if the black trigger button is pressed
         if (first_press_time == 0) { // if the button is pressed for the first time
             first_press_time = millis();
-        } else if ((millis() - first_press_time) > 350) { //long press
+        } else if ((millis() - first_press_time) > 1000) { //long press
+            long_press_time = millis();
             if (is_playing) {
                 is_playing = false;
                 stopTracks();
@@ -578,45 +584,44 @@ void playAudio() {
                 is_playing = true;
 
                 if (channel[TSUNAMI_ALT_CHNL] < 1000) { // if alt switch is not flipped
-                    if (channel[TSUNAMI_SELECT_CHNL] < 200) {
+                    if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MIN_SELECT) {
                         playTsunamiSound(1, 10);
-                    } else if (channel[TSUNAMI_SELECT_CHNL] < 1000) {
+                    } else if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MID_SELECT) {
                         playTsunamiSound(2, 10);
-                    } else if (channel[TSUNAMI_SELECT_CHNL] < 2000) {
+                    } else {
                         playTsunamiSound(3, 10);
                     }
                 } else { // if right alt switch is flipped
-                    if (channel[TSUNAMI_SELECT_CHNL] < 200) {
+                    if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MIN_SELECT) {
                         playTsunamiSound(7, 10);
-                    } else if (channel[TSUNAMI_SELECT_CHNL] < 1000) {
+                    } else if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MID_SELECT) {
                         playTsunamiSound(8, 10);
-                    } else if (channel[TSUNAMI_SELECT_CHNL] < 2000) {
+                    } else {
                         playTsunamiSound(9, 10);
                     }
                 }
+                
             }
 
             first_press_time = 0;
             last_sound_time = current_sound_time;
         }
-    }
-
-    else { //short press
-        if(first_press_time != 0) {
+    } else { //short press
+        if((first_press_time != 0) && (millis()-long_press_time>250)) {
             if (channel[TSUNAMI_ALT_CHNL] < 1000) { // if alt switch is not flipped
-                if (channel[TSUNAMI_SELECT_CHNL] < 200) {
+                if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MIN_SELECT) {
                     playTsunamiSound(4, 10);
-                } else if (channel[TSUNAMI_SELECT_CHNL] < 1000) {
+                } else if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MID_SELECT) {
                     playTsunamiSound(5, 10);
-                } else if (channel[TSUNAMI_SELECT_CHNL] < 2000) {
+                } else {
                     playTsunamiSound(6, 10);
                 }
             } else {
-                if (channel[TSUNAMI_SELECT_CHNL] < 200) {
+                if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MIN_SELECT) {
                     playTsunamiSound(10, 10);
-                } else if (channel[TSUNAMI_SELECT_CHNL] < 1000) {
+                } else if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MID_SELECT) {
                     playTsunamiSound(11, 10);
-                } else if (channel[TSUNAMI_SELECT_CHNL] < 2000) {
+                } else {
                     playTsunamiSound(12, 10);
                 }
             }
