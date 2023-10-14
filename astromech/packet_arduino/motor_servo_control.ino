@@ -480,6 +480,11 @@ void set_motor_speed_bias(int new_bias)
     motor_speed_bias = new_bias;
 }
 
+inline void set_motor_acceleration(int new_value)
+{
+    acceleration_period = new_value;
+}
+
 // Sets the Motor Speed Scalar
 void set_motor_speed_scalar(int new_scalar)
 {

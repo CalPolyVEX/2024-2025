@@ -8,18 +8,19 @@
 #define DB2 6  // selector button
 
 // The number of debug functions
-#define DEBUG_MODE_COUNT 9
+#define DEBUG_MODE_COUNT 10
 
 // debug function IDs
 #define MIN_MAX_MOTOR_SPEED_DEBUG 0 // motor speed minmax debug
 #define MOTOR_SPEED_SCALAR_DEBUG 1  // motor speed scalar debug
 #define MOTOR_SPEED_BIAS_DEBUG 2    // motor speed bias debug
-#define MIN_MAX_SERVO_SPEED_DEBUG 3 // servo speed minmax debug
-#define SERVO_SPEED_SCALAR_DEBUG 4  // servo speed scalar debug
-#define LOGIC_ENGINE_DEBUG 5        // logic engine debug
-#define SOUNDBOARD_DEBUG 6          // soundboard debug
-#define HOLOPROJECTOR_DEBUG 7       // holoprojector debug
-#define PSI_DEBUG 8                 // PSI debug
+#define MOTOR_ACCELERATION_DEBUG 3  // motor acceleration debug
+#define MIN_MAX_SERVO_SPEED_DEBUG 4 // servo speed minmax debug
+#define SERVO_SPEED_SCALAR_DEBUG 5  // servo speed scalar debug
+#define LOGIC_ENGINE_DEBUG 6        // logic engine debug
+#define SOUNDBOARD_DEBUG 7          // soundboard debug
+#define HOLOPROJECTOR_DEBUG 8       // holoprojector debug
+#define PSI_DEBUG 9                 // PSI debug
 
 #define TRANS 9 // transitioning between functions
 
