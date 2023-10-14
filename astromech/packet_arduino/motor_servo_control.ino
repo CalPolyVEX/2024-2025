@@ -20,10 +20,12 @@ float MOTOR_CHANGE_CONST = 140;
 // range is 27 (100% backward) to 127 (0% speed) to 227 (100% forward) for left
 // motor, initialize to the stopped value of 127
 unsigned int motor_value_left = 127;
+unsigned int motor_target_left = 127;
 
 // range is 27 (100% backward) to 127 (0% speed) to 227 (100% forward) for right
 // motor, initialize to the stopped value of 127
 unsigned int motor_value_right = 127;
+unsigned int motor_target_right = 127;
 
 // Same as Above but for Servos
 unsigned int servo_value[4] = {127, 127, 127, 127};
@@ -61,6 +63,11 @@ int min_servo_speed = -100;
 
 // Servo Speed Scalar
 int servo_speed_scalar = 0;
+
+// Period for the Acceleration Timer
+// Default is 100, Minimum is 10, Change in Debugger
+// When Period is 100, Time Between Interrupts = 25.6 ms
+unsigned char acceleration_period = 100;
 
 // Wait for Servo Wavelengths to Sync
 void sync_servos(uint8_t servo_number) {
@@ -267,6 +274,104 @@ void motor_setup() {
     TCC0->CTRLA.reg |= (TCC_CTRLA_ENABLE);
     while (TCC0->SYNCBUSY.bit.ENABLE) {
     };
+
+    ////////////////////////////////
+    // Acceleration Control Timer //
+    ////////////////////////////////
+
+    // Clock to be Used: Clock 7
+
+    // Timer to be Used: TC4
+
+    ///////////////////
+    // Initialize Clock
+
+    // Set GCLCK 7's Prescalar
+    GCLK->GENDIV.reg =
+        GCLK_GENDIV_DIV(48) | // Use a Prescalar of 48: 48MHz / 480 = 100 KHz
+        GCLK_GENDIV_ID(7);    // Apply to Clock 7
+    while (GCLK->STATUS.bit.SYNCBUSY);
+
+    // Configure Clock 7
+    GCLK->GENCTRL.reg = 
+        GCLK_GENCTRL_IDC |         // Apply 50/50 Duty Cycle
+        GCLK_GENCTRL_GENEN |       // Enable the Clock
+        GCLK_GENCTRL_SRC_DFLL48M | // Apply the 48MHz Base Clock
+        GCLK_GENCTRL_ID(7);        // Enable Clock 7
+    while (GCLK->STATUS.bit.SYNCBUSY);
+
+    // Bind TC5/TC6 to Clock 7
+    GCLK->CLKCTRL.reg =
+        GCLK_CLKCTRL_CLKEN |     // Enable Clock 7
+        GCLK_CLKCTRL_GEN_GCLK7 | // Bind to Clock 7
+        GCLK_CLKCTRL_ID_TC4_TC5; // Apply Clock to TC4 and TC5
+    while (GCLK->STATUS.bit.SYNCBUSY);
+
+    ///////////////////
+    // Initialize Timer
+
+    // Set Timer Operation Mode
+    TC4->COUNT8.CTRLA.reg =
+        TC_CTRLA_PRESCALER_DIV256 | // Set Counter to Have Prescaler of 256
+        TC_CTRLA_MODE_COUNT8 |    // Set Counter to 8-Bit Mode
+        TC_CTRLA_WAVEGEN_NFRQ;    // Set Timer to Use Normal Frequency Mode (This is to Allow Overflows)
+
+    // Set the Period in 8-bit Mode
+    TC4->COUNT8.PER.reg = acceleration_period;
+
+    ///////////////////////
+    // Bind Timer Interrupt
+
+    NVIC_ClearPendingIRQ(TC4_IRQn); // Clear All Current Interrupts for TC4
+    NVIC_SetPriority(TC4_IRQn, 1); // Set Priority of TC4 to Highest
+    NVIC_EnableIRQ(TC4_IRQn);     // Enable the TC4 Interrupts
+    TC4->COUNT8.INTENSET.reg = TC_INTENSET_OVF; // Enable Overflow Interrupt for TC4 
+
+    ///////////////
+    // Enable Timer
+
+    // Enable TC4
+    TC4->COUNT8.CTRLA.reg |= (TC_CTRLA_ENABLE);
+}
+
+// Interrupt Handler for TC4
+void TC4_Handler()
+{
+    // Re-Enable Interrupts
+    TC4->COUNT8.INTFLAG.bit.OVF = 0x1;
+
+    // Test Left Motor
+    changeMotorAcceleration(motor_target_left, motor_value_left, 0);
+
+    // Test Right Motor
+    changeMotorAcceleration(motor_target_right, motor_value_right, 1);
+}
+
+// Helper Function for Changing Acceleration
+void changeMotorAcceleration(unsigned int target, unsigned int& value, int motor_index)
+{
+    // If Target Equals Value, Early Return
+    if (target == value)
+        return;
+
+    // If Value is Less Than Target, Increase Value
+    if (value < target)
+        value++;
+
+    // Else, Decrease Value
+    else
+        value--;
+
+    // Update the Motor Timers
+    TCC1->CC[motor_index].reg =
+        MOTOR_BASE_TIME +
+        (MOTOR_CHANGE_CONST * value); // this sets the on time of the PWM cycle
+
+    // Wait for Motor Timers to Finish
+    if (motor_index == 0)
+        while (TCC1->SYNCBUSY.bit.CC0); // Wait for Left Motor
+    else
+        while (TCC1->SYNCBUSY.bit.CC1); // Wait for Right Motor
 }
 
 /** Control motors using joystick
@@ -312,28 +417,14 @@ void change_motor_speed(uint8_t motor_num, int16_t speed) {
 
     // Left Motor
     if (!motor_num) {
-        // Calculate speed value
-        motor_value_left = transformSpeed(speed, min_motor_speed, max_motor_speed, motor_speed_scalar);
-
-        // Update timer values
-        TCC1->CC[0].reg =
-            MOTOR_BASE_TIME +
-            (MOTOR_CHANGE_CONST * motor_value_left); // this sets the on time of the PWM cycle
-        while (TCC1->SYNCBUSY.bit.CC0) {
-        };
+        // Calculate speed value target
+        motor_target_left = transformSpeed(speed, min_motor_speed, max_motor_speed, motor_speed_scalar);
     }
 
     // Right Motor
     else {
         // Calculate speed value
-        motor_value_right = 255 - transformSpeed(speed, min_motor_speed, max_motor_speed, motor_speed_scalar);
-
-        // Update timer values
-        TCC1->CC[1].reg =
-            MOTOR_BASE_TIME +
-            (MOTOR_CHANGE_CONST * motor_value_right); // this set the on time of the PWM cycle
-        while (TCC1->SYNCBUSY.bit.CC1) {
-        };
+        motor_target_right = 255 - transformSpeed(speed, min_motor_speed, max_motor_speed, motor_speed_scalar);
     }
 }
 
