@@ -21,11 +21,13 @@ float MOTOR_CHANGE_CONST = 140;
 // motor, initialize to the stopped value of 127
 unsigned int motor_value_left = 127;
 unsigned int motor_target_left = 127;
+unsigned int motor_zero_timer_left = 0;
 
 // range is 27 (100% backward) to 127 (0% speed) to 227 (100% forward) for right
 // motor, initialize to the stopped value of 127
 unsigned int motor_value_right = 127;
 unsigned int motor_target_right = 127;
+unsigned int motor_zero_timer_right = 0;
 
 // Same as Above but for Servos
 unsigned int servo_value[4] = {127, 127, 127, 127};
@@ -67,7 +69,7 @@ int servo_speed_scalar = 0;
 // Period for the Acceleration Timer
 // Default is 100, Minimum is 10, Change in Debugger
 // When Period is 100, Time Between Interrupts = 25.6 ms
-unsigned char acceleration_period = 100;
+unsigned char acceleration_period = 50;
 
 // Wait for Servo Wavelengths to Sync
 void sync_servos(uint8_t servo_number) {
@@ -341,26 +343,53 @@ void TC4_Handler()
     TC4->COUNT8.INTFLAG.bit.OVF = 0x1;
 
     // Test Left Motor
-    changeMotorAcceleration(motor_target_left, motor_value_left, 0);
+    changeMotorAcceleration(motor_target_left, motor_value_left, motor_zero_timer_left, 0);
 
     // Test Right Motor
-    changeMotorAcceleration(motor_target_right, motor_value_right, 1);
+    changeMotorAcceleration(motor_target_right, motor_value_right, motor_zero_timer_right, 1);
 }
 
 // Helper Function for Changing Acceleration
-void changeMotorAcceleration(unsigned int target, unsigned int& value, int motor_index)
+void changeMotorAcceleration(unsigned int target, unsigned int& value, unsigned int& zero_timer, int motor_index)
 {
     // If Target Equals Value, Early Return
     if (target == value)
         return;
 
+    // If Zero Timer is Active, Decrement Then Return
+    if (zero_timer != 0)
+    {
+        zero_timer--;
+        return;
+    }
+
     // If Value is Less Than Target, Increase Value
     if (value < target)
-        value++;
-
+    {
+        /*
+        if (value < 126)
+          value += 2;
+        else
+          value++;
+        */
+        value += 1;
+    }
+ 
     // Else, Decrease Value
     else
-        value--;
+    {
+        /*
+        if (value > 128)
+          value -= 2;
+        else
+          value--;
+        */
+        value -= 1;
+    }
+
+    // If Value is Now Zero, Set Zero Timer
+    if (value == 127)
+        zero_timer = 20;
 
     // Update the Motor Timers
     TCC1->CC[motor_index].reg =

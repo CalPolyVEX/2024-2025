@@ -227,7 +227,7 @@ void reset_to_default()
     debug_list[MOTOR_SPEED_BIAS_DEBUG].value = 0;
 
     // Store Defualt Motor Acceleration
-    debug_list[MOTOR_ACCELERATION_DEBUG].value = 100;
+    debug_list[MOTOR_ACCELERATION_DEBUG].value = 50;
 
     // Store Default Min/Max Servo SPeed
     debug_list[MIN_MAX_SERVO_SPEED_DEBUG].value = 100;
