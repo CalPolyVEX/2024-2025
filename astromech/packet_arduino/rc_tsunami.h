@@ -13,5 +13,6 @@ void handle_tsunami_audio(uint16_t *channel);
 void handle_long_click_sound(uint16_t *channel);
 void handle_double_click_sound(uint16_t *channel);
 void handle_short_click_sound(uint16_t *channel);
+void handle_double_click_long_sound(uint16_t *channel);
 
 #endif

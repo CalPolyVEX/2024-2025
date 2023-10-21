@@ -17,13 +17,13 @@ void handle_tsunami_audio(uint16_t *channel) {
     static unsigned long button_click_time = 0;
     static unsigned long first_down_up_time = 0;
     static unsigned long wait_state_start_time = 0;
+    static unsigned long second_click_down_time = 0;
 
     bool trigger_button_down = channel[TSUNAMI_TRIGGER_CHNL] > 1000;
 
     switch (state) {
     case WAIT_FOR_BUTTON_DOWN:
         /* code */
-        SerialUSB.println("in WAIT_FOR_BUTTON_DOWN state");
         if (trigger_button_down) {
             button_click_time = millis();
             state = WAIT_FOR_BUTTON_UP;
@@ -49,11 +49,9 @@ void handle_tsunami_audio(uint16_t *channel) {
         if (millis() - first_down_up_time < 500) {
             if (trigger_button_down) {
                 // play double click sound
-                handle_double_click_sound(channel);
-                wait_state_start_time = millis();
-                state = WAIT;
-                SerialUSB.println("changing state to WAIT");
-                break;
+                second_click_down_time = millis();
+                state = WAIT_FOR_DOUBLE_BUTTON_UP;
+                SerialUSB.println("changing state to WAIT_FOR_DOUBLE_BUTTON_UP");
             }
         } else {
             // play short click sound
@@ -62,7 +60,18 @@ void handle_tsunami_audio(uint16_t *channel) {
             state = WAIT;
         }
         break;
-
+    case WAIT_FOR_DOUBLE_BUTTON_UP:
+        if (!trigger_button_down) {
+            if (millis() - wait_state_start_time < 1000) {
+                handle_double_click_sound(channel);
+                state = WAIT;
+            } else {
+                // long press
+                handle_double_click_long_sound(channel);
+                state = WAIT;
+            }
+        }
+        break;
     case WAIT:
         if (millis() - wait_state_start_time > 1000) {
             state = WAIT_FOR_BUTTON_DOWN;
@@ -129,6 +138,31 @@ void handle_short_click_sound(uint16_t *channel) {
             playTsunamiSound(11, 10);
         } else {
             playTsunamiSound(12, 10);
+        }
+    }
+}
+
+void handle_double_click_long_sound(uint16_t *channel) {
+    bool alt_control = channel[TSUNAMI_ALT_CHNL] < 1000;
+    stopTracks(); // prevent 2 long songs at the same time
+
+    if (alt_control) {
+        // play sound
+        if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MIN_SELECT) {
+            playTsunamiSound(1, 10);
+        } else if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MID_SELECT) {
+            playTsunamiSound(2, 10);
+        } else {
+            playTsunamiSound(3, 10);
+        }
+    } else {
+        // play other sound
+        if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MIN_SELECT) {
+            playTsunamiSound(7, 10);
+        } else if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MID_SELECT) {
+            playTsunamiSound(8, 10);
+        } else {
+            playTsunamiSound(9, 10);
         }
     }
 }
