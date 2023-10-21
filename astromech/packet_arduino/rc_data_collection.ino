@@ -585,19 +585,19 @@ void playAudio() {
 
                 if (channel[TSUNAMI_ALT_CHNL] < 1000) { // if alt switch is not flipped
                     if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MIN_SELECT) {
-                        playTsunamiSound(1, 10);
+                        playTsunamiSound(1, 10); // Main Theme
                     } else if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MID_SELECT) {
-                        playTsunamiSound(2, 10);
+                        playTsunamiSound(2, 10); // Cantina Band
                     } else {
-                        playTsunamiSound(3, 10);
+                        playTsunamiSound(3, 10); // Throne Room
                     }
                 } else { // if right alt switch is flipped
                     if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MIN_SELECT) {
-                        playTsunamiSound(7, 10);
+                        playTsunamiSound(7, 10); // Duel of the Fates
                     } else if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MID_SELECT) {
-                        playTsunamiSound(8, 10);
+                        playTsunamiSound(8, 10); // Imperial March
                     } else {
-                        playTsunamiSound(9, 10);
+                        playTsunamiSound(9, 10); // Mandalorian
                     }
                 }
                 

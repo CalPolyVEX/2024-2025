@@ -1,6 +1,12 @@
 #include "tsunami_control.h"
 #include <Wire.h>
 
+// The Time at which the Currently Playing Song Ends
+int song_end_time = 0;
+
+// The Index of the Currently Playing Song
+int song_index = 0;
+
 // Tsunami user's guide:  
 // https://cdn.sparkfun.com/assets/e/9/9/8/e/Tsunami_UserGuide_20230114.pdf
 
@@ -26,6 +32,27 @@ void playTsunamiSound(byte index, int volume) {
     Wire.write(0x00);                        // No need for most signifigant byte
     Wire.write(0x00);                        // Stereo Output
     Wire.endTransmission();                  // End Tsunami Transmission
+
+    // The List of Song Lengths
+    const int SONG_LENGTHS[] = { 60000, 60000, 60000, 60000, 60000, 60000 };
+
+    // If Tsunami is Now Playing a Song, Set the Song Time to the Length of the Song Plus Current Time
+    if ((index > 0 && index < 4) || (index > 6 && index < 10))
+    {
+        // Light Side
+        if (index < 4)
+            song_end_time = SONG_LENGTHS[index - 1];
+
+        // Dark Side
+        else
+            song_end_time = SONG_LENGTHS[index - 4];
+
+        // Add the Current Time to Song End Time
+        song_end_time += millis();
+
+        // Store Song Index
+        song_index = index;
+    }
 }
 
 // Send Command to Tsunami to Set Master Volume
@@ -41,6 +68,18 @@ void setTsunamiMasterVolume(int volume) {
         Wire.write((uint8_t)((truncated_volume >> 8) & 0xff)); // Send Most Signifigant Byte for Volume
         Wire.endTransmission();                       // End Tsunami Transmission
     }
+}
+
+inline void stopSingleTrack(int index)
+{
+    // Stop Specified Song at the Index
+    Wire.beginTransmission(TSUNAMI_ADDRESS); // Begin Tsunami Transmission
+    Wire.write(0x03);                        // Send Command to Play a Sound
+    Wire.write(0x04);                        // Send Control Code to Stop the Track
+    Wire.write(index);                       // Least Signifigant Byte for File Index
+    Wire.write(0x00);                        // No need for most signifigant byte
+    Wire.write(0x00);                        // Stereo Output
+    Wire.endTransmission();                  // End Tsunami Transmission
 }
 
 void stopTracks() {
@@ -93,6 +132,26 @@ void resetAmplifier() {
 
 // Set the Gain of the Amplifier
 void setAmplifierGain(byte gain) { writeAmplifierRegister(5, gain & 63); }
+
+inline void testEndOfSong()
+{
+    // If Song is Not Playing, Early Return
+    if (song_end_time == 0)
+        return;
+
+    // Get the Current Runtime
+    int current_time = millis();
+
+    // If Song is Not Finished, Early Return
+    if  (current_time < song_end_time)
+        return;
+
+    // Set the Song End Time to 0
+    song_end_time = 0;
+
+    // Stop the Current Song
+    stopSingleTrack(song_index);
+}
 
 // Debug Function for Tsunami
 void update_tsunami_debug(int value)
