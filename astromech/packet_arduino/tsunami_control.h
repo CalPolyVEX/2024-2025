@@ -16,6 +16,14 @@
 // Address of the Amplifier
 #define AMPLIFIER_ADDRESS 0x58
 
+// The Length of Each Song (In Milliseconds)
+#define MAIN_THEME_LENGTH         90000   // Index = 1
+#define CANTINA_BAND_LENGTH       163500  // Index = 2
+#define THRONE_ROOM_LENGTH        298500  // Index = 3
+#define DUEL_OF_THE_FATES_LENGTH  115000  // Index = 7
+#define IMPERIAL_MARCH_LENGTH     180500  // Index = 8
+#define MANDALORIAN_THEME_LENGTH  143500  // Index = 9
+
 // Send Command to Tsunami to Play a Sound
 void playTsunamiSound(byte index, int volume);
 

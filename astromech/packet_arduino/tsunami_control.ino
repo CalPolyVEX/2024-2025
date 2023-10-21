@@ -7,6 +7,9 @@ int song_end_time = 0;
 // The Index of the Currently Playing Song
 int song_index = 0;
 
+// Is Playing Variable
+extern bool is_playing;
+
 // Tsunami user's guide:  
 // https://cdn.sparkfun.com/assets/e/9/9/8/e/Tsunami_UserGuide_20230114.pdf
 
@@ -34,7 +37,14 @@ void playTsunamiSound(byte index, int volume) {
     Wire.endTransmission();                  // End Tsunami Transmission
 
     // The List of Song Lengths
-    const int SONG_LENGTHS[] = { 60000, 60000, 60000, 60000, 60000, 60000 };
+    const int SONG_LENGTHS[] = { 
+        MAIN_THEME_LENGTH,         // Index = 1
+        CANTINA_BAND_LENGTH,       // Index = 2
+        THRONE_ROOM_LENGTH,        // Index = 3
+        DUEL_OF_THE_FATES_LENGTH,  // Index = 7
+        IMPERIAL_MARCH_LENGTH,     // Index = 8
+        MANDALORIAN_THEME_LENGTH   // Index = 9
+    };
 
     // If Tsunami is Now Playing a Song, Set the Song Time to the Length of the Song Plus Current Time
     if ((index > 0 && index < 4) || (index > 6 && index < 10))
@@ -136,7 +146,7 @@ void setAmplifierGain(byte gain) { writeAmplifierRegister(5, gain & 63); }
 inline void testEndOfSong()
 {
     // If Song is Not Playing, Early Return
-    if (song_end_time == 0)
+    if (!is_playing)
         return;
 
     // Get the Current Runtime
@@ -146,8 +156,8 @@ inline void testEndOfSong()
     if  (current_time < song_end_time)
         return;
 
-    // Set the Song End Time to 0
-    song_end_time = 0;
+    // Set Flag That Song is Not Playing
+    is_playing = false;
 
     // Stop the Current Song
     stopSingleTrack(song_index);
