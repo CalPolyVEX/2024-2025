@@ -29,19 +29,6 @@
 // PSI macros
 // #define PSI_CHNL 6 // channel for controlling the logic engine [WIP]
 
-// Tsunami
-#define TSUNAMI_SELECT_CHNL 8 // the channel to select which sound to play (SD)
-#define TSUNAMI_MIN_SELECT 174
-#define TSUNAMI_MID_SELECT 995
-#define TSUNAMI_TRIGGER_CHNL 0 // the channel to trigger playing a sound (SI)
-#define TSUNAMI_MIN_VAL 174
-#define TSUNAMI_MAX_VAL 1815
-#define TSUNAMI_NUM_SOUNDS 3
-#define TSUNAMI_VOLUME_CHNL 1   // the channel to change the volume
-#define TSUNAMI_MIN_VOLUME 32   // value subtracted to determine the minimum volume
-#define TSUNAMI_VOLUME_RANGE 18 // difference between max and min volumes
-#define TSUNAMI_ALT_CHNL 10     // one way switch to access alternate sounds
-
 // SBUS packet format defines
 #define SBUS_HEADER_BYTE 0
 #define SBUS_FOOTER_BYTE 24
@@ -52,12 +39,6 @@ uint16_t flashCounter = 0;
 bool logicFlashing = false;
 
 bool ledState = LOW;
-uint32_t first_press_time = 0;
-static uint32_t last_sound_time = 0;
-static uint32_t current_sound_time = 0;
-
-static bool is_playing = false;
-static uint16_t current_volume = 0;
 
 /*
  * USING
@@ -330,8 +311,6 @@ bool receiver_loop() {
                 led_off(LED2);
             }
 
-            current_sound_time = millis();
-
             /* motor control */
             // convert from 11 bit to 8 bit before calling control motors
             uint16_t ver_8bit = channel[FORWARD_CHNL] >> 3;
@@ -360,19 +339,7 @@ bool receiver_loop() {
                 sendLogicEngineCommand(logic_eng_idx);
             }
 
-            /* Tsunami sound board - limit to play 1 sound file per second */
-            // if (current_sound_time > (last_sound_time + 1000) ){
-            //     playAudio();
-            // }
-            handle_tsunami_audio(channel);
-
-            if (abs(current_volume - channel[TSUNAMI_VOLUME_CHNL]) > 5) {
-                current_volume = channel[TSUNAMI_VOLUME_CHNL];
-                int volume = ((channel[TSUNAMI_VOLUME_CHNL] - 461) / (1068 / TSUNAMI_VOLUME_RANGE)) - TSUNAMI_MIN_VOLUME;
-                setTsunamiMasterVolume(volume);
-                SerialUSB.print(volume);
-                SerialUSB.print("\n");
-            }
+            handle_tsunami(channel);
 
             /* REON Holoprojector control */
             uint16_t reon_val = channel[REON_CHNL];
@@ -557,82 +524,4 @@ void print_all_channels() {
                 channel[4 * i + 2], channel[4 * i + 3]);
         lcd.print(buf);
     }
-}
-
-void playAudio() {
-    char buf[10];
-    int sound_step = (TSUNAMI_MAX_VAL - TSUNAMI_MIN_VAL) / TSUNAMI_NUM_SOUNDS;
-    int sound_val = (channel[TSUNAMI_SELECT_CHNL] - 174) / sound_step + 1;
-    static int long_press_time;
-
-    if (channel[TSUNAMI_TRIGGER_CHNL] > 1000) { // if the black trigger button is pressed
-        if (first_press_time == 0) {            // if the button is pressed for the first time
-            first_press_time = millis();
-        } else if ((millis() - first_press_time) > 1000) { // long press
-            long_press_time = millis();
-            if (is_playing) {
-                is_playing = false;
-                stopTracks();
-            } else {
-                is_playing = true;
-
-                if (channel[TSUNAMI_ALT_CHNL] < 1000) { // if alt switch is not flipped
-                    if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MIN_SELECT) {
-                        playTsunamiSound(1, 10); // Main Theme
-                    } else if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MID_SELECT) {
-                        playTsunamiSound(2, 10); // Cantina Band
-                    } else {
-                        playTsunamiSound(3, 10); // Throne Room
-                    }
-                } else { // if right alt switch is flipped
-                    if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MIN_SELECT) {
-                        playTsunamiSound(7, 10); // Duel of the Fates
-                    } else if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MID_SELECT) {
-                        playTsunamiSound(8, 10); // Imperial March
-                    } else {
-                        playTsunamiSound(9, 10); // Mandalorian
-                    }
-                }
-            }
-
-            first_press_time = 0;
-            last_sound_time = current_sound_time;
-        }
-    } else { // short press
-        if ((first_press_time != 0) && (millis() - long_press_time > 250)) {
-            if (channel[TSUNAMI_ALT_CHNL] < 1000) { // if alt switch is not flipped
-                if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MIN_SELECT) {
-                    playTsunamiSound(4, 10);
-                } else if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MID_SELECT) {
-                    playTsunamiSound(5, 10);
-                } else {
-                    playTsunamiSound(6, 10);
-                }
-            } else {
-                if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MIN_SELECT) {
-                    playTsunamiSound(10, 10);
-                } else if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MID_SELECT) {
-                    playTsunamiSound(11, 10);
-                } else {
-                    playTsunamiSound(12, 10);
-                }
-            }
-
-            first_press_time = 0;
-            last_sound_time = current_sound_time;
-        }
-    }
-
-    /*
-    // playTsunamiSound(sound_val,10);
-*/
-
-    lcd.clear();
-    lcd.print("playing ");
-    // SerialUSB.print("sound_val: ");
-    // SerialUSB.print(sound_val);
-    // SerialUSB.print("\n");
-
-    sprintf(buf, "%4d ", sound_val);
-    lcd.print(buf);
 }

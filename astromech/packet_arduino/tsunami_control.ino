@@ -10,7 +10,7 @@ int song_index = 0;
 // Is Playing Variable
 extern bool is_playing;
 
-// Tsunami user's guide:  
+// Tsunami user's guide:
 // https://cdn.sparkfun.com/assets/e/9/9/8/e/Tsunami_UserGuide_20230114.pdf
 
 // Send Command to Tsunami to Play a Sound
@@ -37,18 +37,18 @@ void playTsunamiSound(byte index, int volume) {
     Wire.endTransmission();                  // End Tsunami Transmission
 
     // The List of Song Lengths
-    const int SONG_LENGTHS[] = { 
-        MAIN_THEME_LENGTH,         // Index = 1
-        CANTINA_BAND_LENGTH,       // Index = 2
-        THRONE_ROOM_LENGTH,        // Index = 3
-        DUEL_OF_THE_FATES_LENGTH,  // Index = 7
-        IMPERIAL_MARCH_LENGTH,     // Index = 8
-        MANDALORIAN_THEME_LENGTH   // Index = 9
+    const int SONG_LENGTHS[] = {
+        MAIN_THEME_LENGTH,        // Index = 1
+        CANTINA_BAND_LENGTH,      // Index = 2
+        THRONE_ROOM_LENGTH,       // Index = 3
+        DUEL_OF_THE_FATES_LENGTH, // Index = 7
+        IMPERIAL_MARCH_LENGTH,    // Index = 8
+        MANDALORIAN_THEME_LENGTH  // Index = 9
     };
 
     // If Tsunami is Now Playing a Song, Set the Song Time to the Length of the Song Plus Current Time
-    if ((index > 0 && index < 4) || (index > 6 && index < 10))
-    {
+    if ((index > 0 && index < 4) || (index > 6 && index < 10)) {
+        is_playing = true;
         // Light Side
         if (index < 4)
             song_end_time = SONG_LENGTHS[index - 1];
@@ -71,17 +71,16 @@ void setTsunamiMasterVolume(int volume) {
 
     // Send Command Twice for Each Output
     for (int i = 0; i < 2; i++) {
-        Wire.beginTransmission(TSUNAMI_ADDRESS);      // Begin Tsunami Transmission
-        Wire.write(0x05);                             // Send Command to Set Master Volume
-        Wire.write(i + 0x00);                         // Write To Left and Right Outputs
-        Wire.write((uint8_t)(truncated_volume & 0xff));      // Send Least Signifigant Byte for Volume
+        Wire.beginTransmission(TSUNAMI_ADDRESS);               // Begin Tsunami Transmission
+        Wire.write(0x05);                                      // Send Command to Set Master Volume
+        Wire.write(i + 0x00);                                  // Write To Left and Right Outputs
+        Wire.write((uint8_t)(truncated_volume & 0xff));        // Send Least Signifigant Byte for Volume
         Wire.write((uint8_t)((truncated_volume >> 8) & 0xff)); // Send Most Signifigant Byte for Volume
-        Wire.endTransmission();                       // End Tsunami Transmission
+        Wire.endTransmission();                                // End Tsunami Transmission
     }
 }
 
-inline void stopSingleTrack(int index)
-{
+inline void stopSingleTrack(int index) {
     // Stop Specified Song at the Index
     Wire.beginTransmission(TSUNAMI_ADDRESS); // Begin Tsunami Transmission
     Wire.write(0x03);                        // Send Command to Play a Sound
@@ -93,9 +92,10 @@ inline void stopSingleTrack(int index)
 }
 
 void stopTracks() {
-    Wire.beginTransmission(TSUNAMI_ADDRESS);      // Begin Tsunami Transmission
-    Wire.write(0x04);                             // Send Command to Stop All Tracks
-    Wire.endTransmission();                       // End Tsunami Transmission
+    is_playing = false;
+    Wire.beginTransmission(TSUNAMI_ADDRESS); // Begin Tsunami Transmission
+    Wire.write(0x04);                        // Send Command to Stop All Tracks
+    Wire.endTransmission();                  // End Tsunami Transmission
 }
 
 // Read a Register from the Amplifier
@@ -143,8 +143,7 @@ void resetAmplifier() {
 // Set the Gain of the Amplifier
 void setAmplifierGain(byte gain) { writeAmplifierRegister(5, gain & 63); }
 
-inline void testEndOfSong()
-{
+inline void testEndOfSong() {
     // If Song is Not Playing, Early Return
     if (!is_playing)
         return;
@@ -153,7 +152,7 @@ inline void testEndOfSong()
     int current_time = millis();
 
     // If Song is Not Finished, Early Return
-    if  (current_time < song_end_time)
+    if (current_time < song_end_time)
         return;
 
     // Set Flag That Song is Not Playing
@@ -164,8 +163,7 @@ inline void testEndOfSong()
 }
 
 // Debug Function for Tsunami
-void update_tsunami_debug(int value)
-{
+void update_tsunami_debug(int value) {
     // Send Command Based on Value With Volume of 10
     playTsunamiSound(value, 10);
 }
