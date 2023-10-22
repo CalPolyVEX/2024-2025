@@ -42,6 +42,10 @@ char* motor_speed_scalar_text = "Motor Spd Scalar:";
 FlashStorage(motor_speed_bias_debug, int);
 char* motor_speed_bias_text = "Motor Spd Bias:";
 
+// Motor Acceleration Debug
+FlashStorage(motor_acceleration_debug, int);
+char* motor_acceleration_text = "Motor Acceleration:";
+
 // Servo Min/Max Speed Debug
 FlashStorage(min_max_servo_speed_debug, int);
 char* min_max_servo_speed_text = "Min/Max Servo Spd:";
@@ -102,6 +106,14 @@ void initialize_debug()
     debug_list[MOTOR_SPEED_SCALAR_DEBUG].max_val = 50;
     debug_list[MOTOR_SPEED_SCALAR_DEBUG].mod_val = 2;
     debug_list[MOTOR_SPEED_SCALAR_DEBUG].funct_ptr = &emtpy_debug_test_function;
+
+    // Initialize Motor Speed Bias Debug
+    debug_list[MOTOR_ACCELERATION_DEBUG].address = &motor_acceleration_debug;
+    debug_list[MOTOR_ACCELERATION_DEBUG].lcd_text = motor_acceleration_text;
+    debug_list[MOTOR_ACCELERATION_DEBUG].min_val = 10;
+    debug_list[MOTOR_ACCELERATION_DEBUG].max_val = 250;
+    debug_list[MOTOR_ACCELERATION_DEBUG].mod_val = 2;
+    debug_list[MOTOR_ACCELERATION_DEBUG].funct_ptr = &emtpy_debug_test_function;
 
     // Initialize Servo Speed Debug
     debug_list[MIN_MAX_SERVO_SPEED_DEBUG].address = &min_max_servo_speed_debug;
@@ -186,6 +198,9 @@ void initialize_debug()
     // Update Motor Speed Bias
     set_motor_speed_bias(debug_list[MOTOR_SPEED_BIAS_DEBUG].value);
 
+    // Update Motor Acceleration
+    set_motor_acceleration(debug_list[MOTOR_ACCELERATION_DEBUG].value);
+
     // Update Min/Max Servo Speed
     set_max_servo_speed(debug_list[MIN_MAX_SERVO_SPEED_DEBUG].value);
 
@@ -210,6 +225,9 @@ void reset_to_default()
 
     // Store Defualt Motor Speed Bias
     debug_list[MOTOR_SPEED_BIAS_DEBUG].value = 0;
+
+    // Store Defualt Motor Acceleration
+    debug_list[MOTOR_ACCELERATION_DEBUG].value = 50;
 
     // Store Default Min/Max Servo SPeed
     debug_list[MIN_MAX_SERVO_SPEED_DEBUG].value = 100;
