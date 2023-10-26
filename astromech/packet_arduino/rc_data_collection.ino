@@ -14,12 +14,12 @@
 
 // channel for determining whether to get input from RC or PC
 #define TOGGL_CHNL 15
-#define TOGGL_VAL_RC 174   // toggle to RC
+#define TOGGL_VAL_RC 174  // toggle to RC
 #define TOGGL_VAL_PC 1815 // toggle to PC
 
 // REON holoprojector macros
 #define REON_CHNL 13   // channel for controlling the REON holoprojectors
-#define REON_LOW 174     // maps to REON_OFF
+#define REON_LOW 174   // maps to REON_OFF
 #define REON_MID 995   // maps to REON_ON
 #define REON_HIGH 1815 // maps to REON_WHITE
 
@@ -29,36 +29,16 @@
 // PSI macros
 // #define PSI_CHNL 6 // channel for controlling the logic engine [WIP]
 
-// Tsunami
-#define TSUNAMI_SELECT_CHNL 8  // the channel to select which sound to play (SD)
-#define TSUNAMI_MIN_SELECT 174
-#define TSUNAMI_MID_SELECT 995
-#define TSUNAMI_TRIGGER_CHNL 0 // the channel to trigger playing a sound (SI)
-#define TSUNAMI_MIN_VAL 174
-#define TSUNAMI_MAX_VAL 1815
-#define TSUNAMI_NUM_SOUNDS 3
-#define TSUNAMI_VOLUME_CHNL 1 //the channel to change the volume
-#define TSUNAMI_MIN_VOLUME 32 //value subtracted to determine the minimum volume
-#define TSUNAMI_VOLUME_RANGE 18 //difference between max and min volumes
-#define TSUNAMI_ALT_CHNL 10 //one way switch to access alternate sounds
-
-
 // SBUS packet format defines
 #define SBUS_HEADER_BYTE 0
 #define SBUS_FOOTER_BYTE 24
 #define SBUS_FRAME_FAILSAFE_BYTE 23
 
-//Christine's LED
+// Christine's LED
 uint16_t flashCounter = 0;
-bool logicFlashing = false; 
+bool logicFlashing = false;
 
 bool ledState = LOW;
-uint32_t first_press_time = 0;
-static uint32_t last_sound_time = 0;
-static uint32_t current_sound_time = 0;
-
-static bool is_playing = false; 
-static uint16_t current_volume = 0;
 
 /*
  * USING
@@ -79,7 +59,7 @@ volatile boolean new_sbus_packet = false;
 volatile uint16_t incoming_rc_byte; // a temporary for the incoming RC data
 volatile boolean stayInPC = false;
 uint32_t last_sbus_valid_time =
-    0; // holds the time (in milliseconds) of the last SBUS packet received
+    0;                            // holds the time (in milliseconds) of the last SBUS packet received
 uint32_t lost_rc_frame_count = 0; // the number of lost frames from the transmitter
 
 // Queue object (acts as a serial buffer)
@@ -109,8 +89,8 @@ void receiver_setup() {
         GCLK_GENDIV_DIV(1) | // Divide the 48MHz clock source by divisor 1: 48MHz/1=48MHz
         GCLK_GENDIV_ID(4);   // Select Generic Clock (GCLK) 4
     GCLK->GENCTRL.reg = GCLK_GENCTRL_IDC |
-                        GCLK_GENCTRL_GENEN | // enable the clock connection to the peripheral(s)
-                        GCLK_GENCTRL_ID(4) | // use clock gen 4
+                        GCLK_GENCTRL_GENEN |          // enable the clock connection to the peripheral(s)
+                        GCLK_GENCTRL_ID(4) |          // use clock gen 4
                         GCLK_GENCTRL_SRC_DFLL48M;     // Set Clock to 48 MHz
     GCLK->CLKCTRL.reg = GCLK_CLKCTRL_CLKEN |          // enable the clock
                         GCLK_CLKCTRL_GEN_GCLK4 |      // enable generic clock generator 4
@@ -132,9 +112,9 @@ void receiver_setup() {
     SERCOM2->USART.CTRLB.bit.PMODE = 0x0;  // using even parity
     SERCOM2->USART.CTRLB.bit.SBMODE = 0x1; // using 2 stop bits
     SERCOM2->USART.BAUD.reg =
-        63351; // set the correct baud register value (calculated based on equation in samd21
-               // datasheet) SBUS baudrate is 100000, 8 bit data, even parity, 2 stop bits
-               // (48MHz / 16) * (1 - BAUD/65536) = 100K, this gives 63351.466 for BAUD
+        63351;                           // set the correct baud register value (calculated based on equation in samd21
+                                         // datasheet) SBUS baudrate is 100000, 8 bit data, even parity, 2 stop bits
+                                         // (48MHz / 16) * (1 - BAUD/65536) = 100K, this gives 63351.466 for BAUD
     SERCOM2->USART.CTRLB.bit.RXEN = 0x1; // enable Serial RX
     while (SERCOM2->USART.SYNCBUSY.bit.CTRLB)
         ;                                // wait for sync
@@ -157,8 +137,8 @@ void receiver_setup() {
 
     // Initialize Clock for Timer
     GCLK->GENDIV.reg =
-        GCLK_GENDIV_DIV(6) | // Divide the 48MHz clock source by divisor 6: 48MHz/6=8MHz
-        GCLK_GENDIV_ID(3);   // Select Generic Clock (GCLK) 3
+        GCLK_GENDIV_DIV(6) |                       // Divide the 48MHz clock source by divisor 6: 48MHz/6=8MHz
+        GCLK_GENDIV_ID(3);                         // Select Generic Clock (GCLK) 3
     GCLK->GENCTRL.reg = GCLK_GENCTRL_SRC_DFLL48M | // use DFLL48M as clock source
                         GCLK_GENCTRL_GENEN |       // indicates the generator should be started
                         GCLK_GENCTRL_ID(3);        // apply this all to the proper generator
@@ -213,73 +193,66 @@ bool receiver_loop() {
     static int receiver_mode_counter = 0;
     static uint32_t last_reon_time = 0;
 
-    //Christine's Test Lights
-    if (channel[3]==461){
-      //SerialUSB.print("461\n");
+    // Christine's Test Lights
+    if (channel[3] == 461) {
+        // SerialUSB.print("461\n");
 
-      if (flashCounter==0){
-        led_on(LED2);
-        flashCounter++;
-      }
-      else if (flashCounter<900){
-        flashCounter++;
-      }
-      else if (flashCounter==900){
+        if (flashCounter == 0) {
+            led_on(LED2);
+            flashCounter++;
+        } else if (flashCounter < 900) {
+            flashCounter++;
+        } else if (flashCounter == 900) {
+            led_off(LED2);
+            flashCounter++;
+        } else if (flashCounter < 1800) {
+            flashCounter++;
+        } else if (flashCounter == 1800) {
+            flashCounter = 0;
+        }
+        // LED STUFF
+        /*led_on(LED2);
+        delay(200);
         led_off(LED2);
-        flashCounter++;
-      }
-      else if (flashCounter<1800){
-        flashCounter++;
-      }
-      else if(flashCounter==1800){
-        flashCounter=0;
-      }
-      //LED STUFF
-      /*led_on(LED2);
-      delay(200);
-      led_off(LED2);
-      delay(200);*/
-    }
-    else if (channel[3]==995){
-      //SerialUSB.print("995\n");
-      led_off(LED2);
-    } 
-    else{//SerialUSB.print("1529\n");
+        delay(200);*/
+    } else if (channel[3] == 995) {
+        // SerialUSB.print("995\n");
+        led_off(LED2);
+    } else { // SerialUSB.print("1529\n");
     }
 
     // If DB0 is pressed while the code is running, the RC channel information
     // will be displayed on the LCD
-    if (print_channel_counter == 300) { //periodically check is button 0 is held down
+    if (print_channel_counter == 300) { // periodically check is button 0 is held down
         print_channel_counter = 0;
 
-        //if the button 0 is held down, then toggle displaying the channels
-        if (get_btn_val(DB0) == 0) { 
-            print_channels_mode = !print_channels_mode; 
-        } 
+        // if the button 0 is held down, then toggle displaying the channels
+        if (get_btn_val(DB0) == 0) {
+            print_channels_mode = !print_channels_mode;
+        }
 
-        //if the button 1 is held down, then disable displaying the channels
+        // if the button 1 is held down, then disable displaying the channels
         if (get_btn_val(DB1) == 0) {
             print_channels_mode = false;
             lcd.clear();
-        } 
+        }
     } else {
         print_channel_counter++;
     }
 
     if (new_sbus_packet) {
 
-        //Christine's Logic Board
-        if (channel[5]==461 && !logicFlashing){
-          //displayRedAlert();
-          //delay(7000);
-          sendLogicEngineCommand(0);
-          //sendLogicEngineString("Hello    ", 1);
-          //
-          //adjustBrightness();
-          logicFlashing = true; 
-        }
-        else if(channel[5]!=461){
-          logicFlashing = false;
+        // Christine's Logic Board
+        if (channel[5] == 461 && !logicFlashing) {
+            // displayRedAlert();
+            // delay(7000);
+            sendLogicEngineCommand(0);
+            // sendLogicEngineString("Hello    ", 1);
+            //
+            // adjustBrightness();
+            logicFlashing = true;
+        } else if (channel[5] != 461) {
+            logicFlashing = false;
         }
 
         // Reset new_sbus_packet flag
@@ -295,13 +268,13 @@ bool receiver_loop() {
         }
 
         // TROUBLESHOOTING: print out the values of every channel into serial
-        //for (int i = 0; i < 16; i++) {
+        // for (int i = 0; i < 16; i++) {
         //    SerialUSB.print(channel[i]);
         //    SerialUSB.print(" ");
         //}
-        //SerialUSB.println(" ");
+        // SerialUSB.println(" ");
 
-        //Decode Data into 11 bit channels
+        // Decode Data into 11 bit channels
         reverse_decode2();
 
         // print out the values of every channel into serial
@@ -338,24 +311,22 @@ bool receiver_loop() {
                 led_off(LED2);
             }
 
-            current_sound_time = millis();
-
             /* motor control */
             // convert from 11 bit to 8 bit before calling control motors
             uint16_t ver_8bit = channel[FORWARD_CHNL] >> 3;
             uint16_t hor_8bit = channel[TURNING_CHNL] >> 3;
-            //uint8_t dome_servo_8bit = channel[4] >> 3; // dome "servo"
-            //int16_t dome_servo_8bit = (channel[4] - 995) >> 4;
+            // uint8_t dome_servo_8bit = channel[4] >> 3; // dome "servo"
+            // int16_t dome_servo_8bit = (channel[4] - 995) >> 4;
             int16_t dome_servo_8bit = (channel[DOME_CHNL] - 999) >> 4;
 
             // input motor values
-            //SerialUSB.print(dome_servo_8bit);
-            //SerialUSB.print("  ");
+            // SerialUSB.print(dome_servo_8bit);
+            // SerialUSB.print("  ");
             control_motors_joystick(ver_8bit, hor_8bit);
-            //SerialUSB.print(hor_8bit);
-            //SerialUSB.print("  ");
-            //SerialUSB.print(ver_8bit);
-            //SerialUSB.print("\n");
+            // SerialUSB.print(hor_8bit);
+            // SerialUSB.print("  ");
+            // SerialUSB.print(ver_8bit);
+            // SerialUSB.print("\n");
 
             /* Set dome rotation speed */
             set_servo_angle(DOME_SERVO_NUM, dome_servo_8bit);
@@ -368,18 +339,7 @@ bool receiver_loop() {
                 sendLogicEngineCommand(logic_eng_idx);
             }
 
-            /* Tsunami sound board - limit to play 1 sound file per second */
-            if (current_sound_time > (last_sound_time + 1000) ){
-                playAudio();
-            }
-
-            if (abs(current_volume - channel[TSUNAMI_VOLUME_CHNL]) > 5){
-                current_volume = channel[TSUNAMI_VOLUME_CHNL];
-                int volume = ((channel[TSUNAMI_VOLUME_CHNL]-461)/(1068/TSUNAMI_VOLUME_RANGE))-TSUNAMI_MIN_VOLUME;
-                setTsunamiMasterVolume(volume);
-                SerialUSB.print(volume);
-                SerialUSB.print("\n");
-            }
+            handle_tsunami(channel);
 
             /* REON Holoprojector control */
             uint16_t reon_val = channel[REON_CHNL];
@@ -391,7 +351,7 @@ bool receiver_loop() {
                 reon_val = REON_OFF;
 
             // send the REON command every 500ms
-            if (millis() > (last_reon_time + 1500)) { 
+            if (millis() > (last_reon_time + 1500)) {
                 send_reon_command(reon_val, HP_FRNT_ADDR);
                 send_reon_command(reon_val, HP_TOP_ADDR);
                 send_reon_command(reon_val, HP_REAR_ADDR);
@@ -413,26 +373,26 @@ bool receiver_loop() {
         }
 
         // reset the header and footer of the sbus_packet buffer by
-        // setting the bytes to incorrect values and this prevents reusing 
+        // setting the bytes to incorrect values and this prevents reusing
         // data from a previous packet
         sbus_packet[SBUS_HEADER_BYTE] = 0;
         sbus_packet[SBUS_FOOTER_BYTE] = 0xff;
-        //if (print_channels_mode == true) {
+        // if (print_channels_mode == true) {
         if (1 == 1) {
             print_all_channels();
         }
 
-        //reset the RC/PC toggle to an undefined value of 2047
-        channel[TOGGL_CHNL] = 2047; 
+        // reset the RC/PC toggle to an undefined value of 2047
+        channel[TOGGL_CHNL] = 2047;
 
         // reset the RC timeout timer by recording the time that the last
         // valid SBUS packet was received
         last_sbus_valid_time = millis();
 
-        // if the lost frame bit is set or if the channel data is 
+        // if the lost frame bit is set or if the channel data is
         // set to 640 (transmitter off value)
-        if (((sbus_packet[SBUS_FRAME_FAILSAFE_BYTE] & 0x04) != 0) || 
-            ((channel[0] == 640) && (channel[1] == 640))) { 
+        if (((sbus_packet[SBUS_FRAME_FAILSAFE_BYTE] & 0x04) != 0) ||
+            ((channel[0] == 640) && (channel[1] == 640))) {
             lost_rc_frame_count++;
 
             // if the frames are lost for about 1 second (100 frames), then
@@ -455,12 +415,12 @@ bool receiver_loop() {
             led_off(LED3);
             led_off(LED4);
 
-            if (lost_rc_frame_count != 0) 
+            if (lost_rc_frame_count != 0)
                 lcd.clear();
             lost_rc_frame_count = 0; // reset the lost frame count
         }
 
-    } else { 
+    } else {
         // if no new data received from the RC receiver in the last 1000ms,
         // then assume the RC receiver is unplugged and stop the motors
         if (millis() > (last_sbus_valid_time + 1000)) {
@@ -497,7 +457,7 @@ void reverse_decode2() {
     // handle original bytes 1-8
     temp_ptr64 = (uint64_t *)&sbus_packet[1];
     val = *temp_ptr64;
-    channel[0] = (val) & 0x7ff;
+    channel[0] = (val)&0x7ff;
     channel[1] = (val >> 11) & 0x7ff;
     channel[2] = (val >> 22) & 0x7ff;
     channel[3] = (val >> 33) & 0x7ff;
@@ -506,7 +466,7 @@ void reverse_decode2() {
     // handle original bytes 7-14
     temp_ptr64 = (uint64_t *)&sbus_packet[7];
     val = *temp_ptr64;
-    channel[5] = (val >>  7) & 0x7ff;
+    channel[5] = (val >> 7) & 0x7ff;
     channel[6] = (val >> 18) & 0x7ff;
     channel[7] = (val >> 29) & 0x7ff;
     channel[8] = (val >> 40) & 0x7ff;
@@ -515,7 +475,7 @@ void reverse_decode2() {
     // handle original bytes 14-21
     temp_ptr64 = (uint64_t *)&sbus_packet[14];
     val = *temp_ptr64;
-    channel[10] = (val >>  6) & 0x7ff;
+    channel[10] = (val >> 6) & 0x7ff;
     channel[11] = (val >> 17) & 0x7ff;
     channel[12] = (val >> 28) & 0x7ff;
     channel[13] = (val >> 39) & 0x7ff;
@@ -536,7 +496,7 @@ void SERCOM2_Handler() {
 
     // Start TC from Top Value - this interrupt will trigger if no new bytes
     // are received after 2000/8MHz = 250us
-    TC3->COUNT16.COUNT.reg = 2000; 
+    TC3->COUNT16.COUNT.reg = 2000;
 
     // retrigger
     TC3->COUNT16.CTRLBSET.bit.CMD = 0x1;
@@ -558,90 +518,10 @@ void print_all_channels() {
     // display all 16 RC channels to the LCD
     char buf[30];
 
-    for (int i=0; i<4; i++) {
-        lcd.setCursor(0,i);
-        sprintf(buf, "%4d %4d %4d %4d ", channel[4*i+0], channel[4*i+1],
-            channel[4*i+2], channel[4*i+3]);
+    for (int i = 0; i < 4; i++) {
+        lcd.setCursor(0, i);
+        sprintf(buf, "%4d %4d %4d %4d ", channel[4 * i + 0], channel[4 * i + 1],
+                channel[4 * i + 2], channel[4 * i + 3]);
         lcd.print(buf);
     }
 }
-
-void playAudio() {
-    char buf[10];
-    int sound_step = (TSUNAMI_MAX_VAL - TSUNAMI_MIN_VAL) / TSUNAMI_NUM_SOUNDS;
-    int sound_val = (channel[TSUNAMI_SELECT_CHNL] - 174) / sound_step + 1;
-    static int long_press_time;
-    
-    if (channel[TSUNAMI_TRIGGER_CHNL] > 1000) { // if the black trigger button is pressed
-        if (first_press_time == 0) { // if the button is pressed for the first time
-            first_press_time = millis();
-        } else if ((millis() - first_press_time) > 1000) { //long press
-            long_press_time = millis();
-            if (is_playing) {
-                is_playing = false;
-                stopTracks();
-            } else {
-                is_playing = true;
-
-                if (channel[TSUNAMI_ALT_CHNL] < 1000) { // if alt switch is not flipped
-                    if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MIN_SELECT) {
-                        playTsunamiSound(1, 10);
-                    } else if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MID_SELECT) {
-                        playTsunamiSound(2, 10);
-                    } else {
-                        playTsunamiSound(3, 10);
-                    }
-                } else { // if right alt switch is flipped
-                    if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MIN_SELECT) {
-                        playTsunamiSound(7, 10);
-                    } else if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MID_SELECT) {
-                        playTsunamiSound(8, 10);
-                    } else {
-                        playTsunamiSound(9, 10);
-                    }
-                }
-                
-            }
-
-            first_press_time = 0;
-            last_sound_time = current_sound_time;
-        }
-    } else { //short press
-        if((first_press_time != 0) && (millis()-long_press_time>250)) {
-            if (channel[TSUNAMI_ALT_CHNL] < 1000) { // if alt switch is not flipped
-                if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MIN_SELECT) {
-                    playTsunamiSound(4, 10);
-                } else if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MID_SELECT) {
-                    playTsunamiSound(5, 10);
-                } else {
-                    playTsunamiSound(6, 10);
-                }
-            } else {
-                if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MIN_SELECT) {
-                    playTsunamiSound(10, 10);
-                } else if (channel[TSUNAMI_SELECT_CHNL] == TSUNAMI_MID_SELECT) {
-                    playTsunamiSound(11, 10);
-                } else {
-                    playTsunamiSound(12, 10);
-                }
-            }
-
-            first_press_time=0;
-            last_sound_time = current_sound_time;
-        }
-    }
-
-    /*
-    // playTsunamiSound(sound_val,10);
-*/
-
-    lcd.clear();
-    lcd.print("playing ");
-    //SerialUSB.print("sound_val: ");
-    //SerialUSB.print(sound_val);
-    //SerialUSB.print("\n");
-
-    sprintf(buf, "%4d ", sound_val);
-    lcd.print(buf);
-}
-

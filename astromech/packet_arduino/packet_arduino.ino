@@ -87,6 +87,8 @@ void loop() {
     // Receiver Mode
     pc_get_input(receiver_loop());
 
+    // Tsunami Test for End of Song
+    testEndOfSong();
 }
 
 // old loop() contents

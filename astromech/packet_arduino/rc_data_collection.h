@@ -6,6 +6,7 @@
 #include "motor_servo_control.h"
 #include "packet_arduino.h"
 #include "pc_decoder.h"
+#include "rc_tsunami.h"
 #include "reon_hp_i2c.h"
 
 // Queue class
@@ -104,7 +105,7 @@ private:
     uint8_t dummy_var;
 };
 
-//class Queue;
+// class Queue;
 
 void receiver_setup();
 bool receiver_loop();

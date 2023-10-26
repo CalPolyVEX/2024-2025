@@ -1,3 +1,5 @@
+#ifndef I2C_PIN_LED_H_
+#define I2C_PIN_LED_H_
 // This is to fix the reference of Serial in TCA9534
 #define Serial SerialUSB
 #include <TCA9534.h>
@@ -9,8 +11,9 @@
 #define LED3 3
 #define LED4 4
 
-#define IOEX_ADDR (const uint8_t) 0x38 // I2C address of the TCA9554A
+#define IOEX_ADDR (const uint8_t)0x38 // I2C address of the TCA9554A
 
 void setup_i2c();
 void led_on(int num);
 void led_off(int num);
+#endif
