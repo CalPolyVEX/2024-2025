@@ -1,5 +1,10 @@
 #include "buildmessage.h"
 #include "../packet_arduino/pc_decoder_info.h"
+#include <libserial/SerialPort.h>
+#include <cstdlib>
+#include <fstream>
+#include "time.h"
+
 /*
 make a global array for everything
 make command 5 combining 3 and 4: done, computer side only, not tested
@@ -17,6 +22,14 @@ We can only print one line of the lcd at a time: how to deal with clearing??
 */
 
 uint8_t packet[MAX_PACKET_SIZE];
+
+
+// Specify the Consant USB Port
+constexpr const char* const SERIAL_PORT = "/dev/ttyACM0";
+
+// The Serial Port Object
+LibSerial::SerialPort serial_port;
+
 /*
 packet[0] -> start marker (0xFF)
 packet[1] -> payload size
@@ -27,8 +40,10 @@ packet[5] -> checksum
 */
 // all servos are off at 131
 
+// Commenting Out Since Main Should Only Be Used for Manual Testing
 int main(int argc, char *argv[]) {
     int fd = STDOUT_FILENO;
+    init_serial();
 
     // int bytes_read = read(fd_read, buff, 1000);
     // printf("bytes read: %d\n", bytes_read);
@@ -43,21 +58,37 @@ int main(int argc, char *argv[]) {
     //     send_set_motor(MOTOR_COMMAND_RIGHT, 255, fd);
     // }
     // send_print_string_at(0, 0, (uint8_t *)"1", fd);
-    for (int i = 0; i < 1000; i++) {
-        // send_set_motor(LEFT_MOTOR_CMD, 10, fd);
-        send_set_motor(RIGHT_MOTOR_CMD, 0, fd);
+    for (int i = 0; i < 100; i++) {
+        send_set_motor(LEFT_MOTOR_CMD, 100);
+        usleep(50000);
+        send_set_motor(RIGHT_MOTOR_CMD, 100);
+        usleep(50000);
     }
 
-    /* ############## servo test #################*/
+    for (int i = 0; i < 100; i++) {
+        send_set_motor(LEFT_MOTOR_CMD, 0);
+        usleep(50000);
+        send_set_motor(RIGHT_MOTOR_CMD, 0);
+        usleep(50000);
+    }
+
+    for (int i = 0; i < 100; i++) {
+        send_set_motor(LEFT_MOTOR_CMD, 154);
+        usleep(50000);
+        send_set_motor(RIGHT_MOTOR_CMD, 154);
+        usleep(50000);
+    }
+
+    // ############## servo test #################//
     // for (int i = 0; i < 1000; i++) {
     //     if(i%100)
     //         send_set_servo(0, 250, fd);
     //     else
     //         send_set_servo(0, 131, fd);
     // }
-    /* ############# end servo test ##############*/
+    // ############# end servo test ##############//
 
-    /* ############## reon test #################*/
+    // ############## reon test #################//
     // for (int i = 0; i < 1000; i++) {
     //     if (i % 100)
     //         send_set_reon(27, 2, fd); // reon rear off
@@ -65,7 +96,7 @@ int main(int argc, char *argv[]) {
     //         send_set_reon(27, 2, fd); // reon rear white
     // }
     // send_set_reon(27, 3, fd); // reon rear white
-    /* ############# end reon test ##############*/
+    // ############# end reon test ##############//
 
     // send_set_servo(1, 131, fd);
     // send_set_servo(2, 131, fd);
@@ -78,65 +109,101 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
+//
 
-void send_set_motor(int direction, int8_t speed, int fd) {
+
+// This Function is Used to Initialize the File Descriptor on the ROS2 End
+int init_serial() {
+
+    // Open the Serial Port
+    serial_port.Open(SERIAL_PORT);
+    
+    // Set Baud Rate of 115200
+    serial_port.SetBaudRate(LibSerial::BaudRate::BAUD_115200);
+
+    // Set Number of Bits to Max Packet Size
+    serial_port.SetCharacterSize(LibSerial::CharacterSize::CHAR_SIZE_8);
+
+    // Turn Off Flow Control
+    serial_port.SetFlowControl(LibSerial::FlowControl::FLOW_CONTROL_NONE);
+
+    // Disable Parity
+    serial_port.SetParity(LibSerial::Parity::PARITY_NONE);
+
+    // Dissable All Stop Bits
+    serial_port.SetStopBits(LibSerial::StopBits::STOP_BITS_1);
+
+    return 0;
+}
+
+void send_set_motor(int direction, int8_t speed) {
     uint8_t packet_len = set_motor(direction, speed);
-    write(fd, packet, packet_len);
+    std::vector<uint8_t> packet_vector(packet, packet + packet_len);
+    serial_port.Write(packet_vector);
 }
 
-void send_set_servo(uint8_t servo_num, uint8_t position, int fd) {
+void send_set_servo(uint8_t servo_num, uint8_t position) {
     uint8_t packet_len = set_servo(servo_num, position);
-    write(fd, packet, packet_len);
+    std::vector<uint8_t> packet_vector(packet, packet + packet_len);
+    serial_port.Write(packet_vector);
 }
 
-void send_set_lcd(uint8_t col, uint8_t row, int fd) {
+void send_set_lcd(uint8_t col, uint8_t row) {
     uint8_t packet_len = set_cursor_lcd(col, row);
-    write(fd, packet, packet_len);
+    std::vector<uint8_t> packet_vector(packet, packet + packet_len);
+    serial_port.Write(packet_vector);
 }
 
-void send_print_string(uint8_t *s, int fd) {
+void send_print_string(uint8_t *s) {
     unsigned len = strlen((char *)s);
     uint8_t packet_len = print_string(len, s);
     /* 2: for null byte and numuint8_ts */
-    write(fd, packet, packet_len);
+    std::vector<uint8_t> packet_vector(packet, packet + packet_len);
+    serial_port.Write(packet_vector);
 }
 
-void send_print_string_at(uint8_t col, uint8_t row, uint8_t *s, int fd) {
+void send_print_string_at(uint8_t col, uint8_t row, uint8_t *s) {
     unsigned len = strlen((char *)s);
     uint8_t packet_len = print_string_at(col, row, len, s);
     /* 2: for null byte and numuint8_ts */
-    write(fd, packet, packet_len);
+    std::vector<uint8_t> packet_vector(packet, packet + packet_len);
+    serial_port.Write(packet_vector);
 }
 
-void send_clear_lcd(int fd) {
+void send_clear_lcd() {
     uint8_t packet_len = clear_lcd();
-    write(fd, packet, packet_len);
+    std::vector<uint8_t> packet_vector(packet, packet + packet_len);
+    serial_port.Write(packet_vector);
 }
 
-void send_led_preset_cmd(uint8_t preset_idx, int fd) {
+void send_led_preset_cmd(uint8_t preset_idx) {
     uint8_t packet_len = logic_preset_cmd(preset_idx);
-    write(fd, packet, packet_len);
+    std::vector<uint8_t> packet_vector(packet, packet + packet_len);
+    serial_port.Write(packet_vector);
 }
 
-void send_led_raw_cmd(uint8_t command_major, uint8_t command_minor, uint8_t color, uint8_t speed,
-                      int fd) {
+void send_led_raw_cmd(uint8_t command_major, uint8_t command_minor, uint8_t color, uint8_t speed) {
     uint8_t packet_len = logic_raw_cmd(command_major, command_minor, color, speed);
-    write(fd, packet, packet_len);
+    std::vector<uint8_t> packet_vector(packet, packet + packet_len);
+    serial_port.Write(packet_vector);
 }
 
-void send_tsun_sound_cmd(uint8_t preset_idx, uint8_t volume, int fd) {
+void send_tsun_sound_cmd(uint8_t preset_idx, uint8_t volume) {
     uint8_t packet_len = tsunami_sound_cmd(preset_idx, volume);
-    write(fd, packet, packet_len);
+    std::vector<uint8_t> packet_vector(packet, packet + packet_len);
+    serial_port.Write(packet_vector);
 }
 
-void send_tsun_amp_cmd(uint8_t gain, int fd) {
+void send_tsun_amp_cmd(uint8_t gain) {
     uint8_t packet_len = tsunami_amp_cmd(gain);
-    write(fd, packet, packet_len);
+    std::vector<uint8_t> packet_vector(packet, packet + packet_len);
+    serial_port.Write(packet_vector);
 }
 
-void send_set_reon(uint8_t reon_addr, uint8_t reon_state, int fd) {
+void send_set_reon(uint8_t reon_addr, uint8_t reon_state) {
     uint8_t packet_len = set_reon(reon_addr, reon_state);
-    write(fd, packet, packet_len);
+    std::vector<uint8_t> packet_vector(packet, packet + packet_len);
+    serial_port.Write(packet_vector);
 }
 
 /**

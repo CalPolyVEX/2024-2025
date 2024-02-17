@@ -93,13 +93,17 @@ void eval_input(uint8_t *data, int size, bool pc_mode) {
     switch (data[2]) {
     case LEFT_MOTOR_CMD: // Set left motor
         if (pc_mode) {
-            change_motor_speed(0, int(data[3]));
+            int16_t new_motor_speed = *(int8_t)(data + 3);
+            change_motor_speed(0, new_motor_speed);
+            //change_motor_speed(0, int(data[3]));
         }
         break;
 
     case RIGHT_MOTOR_CMD: // Set right motor
         if (pc_mode) {
-            change_motor_speed(1, int(data[3]));
+            int16_t new_motor_speed = *(int8_t)(data + 3);
+            change_motor_speed(1, new_motor_speed);
+            //change_motor_speed(1, int(data[3]));
         }
         break;
 

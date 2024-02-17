@@ -1,4 +1,5 @@
-#include <fcntl.h>
+#ifndef BUILD_MESSAGE_H
+#define BUILD_MESSAGE_H
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,6 +20,9 @@
 #define TSUN_AMP_PAYLOAD 1
 #define REON_PAYLOAD 2
 
+/* File Descriptor Initialization */
+int init_serial();
+
 /* packet construction */
 uint8_t set_motor(int direction, uint8_t speed);
 uint8_t set_servo(uint8_t servo_num, uint8_t position);
@@ -33,18 +37,20 @@ uint8_t tsunami_amp_cmd(uint8_t gain);
 uint8_t set_reon(uint8_t reon_addr, uint8_t reon_state);
 
 /* writing packet to file */
-void send_set_motor(int direction, int8_t speed, int fd);
-void send_set_servo(uint8_t servo_num, uint8_t position, int fd);
-void send_set_lcd(uint8_t col, uint8_t row, int fd);
-void send_print_string(uint8_t *s, int fd);
-void send_print_string_at(uint8_t col, uint8_t row, uint8_t *s, int fd);
-void send_clear_lcd(int fd);
-void send_led_preset_cmd(uint8_t preset_idx, int fd);
-void send_tsun_sound_cmd(uint8_t preset_idx, uint8_t volume, int fd);
-void send_tsun_amp_cmd(uint8_t gain, int fd);
-void send_set_reon(uint8_t reon_addr, uint8_t reon_state, int fd);
+void send_set_motor(int direction, int8_t speed);
+void send_set_servo(uint8_t servo_num, uint8_t position);
+void send_set_lcd(uint8_t col, uint8_t row);
+void send_print_string(uint8_t *s);
+void send_print_string_at(uint8_t col, uint8_t row, uint8_t *s);
+void send_clear_lcd();
+void send_led_preset_cmd(uint8_t preset_idx);
+void send_tsun_sound_cmd(uint8_t preset_idx, uint8_t volume);
+void send_tsun_amp_cmd(uint8_t gain);
+void send_set_reon(uint8_t reon_addr, uint8_t reon_state);
 
 void insert_header(uint8_t payload_len, uint8_t cmd);
 
 /* checksum */
 uint8_t *calc_crc(int max_ind);
+
+#endif
