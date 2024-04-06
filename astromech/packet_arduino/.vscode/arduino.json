@@ -1,0 +1,4 @@
+{
+    "board": "SparkFun:samd:RedBoard_Turbo",
+    "port": "/dev/ttyACM0"
+}

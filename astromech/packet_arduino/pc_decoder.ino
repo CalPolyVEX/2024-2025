@@ -36,6 +36,9 @@ const uint16_t crctable[256] = {
 // The array of bytes from USB
 uint8_t bytes[300];
 
+// The Array of Bytes to USB
+uint8_t write_buffer[9] = {0, 0, 0, 0, 0, 0, 0, 0, '\n'};
+
 //////////////////////////////////////////////////
 // check_crc - check the crc of the incoming packet
 bool check_crc(uint8_t *data, int len) // len is the length including the CRC
@@ -229,4 +232,25 @@ void pc_get_input(bool pc_mode) {
     // #endif
     //         }
     // }
+}
+
+void pc_stream_data()
+{
+    // Time Since Last Sent Message
+    static int last_message_time = 0;
+
+    // Get the Current Time
+    int current_time = millis();
+
+    // Wait for Every 20 Milliseconds
+    if (current_time - last_message_time >= 20)
+    {
+        last_message_time = current_time;
+        SerialUSB.write(write_buffer, sizeof(write_buffer));
+    }
+}
+
+uint8_t* get_write_buffer()
+{
+    return write_buffer;
 }

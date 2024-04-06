@@ -24,7 +24,7 @@ uint8_t packet[MAX_PACKET_SIZE];
 
 
 // Specify the Consant USB Port
-constexpr const char* const SERIAL_PORT = "/dev/ttyACM0";
+constexpr const char* const SERIAL_PORT = "/dev/ttyUSB-Redboard-Turbo";
 
 // The Serial Port Object
 LibSerial::SerialPort serial_port;
