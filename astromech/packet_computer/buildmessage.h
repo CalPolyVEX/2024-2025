@@ -9,6 +9,7 @@
 /* packet size */
 #define MIN_PACKET_SIZE 5
 #define MAX_PACKET_SIZE 26
+#define ARDUINO_PACKET_SIZE 8
 
 /* payload size */
 #define MOTOR_CTRL_PAYLOAD 1
@@ -22,6 +23,10 @@
 
 /* File Descriptor Initialization */
 int init_serial();
+
+/* reading data from arduino */
+void read_arduino_data();
+void get_input_buffer(uint8_t** buffer, int** size);
 
 /* packet construction */
 uint8_t set_motor(int direction, uint8_t speed);
