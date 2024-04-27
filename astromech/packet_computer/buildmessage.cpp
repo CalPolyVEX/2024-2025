@@ -20,11 +20,24 @@ don't include 0xFF in checksum.
 We can only print one line of the lcd at a time: how to deal with clearing??
 */
 
+// Output Buffer
 uint8_t packet[MAX_PACKET_SIZE];
 
+// Input Buffer
+uint8_t data[256];
+
+// The Last Input Buffer
+uint8_t last_read_input[256];
+
+// The Index Into the Input Buffer
+int data_index = 0;
+
+// The Size of the Last Input
+int last_input_size = 0;
 
 // Specify the Consant USB Port
-constexpr const char* const SERIAL_PORT = "/dev/ttyACM0";
+constexpr const char* const SERIAL_PORT = "/dev/ttyUSB-Redboard-Turbo";
+//constexpr const char* const SERIAL_PORT = "/dev/ttyACM0";
 
 // The Serial Port Object
 LibSerial::SerialPort serial_port;
@@ -116,6 +129,39 @@ int init_serial() {
     serial_port.SetStopBits(LibSerial::StopBits::STOP_BITS_1);
 
     return 0;
+}
+
+void read_arduino_data() {
+
+    // Read Data Into Buffer
+    while (serial_port.GetNumberOfBytesAvailable()) {
+        serial_port.ReadByte(*(data + data_index), 0);
+        if (data[data_index] == '\n' || data_index == 255) {
+
+            // If Packet Size is Not the Specified Value, Packet is Invalid
+            // Valid Packets are Copied Into Input Buffer
+            if (data_index <= ARDUINO_PACKET_SIZE) {
+
+                // Copy Last Read Input
+                for (int i = 0; i < data_index; i++)
+                    last_read_input[i] = data[i];
+
+                // Store Size of Last Read Input
+                last_input_size = data_index;
+            }
+
+            // Reset Buffer Index
+            data_index = 0;
+        }
+
+        else
+            data_index++;
+    }
+}
+
+void get_input_buffer(uint8_t** buffer, int** size) {
+    *buffer = last_read_input;
+    *size = &last_input_size;
 }
 
 void send_set_motor(int direction, int8_t speed) {

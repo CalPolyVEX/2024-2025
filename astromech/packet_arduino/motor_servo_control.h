@@ -35,4 +35,7 @@ void set_max_servo_speed(int new_max);
 // Sets the Servo Speed Scalar
 void set_servo_speed_scalar(int new_scalar);
 
+// Doing This To Avoid a Circular Declaration
+uint8_t* get_write_buffer();
+
 #endif

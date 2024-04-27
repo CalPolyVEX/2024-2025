@@ -14,5 +14,7 @@ bool check_crc(uint8_t *data, int len);
 unsigned short commandChecker(char *data);
 void eval_input(uint8_t *data, int size, bool pc_mode);
 void pc_get_input(bool timeout);
+void pc_stream_data();
+uint8_t* get_write_buffer();
 
 #endif

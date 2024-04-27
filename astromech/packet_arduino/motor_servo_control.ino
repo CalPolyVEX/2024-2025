@@ -401,6 +401,10 @@ void changeMotorAcceleration(unsigned int target, unsigned int& value, unsigned 
         while (TCC1->SYNCBUSY.bit.CC0); // Wait for Left Motor
     else
         while (TCC1->SYNCBUSY.bit.CC1); // Wait for Right Motor
+
+    // Update Write Buffer Packet
+    unsigned int* write_buffer = (unsigned int*)get_write_buffer();
+    write_buffer[motor_index] = value;
 }
 
 /** Control motors using joystick
