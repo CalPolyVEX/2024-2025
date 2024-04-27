@@ -27,6 +27,9 @@ public:
     // Subscriber Object
     rclcpp::Subscription<astro_move::msg::MotorControlMSG>::SharedPtr subscription;
 
+    // Temporary Publisher Object
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr temp_pub;
+
     // Input Data
     uint8_t* input_buffer;
     int* input_size;
@@ -42,6 +45,9 @@ public:
 
         // Initialize Node as a Subscriber
         subscription = create_subscription<astro_move::msg::MotorControlMSG>("test", 10, std::bind(&MotorControl::callbackMotorControl, this, _1));
+
+        // Temporary Publisher to Publish Data Read from Redboard
+        temp_pub = create_publisher<std_msgs::msg::String>("temp_pub", 10);
     }
 
     // Callback Function
@@ -65,6 +71,11 @@ public:
 
         // Temp, Get Data From Redboard and Print it
         RCLCPP_INFO(this->get_logger(), "test%d", ((RedboardData*)(input_buffer))->left_motor_data);
+
+        // Temporarily Publish Results
+        auto message = std_msgs::msg::String();
+        message.data = std::to_string(((RedboardData*)(input_buffer))->left_motor_data);
+        temp_pub->publish(message);
     }
 };
 
