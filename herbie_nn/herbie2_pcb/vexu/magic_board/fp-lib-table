@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "js_magic_board")(type "KiCad")(uri "${KIPRJMOD}/js_magic_board.pretty")(options "")(descr ""))
+)
