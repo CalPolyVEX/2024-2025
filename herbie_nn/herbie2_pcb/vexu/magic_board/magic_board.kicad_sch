@@ -3966,6 +3966,335 @@
 				)
 			)
 		)
+		(symbol "js:LS7366R"
+			(pin_names
+				(offset 1.016)
+			)
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "U"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "LS7366R"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "LS7366R_0_1"
+				(rectangle
+					(start -5.08 -2.54)
+					(end 0 -2.54)
+					(stroke
+						(width 0)
+						(type solid)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(rectangle
+					(start 5.08 -2.54)
+					(end -6.35 -19.05)
+					(stroke
+						(width 0)
+						(type solid)
+					)
+					(fill
+						(type none)
+					)
+				)
+			)
+			(symbol "LS7366R_1_1"
+				(pin input line
+					(at -8.89 -2.54 0)
+					(length 2.54)
+					(name "fcko"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at 7.62 -12.7 180)
+					(length 2.54)
+					(name "index"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "10"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at 7.62 -10.16 180)
+					(length 2.54)
+					(name "b"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "11"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at 7.62 -7.62 180)
+					(length 2.54)
+					(name "a"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "12"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at 7.62 -5.08 180)
+					(length 2.54)
+					(name "cnt_en"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "13"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at 7.62 -2.54 180)
+					(length 2.54)
+					(name "vdd"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "14"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -8.89 -5.08 0)
+					(length 2.54)
+					(name "fcki"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -8.89 -7.62 0)
+					(length 2.54)
+					(name "vss"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -8.89 -10.16 0)
+					(length 2.54)
+					(name "ss"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -8.89 -12.7 0)
+					(length 2.54)
+					(name "sck"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "5"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin output line
+					(at -8.89 -15.24 0)
+					(length 2.54)
+					(name "miso"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "6"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at -8.89 -17.78 0)
+					(length 2.54)
+					(name "mosi"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "7"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at 7.62 -17.78 180)
+					(length 2.54)
+					(name "lflag"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "8"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin input line
+					(at 7.62 -15.24 180)
+					(length 2.54)
+					(name "dflag"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "9"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+		)
 		(symbol "js_magic_board:SN65HVD1782DR"
 			(exclude_from_sim no)
 			(in_bom yes)
@@ -4698,6 +5027,16 @@
 	)
 	(wire
 		(pts
+			(xy 54.61 135.89) (xy 55.88 135.89)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "189df9bc-cbaf-4cdc-adcb-42c00a5bdec8")
+	)
+	(wire
+		(pts
 			(xy 71.12 72.39) (xy 72.39 72.39)
 		)
 		(stroke
@@ -4888,6 +5227,16 @@
 	)
 	(wire
 		(pts
+			(xy 72.39 130.81) (xy 73.66 130.81)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "57f3eadf-6493-4912-8331-dc97b80031a2")
+	)
+	(wire
+		(pts
 			(xy 40.64 73.66) (xy 50.8 73.66)
 		)
 		(stroke
@@ -4955,6 +5304,16 @@
 			(type default)
 		)
 		(uuid "688175f7-69f3-40fb-83cd-51a90452ba92")
+	)
+	(wire
+		(pts
+			(xy 71.12 157.48) (xy 72.39 157.48)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "70e6b6bc-a9d0-49bf-a641-5e7f93f81f37")
 	)
 	(wire
 		(pts
@@ -5225,6 +5584,16 @@
 			(type default)
 		)
 		(uuid "d9b97322-c67e-485e-97cd-4bc2878f6a44")
+	)
+	(wire
+		(pts
+			(xy 53.34 162.56) (xy 54.61 162.56)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "db9cdcd8-6266-4914-b431-8b948901ad45")
 	)
 	(wire
 		(pts
@@ -5851,6 +6220,72 @@
 		)
 	)
 	(symbol
+		(lib_id "power:+3.3V")
+		(at 72.39 157.48 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "27201ef5-c061-4270-a8ce-190a0478687a")
+		(property "Reference" "#PWR019"
+			(at 72.39 161.29 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 72.39 152.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 72.39 157.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 72.39 157.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 72.39 157.48 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "796588c8-a744-4e18-9ba7-acdfa2df7793")
+		)
+		(instances
+			(project "magic_board"
+				(path "/2cc6dc35-ffe7-4d71-bc3e-489eac4fefb9"
+					(reference "#PWR019")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GND")
 		(at 130.81 55.88 0)
 		(unit 1)
@@ -6043,6 +6478,73 @@
 			(project "magic_board"
 				(path "/2cc6dc35-ffe7-4d71-bc3e-489eac4fefb9"
 					(reference "#PWR04")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:GND")
+		(at 54.61 135.89 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "3edd07ff-4973-4f66-8c56-7fd6118dfaf0")
+		(property "Reference" "#PWR021"
+			(at 48.26 135.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 50.8 135.8899 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" ""
+			(at 54.61 135.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 54.61 135.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 54.61 135.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "ca1e9dce-3416-4130-ad79-336566ed7e09")
+		)
+		(instances
+			(project "magic_board"
+				(path "/2cc6dc35-ffe7-4d71-bc3e-489eac4fefb9"
+					(reference "#PWR021")
 					(unit 1)
 				)
 			)
@@ -6569,6 +7071,110 @@
 			(project "magic_board"
 				(path "/2cc6dc35-ffe7-4d71-bc3e-489eac4fefb9"
 					(reference "C1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "js:LS7366R")
+		(at 63.5 154.94 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "7874c695-e9ff-43aa-99f1-c9edd386d536")
+		(property "Reference" "U6"
+			(at 62.865 152.4 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "LS7366R"
+			(at 62.865 154.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm"
+			(at 63.5 154.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 63.5 154.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 63.5 154.94 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "4"
+			(uuid "af57eee5-0f94-4b50-b63a-c4b4b3af80b4")
+		)
+		(pin "3"
+			(uuid "b700fc2a-50f0-4195-b231-60cda7956153")
+		)
+		(pin "2"
+			(uuid "6266f1c7-f7bb-4c4b-8565-109805e4372b")
+		)
+		(pin "8"
+			(uuid "b6ce050a-8dc8-4be5-af6c-7cffaa66eb15")
+		)
+		(pin "10"
+			(uuid "b6eb8009-e33b-4ccb-9ea7-b9ba8c557752")
+		)
+		(pin "12"
+			(uuid "308aa21a-3a13-408b-96e0-fce4cc311075")
+		)
+		(pin "13"
+			(uuid "8857f1cb-4768-48ef-a2d7-a3fc1dd3dc72")
+		)
+		(pin "11"
+			(uuid "3445bb97-a14a-4f64-83c6-ae447bcc59b0")
+		)
+		(pin "6"
+			(uuid "82759850-cbad-42d5-880f-f00e9bf8857f")
+		)
+		(pin "7"
+			(uuid "ba28b916-05ea-4575-9510-a4bd0b0123bd")
+		)
+		(pin "1"
+			(uuid "d6610846-a20e-4129-9a61-5c05e856b466")
+		)
+		(pin "5"
+			(uuid "405e8623-bf7f-473b-887a-5b6c91fb8ab7")
+		)
+		(pin "9"
+			(uuid "cb6f7eca-85b8-49a2-9ee4-851125d989ae")
+		)
+		(pin "14"
+			(uuid "c95529e5-010f-48c8-9307-1200e7e2c365")
+		)
+		(instances
+			(project "magic_board"
+				(path "/2cc6dc35-ffe7-4d71-bc3e-489eac4fefb9"
+					(reference "U6")
 					(unit 1)
 				)
 			)
@@ -7850,6 +8456,72 @@
 	)
 	(symbol
 		(lib_id "power:+3.3V")
+		(at 73.66 130.81 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "c32b645f-54a2-425d-b056-443cfb6b4359")
+		(property "Reference" "#PWR018"
+			(at 73.66 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3.3V"
+			(at 73.66 125.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 73.66 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 73.66 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3.3V\""
+			(at 73.66 130.81 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "de3703a6-8a16-4499-a90d-77a94500679e")
+		)
+		(instances
+			(project "magic_board"
+				(path "/2cc6dc35-ffe7-4d71-bc3e-489eac4fefb9"
+					(reference "#PWR018")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3.3V")
 		(at 67.31 63.5 0)
 		(unit 1)
 		(exclude_from_sim no)
@@ -8247,6 +8919,73 @@
 		)
 	)
 	(symbol
+		(lib_id "power:GND")
+		(at 53.34 162.56 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "f407befa-f1ad-4c30-a716-0ee5c64891ec")
+		(property "Reference" "#PWR020"
+			(at 46.99 162.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 49.53 162.5599 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify right)
+			)
+		)
+		(property "Footprint" ""
+			(at 53.34 162.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 53.34 162.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
+			(at 53.34 162.56 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "f45f199a-de43-4a7f-9875-8fdff2c26554")
+		)
+		(instances
+			(project "magic_board"
+				(path "/2cc6dc35-ffe7-4d71-bc3e-489eac4fefb9"
+					(reference "#PWR020")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:R")
 		(at 29.21 101.6 270)
 		(unit 1)
@@ -8308,6 +9047,110 @@
 			(project "magic_board"
 				(path "/2cc6dc35-ffe7-4d71-bc3e-489eac4fefb9"
 					(reference "R6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "js:LS7366R")
+		(at 64.77 128.27 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "fb7ceb97-643c-4bdb-8fb9-4ff26319059c")
+		(property "Reference" "U5"
+			(at 64.135 125.73 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "LS7366R"
+			(at 64.135 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "Package_SO:SOIC-14_3.9x8.7mm_P1.27mm"
+			(at 64.77 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 64.77 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 64.77 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "10"
+			(uuid "d589dd70-46f6-4fff-96d8-1e10cf27607f")
+		)
+		(pin "4"
+			(uuid "d6502be4-fd6c-4408-853f-f56a3ba7ab00")
+		)
+		(pin "11"
+			(uuid "8c434231-5b46-43d8-8321-93fb1c26c1de")
+		)
+		(pin "1"
+			(uuid "f42b3c3e-725d-49d1-8d44-9c23777ef1c1")
+		)
+		(pin "8"
+			(uuid "14616371-5c3a-4f40-9ae9-5d59be32a6ed")
+		)
+		(pin "7"
+			(uuid "532bffea-02dc-4ed4-a86d-4b0336f4508a")
+		)
+		(pin "5"
+			(uuid "13faeeb7-cfce-4b78-b2ca-3cd6a8b87290")
+		)
+		(pin "3"
+			(uuid "1a44dd24-06be-470d-992e-01626ed074f1")
+		)
+		(pin "9"
+			(uuid "5e5f283d-b6f9-465e-84bd-3d55de2cdf6b")
+		)
+		(pin "12"
+			(uuid "be547149-f2e8-4d3a-88d7-dcbaf8005961")
+		)
+		(pin "13"
+			(uuid "cf96a349-c4ed-4a4d-bb45-3b5cc3dcbb6b")
+		)
+		(pin "6"
+			(uuid "292aefdf-8964-4b34-905a-d9f31467fe78")
+		)
+		(pin "2"
+			(uuid "e38d63a6-8760-4bc6-a7db-eafa6940f24a")
+		)
+		(pin "14"
+			(uuid "baf7ea9b-a479-4ffd-96af-3182e715dcc0")
+		)
+		(instances
+			(project "magic_board"
+				(path "/2cc6dc35-ffe7-4d71-bc3e-489eac4fefb9"
+					(reference "U5")
 					(unit 1)
 				)
 			)
