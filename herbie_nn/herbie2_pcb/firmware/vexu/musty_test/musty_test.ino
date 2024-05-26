@@ -1,27 +1,3 @@
-/*
-  Blink
-
-  Turns an LED on for one second, then off for one second, repeatedly.
-
-  Most Arduinos have an on-board LED you can control. On the UNO, MEGA and ZERO
-  it is attached to digital pin 13, on MKR1000 on pin 6. LED_BUILTIN is set to
-  the correct LED pin independent of which board is used.
-  If you want to know what pin the on-board LED is connected to on your Arduino
-  model, check the Technical Specs of your board at:
-  https://www.arduino.cc/en/Main/Products
-
-  modified 8 May 2014
-  by Scott Fitzgerald
-  modified 2 Sep 2016
-  by Arturo Guadalupi
-  modified 8 Sep 2016
-  by Colby Newman
-
-  This example code is in the public domain.
-
-  https://www.arduino.cc/en/Tutorial/BuiltInExamples/Blink
-*/
-
 // the setup function runs once when you press reset or power the board
 void setup() {
   // initialize digital pin LED_BUILTIN as an output.
@@ -29,6 +5,8 @@ void setup() {
   pinMode(12, OUTPUT);
   pinMode(5, OUTPUT);
   Serial.begin(115200);
+  init_vex_brain_serial();
+  led_setup();
 }
 
 // the loop function runs over and over again forever
@@ -41,7 +19,8 @@ void loop() {
   digitalWrite(12, HIGH);    // turn the LED off by making the voltage LOW
   digitalWrite(5, LOW);    // turn the LED off by making the voltage LOW
   delay(1000);                       // wait for a second
-  Serial.write(97);
+  Serial.write(97); //write 'a'
+  serial_write_to_brain(97);
 }
 
 void init_vex_brain_serial() {
@@ -72,8 +51,8 @@ void init_vex_brain_serial() {
                              SERCOM_USART_CTRLA_DORD;                // LSB first
     
   // Set the baud rate
-  uint64_t baud = 115200;
-  uint64_t baudValue = 65536 - ((65536 * 16 * baud) / 120000000); // Assuming 48MHz clock
+  uint64_t baud = 230400; //or 115200
+  uint64_t baudValue = 65536 - ((65536 * 16 * baud) / 120000000); // Assuming 120MHz clock
   SERCOM5->USART.BAUD.reg = (uint16_t)baudValue;
     
   // Enable the receiver and transmitter
@@ -86,13 +65,13 @@ void init_vex_brain_serial() {
 }
 
 // Function to send a character
-void UART_SERCOM5_write(uint8_t data) {
+void serial_write_to_brain(uint8_t data) {
     while (!(SERCOM5->USART.INTFLAG.bit.DRE)); // Wait until Data Register Empty
     SERCOM5->USART.DATA.reg = data;
 }
 
 // Function to read a character
-uint8_t UART_SERCOM5_read(void) {
+uint8_t serial_read_from_brain(void) {
     while (!(SERCOM5->USART.INTFLAG.bit.RXC)); // Wait until Receive Complete
     return SERCOM5->USART.DATA.reg;
 }
