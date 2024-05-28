@@ -7,6 +7,10 @@ void setup() {
   Serial.begin(115200);
   init_vex_brain_serial();
   led_setup();
+  //init_buzzer();
+  //delay(3000);
+  //play_mario_theme();
+  init_encoders();
 }
 
 // the loop function runs over and over again forever
@@ -62,16 +66,31 @@ void init_vex_brain_serial() {
   // Enable SERCOM5
   SERCOM5->USART.CTRLA.reg |= SERCOM_USART_CTRLA_ENABLE;
   while (SERCOM5->USART.SYNCBUSY.bit.ENABLE);
+
+  // Set the RS485 chip to receive
+  PORT->Group[0].DIRSET.reg = PORT_PA27; //set PA27 to output
+  REG_PORT_OUTCLR0 = PORT_PA27;          //output low for receive
 }
 
 // Function to send a character
 void serial_write_to_brain(uint8_t data) {
-    while (!(SERCOM5->USART.INTFLAG.bit.DRE)); // Wait until Data Register Empty
-    SERCOM5->USART.DATA.reg = data;
+  REG_PORT_OUTSET0 = PORT_PA27;              //output high for transmit
+  delayMicroseconds(1);                      //allow the driver to enable
+   
+  while (!(SERCOM5->USART.INTFLAG.bit.DRE)); // Wait until Data Register Empty
+  SERCOM5->USART.DATA.reg = data;            //write the data
+  
+  while (!(SERCOM5->USART.INTFLAG.bit.DRE)); // Wait until Data Register Empty
+  //REG_PORT_OUTCLR0 = PORT_PA27;              //output low for receive
 }
 
 // Function to read a character
 uint8_t serial_read_from_brain(void) {
-    while (!(SERCOM5->USART.INTFLAG.bit.RXC)); // Wait until Receive Complete
-    return SERCOM5->USART.DATA.reg;
+  REG_PORT_OUTCLR0 = PORT_PA27;              //output low for receive
+  while (!(SERCOM5->USART.INTFLAG.bit.RXC)); // Wait until Receive Complete
+  return SERCOM5->USART.DATA.reg;
+}
+
+uint8_t serial_byte_available() {
+  return SERCOM5->USART.INTFLAG.bit.RXC;
 }

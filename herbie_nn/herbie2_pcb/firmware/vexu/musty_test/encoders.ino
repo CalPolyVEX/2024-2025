@@ -44,43 +44,43 @@ const unsigned short crctable[256] =
 
 //////////////////////////////////////////////////
 //check_crc - check the crc of the incoming packet
-int check_crc(char* data, int len) //len is the length including the CRC 
+int check_crc(char* data, int len) //len is the length including the CRC
 {
-    unsigned short crc = 0;
-    unsigned short received_crc;
-    
-    received_crc = data[len-2] << 8; //the crc is the last 2 bytes of the packet
-    received_crc |= data[len-1];
+  unsigned short crc = 0;
+  unsigned short received_crc;
 
-    //Calculates CRC16 of the (n-2) bytes of data in the packet
-    for (int byte = 0; byte < (len-2); byte++)
-    {
-        crc = (crc << 8) ^ crctable[((crc >> 8) ^ data[byte])];
-    }
+  received_crc = data[len - 2] << 8; //the crc is the last 2 bytes of the packet
+  received_crc |= data[len - 1];
 
-    if (crc == received_crc) 
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
+  //Calculates CRC16 of the (n-2) bytes of data in the packet
+  for (int byte = 0; byte < (len - 2); byte++)
+  {
+    crc = (crc << 8) ^ crctable[((crc >> 8) ^ data[byte])];
+  }
+
+  if (crc == received_crc)
+  {
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
 }
 
 //////////////////////////////////////////////////
 //compute_crc - compute a new crc for sending out the encoder packet
-unsigned short compute_crc(unsigned char *buf, int len) 
+unsigned short compute_crc(unsigned char *buf, int len)
 {
-    unsigned short crc = 0;
+  unsigned short crc = 0;
 
-    //Calculates CRC16 of nBytes of data in byte array message
-    for (int byte = 0; byte < len; byte++)
-    {
-        crc = (crc << 8) ^ crctable[((crc >> 8) ^ buf[byte])];
-    }
+  //Calculates CRC16 of nBytes of data in byte array message
+  for (int byte = 0; byte < len; byte++)
+  {
+    crc = (crc << 8) ^ crctable[((crc >> 8) ^ buf[byte])];
+  }
 
-    return crc;
+  return crc;
 }
 
 //*************************************************
@@ -89,109 +89,159 @@ unsigned short compute_crc(unsigned char *buf, int len)
 void setSSEnc(int enable, int encoder)
 //*************************************************
 {
-   if(encoder == 1) {
-       if (enable == 1)
-           REG_PORT_OUTCLR1 = PORT_PB04;   //PB04
-       else
-           REG_PORT_OUTSET1 = PORT_PB04;   //PB04
-   } else if (encoder == 2) { //encoder 2
-       if (enable == 1)
-           REG_PORT_OUTCLR1 = PORT_PB05;   //PB05
-       else
-           REG_PORT_OUTSET1 = PORT_PB05;   //PB05
-   } else if (encoder == 3) {
-       if (enable == 1)
-           REG_PORT_OUTCLR1 = PORT_PB06;   //PB06
-       else
-           REG_PORT_OUTSET1 = PORT_PB06;   //PB06
-   } else if (encoder == 4) {
-       if (enable == 1)
-           REG_PORT_OUTCLR1 = PORT_PB07;   //PB07
-       else
-           REG_PORT_OUTSET1 = PORT_PB07;   //PB07
-   }
+  if (encoder == 1) {
+    if (enable == 1)
+      REG_PORT_OUTCLR1 = PORT_PB04;   //PB04
+    else
+      REG_PORT_OUTSET1 = PORT_PB04;   //PB04
+  } else if (encoder == 2) { //encoder 2
+    if (enable == 1)
+      REG_PORT_OUTCLR1 = PORT_PB05;   //PB05
+    else
+      REG_PORT_OUTSET1 = PORT_PB05;   //PB05
+  } else if (encoder == 3) {
+    if (enable == 1)
+      REG_PORT_OUTCLR1 = PORT_PB06;   //PB06
+    else
+      REG_PORT_OUTSET1 = PORT_PB06;   //PB06
+  } else if (encoder == 4) {
+    if (enable == 1)
+      REG_PORT_OUTCLR1 = PORT_PB07;   //PB07
+    else
+      REG_PORT_OUTSET1 = PORT_PB07;   //PB07
+  }
 } //end func
 
 void clearStrReg(int encoder)
-//*************************************************
 {
-   SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
-   setSSEnc(SPI_ENABLE, encoder);
-   SPI.transfer(CLR_STR);// Select STR || CLEAR register
-   setSSEnc(SPI_DISABLE, encoder);
-   SPI.endTransaction();
+  setSSEnc(SPI_ENABLE, encoder);
+  transferDataSPI(CLR_STR);  //SPI.transfer(CLR_STR);// Select STR || CLEAR register
+  setSSEnc(SPI_DISABLE, encoder);
 } //end func
 
 void rstEncCnt(int encoder)
 {
-   SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
-   setSSEnc(SPI_ENABLE, encoder);
-   SPI.transfer(CLR_CNTR);
-   setSSEnc(SPI_DISABLE, encoder);
-   SPI.endTransaction();
+  setSSEnc(SPI_ENABLE, encoder);
+  transferDataSPI(CLR_CNTR);  //SPI.transfer(CLR_CNTR);
+  setSSEnc(SPI_DISABLE, encoder);
 } //end func
 
-void init_encoders() 
+void init_sercom4_spi() {
+  // Enable the SERCOM4 clock in the PM // Enable the clock for SERCOM4
+  MCLK->APBDMASK.reg |= MCLK_APBDMASK_SERCOM4;
+
+  // Select the GCLK (Generic Clock) for SERCOM4
+  GCLK->PCHCTRL[SERCOM4_GCLK_ID_CORE].reg = GCLK_PCHCTRL_CHEN | GCLK_PCHCTRL_GEN_GCLK0;
+
+  // Configure the SCK, MISO, and MOSI pins
+  // Using PB13 (SCK), PB14 (MISO), and PB15 (MOSI)
+  // Using PORTB so that is Group 1.
+  PORT->Group[1].PINCFG[13].reg |= PORT_PINCFG_PMUXEN;
+  PORT->Group[1].PMUX[13 >> 1].reg |= (2 << 4); //PORT_PMUX_PMUXO_C = number 2 shifted to the left 4 bits
+
+  PORT->Group[1].PINCFG[14].reg |= PORT_PINCFG_PMUXEN;
+  PORT->Group[1].PMUX[14 >> 1].reg |= 2; //PORT_PMUX_PMUXE_C
+
+  PORT->Group[1].PINCFG[15].reg |= PORT_PINCFG_PMUXEN;
+  PORT->Group[1].PMUX[15 >> 1].reg |= (2 << 4); //PORT_PMUX_PMUXO_C = number 2 shifted to the left 4 bits
+
+  // Reset the SERCOM4
+  SERCOM4->SPI.CTRLA.reg = SERCOM_SPI_CTRLA_SWRST;
+  while (SERCOM4->SPI.CTRLA.bit.SWRST || SERCOM4->SPI.SYNCBUSY.bit.SWRST);
+
+  // Configure SERCOM4 for SPI mode
+  SERCOM4->SPI.CTRLA.reg = 12 | // Host mode operation
+                           SERCOM_SPI_CTRLA_DIPO(2) |            // MISO on Sercom4.2
+                           SERCOM_SPI_CTRLA_DOPO(2);             // MOSI on Sercom4.3 and SCK on Sercom4.1
+
+  // Configure SERCOM4 for SPI mode
+  SERCOM4->SPI.CTRLB.reg = SERCOM_SPI_CTRLB_RXEN;  // Enable the receiver
+
+  // Set the clock frequency
+  uint64_t baud = ((uint64_t)120000000 / (uint64_t)(2 * SPI_CLK)) - 1;
+  SERCOM4->SPI.BAUD.reg = (uint8_t) baud;
+
+  // Enable SERCOM4 for SPI mode
+  SERCOM4->SPI.CTRLA.reg |= SERCOM_SPI_CTRLA_ENABLE;
+  while (SERCOM4->SPI.CTRLA.bit.SWRST || SERCOM4->SPI.SYNCBUSY.bit.SWRST);
+}
+
+uint8_t transferDataSPI(uint8_t data)
 {
-    //set SS pins to high
-    PORT->Group[1].DIRSET.reg = PORT_PB04; //set PB04 to output
-    REG_PORT_OUTSET1 = PORT_PB04; 
+  SERCOM4->SPI.DATA.bit.DATA = data; // Writing data into Data register
 
-    PORT->Group[1].DIRSET.reg = PORT_PB05; //set PB05 to output
-    REG_PORT_OUTSET1 = PORT_PB05; 
+  while ( SERCOM4->SPI.INTFLAG.bit.RXC == 0 )
+  {
+    // Waiting Complete Reception
+  }
 
-    PORT->Group[1].DIRSET.reg = PORT_PB06; //set PB06 to output
-    REG_PORT_OUTSET1 = PORT_PB06; 
+  return SERCOM4->SPI.DATA.bit.DATA;  // Reading data
+}
 
-    PORT->Group[1].DIRSET.reg = PORT_PB07; //set PB07 to output
-    REG_PORT_OUTSET1 = PORT_PB07; 
+void init_encoders()
+{
+  //set SS pins to high
+  PORT->Group[1].DIRSET.reg = PORT_PB04; //set PB04 to output
+  REG_PORT_OUTSET1 = PORT_PB04;
 
-    SPI.begin();
-    delay(100);
-    //SPI.usingInterrupt(20);  //SPI will be access during Timer 5 interrupts
+  PORT->Group[1].DIRSET.reg = PORT_PB05; //set PB05 to output
+  REG_PORT_OUTSET1 = PORT_PB05;
 
-    //LS7366 notes
-    //1.  data transferred MSB first
-    //2.  data is latched from MOSI (into the LS7366) on the rising clock edge 
-    //3.  SAMD21 SPI Mode 0 data transfer clocking
-    //4.  choose software controlled slave select
+  PORT->Group[1].DIRSET.reg = PORT_PB06; //set PB06 to output
+  REG_PORT_OUTSET1 = PORT_PB06;
 
-    //on the Redboard Turbo
-    //SCK - PB11 (SERCOM4/PAD3)
-    //MOSI - PB10 (SERCOM4/PAD2)
-    //MISO - PA12 (SERCOM4/PAD0 - ALT)
+  PORT->Group[1].DIRSET.reg = PORT_PB07; //set PB07 to output
+  REG_PORT_OUTSET1 = PORT_PB07;
 
-    //initialize the 4 encoders
-    for (int num = 1; num <= 4; num++)
-    {
-        //Set MDR0
-        SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
-        delay(1);
-        setSSEnc(SPI_ENABLE, num);
-        SPI.transfer(WRITE_MDR0);  // Select MDR0 | WR register
-        // Filter clock division factor = 2 || Asynchronous Index ||
-        // disable index || free-running count mode || x4 quadrature count mode
-        SPI.transfer(FILTER_2 | DISABLE_INDX | FREE_RUN | QUADRX4); 
-        setSSEnc(SPI_DISABLE, num);
-        delay(1);
+  //SPI.begin();
+  init_sercom4_spi();
+  delay(100);
 
-        //Set MDR1
-        setSSEnc(SPI_ENABLE, num);
-        SPI.transfer(WRITE_MDR1);       // Select MDR1 | WR register
-        SPI.transfer(BYTE_4 | EN_CNTR); //4-byte counter mode || Enable counting
-        setSSEnc(SPI_DISABLE, num);
-        delay(1);
+  //LS7366 notes
+  //1.  data transferred MSB first
+  //2.  data is latched from MOSI (into the LS7366) on the rising clock edge
+  //3.  SAMD21 SPI Mode 0 data transfer clocking
+  //4.  choose software controlled slave select
 
-        setSSEnc(SPI_ENABLE, num);
-        SPI.transfer(CLR_CNTR); // Select CNTR || CLEAR register
-        setSSEnc(SPI_DISABLE, num);
-        delay(1);
+  //on the SAMD51J19
+  //SCK -  PB13 (SERCOM4/PAD1)
+  //MISO - PB14 (SERCOM4/PAD2)
+  //MOSI - PB15 (SERCOM4/PAD3)
 
-        clearStrReg(num); //reseting the counter value inside the encoder chips to 0
-        delay(1);
-        rstEncCnt(num);
-        SPI.endTransaction();
-    }
+  //initialize the 4 encoders
+  for (int num = 1; num <= 4; num++)
+  {
+    //Set MDR0
+    //SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
+    delay(1);
+    setSSEnc(SPI_ENABLE, num);
+    transferDataSPI(WRITE_MDR0); //SPI.transfer(WRITE_MDR0);  // Select MDR0 | WR register
+
+    // Filter clock division factor = 2 || Asynchronous Index ||
+    // disable index || free-running count mode || x4 quadrature count mode
+    //SPI.transfer(FILTER_2 | DISABLE_INDX | FREE_RUN | QUADRX4);
+    transferDataSPI(FILTER_2 | DISABLE_INDX | FREE_RUN | QUADRX4);
+
+    setSSEnc(SPI_DISABLE, num);
+    delay(1);
+
+    //Set MDR1
+    setSSEnc(SPI_ENABLE, num);
+    transferDataSPI(WRITE_MDR1);  //SPI.transfer(WRITE_MDR1);       // Select MDR1 | WR register
+    transferDataSPI(BYTE_4 | EN_CNTR);  //SPI.transfer(BYTE_4 | EN_CNTR); //4-byte counter mode || Enable counting
+    setSSEnc(SPI_DISABLE, num);
+    delay(1);
+
+    setSSEnc(SPI_ENABLE, num);
+    transferDataSPI(CLR_CNTR);  //SPI.transfer(CLR_CNTR); // Select CNTR || CLEAR register
+    setSSEnc(SPI_DISABLE, num);
+    delay(1);
+
+    clearStrReg(num);  //clear status register
+    delay(1);
+    rstEncCnt(num);    //reseting the counter value inside the encoder chips to 0
+    //SPI.endTransaction();
+  }
 }
 
 //*************************************************
@@ -199,11 +249,15 @@ void init_encoders()
 void getChanEncoderValue(int encoder, unsigned char* buf)
 //*****************************************************
 {
-    setSSEnc(SPI_ENABLE, encoder);
+  setSSEnc(SPI_ENABLE, encoder);
 
-    buf[0] = READ_CNTR;
-    //buf[0] = READ_MDR0;
-    SPI.transfer(buf,5); //transfer 5 bytes with the first byte being the command READ_CNTR
+  //buf[0] = READ_CNTR;
+  //SPI.transfer(buf,5); //transfer 5 bytes with the first byte being the command READ_CNTR
+  transferDataSPI(READ_CNTR);
+  buf[0] = transferDataSPI(READ_CNTR);
+  buf[1] = transferDataSPI(READ_CNTR);
+  buf[2] = transferDataSPI(READ_CNTR);
+  buf[3] = transferDataSPI(READ_CNTR);
 
-    setSSEnc(SPI_DISABLE, encoder);
+  setSSEnc(SPI_DISABLE, encoder);
 }
