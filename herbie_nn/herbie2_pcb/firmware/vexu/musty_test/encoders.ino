@@ -261,3 +261,67 @@ void getChanEncoderValue(int encoder, unsigned char* buf)
 
   setSSEnc(SPI_DISABLE, encoder);
 }
+
+unsigned char read_mdr0(int encoder) {
+  unsigned char val;
+  setSSEnc(SPI_ENABLE, encoder);
+
+  //SPI.transfer(buf,5); //transfer 5 bytes with the first byte being the command READ_CNTR
+  transferDataSPI(READ_MDR0);
+  val = transferDataSPI(READ_MDR0);
+
+  setSSEnc(SPI_DISABLE, encoder);
+
+  return val & 0x7F;  //should return 3
+}
+
+int test_encoder_chips() {
+  unsigned int counter = 0;
+  unsigned int read_val;
+
+  for (int j = 1; j < 100000; j++) {
+    for (int i = 1; i <= 3; i++) {
+      //write DTR
+      setSSEnc(SPI_ENABLE, i);
+      transferDataSPI(WRITE_DTR);
+      transferDataSPI((unsigned char) ((counter >> 24) & 0xFF));
+      transferDataSPI((unsigned char) ((counter >> 16) & 0xFF));
+      transferDataSPI((unsigned char) ((counter >> 8) & 0xFF));
+      transferDataSPI((unsigned char) (counter & 0xFF));
+      setSSEnc(SPI_DISABLE, i);
+      delayMicroseconds(1);
+
+      //transfer DTR to CNTR
+      setSSEnc(SPI_ENABLE, i);
+      transferDataSPI(LOAD_CNTR);
+      setSSEnc(SPI_DISABLE, i);
+      delayMicroseconds(1);
+      
+      //read CNTR
+      read_val = 0;
+      setSSEnc(SPI_ENABLE, i);
+
+      transferDataSPI(READ_CNTR);
+      read_val |= transferDataSPI(READ_CNTR) << 24;
+      read_val |= transferDataSPI(READ_CNTR) << 16;
+      read_val |= transferDataSPI(READ_CNTR) << 8;
+      read_val |= transferDataSPI(READ_CNTR);
+     
+      setSSEnc(SPI_DISABLE, i);
+      delayMicroseconds(1);
+
+      //Serial.print (counter);
+      //Serial.print ("  ");
+      //Serial.print (read_val);
+      //Serial.print ("\n");
+      
+      if (read_val != counter)
+        return 0;  //error
+
+      counter++;
+    }
+  }
+
+  return 1; //success
+
+}

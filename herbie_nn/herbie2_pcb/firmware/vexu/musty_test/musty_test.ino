@@ -11,20 +11,36 @@ void setup() {
   //delay(3000);
   //play_mario_theme();
   init_encoders();
+
+  //set PA19 to input with pullup
+  PORT->Group[0].PINCFG[19].reg |= PORT_PINCFG_INEN | PORT_PINCFG_PULLEN;
+  REG_PORT_OUTSET0 = PORT_PA19;
+  delay(1);
+
+  if ((REG_PORT_IN0 & (1 << 19)) == 0) {
+    play_mario_theme();
+  }
+
+  PORT->Group[1].DIRSET.reg = PORT_PB01; //set PB01 (LEDSTRIP3) to output
+  led_setup();
 }
 
 // the loop function runs over and over again forever
-void loop() {
+void loop() {  
   digitalWrite(13, HIGH);   // turn the LED on (HIGH is the voltage level)
-  digitalWrite(12, LOW);   // turn the LED on (HIGH is the voltage level)
-  digitalWrite(5, HIGH);   // turn the LED on (HIGH is the voltage level)
-  delay(1000);                       // wait for a second
+  digitalWrite(12, LOW);    // turn the LED on (HIGH is the voltage level)
+  digitalWrite(5, HIGH);    // turn the LED on (HIGH is the voltage level)
+  //delay(1000);              // wait for a second
   digitalWrite(13, LOW);    // turn the LED off by making the voltage LOW
-  digitalWrite(12, HIGH);    // turn the LED off by making the voltage LOW
-  digitalWrite(5, LOW);    // turn the LED off by making the voltage LOW
-  delay(1000);                       // wait for a second
-  Serial.write(97); //write 'a'
-  serial_write_to_brain(97);
+  digitalWrite(12, HIGH);   // turn the LED off by making the voltage LOW
+  digitalWrite(5, LOW);     // turn the LED off by making the voltage LOW
+  //delay(1000);              // wait for a second
+  //test_encoder_chips();
+  
+  //Serial.write(test_encoder_chips() + 97); //write 'a'
+  Serial.write(97);
+  //serial_write_to_brain(97);
+  led_show();
 }
 
 void init_vex_brain_serial() {
