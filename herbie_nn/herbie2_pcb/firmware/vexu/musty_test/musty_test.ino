@@ -18,7 +18,7 @@ void setup() {
   delay(1);
 
   if ((REG_PORT_IN0 & (1 << 19)) == 0) {
-    play_mario_theme();
+    play_mario_theme2();
   }
 
   PORT->Group[1].DIRSET.reg = PORT_PB01; //set PB01 (LEDSTRIP3) to output
@@ -27,6 +27,9 @@ void setup() {
 
 // the loop function runs over and over again forever
 void loop() {  
+  char buf[5];
+  int encoder_reading;
+  
   digitalWrite(13, HIGH);   // turn the LED on (HIGH is the voltage level)
   digitalWrite(12, LOW);    // turn the LED on (HIGH is the voltage level)
   digitalWrite(5, HIGH);    // turn the LED on (HIGH is the voltage level)
@@ -39,8 +42,16 @@ void loop() {
   
   //Serial.write(test_encoder_chips() + 97); //write 'a'
   Serial.write(97);
-  //serial_write_to_brain(97);
-  led_show();
+  serial_write_to_brain(97);
+  //led_show();
+  delay(1000);
+  getChanEncoderValue(3, buf);
+  encoder_reading = (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
+  Serial.println(encoder_reading);
+
+  if (serial_read_from_brain() == 100) {
+    led_blip();
+  }
 }
 
 void init_vex_brain_serial() {
@@ -96,8 +107,8 @@ void serial_write_to_brain(uint8_t data) {
   while (!(SERCOM5->USART.INTFLAG.bit.DRE)); // Wait until Data Register Empty
   SERCOM5->USART.DATA.reg = data;            //write the data
   
-  while (!(SERCOM5->USART.INTFLAG.bit.DRE)); // Wait until Data Register Empty
-  //REG_PORT_OUTCLR0 = PORT_PA27;              //output low for receive
+  while (!(SERCOM5->USART.INTFLAG.bit.TXC)); // Wait until Data Register Empty
+  REG_PORT_OUTCLR0 = PORT_PA27;              //output low for receive
 }
 
 // Function to read a character

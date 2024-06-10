@@ -3,7 +3,6 @@
 
 #define ENC1_SS 12 //ss
 #define ENC2_SS 13 //ss
-//#define SPI_CLK 3500000
 #define SPI_CLK 3900000 //for the LS7366, 4.166MHz is fastest clock at 3.3V
 
 const unsigned short crctable[256] =
@@ -212,7 +211,6 @@ void init_encoders()
   for (int num = 1; num <= 4; num++)
   {
     //Set MDR0
-    //SPI.beginTransaction(SPISettings(SPI_CLK, MSBFIRST, SPI_MODE0));
     delay(1);
     setSSEnc(SPI_ENABLE, num);
     transferDataSPI(WRITE_MDR0); //SPI.transfer(WRITE_MDR0);  // Select MDR0 | WR register
@@ -220,7 +218,7 @@ void init_encoders()
     // Filter clock division factor = 2 || Asynchronous Index ||
     // disable index || free-running count mode || x4 quadrature count mode
     //SPI.transfer(FILTER_2 | DISABLE_INDX | FREE_RUN | QUADRX4);
-    transferDataSPI(FILTER_2 | DISABLE_INDX | FREE_RUN | QUADRX4);
+    transferDataSPI(FILTER_1 | DISABLE_INDX | FREE_RUN | QUADRX1);
 
     setSSEnc(SPI_DISABLE, num);
     delay(1);
@@ -232,34 +230,38 @@ void init_encoders()
     setSSEnc(SPI_DISABLE, num);
     delay(1);
 
-    setSSEnc(SPI_ENABLE, num);
-    transferDataSPI(CLR_CNTR);  //SPI.transfer(CLR_CNTR); // Select CNTR || CLEAR register
-    setSSEnc(SPI_DISABLE, num);
-    delay(1);
-
     clearStrReg(num);  //clear status register
     delay(1);
     rstEncCnt(num);    //reseting the counter value inside the encoder chips to 0
-    //SPI.endTransaction();
+    delay(1);
   }
 }
 
 //*************************************************
 //*****************************************************
-void getChanEncoderValue(int encoder, unsigned char* buf)
+void getChanEncoderValue(int encoder, char* buf)
 //*****************************************************
 {
   setSSEnc(SPI_ENABLE, encoder);
 
-  //buf[0] = READ_CNTR;
   //SPI.transfer(buf,5); //transfer 5 bytes with the first byte being the command READ_CNTR
   transferDataSPI(READ_CNTR);
-  buf[0] = transferDataSPI(READ_CNTR);
+  buf[0] = transferDataSPI(READ_CNTR);  //MSB
   buf[1] = transferDataSPI(READ_CNTR);
   buf[2] = transferDataSPI(READ_CNTR);
-  buf[3] = transferDataSPI(READ_CNTR);
+  buf[3] = transferDataSPI(READ_CNTR);  //LSB
 
   setSSEnc(SPI_DISABLE, encoder);
+}
+
+int get_encoder_reading(int encoder_num) {
+  int encoder_reading;
+  char buf[4];
+  
+  getChanEncoderValue(encoder_num, buf);
+  encoder_reading = (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
+  
+  return encoder_reading;
 }
 
 unsigned char read_mdr0(int encoder) {
