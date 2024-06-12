@@ -41,17 +41,18 @@ void loop() {
   //test_encoder_chips();
   
   //Serial.write(test_encoder_chips() + 97); //write 'a'
-  Serial.write(97);
-  serial_write_to_brain(97);
+  //Serial.write(97);
+  //serial_write_to_brain(97);
   //led_show();
-  delay(1000);
-  getChanEncoderValue(3, buf);
-  encoder_reading = (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
-  Serial.println(encoder_reading);
+  read_4_encoder();
+  delay(5);
+  //getChanEncoderValue(3, buf);
+  //encoder_reading = (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
+  //Serial.println(encoder_reading);
 
-  if (serial_read_from_brain() == 100) {
-    led_blip();
-  }
+  //if (serial_read_from_brain() == 100) {
+    //led_blip();
+  //}
 }
 
 void init_vex_brain_serial() {
@@ -82,7 +83,7 @@ void init_vex_brain_serial() {
                              SERCOM_USART_CTRLA_DORD;                // LSB first
     
   // Set the baud rate
-  uint64_t baud = 230400; //or 115200
+  uint64_t baud = 460800; //or 115200
   uint64_t baudValue = 65536 - ((65536 * 16 * baud) / 120000000); // Assuming 120MHz clock
   SERCOM5->USART.BAUD.reg = (uint16_t)baudValue;
     
@@ -106,6 +107,20 @@ void serial_write_to_brain(uint8_t data) {
    
   while (!(SERCOM5->USART.INTFLAG.bit.DRE)); // Wait until Data Register Empty
   SERCOM5->USART.DATA.reg = data;            //write the data
+  
+  while (!(SERCOM5->USART.INTFLAG.bit.TXC)); // Wait until Data Register Empty
+  REG_PORT_OUTCLR0 = PORT_PA27;              //output low for receive
+}
+
+// Function to send multiple bytes
+void serial_write_to_brain_buffer(uint8_t* data, int length) {  
+  REG_PORT_OUTSET0 = PORT_PA27;              //output high for transmit
+  delayMicroseconds(1);                      //allow the driver to enable
+
+  for (int i=0; i<length; i++) {
+    while (!(SERCOM5->USART.INTFLAG.bit.DRE)); // Wait until Data Register Empty
+    SERCOM5->USART.DATA.reg = data[i];         //write the data
+  }
   
   while (!(SERCOM5->USART.INTFLAG.bit.TXC)); // Wait until Data Register Empty
   REG_PORT_OUTCLR0 = PORT_PA27;              //output low for receive

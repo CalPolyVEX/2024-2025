@@ -277,6 +277,38 @@ unsigned char read_mdr0(int encoder) {
   return val & 0x7F;  //should return 3
 }
 
+void read_4_encoder() {
+  uint8_t buf[18];  //4 encoder readings and 2 blank bytes
+  uint8_t output_buf[40];
+  int buf_counter = 0;
+  struct cobs_encode_result result;
+  
+  for (int i=1; i<=4; i++) {
+    int reading = get_encoder_reading(i);
+
+    //reading = 100 + i;
+
+    buf[buf_counter] = (uint8_t) ((reading >> 24) & 0xFF);
+    buf_counter++;
+    buf[buf_counter] = (uint8_t) ((reading >> 16) & 0xFF);
+    buf_counter++;
+    buf[buf_counter] = (uint8_t) ((reading >> 8) & 0xFF);
+    buf_counter++;
+    buf[buf_counter] = (uint8_t) ((reading >> 0) & 0xFF);
+    buf_counter++;
+  }
+
+  buf[16] = 0;
+  buf[17] = 0;
+   
+  result = cobs_encode(output_buf, 40, buf, 18);
+  if (result.status == COBS_ENCODE_OK) {
+    //then transmit
+    serial_write_to_brain_buffer(output_buf, result.out_len);    
+  }
+  
+}
+
 int test_encoder_chips() {
   unsigned int counter = 0;
   unsigned int read_val;
