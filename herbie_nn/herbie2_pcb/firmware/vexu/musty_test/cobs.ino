@@ -63,11 +63,11 @@ struct cobs_encode_result cobs_encode(uint8_t * dst_buf_ptr, size_t dst_buf_len,
         for (;;)
         {
             /* Check for running out of output buffer space */
-            if (dst_write_ptr >= dst_buf_end_ptr)
+            /*if (dst_write_ptr >= dst_buf_end_ptr)
             {
                 result.status |= COBS_ENCODE_OUT_BUFFER_OVERFLOW;
                 break;
-            }
+            }*/
 
             src_byte = *src_read_ptr++;
             if (src_byte == 0u)

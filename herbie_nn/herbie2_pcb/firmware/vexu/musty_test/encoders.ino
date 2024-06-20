@@ -1,9 +1,10 @@
 #include <SPI.h>
 #include "LS7366R.h"
 
-#define ENC1_SS 12 //ss
-#define ENC2_SS 13 //ss
 #define SPI_CLK 3900000 //for the LS7366, 4.166MHz is fastest clock at 3.3V
+
+extern int num_bytes_received;
+extern int num_error_counter;
 
 const unsigned short crctable[256] =
 {
@@ -286,8 +287,12 @@ void read_4_encoder() {
   for (int i=1; i<=4; i++) {
     int reading = get_encoder_reading(i);
 
-    //reading = 100 + i;
-
+    if (i == 1) {
+      reading = num_bytes_received;
+    } else if (i == 2) {
+      reading = num_error_counter;
+    }
+  
     buf[buf_counter] = (uint8_t) ((reading >> 24) & 0xFF);
     buf_counter++;
     buf[buf_counter] = (uint8_t) ((reading >> 16) & 0xFF);
