@@ -240,12 +240,12 @@ void init_encoders()
 
 //*************************************************
 //*****************************************************
-void getChanEncoderValue(int encoder, char* buf)
+void getChanEncoderValue(int encoder, unsigned char* buf)
 //*****************************************************
 {
   setSSEnc(SPI_ENABLE, encoder);
 
-  //SPI.transfer(buf,5); //transfer 5 bytes with the first byte being the command READ_CNTR
+  //transfer 5 bytes with the first byte being the command READ_CNTR
   transferDataSPI(READ_CNTR);
   buf[0] = transferDataSPI(READ_CNTR);  //MSB
   buf[1] = transferDataSPI(READ_CNTR);
@@ -255,12 +255,12 @@ void getChanEncoderValue(int encoder, char* buf)
   setSSEnc(SPI_DISABLE, encoder);
 }
 
-int get_encoder_reading(int encoder_num) {
-  int encoder_reading;
-  char buf[4];
-  
-  getChanEncoderValue(encoder_num, buf);
-  encoder_reading = (buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3];
+uint8_t encoder_buf[4]; //encoder readings are stored here 
+
+int get_encoder_reading(int encoder_num) { //get the encoder reading for a single encoder
+  int encoder_reading = 0;
+
+  getChanEncoderValue(encoder_num, encoder_buf);  //readings are stored in the global encoder_buf array
   
   return encoder_reading;
 }
@@ -269,7 +269,7 @@ unsigned char read_mdr0(int encoder) {
   unsigned char val;
   setSSEnc(SPI_ENABLE, encoder);
 
-  //SPI.transfer(buf,5); //transfer 5 bytes with the first byte being the command READ_CNTR
+  //transfer 2 bytes with the first byte being the command READ_MDR0
   transferDataSPI(READ_MDR0);
   val = transferDataSPI(READ_MDR0);
 
@@ -279,7 +279,7 @@ unsigned char read_mdr0(int encoder) {
 }
 
 void read_4_encoder() {
-  uint8_t buf[18];  //4 encoder readings and 2 blank bytes
+  uint8_t buf[18];  //4 encoder readings (4 bytes each) and 2 blank bytes
   uint8_t output_buf[40];
   int buf_counter = 0;
   struct cobs_encode_result result;
@@ -288,30 +288,39 @@ void read_4_encoder() {
     int reading = get_encoder_reading(i);
 
     if (i == 1) {
-      reading = num_bytes_received;
-    } else if (i == 2) {
-      reading = num_error_counter;
+      reading = num_bytes_received; //FIXME - for encoder 1, send the number of bytes received from the brain
+       
+      encoder_buf[0] = (uint8_t) ((reading >> 24) & 0xFF);
+      encoder_buf[1] = (uint8_t) ((reading >> 16) & 0xFF);
+      encoder_buf[2] = (uint8_t) ((reading >> 8) & 0xFF);
+      encoder_buf[3] = (uint8_t) ((reading >> 0) & 0xFF);
+    } else if (i == 2) { 
+      reading = num_error_counter; //FIXME - for encoder 2, send the number of times less than 4 bytes was received from the brain
+      
+      encoder_buf[0] = (uint8_t) ((reading >> 24) & 0xFF);
+      encoder_buf[1] = (uint8_t) ((reading >> 16) & 0xFF);
+      encoder_buf[2] = (uint8_t) ((reading >> 8) & 0xFF);
+      encoder_buf[3] = (uint8_t) ((reading >> 0) & 0xFF);
     }
-  
-    buf[buf_counter] = (uint8_t) ((reading >> 24) & 0xFF);
+    
+    buf[buf_counter] = encoder_buf[3];  //data sent LSB first
     buf_counter++;
-    buf[buf_counter] = (uint8_t) ((reading >> 16) & 0xFF);
+    buf[buf_counter] = encoder_buf[2];
     buf_counter++;
-    buf[buf_counter] = (uint8_t) ((reading >> 8) & 0xFF);
+    buf[buf_counter] = encoder_buf[1];
     buf_counter++;
-    buf[buf_counter] = (uint8_t) ((reading >> 0) & 0xFF);
-    buf_counter++;
+    buf[buf_counter] = encoder_buf[0];
+    buf_counter++;  
   }
 
-  buf[16] = 0;
+  buf[16] = 0;  //send 2 blank bytes for future use
   buf[17] = 0;
    
-  result = cobs_encode(output_buf, 40, buf, 18);
-  if (result.status == COBS_ENCODE_OK) {
-    //then transmit
-    serial_write_to_brain_buffer(output_buf, result.out_len);    
-  }
-  
+  result = cobs_encode(output_buf, 40, buf, 18); //encode the data into COBS format
+   
+  //if (result.status == COBS_ENCODE_OK) { //if encoding successful
+    serial_write_to_brain_buffer(output_buf, result.out_len);  //write the COBS packet to the VEX brain 
+  //}
 }
 
 int test_encoder_chips() {

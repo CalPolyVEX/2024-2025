@@ -77,7 +77,8 @@ uint8_t serial_read_from_brain(void) {
   return SERCOM5->USART.DATA.reg;
 }
 
-// Function to bytes from the VEX brain with a timeout (in microseconds)
+// Function to read n bytes from the VEX brain with a timeout (in microseconds)
+// If the timeout is exceeded, the function returns
 uint8_t serial_read_from_brain_delay(uint8_t* buffer, unsigned int timeout_us, int count) {
   unsigned int start_time = micros();  //get the current time in microseconds  
   int timeout_exceeded = 0;

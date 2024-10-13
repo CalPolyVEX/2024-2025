@@ -1,5 +1,11 @@
 //In the FastLED library, updated src/platforms/arm/d51/fastpin_arm_d51.h to map the digital pins to the ledstrip pins
-//using this line in the Feather M4 Express config:  _FL_DEFPIN( 0, 3, 1); _FL_DEFPIN( 1, 2, 1);
+//using this line in the Feather M4 Express config, replace:
+//
+//  _FL_DEFPIN( 0, 17, 1); _FL_DEFPIN( 1, 16, 1);
+//
+//  with:
+//
+//  _FL_DEFPIN( 0, 3, 1); _FL_DEFPIN( 1, 2, 1);
 
 #include <FastLED.h>
 #define NUM_LEDS 10

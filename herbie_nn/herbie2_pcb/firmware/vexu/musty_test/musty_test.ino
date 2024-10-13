@@ -31,26 +31,33 @@ void setup() {
 // the loop function runs over and over again forever
 void loop() {  
   unsigned char buf[5];
-  int encoder_reading;
+  int toggle = 0;
   
-  digitalWrite(13, HIGH);   // turn the LED on (HIGH is the voltage level)
-  digitalWrite(12, LOW);    // turn the LED on (HIGH is the voltage level)
-  digitalWrite(5, HIGH);    // turn the LED on (HIGH is the voltage level)
-  //delay(1000);              // wait for a second
-  digitalWrite(13, LOW);    // turn the LED off by making the voltage LOW
-  digitalWrite(12, HIGH);   // turn the LED off by making the voltage LOW
-  digitalWrite(5, LOW);     // turn the LED off by making the voltage LOW
-  //delay(1000);              // wait for a second
-  //test_encoder_chips();
-  
-  //Serial.write(test_encoder_chips() + 97); //write 'a'
-  //Serial.write(97);
-  //serial_write_to_brain(97);
-  //led_show();
-  read_4_encoder();
-  num_bytes_received = serial_read_from_brain_delay(buf, 2000, 4); 
-  if ((num_bytes_received != 4)) // && (num_bytes_received != 0))
-    num_error_counter++;
-    
-  delay(1);
+  while (1) {
+    num_bytes_received = serial_read_from_brain_delay(buf, 20000, 1); //wait up to 20ms for first byte
+
+    if (num_bytes_received == 1) { //if first byte received
+      if (buf[0] == 100) { //if it is the header byte
+        num_bytes_received += serial_read_from_brain_delay(buf, 10000, 3); //read the next 3 bytes
+        
+        if (num_bytes_received == 4) { //if 4 total bytes were received from the brain
+          read_4_encoder(); //read 4 encoder values and transmit the data to the brain
+          buf[0] = 0;
+        }
+        
+        if (toggle) {
+          digitalWrite(13, HIGH);    // turn the LED2 on 
+          toggle = 0;
+        } else { 
+          digitalWrite(13, LOW);
+          toggle = 1;
+        }
+      } else { //the header byte was incorrect
+        num_error_counter++;
+      }
+    } else { //there was a timeout
+      num_error_counter++;
+    }
+  }
+
 }
