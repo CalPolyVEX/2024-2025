@@ -47,7 +47,8 @@ void test_musty_task(void* ignore) {
   //this is the buffer where the data is stored after COBS decoding
   //make sure this buffer is 4-byte aligned since int pointers are
   //used to access the encoder data
-  uint8_t decode_buf[MAX_BUFFER_SIZE] __attribute__((aligned(4))); //buffer after COBS decoding
+  // uint8_t decode_buf[MAX_BUFFER_SIZE] __attribute__((aligned(4))); //buffer after COBS decoding
+  uint8_t decode_buf[MAX_BUFFER_SIZE]; //buffer after COBS decoding
 
   uint8_t* temp_buf_ptr;
   cobs_decode_result res; //used to indicate COBS decoding status
@@ -56,6 +57,7 @@ void test_musty_task(void* ignore) {
   int num_read_bytes;
   int last_time = pros::millis();
   int loop_counter = 0, cobs_error_count = 0, receive_timeout_counter = 0;
+  int encoder1, encoder2, encoder3, encoder4;
 
   transmit_buf[0] = 100; // send the header byte to request encoder readings (value: 100)
   transmit_buf[1] = 101; // send 3 other dummy values
@@ -63,10 +65,11 @@ void test_musty_task(void* ignore) {
   transmit_buf[3] = 103; 
 
   while (true) {
-      s.write(transmit_buf,4); //send 4 bytes to request data from Musty board
+      receive_timeout_counter = 0;
       temp_buf_ptr = receive_buf; //reset temp pointer to point to the start of the receive buffer
       num_read_bytes = 0;
-      //receive_timeout_counter = 0;
+
+      s.write(transmit_buf,4); //send 4 bytes to request data from Musty board
 
       while (1) { //loop until a full data packet received from Musty board
         num_waiting_bytes = s.get_read_avail(); //check if there are bytes available
@@ -85,7 +88,7 @@ void test_musty_task(void* ignore) {
           receive_timeout_counter++;
           pros::delay(1);
 
-          if (receive_timeout_counter > 200) { //if no data has been received for 20ms
+          if (receive_timeout_counter > 20) { //if no data has been received for 20ms
             receive_timeout_counter = 0;
             break;
           }
@@ -97,22 +100,22 @@ void test_musty_task(void* ignore) {
 
         if (res.status == COBS_DECODE_OK) { //if the packet checksums ok
           //encoder data is sent LSB first, so we can access using an int pointer
-          encoder_ptr = (int*) decode_buf;
-          int encoder1 = *encoder_ptr;
-          encoder_ptr++;
-          int encoder2 = *encoder_ptr;
-          encoder_ptr++;
-          int encoder3 = *encoder_ptr;
-          encoder_ptr++;
-          int encoder4 = *encoder_ptr;
-          // int encoder1 = (decode_buf[0] << 24) | (decode_buf[1] << 16) | (decode_buf[2] << 8) | decode_buf[3];
-          // int encoder2 = (decode_buf[4] << 24) | (decode_buf[5] << 16) | (decode_buf[6] << 8) | decode_buf[7];
-          // int encoder3 = (decode_buf[8] << 24) | (decode_buf[9] << 16) | (decode_buf[10] << 8) | decode_buf[11];
-          // int encoder4 = (decode_buf[12] << 24) | (decode_buf[13] << 16) | (decode_buf[14] << 8) | decode_buf[15];
+          // encoder_ptr = (int*) decode_buf;
+          // int encoder1 = *encoder_ptr;
+          // encoder_ptr++;
+          // int encoder2 = *encoder_ptr;
+          // encoder_ptr++;
+          // int encoder3 = *encoder_ptr;
+          // encoder_ptr++;
+          // int encoder4 = *encoder_ptr;
+          encoder1 = (decode_buf[3] << 24) | (decode_buf[2] << 16) | (decode_buf[1] << 8) | decode_buf[0];
+          encoder2 = (decode_buf[7] << 24) | (decode_buf[6] << 16) | (decode_buf[5] << 8) | decode_buf[4];
+          encoder3 = (decode_buf[11] << 24) | (decode_buf[10] << 16) | (decode_buf[9] << 8) | decode_buf[8];
+          encoder4 = (decode_buf[15] << 24) | (decode_buf[14] << 16) | (decode_buf[13] << 8) | decode_buf[12];
 
           pros::lcd::print(3, "%7d |%7d |%7d |%7d", encoder1, encoder2, encoder3, encoder4);
-          pros::lcd::print(6, "receive packets: %d", receive_counter);
-          receive_counter++;
+          // pros::lcd::print(6, "receive packets: %d", receive_counter);
+          // receive_counter++;
           loop_counter++;
         } else {
           cobs_error_count++;
@@ -126,8 +129,8 @@ void test_musty_task(void* ignore) {
         loop_counter = 0;
         last_time = pros::millis();
       }
-
-      pros::delay(1);
+      
+      pros::delay(4);
   }
 }
 
