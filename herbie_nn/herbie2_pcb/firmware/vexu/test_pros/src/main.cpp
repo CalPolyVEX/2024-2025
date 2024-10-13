@@ -27,44 +27,53 @@ void on_center_button() {
 	}
 }
 
-#define RECEIVE_PACKET_SIZE 19
+#define RECEIVE_PACKET_SIZE 19 // (4 encoders * 4 bytes) + 2 extra bytes + 1 COBS delimiter
+#define MAX_BUFFER_SIZE 256
 
-void test_serial2() {
+void test_musty_task(void* ignore) {
   pros::Serial s(2, 460800);  //create a serial port on #2 at 460800 baud
 
   // Let VEX OS configure port
-  pros::delay(10);
+  pros::delay(50);
     
 	int receive_counter = 0;
   int send_counter = 0;
 	pros::lcd::print(2, "  Enc1  |  Enc2  |  Enc3  |  Enc4");
       
-  // Buffer to store serial data
-  uint8_t output[10];
-  uint8_t buffer[64]; //buffer before COBS decoding
-  uint8_t decode[64]; //buffer after COBS decoding
-  uint8_t* temp;
-  cobs_decode_result res;
+  // Buffers to store serial data
+  uint8_t transmit_buf[4]; //data transmitted from the VEX brain
+  uint8_t receive_buf[MAX_BUFFER_SIZE]; //data receive buffer before COBS decoding
+
+  //this is the buffer where the data is stored after COBS decoding
+  //make sure this buffer is 4-byte aligned since int pointers are
+  //used to access the encoder data
+  uint8_t decode_buf[MAX_BUFFER_SIZE] __attribute__((aligned(4))); //buffer after COBS decoding
+
+  uint8_t* temp_buf_ptr;
+  cobs_decode_result res; //used to indicate COBS decoding status
+  int* encoder_ptr;
   int num_waiting_bytes;
   int num_read_bytes;
   int last_time = pros::millis();
-  int loop_counter = 0;
+  int loop_counter = 0, cobs_error_count = 0, receive_timeout_counter = 0;
+
+  transmit_buf[0] = 100; // send the header byte to request encoder readings (value: 100)
+  transmit_buf[1] = 101; // send 3 other dummy values
+  transmit_buf[2] = 102; 
+  transmit_buf[3] = 103; 
 
   while (true) {
-      output[0] = 100; //send 'd'
-      output[1] = 101; //send 'e'
-      output[2] = 102; //send 'f'
-      
-      temp = buffer;
+      s.write(transmit_buf,4); //send 4 bytes to request data from Musty board
+      temp_buf_ptr = receive_buf; //reset temp pointer to point to the start of the receive buffer
       num_read_bytes = 0;
+      //receive_timeout_counter = 0;
 
-      while (1) {
-        num_waiting_bytes = s.get_read_avail();
-        //pros::lcd::print(4, "available bytes: %d", num_waiting_bytes);
+      while (1) { //loop until a full data packet received from Musty board
+        num_waiting_bytes = s.get_read_avail(); //check if there are bytes available
 
-        if (num_waiting_bytes > 0) {
-          num_read_bytes += s.read(temp, num_waiting_bytes);
-          temp += num_waiting_bytes;
+        if (num_waiting_bytes > 0) { //if there are bytes waiting to be read
+          num_read_bytes += s.read(temp_buf_ptr, num_waiting_bytes);
+          temp_buf_ptr += num_read_bytes;
         }
 
         if (num_read_bytes == RECEIVE_PACKET_SIZE) { //received a full packet
@@ -73,51 +82,49 @@ void test_serial2() {
           s.flush();
           break;
         } else { //did not receive a full packet yet
+          receive_timeout_counter++;
           pros::delay(1);
-          //pros::lcd::print(5, "read bytes: %d", num_read_bytes);
+
+          if (receive_timeout_counter > 200) { //if no data has been received for 20ms
+            receive_timeout_counter = 0;
+            break;
+          }
         }
       }
 
-      // pros::lcd::print(5, "avail: %d", num_waiting_bytes);
-      // if (num_waiting_bytes) {
-      //   if (num_waiting_bytes != 19) {
-      //     pros::lcd::print(5, "avail: %d", num_waiting_bytes);
-      //   }
+      if (num_read_bytes == RECEIVE_PACKET_SIZE) { //received the correct packet size
+        res = cobs_decode(decode_buf, MAX_BUFFER_SIZE, receive_buf, RECEIVE_PACKET_SIZE);
 
-      //   num_read_bytes = s.read(buffer, RECEIVE_PACKET_SIZE);
-      //   s.flush();
-      // }
-      
-      if (num_read_bytes == RECEIVE_PACKET_SIZE) {
-        res = cobs_decode(decode, 64, buffer, RECEIVE_PACKET_SIZE);
-
-        if (res.status == COBS_DECODE_OK) {
-          s.write(output,4); //send 4 bytes of test data
-
-          int encoder1 = (decode[0] << 24) | (decode[1] << 16) | (decode[2] << 8) | decode[3];
-          int encoder2 = (decode[4] << 24) | (decode[5] << 16) | (decode[6] << 8) | decode[7];
-          int encoder3 = (decode[8] << 24) | (decode[9] << 16) | (decode[10] << 8) | decode[11];
-          int encoder4 = (decode[12] << 24) | (decode[13] << 16) | (decode[14] << 8) | decode[15];
+        if (res.status == COBS_DECODE_OK) { //if the packet checksums ok
+          //encoder data is sent LSB first, so we can access using an int pointer
+          encoder_ptr = (int*) decode_buf;
+          int encoder1 = *encoder_ptr;
+          encoder_ptr++;
+          int encoder2 = *encoder_ptr;
+          encoder_ptr++;
+          int encoder3 = *encoder_ptr;
+          encoder_ptr++;
+          int encoder4 = *encoder_ptr;
+          // int encoder1 = (decode_buf[0] << 24) | (decode_buf[1] << 16) | (decode_buf[2] << 8) | decode_buf[3];
+          // int encoder2 = (decode_buf[4] << 24) | (decode_buf[5] << 16) | (decode_buf[6] << 8) | decode_buf[7];
+          // int encoder3 = (decode_buf[8] << 24) | (decode_buf[9] << 16) | (decode_buf[10] << 8) | decode_buf[11];
+          // int encoder4 = (decode_buf[12] << 24) | (decode_buf[13] << 16) | (decode_buf[14] << 8) | decode_buf[15];
 
           pros::lcd::print(3, "%7d |%7d |%7d |%7d", encoder1, encoder2, encoder3, encoder4);
-          //pros::lcd::print(6, "receive packets: %d", receive_counter);
+          pros::lcd::print(6, "receive packets: %d", receive_counter);
           receive_counter++;
           loop_counter++;
+        } else {
+          cobs_error_count++;
+          pros::lcd::print(5, "COBS error: %d", cobs_error_count);
         }
       }
 
-      //s.write(output,1);
-      //pros::lcd::print(7, "transmit packets: %d\n", send_counter);
-      send_counter++;
-
-      // Delay to let serial data arrive
-      //pros::delay(2);
-      if (pros::millis() > (last_time + 2000)) {
-        pros::lcd::print(7, "update rate: %.2f Hz\n", loop_counter/2.0);
+      // update the counter display rate
+      if (pros::millis() > (last_time + 3000)) {
+        pros::lcd::print(7, "update rate: %.2f Hz  \n", loop_counter/3.0);
         loop_counter = 0;
         last_time = pros::millis();
-      } else {
-        //loop_counter++;
       }
 
       pros::delay(1);
@@ -132,12 +139,13 @@ void test_serial2() {
  */
 void initialize() {
 	pros::lcd::initialize();
+  pros::delay(300);
 	pros::lcd::set_text(0, "Musty Board PROS Test");
 
 	pros::lcd::register_btn1_cb(on_center_button);
 
 	//JS
-	test_serial2();
+  pros::Task my_task(test_musty_task, (void*) "args", "test task");
 }
 
 /**
@@ -169,7 +177,11 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {}
+void autonomous() {
+  while(1) {
+    pros::delay(20);
+  }
+}
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -185,6 +197,10 @@ void autonomous() {}
  * task, not resume it from where it left off.
  */
 void opcontrol() {
+  while(1) {
+    pros::delay(20);
+  }
+
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 	pros::MotorGroup left_mg({1, -2, 3});    // Creates a motor group with forwards ports 1 & 3 and reversed port 2
 	pros::MotorGroup right_mg({-4, 5, -6});  // Creates a motor group with forwards port 5 and reversed ports 4 & 6
