@@ -1,15 +1,17 @@
 #include "main.h"
 #include "cobs.h"
 #include "pros/serial.hpp"
+#include <queue>
+#include <mutex>
 
-// Prototypes for hidden vex functions to bypass PROS bug
-//extern "C" int32_t vexGenericSerialReceive( uint32_t index, uint8_t *buffer, int32_t length );
-//extern "C" int32_t vexGenericSerialTransmit( uint32_t index, uint8_t *buffer, int32_t length );
-//extern "C" void vexGenericSerialEnable(  uint32_t index, uint32_t nu );
-//extern "C" void vexGenericSerialBaudrate(  uint32_t index, uint32_t rate );
+void insert_mqueue(int command);
 
 // Port to use for serial data
-#define SERIALPORT 2
+#define MUSTY_SERIALPORT 2
+#define MUSTY_BAUDRATE 460800
+pros::Serial *s;  //create a serial port on #2 at 460800 baud
+std::queue<int> mqueue;
+pros::Mutex mutex_;
 
 /**
  * A callback function for LLEMU's center button.
@@ -21,38 +23,64 @@ void on_center_button() {
 	static bool pressed = false;
 	pressed = !pressed;
 	if (pressed) {
-		pros::lcd::set_text(2, "I was pressed!");
+    // pros::lcd::clear_line(2);
+		// pros::lcd::set_text(2, "I was pressed!");
+    insert_mqueue(101); //toggle LED1
 	} else {
-		pros::lcd::clear_line(2);
+    // pros::lcd::print(2, "  Enc1  |  Enc2  |  Enc3  |  Enc4\n");
+    insert_mqueue(101);
 	}
 }
 
-#define RECEIVE_PACKET_SIZE 19 // (4 encoders * 4 bytes) + 2 extra bytes + 1 COBS delimiter
+void on_right_button() { //when the right button is pressed
+    insert_mqueue(102);
+}
+
+void insert_mqueue(int command) { //insert a command into the Musty Board command queue
+  mutex_.take(); //lock the queue
+  mqueue.push(command);
+  mutex_.give(); //unlock the queue
+}
+
+int pop_mqueue() { //return the first command in the Musty Board command queue
+  int value = 0;
+  mutex_.take(); //lock the queue
+  value = mqueue.front();
+  mqueue.pop();
+  mutex_.give(); //unlock the queue
+
+  return value;
+}
+
+void add_commands(void* ignore) {
+  while(1){
+    insert_mqueue(101); //toggle LED1
+    pros::delay(rand() % 50);
+  }
+}
+
+#define TRANSMIT_PACKET_SIZE 2
+#define RECEIVE_PACKET_SIZE 19 // 19 = (4 encoders * 4 bytes) + 2 extra bytes + 1 COBS delimiter
 #define MAX_BUFFER_SIZE 256
 
 void test_musty_task(void* ignore) {
-  pros::Serial s(2, 460800);  //create a serial port on #2 at 460800 baud
+  pros::Serial s1(MUSTY_SERIALPORT, MUSTY_BAUDRATE);  //need to initialize the serial port twice, so here is the first time
+  pros::delay(100); // Let VEX OS configure port
 
-  // Let VEX OS configure port
-  pros::delay(50);
+  s = new pros::Serial(MUSTY_SERIALPORT, MUSTY_BAUDRATE);  //create a serial port on #2 at 460800 baud
+  pros::delay(100); // Let VEX OS configure port
     
 	int receive_counter = 0;
   int send_counter = 0;
-	pros::lcd::print(2, "  Enc1  |  Enc2  |  Enc3  |  Enc4");
+	pros::lcd::print(2, "  Enc1  |  Enc2  |  Enc3  |  Enc4\n");
       
   // Buffers to store serial data
-  uint8_t transmit_buf[4]; //data transmitted from the VEX brain
+  uint8_t transmit_buf[TRANSMIT_PACKET_SIZE]; //data transmitted from the VEX brain
   uint8_t receive_buf[MAX_BUFFER_SIZE]; //data receive buffer before COBS decoding
-
-  //this is the buffer where the data is stored after COBS decoding
-  //make sure this buffer is 4-byte aligned since int pointers are
-  //used to access the encoder data
-  // uint8_t decode_buf[MAX_BUFFER_SIZE] __attribute__((aligned(4))); //buffer after COBS decoding
   uint8_t decode_buf[MAX_BUFFER_SIZE]; //buffer after COBS decoding
 
   uint8_t* temp_buf_ptr;
   cobs_decode_result res; //used to indicate COBS decoding status
-  int* encoder_ptr;
   int num_waiting_bytes;
   int num_read_bytes;
   int last_time = pros::millis();
@@ -60,77 +88,79 @@ void test_musty_task(void* ignore) {
   int encoder1, encoder2, encoder3, encoder4;
 
   transmit_buf[0] = 100; // send the header byte to request encoder readings (value: 100)
-  transmit_buf[1] = 101; // send 3 other dummy values
-  transmit_buf[2] = 102; 
-  transmit_buf[3] = 103; 
+  transmit_buf[1] = 255; // send 1 other dummy value
 
   while (true) {
-      receive_timeout_counter = 0;
-      temp_buf_ptr = receive_buf; //reset temp pointer to point to the start of the receive buffer
-      num_read_bytes = 0;
+    receive_timeout_counter = 0;
+    temp_buf_ptr = receive_buf; //reset temp pointer to point to the start of the receive buffer
+    num_read_bytes = 0;
 
-      s.write(transmit_buf,4); //send 4 bytes to request data from Musty board
+    //check command queue
+    mutex_.take(); //lock the command queue
+    if (mqueue.size() != 0) {
+      mutex_.give(); //unlock the command queue
+      int q_value = pop_mqueue();
+      transmit_buf[0] = q_value; // send the header byte for the command
+      s->write(transmit_buf,TRANSMIT_PACKET_SIZE); //send 2 bytes to request data from Musty board
+      transmit_buf[0] = 100; // send the header byte to request encoder readings (value: 100)
+    } else {
+      mutex_.give(); //unlock the command queue
+    }
 
-      while (1) { //loop until a full data packet received from Musty board
-        num_waiting_bytes = s.get_read_avail(); //check if there are bytes available
+    s->write(transmit_buf,TRANSMIT_PACKET_SIZE); //send 2 bytes to request data from Musty board
 
-        if (num_waiting_bytes > 0) { //if there are bytes waiting to be read
-          num_read_bytes += s.read(temp_buf_ptr, num_waiting_bytes);
-          temp_buf_ptr += num_read_bytes;
-        }
+    while (1) { //loop until a full data packet received from Musty board
+      num_waiting_bytes = s->get_read_avail(); //check if there are bytes available
 
-        if (num_read_bytes == RECEIVE_PACKET_SIZE) { //received a full packet
+      if (num_waiting_bytes > 0) { //if there are bytes waiting to be read
+        num_read_bytes += s->read(temp_buf_ptr, num_waiting_bytes);
+        temp_buf_ptr += num_read_bytes;
+      }
+
+      if (num_read_bytes == RECEIVE_PACKET_SIZE) { //received a full packet
+        break;
+      } else if (num_read_bytes > RECEIVE_PACKET_SIZE) { //synchronization error
+        s->flush();
+        break;
+      } else { //did not receive a full packet yet
+        receive_timeout_counter++;
+        pros::delay(1);
+
+        if (receive_timeout_counter > 20) { //if no data has been received for 20ms
+          receive_timeout_counter = 0;
           break;
-        } else if (num_read_bytes > RECEIVE_PACKET_SIZE) { //synchronization error
-          s.flush();
-          break;
-        } else { //did not receive a full packet yet
-          receive_timeout_counter++;
-          pros::delay(1);
-
-          if (receive_timeout_counter > 20) { //if no data has been received for 20ms
-            receive_timeout_counter = 0;
-            break;
-          }
         }
       }
+    }
 
-      if (num_read_bytes == RECEIVE_PACKET_SIZE) { //received the correct packet size
-        res = cobs_decode(decode_buf, MAX_BUFFER_SIZE, receive_buf, RECEIVE_PACKET_SIZE);
+    if (num_read_bytes == RECEIVE_PACKET_SIZE) { //received the correct packet size
+      res = cobs_decode(decode_buf, MAX_BUFFER_SIZE, receive_buf, RECEIVE_PACKET_SIZE);
 
-        if (res.status == COBS_DECODE_OK) { //if the packet checksums ok
-          //encoder data is sent LSB first, so we can access using an int pointer
-          // encoder_ptr = (int*) decode_buf;
-          // int encoder1 = *encoder_ptr;
-          // encoder_ptr++;
-          // int encoder2 = *encoder_ptr;
-          // encoder_ptr++;
-          // int encoder3 = *encoder_ptr;
-          // encoder_ptr++;
-          // int encoder4 = *encoder_ptr;
-          encoder1 = (decode_buf[3] << 24) | (decode_buf[2] << 16) | (decode_buf[1] << 8) | decode_buf[0];
-          encoder2 = (decode_buf[7] << 24) | (decode_buf[6] << 16) | (decode_buf[5] << 8) | decode_buf[4];
-          encoder3 = (decode_buf[11] << 24) | (decode_buf[10] << 16) | (decode_buf[9] << 8) | decode_buf[8];
-          encoder4 = (decode_buf[15] << 24) | (decode_buf[14] << 16) | (decode_buf[13] << 8) | decode_buf[12];
+      if (res.status == COBS_DECODE_OK) { //if the packet checksums ok
+        //encoder data is sent LSB first, so we can access using an int pointer
+        encoder1 = (decode_buf[3] << 24) | (decode_buf[2] << 16) | (decode_buf[1] << 8) | decode_buf[0];
+        encoder2 = (decode_buf[7] << 24) | (decode_buf[6] << 16) | (decode_buf[5] << 8) | decode_buf[4];
+        encoder3 = (decode_buf[11] << 24) | (decode_buf[10] << 16) | (decode_buf[9] << 8) | decode_buf[8];
+        encoder4 = (decode_buf[15] << 24) | (decode_buf[14] << 16) | (decode_buf[13] << 8) | decode_buf[12];
 
-          pros::lcd::print(3, "%7d |%7d |%7d |%7d", encoder1, encoder2, encoder3, encoder4);
-          // pros::lcd::print(6, "receive packets: %d", receive_counter);
-          // receive_counter++;
-          loop_counter++;
-        } else {
-          cobs_error_count++;
-          pros::lcd::print(5, "COBS error: %d", cobs_error_count);
-        }
+        pros::lcd::print(3, "%7d |%7d |%7d |%7d\n", encoder1, encoder2, encoder3, encoder4);
+        pros::lcd::print(6, "receive packets: %d", receive_counter);
+        receive_counter++;
+        loop_counter++;
+      } else {
+        cobs_error_count++;
+        pros::lcd::print(5, "COBS error: %d", cobs_error_count);
       }
+    }
 
-      // update the counter display rate
-      if (pros::millis() > (last_time + 3000)) {
-        pros::lcd::print(7, "update rate: %.2f Hz  \n", loop_counter/3.0);
-        loop_counter = 0;
-        last_time = pros::millis();
-      }
-      
-      pros::delay(4);
+    // update the counter display rate
+    if (pros::millis() > (last_time + 3000)) {
+      pros::lcd::print(7, "update rate: %.2f Hz  \n", loop_counter/3.0);
+      loop_counter = 0;
+      last_time = pros::millis();
+    }
+    
+    pros::delay(2);
   }
 }
 
@@ -146,9 +176,11 @@ void initialize() {
 	pros::lcd::set_text(0, "Musty Board PROS Test");
 
 	pros::lcd::register_btn1_cb(on_center_button);
+	pros::lcd::register_btn2_cb(on_right_button);
 
 	//JS
   pros::Task my_task(test_musty_task, (void*) "args", "test task");
+  //pros::Task my_task2(add_commands, (void*) "args", "test task 2");
 }
 
 /**
