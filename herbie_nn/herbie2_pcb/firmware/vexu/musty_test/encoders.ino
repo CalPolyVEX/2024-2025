@@ -287,7 +287,7 @@ void read_4_encoder() {
   for (int i=1; i<=4; i++) {
     int reading = get_encoder_reading(i);
 
-    if (i == 1) {
+    /*if (i == 1) {
       reading = num_bytes_received; //FIXME - for encoder 1, send the number of bytes received from the brain
        
       encoder_buf[0] = (uint8_t) ((reading >> 24) & 0xFF);
@@ -301,7 +301,7 @@ void read_4_encoder() {
       encoder_buf[1] = (uint8_t) ((reading >> 16) & 0xFF);
       encoder_buf[2] = (uint8_t) ((reading >> 8) & 0xFF);
       encoder_buf[3] = (uint8_t) ((reading >> 0) & 0xFF);
-    }
+    }*/
     
     buf[buf_counter] = encoder_buf[3];  //data sent LSB first
     buf_counter++;
@@ -318,9 +318,7 @@ void read_4_encoder() {
    
   result = cobs_encode(output_buf, 40, buf, 18); //encode the data into COBS format
    
-  //if (result.status == COBS_ENCODE_OK) { //if encoding successful
-    serial_write_to_brain_buffer(output_buf, result.out_len);  //write the COBS packet to the VEX brain 
-  //}
+  serial_write_to_brain_buffer(output_buf, result.out_len);  //write the COBS packet to the VEX brain 
 }
 
 int test_encoder_chips() {

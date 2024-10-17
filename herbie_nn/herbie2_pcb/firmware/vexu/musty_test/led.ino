@@ -80,10 +80,26 @@ void led_blip() {
   }
 }
 
-void init_buzzer() {
+void led_on(int num) {
+  if (num == 1) {
+    digitalWrite(12, HIGH);    // turn LED1 on 
+  } else if (num == 2) {
+    digitalWrite(13, HIGH);    // turn LED2 on 
+  }
+}
+
+void led_off(int num) {
+  if (num == 1) {
+    digitalWrite(12, LOW);    // turn LED1 off
+  } else if (num == 2) {
+    digitalWrite(13, LOW);    // turn LED2 off
+  }
+}
+
+void beep() {
   //the buzzer is connected to pin A2
   tone(A2, 400);
-  delay(1000);
+  delay(100);
   noTone(A2);
 }
 
