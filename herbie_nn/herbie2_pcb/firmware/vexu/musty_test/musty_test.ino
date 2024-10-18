@@ -1,3 +1,6 @@
+//Tone library uses TC5
+
+
 int num_bytes_received;
 int num_error_counter = 0;
 
@@ -14,6 +17,7 @@ void setup() {
   //delay(3000);
   //play_mario_theme();
   init_encoders();
+  init_led_timer();
 
   //set PA19 to input with pullup
   PORT->Group[0].PINCFG[19].reg |= PORT_PINCFG_INEN | PORT_PINCFG_PULLEN;
