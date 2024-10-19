@@ -10,8 +10,8 @@ void insert_mqueue(int command);
 #define MUSTY_SERIALPORT 2
 #define MUSTY_BAUDRATE 460800
 pros::Serial *s;  //create a serial port on #2 at 460800 baud
-std::queue<int> mqueue;
-pros::Mutex mutex_;
+std::queue<int> mqueue; //commands to Musty are inserted into this queue
+pros::Mutex mutex_; //the mutex for the Must command queue
 
 /**
  * A callback function for LLEMU's center button.
@@ -23,11 +23,8 @@ void on_center_button() {
 	static bool pressed = false;
 	pressed = !pressed;
 	if (pressed) {
-    // pros::lcd::clear_line(2);
-		// pros::lcd::set_text(2, "I was pressed!");
     insert_mqueue(101); //toggle LED1
 	} else {
-    // pros::lcd::print(2, "  Enc1  |  Enc2  |  Enc3  |  Enc4\n");
     insert_mqueue(101);
 	}
 }
@@ -52,18 +49,20 @@ int pop_mqueue() { //return the first command in the Musty Board command queue
   return value;
 }
 
-void add_commands(void* ignore) {
+void add_commands(void* ignore) { //a debugging task the adds commands to the queue
   while(1){
     insert_mqueue(101); //toggle LED1
     pros::delay(rand() % 50);
   }
 }
 
-#define TRANSMIT_PACKET_SIZE 2
+#define TRANSMIT_PACKET_SIZE 2 //size of packet in bytes sent to the Musty board
 #define RECEIVE_PACKET_SIZE 19 // 19 = (4 encoders * 4 bytes) + 2 extra bytes + 1 COBS delimiter
-#define MAX_BUFFER_SIZE 256
+#define MAX_BUFFER_SIZE 256 //buffer for receiving bytes from the Musty board
 
-void test_musty_task(void* ignore) {
+//process_musty_commands_task - this task sends commands to read the encoders and 
+//takes any command in the Musty command queue and send them to the board 
+void process_musty_commands_task(void* ignore) {
   pros::Serial s1(MUSTY_SERIALPORT, MUSTY_BAUDRATE);  //need to initialize the serial port twice, so here is the first time
   pros::delay(100); // Let VEX OS configure port
 
@@ -102,7 +101,7 @@ void test_musty_task(void* ignore) {
       int q_value = pop_mqueue();
       transmit_buf[0] = q_value; // send the header byte for the command
       s->write(transmit_buf,TRANSMIT_PACKET_SIZE); //send 2 bytes to request data from Musty board
-      transmit_buf[0] = 100; // send the header byte to request encoder readings (value: 100)
+      transmit_buf[0] = 100; // set the header byte to request encoder readings (value: 100)
     } else {
       mutex_.give(); //unlock the command queue
     }
@@ -126,7 +125,7 @@ void test_musty_task(void* ignore) {
         receive_timeout_counter++;
         pros::delay(1);
 
-        if (receive_timeout_counter > 20) { //if no data has been received for 20ms
+        if (receive_timeout_counter > 10) { //if no data has been received for 10ms
           receive_timeout_counter = 0;
           break;
         }
@@ -137,7 +136,6 @@ void test_musty_task(void* ignore) {
       res = cobs_decode(decode_buf, MAX_BUFFER_SIZE, receive_buf, RECEIVE_PACKET_SIZE);
 
       if (res.status == COBS_DECODE_OK) { //if the packet checksums ok
-        //encoder data is sent LSB first, so we can access using an int pointer
         encoder1 = (decode_buf[3] << 24) | (decode_buf[2] << 16) | (decode_buf[1] << 8) | decode_buf[0];
         encoder2 = (decode_buf[7] << 24) | (decode_buf[6] << 16) | (decode_buf[5] << 8) | decode_buf[4];
         encoder3 = (decode_buf[11] << 24) | (decode_buf[10] << 16) | (decode_buf[9] << 8) | decode_buf[8];
@@ -155,6 +153,7 @@ void test_musty_task(void* ignore) {
 
     // update the counter display rate
     if (pros::millis() > (last_time + 3000)) {
+      //this prints the rate at which encoder readings are sent to the VEX brain
       pros::lcd::print(7, "update rate: %.2f Hz  \n", loop_counter/3.0);
       loop_counter = 0;
       last_time = pros::millis();
@@ -179,7 +178,7 @@ void initialize() {
 	pros::lcd::register_btn2_cb(on_right_button);
 
 	//JS
-  pros::Task my_task(test_musty_task, (void*) "args", "test task");
+  pros::Task my_task(process_musty_commands_task, (void*) "args", "test task");
   //pros::Task my_task2(add_commands, (void*) "args", "test task 2");
 }
 
