@@ -415,7 +415,7 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "10a46d54-9401-4400-8ad2-83b520a523f1")
-		(at 220.98 92.3 -90)
+		(at 218.44 92.3 -90)
 		(descr "Through hole straight pin header, 1x03, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x03 2.54mm single row")
 		(property "Reference" "J5"
@@ -635,7 +635,7 @@
 			(uuid "7874b96b-074d-4f08-a752-96b740fb9b05")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 2.54 360)
+			(at 0 2.54 0)
 			(layer "F.Fab")
 			(uuid "289cb233-2c32-4b06-91f0-27c6226479e3")
 			(effects
@@ -693,7 +693,7 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "16331595-c424-45d2-b03b-88e38b7df076")
-		(at 220.98 101.6 -90)
+		(at 218.44 101.6 -90)
 		(descr "Through hole straight pin header, 1x03, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x03 2.54mm single row")
 		(property "Reference" "J7"
@@ -913,7 +913,7 @@
 			(uuid "76bcd043-c251-46e3-bbd8-3d507496fd40")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 2.54 360)
+			(at 0 2.54 0)
 			(layer "F.Fab")
 			(uuid "533fee5b-679b-4ab2-baf5-0c4b4ccf81a7")
 			(effects
@@ -1255,7 +1255,7 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "4453613d-760b-4a2e-af79-ac3770a88329")
-		(at 220.98 110.9 -90)
+		(at 218.44 110.9 -90)
 		(descr "Through hole straight pin header, 1x03, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x03 2.54mm single row")
 		(property "Reference" "J9"
@@ -1475,7 +1475,7 @@
 			(uuid "146821a4-75d9-498b-a7c4-56a0b625ef73")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 2.54 360)
+			(at 0 2.54 0)
 			(layer "F.Fab")
 			(uuid "e779059c-0c6e-437e-bd3a-a221ff46d571")
 			(effects
@@ -1533,7 +1533,7 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "4abd91bf-fc14-43b3-bfb7-778b06552d9c")
-		(at 220.98 87.65 -90)
+		(at 218.44 87.65 -90)
 		(descr "Through hole straight pin header, 1x03, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x03 2.54mm single row")
 		(property "Reference" "J4"
@@ -1753,7 +1753,7 @@
 			(uuid "5b385b70-ab9d-4872-8917-d94e7d113c34")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 2.54 360)
+			(at 0 2.54 0)
 			(layer "F.Fab")
 			(uuid "8901f285-796d-4d50-b10e-9e42d7827a91")
 			(effects
@@ -2382,7 +2382,7 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "9de9fc80-ea68-42a2-ad2f-0c675a27b0eb")
-		(at 220.98 96.95 -90)
+		(at 218.44 96.95 -90)
 		(descr "Through hole straight pin header, 1x03, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x03 2.54mm single row")
 		(property "Reference" "J6"
@@ -2602,7 +2602,7 @@
 			(uuid "a63b8bf9-dfa8-4910-ae8a-be1662d57630")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 2.54 360)
+			(at 0 2.54 0)
 			(layer "F.Fab")
 			(uuid "d8bed701-10d1-4a18-a09f-f7785ca04cbe")
 			(effects
@@ -2660,7 +2660,7 @@
 	(footprint "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
 		(layer "F.Cu")
 		(uuid "c15b930d-c890-499c-9b56-65114c0cc529")
-		(at 220.98 106.25 -90)
+		(at 218.44 106.25 -90)
 		(descr "Through hole straight pin header, 1x03, 2.54mm pitch, single row")
 		(tags "Through hole pin header THT 1x03 2.54mm single row")
 		(property "Reference" "J8"
@@ -2880,7 +2880,7 @@
 			(uuid "ed15b277-82ff-496d-9019-cc3af40b9ffa")
 		)
 		(fp_text user "${REFERENCE}"
-			(at 0 2.54 360)
+			(at 0 2.54 0)
 			(layer "F.Fab")
 			(uuid "c325d8e1-3606-4329-a977-4d2b7302182e")
 			(effects

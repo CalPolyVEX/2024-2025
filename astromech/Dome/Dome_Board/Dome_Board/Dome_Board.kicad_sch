@@ -1314,7 +1314,7 @@
 	)
 	(wire
 		(pts
-			(xy 209.55 100.33) (xy 207.01 100.33)
+			(xy 215.9 100.33) (xy 213.36 100.33)
 		)
 		(stroke
 			(width 0)
@@ -1404,7 +1404,7 @@
 	)
 	(wire
 		(pts
-			(xy 209.55 71.12) (xy 207.01 71.12)
+			(xy 215.9 71.12) (xy 213.36 71.12)
 		)
 		(stroke
 			(width 0)
@@ -1434,7 +1434,7 @@
 	)
 	(wire
 		(pts
-			(xy 209.55 57.15) (xy 207.01 57.15)
+			(xy 215.9 57.15) (xy 213.36 57.15)
 		)
 		(stroke
 			(width 0)
@@ -1504,7 +1504,7 @@
 	)
 	(wire
 		(pts
-			(xy 209.55 43.18) (xy 207.01 43.18)
+			(xy 215.9 43.18) (xy 213.36 43.18)
 		)
 		(stroke
 			(width 0)
@@ -1524,7 +1524,7 @@
 	)
 	(wire
 		(pts
-			(xy 209.55 85.09) (xy 207.01 85.09)
+			(xy 215.9 85.09) (xy 213.36 85.09)
 		)
 		(stroke
 			(width 0)
@@ -1644,7 +1644,7 @@
 	)
 	(wire
 		(pts
-			(xy 209.55 114.3) (xy 207.01 114.3)
+			(xy 215.9 114.3) (xy 213.36 114.3)
 		)
 		(stroke
 			(width 0)
@@ -1730,7 +1730,7 @@
 	)
 	(global_label "PWM 4"
 		(shape input)
-		(at 209.55 85.09 0)
+		(at 215.9 85.09 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1740,7 +1740,7 @@
 		)
 		(uuid "284060ba-31e2-4a71-9fe0-03f41b1e88b4")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 218.8851 85.09 0)
+			(at 225.2351 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -1906,7 +1906,7 @@
 	)
 	(global_label "PWM 2"
 		(shape input)
-		(at 209.55 57.15 0)
+		(at 215.9 57.15 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -1916,7 +1916,7 @@
 		)
 		(uuid "62ebd3a0-58f0-4bd0-83dc-f041d08ff4c0")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 218.8851 57.15 0)
+			(at 225.2351 57.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2016,7 +2016,7 @@
 	)
 	(global_label "PWM 6"
 		(shape input)
-		(at 209.55 114.3 0)
+		(at 215.9 114.3 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2026,7 +2026,7 @@
 		)
 		(uuid "7df05bdb-e13f-452b-b191-82addc6633e1")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 218.8851 114.3 0)
+			(at 225.2351 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2038,7 +2038,7 @@
 	)
 	(global_label "PWM 1"
 		(shape input)
-		(at 209.55 43.18 0)
+		(at 215.9 43.18 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2048,7 +2048,7 @@
 		)
 		(uuid "7f164839-d5ce-4dd2-88fb-a7141b00b79c")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 221.1228 43.18 0)
+			(at 227.4728 43.18 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2126,7 +2126,7 @@
 	)
 	(global_label "PWM 3"
 		(shape input)
-		(at 209.55 71.12 0)
+		(at 215.9 71.12 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2136,7 +2136,7 @@
 		)
 		(uuid "a2e24016-396e-4693-913c-903591875525")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 218.8851 71.12 0)
+			(at 225.2351 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2258,7 +2258,7 @@
 	)
 	(global_label "PWM 5"
 		(shape input)
-		(at 209.55 100.33 0)
+		(at 215.9 100.33 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
@@ -2268,7 +2268,7 @@
 		)
 		(uuid "fed408c4-384a-4ee6-956a-ca6abc0ed0eb")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 218.8851 100.33 0)
+			(at 225.2351 100.33 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2347,7 +2347,7 @@
 	)
 	(symbol
 		(lib_id "Connector:Conn_01x03_Pin")
-		(at 201.93 57.15 0)
+		(at 208.28 57.15 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2356,7 +2356,7 @@
 		(fields_autoplaced yes)
 		(uuid "07ca77b3-55a9-4f27-94db-9a0ca9facaf5")
 		(property "Reference" "J5"
-			(at 202.565 49.53 0)
+			(at 208.915 49.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2364,7 +2364,7 @@
 			)
 		)
 		(property "Value" "Conn_01x03_Pin"
-			(at 202.565 52.07 0)
+			(at 208.915 52.07 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2372,7 +2372,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
-			(at 201.93 57.15 0)
+			(at 208.28 57.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2381,7 +2381,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 201.93 57.15 0)
+			(at 208.28 57.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2390,7 +2390,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x03, script generated"
-			(at 201.93 57.15 0)
+			(at 208.28 57.15 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2810,7 +2810,7 @@
 	)
 	(symbol
 		(lib_id "Connector:Conn_01x03_Pin")
-		(at 201.93 100.33 0)
+		(at 208.28 100.33 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2819,7 +2819,7 @@
 		(fields_autoplaced yes)
 		(uuid "3cee781b-0706-4b60-9337-82ea1a118824")
 		(property "Reference" "J8"
-			(at 202.565 92.71 0)
+			(at 208.915 92.71 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2827,7 +2827,7 @@
 			)
 		)
 		(property "Value" "Conn_01x03_Pin"
-			(at 202.565 95.25 0)
+			(at 208.915 95.25 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2835,7 +2835,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
-			(at 201.93 100.33 0)
+			(at 208.28 100.33 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2844,7 +2844,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 201.93 100.33 0)
+			(at 208.28 100.33 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2853,7 +2853,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x03, script generated"
-			(at 201.93 100.33 0)
+			(at 208.28 100.33 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2881,7 +2881,7 @@
 	)
 	(symbol
 		(lib_id "Connector:Conn_01x03_Pin")
-		(at 201.93 43.18 0)
+		(at 208.28 43.18 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2890,7 +2890,7 @@
 		(fields_autoplaced yes)
 		(uuid "53ac444a-1d5e-42a9-a25c-d2632d966cfb")
 		(property "Reference" "J4"
-			(at 202.565 35.56 0)
+			(at 208.915 35.56 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2898,7 +2898,7 @@
 			)
 		)
 		(property "Value" "Conn_01x03_Pin"
-			(at 202.565 38.1 0)
+			(at 208.915 38.1 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2906,7 +2906,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
-			(at 201.93 43.18 0)
+			(at 208.28 43.18 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2915,7 +2915,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 201.93 43.18 0)
+			(at 208.28 43.18 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2924,7 +2924,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x03, script generated"
-			(at 201.93 43.18 0)
+			(at 208.28 43.18 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2952,7 +2952,7 @@
 	)
 	(symbol
 		(lib_id "Connector:Conn_01x03_Pin")
-		(at 201.93 114.3 0)
+		(at 208.28 114.3 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -2961,7 +2961,7 @@
 		(fields_autoplaced yes)
 		(uuid "6dddd1a7-f9f9-4eaf-8b50-c6fe9a781fb7")
 		(property "Reference" "J9"
-			(at 202.565 106.68 0)
+			(at 208.915 106.68 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2969,7 +2969,7 @@
 			)
 		)
 		(property "Value" "Conn_01x03_Pin"
-			(at 202.565 109.22 0)
+			(at 208.915 109.22 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2977,7 +2977,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
-			(at 201.93 114.3 0)
+			(at 208.28 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2986,7 +2986,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 201.93 114.3 0)
+			(at 208.28 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -2995,7 +2995,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x03, script generated"
-			(at 201.93 114.3 0)
+			(at 208.28 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3090,7 +3090,7 @@
 	)
 	(symbol
 		(lib_id "Connector:Conn_01x03_Pin")
-		(at 201.93 85.09 0)
+		(at 208.28 85.09 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -3099,7 +3099,7 @@
 		(fields_autoplaced yes)
 		(uuid "9ded6ee0-fc6d-4c36-9f03-db9a0c85740a")
 		(property "Reference" "J7"
-			(at 202.565 77.47 0)
+			(at 208.915 77.47 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3107,7 +3107,7 @@
 			)
 		)
 		(property "Value" "Conn_01x03_Pin"
-			(at 202.565 80.01 0)
+			(at 208.915 80.01 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3115,7 +3115,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
-			(at 201.93 85.09 0)
+			(at 208.28 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3124,7 +3124,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 201.93 85.09 0)
+			(at 208.28 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3133,7 +3133,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x03, script generated"
-			(at 201.93 85.09 0)
+			(at 208.28 85.09 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3295,7 +3295,7 @@
 	)
 	(symbol
 		(lib_id "Connector:Conn_01x03_Pin")
-		(at 201.93 71.12 0)
+		(at 208.28 71.12 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -3304,7 +3304,7 @@
 		(fields_autoplaced yes)
 		(uuid "cb09e60b-e37f-49e9-a128-fea2247298f0")
 		(property "Reference" "J6"
-			(at 202.565 63.5 0)
+			(at 208.915 63.5 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3312,7 +3312,7 @@
 			)
 		)
 		(property "Value" "Conn_01x03_Pin"
-			(at 202.565 66.04 0)
+			(at 208.915 66.04 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3320,7 +3320,7 @@
 			)
 		)
 		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical"
-			(at 201.93 71.12 0)
+			(at 208.28 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3329,7 +3329,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 201.93 71.12 0)
+			(at 208.28 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3338,7 +3338,7 @@
 			)
 		)
 		(property "Description" "Generic connector, single row, 01x03, script generated"
-			(at 201.93 71.12 0)
+			(at 208.28 71.12 0)
 			(effects
 				(font
 					(size 1.27 1.27)
