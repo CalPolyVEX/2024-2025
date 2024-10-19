@@ -1,30 +1,26 @@
 //Tone library uses TC5
 
-
-int num_bytes_received;
-int num_error_counter = 0;
+int num_bytes_received;  //number of bytes received from the VEX brain so far
+int num_error_counter = 0;  //number of data reception errors
 
 // the setup function runs once when you press reset or power the board
 void setup() {
   // initialize digital pin LED_BUILTIN as an output.
-  pinMode(13, OUTPUT);
-  pinMode(12, OUTPUT);
-  pinMode(5, OUTPUT);
+  pinMode(13, OUTPUT); //set LED2 pin to output
+  pinMode(12, OUTPUT); //set LED1 pin to output
+  pinMode(5, OUTPUT);  //set SERCOM1.0 to output
   Serial.begin(115200);
   init_vex_brain_serial();
   led_setup();
-  //init_buzzer();
-  //delay(3000);
-  //play_mario_theme();
   init_encoders();
   init_led_timer();
 
-  //set PA19 to input with pullup
+  //set PA19 (SERCOM1.3) to input with pullup
   PORT->Group[0].PINCFG[19].reg |= PORT_PINCFG_INEN | PORT_PINCFG_PULLEN;
   REG_PORT_OUTSET0 = PORT_PA19;
   delay(1);
 
-  if ((REG_PORT_IN0 & (1 << 19)) == 0) {
+  if ((REG_PORT_IN0 & (1 << 19)) == 0) {  //play Mario theme if pins shorted on boot
     play_mario_theme2();
   }
 

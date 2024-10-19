@@ -200,7 +200,7 @@ void init_encoders()
   //LS7366 notes
   //1.  data transferred MSB first
   //2.  data is latched from MOSI (into the LS7366) on the rising clock edge
-  //3.  SAMD21 SPI Mode 0 data transfer clocking
+  //3.  SAMD51 SPI Mode 0 data transfer clocking
   //4.  choose software controlled slave select
 
   //on the SAMD51J19
