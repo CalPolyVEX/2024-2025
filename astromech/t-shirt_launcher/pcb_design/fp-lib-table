@@ -1,0 +1,11 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "custom_library")(type "KiCad")(uri "${KIPRJMOD}/DownloadedLibraries/custom_library.pretty")(options "")(descr ""))
+  (lib (name "herbie_library")(type "KiCad")(uri "//wsl.localhost/Ubuntu/home/intenseness/ue4/herbie_nn/herbie2_pcb/pcb_v0.2/js.pretty")(options "")(descr ""))
+  (lib (name "ada4510-2arz")(type "KiCad")(uri "C:/Users/Connor/Downloads/ul_ADA4510-2ARZ/KiCADv6/footprints.pretty")(options "")(descr ""))
+  (lib (name "MAX22203AUU+")(type "KiCad")(uri "C:/Users/Connor/Downloads/ul_MAX22203AUU-/KiCADv6/footprints.pretty")(options "")(descr ""))
+  (lib (name "MAX22203AUU+_legacy")(type "KiCad")(uri "C:/Users/Connor/Downloads/ul_MAX22203AUU- (1)/KiCAD/footprints.pretty")(options "")(descr ""))
+  (lib (name "ADP3634ARDZ")(type "KiCad")(uri "C:/Users/Connor/Downloads/ul_ADP3634ARDZ/KiCADv6/footprints.pretty")(options "")(descr ""))
+  (lib (name "MURA120T3G")(type "KiCad")(uri "C:/Users/Connor/Downloads/ul_MURA120T3G/KiCADv6/footprints.pretty")(options "")(descr ""))
+  (lib (name "SN74LVC1G19DBVR")(type "KiCad")(uri "C:/Users/Connor/Downloads/ul_SN74LVC1G19DBVR/KiCADv6/footprints.pretty")(options "")(descr ""))
+)
