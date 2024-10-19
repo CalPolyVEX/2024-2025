@@ -1,4 +1,7 @@
-//Tone library uses TC5
+//Arduino Tone library uses TC5
+//Encoder SPI uses SERCOM4
+//VEX Brain communication uses SERCOM5
+//LED pattern delays use TC3
 
 int num_bytes_received;  //number of bytes received from the VEX brain so far
 int num_error_counter = 0;  //number of data reception errors
