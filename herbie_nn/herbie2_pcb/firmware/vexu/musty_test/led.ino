@@ -80,10 +80,78 @@ void led_blip() {
   }
 }
 
-void init_buzzer() {
+void led_on(int num) {
+  if (num == 1) {
+    digitalWrite(12, HIGH);    // turn LED1 on 
+  } else if (num == 2) {
+    digitalWrite(13, HIGH);    // turn LED2 on 
+  }
+}
+
+void led_off(int num) {
+  if (num == 1) {
+    digitalWrite(12, LOW);    // turn LED1 off
+  } else if (num == 2) {
+    digitalWrite(13, LOW);    // turn LED2 off
+  }
+}
+
+void init_led_timer() {
+  // Enable the clock for TC3
+  MCLK->APBBMASK.reg |= MCLK_APBBMASK_TC3;  // Enable TC3 peripheral bus
+  GCLK->PCHCTRL[TC3_GCLK_ID].reg = GCLK_PCHCTRL_GEN_GCLK0 | GCLK_PCHCTRL_CHEN;  // Use GCLK0
+
+  // Wait for synchronization
+  while (GCLK->PCHCTRL[TC3_GCLK_ID].reg & GCLK_PCHCTRL_CHEN) {}
+
+  // Reset TC3
+  TC3->COUNT32.CTRLA.reg = TC_CTRLA_SWRST;
+  while (TC3->COUNT32.CTRLA.bit.SWRST) {}  // Wait for reset to complete
+
+  // Set the counter mode to 16-bit (can also be 8-bit or 32-bit)
+  TC3->COUNT32.CTRLA.reg |= TC_CTRLA_MODE_COUNT32;  // 16-bit counter
+  TC3->COUNT32.CTRLA.reg |= TC_CTRLA_PRESCALER_DIV1024;  // Set prescaler to 256
+
+  // Set the compare match value
+  TC3->COUNT32.CC[0].reg = 10 * (120000000 / 1024) / 1000;  // Set to 1ms intervals at 48MHz clock
+  while (TC3->COUNT32.SYNCBUSY.bit.CC0) {}  // Wait for synchronization
+
+  // Enable TC3 interrupt for compare match (OVF interrupt)
+  TC3->COUNT32.INTENSET.reg = TC_INTENSET_MC0;  // Enable interrupt on compare match 0
+  NVIC_EnableIRQ(TC3_IRQn);  // Enable TC3 interrupt in NVIC
+
+  // Enable the TC3 module
+  TC3->COUNT32.CTRLA.reg |= TC_CTRLA_ENABLE;
+  while (TC3->COUNT32.SYNCBUSY.bit.ENABLE) {}  // Wait for synchronization
+}
+
+// Interrupt Service Routine (ISR) for TC3
+void TC3_Handler(void) {
+  static boolean x = false;
+  
+  if (TC3->COUNT32.INTFLAG.bit.MC0) {
+    // Clear the interrupt flag
+    TC3->COUNT32.INTFLAG.reg = TC_INTFLAG_MC0;
+
+    // Do something - for example, toggle an LED or set a flag
+    if (x == false) {
+      //led_on(2);
+      x = true;
+    } else {
+      //led_off(2);
+      x = false;
+    }
+
+    float counts_per_ms = (120000000/1024.0) / 1000.0;
+    TC3->COUNT32.CC[0].reg += 500 * counts_per_ms;  // Set to 1ms intervals at 120MHz clock
+    //while (TC3->COUNT32.SYNCBUSY.bit.CC0) {}
+  }
+}
+
+void beep() {
   //the buzzer is connected to pin A2
   tone(A2, 400);
-  delay(1000);
+  delay(100);
   noTone(A2);
 }
 

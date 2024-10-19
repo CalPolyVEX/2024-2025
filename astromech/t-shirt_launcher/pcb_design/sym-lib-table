@@ -1,0 +1,11 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "ESP32-C6-DEVKITC-1-N8")(type "KiCad")(uri "${KIPRJMOD}/DownloadedLibraries/ESP32-C6-DEVKITC-1-N8.kicad_sym")(options "")(descr ""))
+  (lib (name "herbie_library")(type "Legacy")(uri "//wsl.localhost/Ubuntu/home/intenseness/ue4/herbie_nn/herbie2_pcb/pcb_v0.2/js.lib")(options "")(descr ""))
+  (lib (name "ada4510-2arz")(type "KiCad")(uri "C:/Users/Connor/Downloads/ul_ADA4510-2ARZ/KiCADv6/2024-10-16_16-28-03.kicad_sym")(options "")(descr ""))
+  (lib (name "MAX22203AUU+")(type "KiCad")(uri "C:/Users/Connor/Downloads/ul_MAX22203AUU-/KiCADv6/2024-10-18_15-07-37.kicad_sym")(options "")(descr ""))
+  (lib (name "MAX22203AUU+_legacy")(type "Legacy")(uri "C:/Users/Connor/Downloads/ul_MAX22203AUU- (1)/KiCAD/2024-10-18_15-17-05.lib")(options "")(descr ""))
+  (lib (name "ADP3634ARDZ")(type "KiCad")(uri "C:/Users/Connor/Downloads/ul_ADP3634ARDZ/KiCADv6/2024-10-18_15-36-05.kicad_sym")(options "")(descr ""))
+  (lib (name "MURA120T3G")(type "KiCad")(uri "C:/Users/Connor/Downloads/ul_MURA120T3G/KiCADv6/2024-10-18_15-48-45.kicad_sym")(options "")(descr ""))
+  (lib (name "SN74LVC1G19DBVR")(type "KiCad")(uri "C:/Users/Connor/Downloads/ul_SN74LVC1G19DBVR/KiCADv6/2024-10-18_15-59-26.kicad_sym")(options "")(descr ""))
+)
