@@ -1,29 +1,4 @@
 // Simple WAV file player example
-//
-// Three types of output may be used, by configuring the code below.
-//
-//   1: Digital I2S - Normally used with the audio shield:
-//         http://www.pjrc.com/store/teensy3_audio.html
-//
-//   2: Digital S/PDIF - Connect pin 22 to a S/PDIF transmitter
-//         https://www.oshpark.com/shared_projects/KcDBKHta
-//
-//   3: Analog DAC - Connect the DAC pin to an amplified speaker
-//         http://www.pjrc.com/teensy/gui/?info=AudioOutputAnalog
-//
-// To configure the output type, first uncomment one of the three
-// output objects.  If not using the audio shield, comment out
-// the sgtl5000_1 lines in setup(), so it does not wait forever
-// trying to configure the SGTL5000 codec chip.
-//
-// The SD card may connect to different pins, depending on the
-// hardware you are using.  Uncomment or configure the SD card
-// pins to match your hardware.
-//
-// Data files to put on your SD card can be downloaded here:
-//   http://www.pjrc.com/teensy/td_libs_AudioDataFiles.html
-//
-// This example code is in the public domain.
 
 #include <Audio.h>
 #include <Wire.h>
@@ -32,11 +7,12 @@
 #include <SerialFlash.h>
 
 // GUItool: begin automatically generated code
-AudioPlaySdWav           playSdWav2;     //xy=416,369
-AudioPlaySdWav           playSdWav1;     //xy=436,296
-AudioMixer4              mixer1;         //xy=614,325
-AudioMixer4              mixer2;         //xy=615,397
-AudioOutputI2S           i2s1;           //xy=747,337
+AudioPlaySdWav           playSdWav1;     //first WAV player 
+AudioPlaySdWav           playSdWav2;     //second WAV player
+
+AudioMixer4              mixer1;         //left mixer
+AudioMixer4              mixer2;         //right mixer
+AudioOutputI2S           i2s1;
 AudioConnection          patchCord1(playSdWav2, 0, mixer1, 1);
 AudioConnection          patchCord2(playSdWav2, 1, mixer2, 1);
 AudioConnection          patchCord3(playSdWav1, 0, mixer1, 0);
@@ -50,16 +26,6 @@ AudioControlSGTL5000     sgtl5000_1;
 #define SDCARD_CS_PIN    10
 #define SDCARD_MOSI_PIN  7   // Teensy 4 ignores this, uses pin 11
 #define SDCARD_SCK_PIN   14  // Teensy 4 ignores this, uses pin 13
-
-// Use these with the Teensy 3.5 & 3.6 & 4.1 SD card
-//#define SDCARD_CS_PIN    BUILTIN_SDCARD
-//#define SDCARD_MOSI_PIN  11  // not actually used
-//#define SDCARD_SCK_PIN   13  // not actually used
-
-// Use these for the SD+Wiz820 or other adaptors
-//#define SDCARD_CS_PIN    4
-//#define SDCARD_MOSI_PIN  11
-//#define SDCARD_SCK_PIN   13
 
 void setup() {
   Serial.begin(9600);
