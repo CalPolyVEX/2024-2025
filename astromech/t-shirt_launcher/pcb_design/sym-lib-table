@@ -8,4 +8,6 @@
   (lib (name "ADP3634ARDZ")(type "KiCad")(uri "C:/Users/Connor/Downloads/ul_ADP3634ARDZ/KiCADv6/2024-10-18_15-36-05.kicad_sym")(options "")(descr ""))
   (lib (name "MURA120T3G")(type "KiCad")(uri "C:/Users/Connor/Downloads/ul_MURA120T3G/KiCADv6/2024-10-18_15-48-45.kicad_sym")(options "")(descr ""))
   (lib (name "SN74LVC1G19DBVR")(type "KiCad")(uri "C:/Users/Connor/Downloads/ul_SN74LVC1G19DBVR/KiCADv6/2024-10-18_15-59-26.kicad_sym")(options "")(descr ""))
+  (lib (name "NTF3055L108T1G")(type "KiCad")(uri "C:/Users/Connor/Downloads/ul_NTF3055L108T1G/KiCADv6/2024-10-23_16-42-14.kicad_sym")(options "")(descr ""))
+  (lib (name "MC74HCU04ADG")(type "KiCad")(uri "C:/Users/Connor/Downloads/ul_MC74HCU04ADG/KiCADv6/2024-10-23_16-37-57.kicad_sym")(options "")(descr ""))
 )
