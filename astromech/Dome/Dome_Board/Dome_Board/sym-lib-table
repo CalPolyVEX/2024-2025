@@ -3,4 +3,5 @@
   (lib (name "ESP32-C6-DEVKITC-1-N8")(type "KiCad")(uri "${KIPRJMOD}/DownloadedLibraries/ESP32-C6-DEVKITC-1-N8.kicad_sym")(options "")(descr ""))
   (lib (name "js")(type "Legacy")(uri "C:/Users/nyley/Documents/Astromech/DomeBoard/ue4/herbie_nn/herbie2_pcb/pcb_v0.2/js.lib")(options "")(descr ""))
   (lib (name "custom_library")(type "KiCad")(uri "${KIPRJMOD}/DownloadedLibraries/custom_library/custom_library.kicad_sym")(options "")(descr ""))
+  (lib (name "2024-11-02_20-09-58")(type "KiCad")(uri "${KIPRJMOD}/DownloadedLibraries/custom_library/2024-11-02_20-09-58.kicad_sym")(options "")(descr ""))
 )
