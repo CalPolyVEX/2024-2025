@@ -261,7 +261,9 @@ int get_encoder_reading(int encoder_num) { //get the encoder reading for a singl
   int encoder_reading = 0;
 
   getChanEncoderValue(encoder_num, encoder_buf);  //readings are stored in the global encoder_buf array
-  
+
+  encoder_reading = encoder_buf[3] | (encoder_buf[2] << 8) | (encoder_buf[1] << 16) | (encoder_buf[0] << 24);
+
   return encoder_reading;
 }
 

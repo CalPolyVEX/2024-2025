@@ -8,9 +8,9 @@ QwiicOTOS otos;
 
 void setup_otos()
 {
-  // Start serial
-  Serial.begin(115200);
+  
   Serial.println("Qwiic OTOS Example 1 - Basic Readings");
+
 
   Wire.begin();
 
@@ -23,13 +23,7 @@ void setup_otos()
 
   Serial.println("OTOS connected!");
 
-  Serial.println("Ensure the OTOS is flat and stationary, then enter any key to calibrate the IMU");
-
-  // Clear the serial buffer
-  while (Serial.available())
-    Serial.read();
-  // Wait for user input
-  while (!Serial.available());
+  Serial.println("Ensure the OTOS is flat and stationary to calibrate the IMU");
 
   Serial.println("Calibrating IMU...");
 
@@ -39,7 +33,11 @@ void setup_otos()
   // Reset the tracking algorithm - this resets the position to the origin,
   // but can also be used to recover from some rare tracking errors
   otos.resetTracking();
+
+
 }
+
+
 
 void get_otos_position(uint8_t* buf) {
   // Get the latest position, which includes the x and y coordinates, plus the
@@ -49,32 +47,54 @@ void get_otos_position(uint8_t* buf) {
   float* temp_ptr;
 
   // Print measurement
-  Serial.println();
-  Serial.println("Position:");
-  Serial.print("X (Inches): ");
-  Serial.println(myPosition.x);
+  //Serial.println();
+  //Serial.println("Position:");
+  //Serial.print("X (Inches): ");
+  //Serial.println(myPosition.x);
   temp_ptr = (float*) buf;
   *temp_ptr = myPosition.x;
   
-  Serial.print("Y (Inches): ");
-  Serial.println(myPosition.y);
+  //Serial.print("Y (Inches): ");
+  //Serial.println(myPosition.y);
   temp_ptr++;
   *temp_ptr = myPosition.y;
   
-  Serial.print("Heading (Degrees): ");
-  Serial.println(myPosition.h);
+  //Serial.print("Heading (Degrees): ");
+  //Serial.println(myPosition.h);
+  
+  
   temp_ptr++;
   *temp_ptr = myPosition.h;
 
   // Wait a bit so we don't spam the serial port
-  delay(500);
+  //delay(500);
+  
 
   // Alternatively, you can comment out the print and delay code above, and
   // instead use the following code to rapidly refresh the data
-  // Serial.print(myPosition.x);
-  // Serial.print("\t");
-  // Serial.print(myPosition.y);
-  // Serial.print("\t");
-  // Serial.println(myPosition.h);
-  // delay(10);
+  // DID THIS
+  Serial.print(myPosition.x);
+  Serial.print("\t");
+  Serial.print(myPosition.y);
+  Serial.print("\t");
+  Serial.println(myPosition.h);
+  
 }
+
+void send_otos_data(){
+  uint8_t buf[12]; // 4 bytes each for each dimension (xyh)
+  uint8_t output_buf[40];
+  
+  struct cobs_encode_result result;
+  
+  get_otos_position(buf);
+
+  result = cobs_encode(output_buf, 40, buf, 12); //encode the data into COBS format
+   
+  serial_write_to_brain_buffer(output_buf, result.out_len);  //write the COBS packet to the VEX brain 
+
+}
+
+
+
+
