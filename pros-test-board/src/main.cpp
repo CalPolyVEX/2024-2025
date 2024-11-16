@@ -142,10 +142,12 @@ void process_musty_commands_task(void* ignore) {
       }
 
       bool has_completed_reading_a_task = (num_read_bytes == RECEIVE_ENCODER_PACKET_SIZE && is_reading_encoders) 
-      || (num_read_bytes == RECIEVE_LIDAR_PACKET_SIZE && is_reading_lidar);
+      || (num_read_bytes == RECIEVE_LIDAR_PACKET_SIZE && is_reading_lidar)
+      || (num_read_bytes == RECIEVE_OTOS_PACKET_SIZE && is_reading_otos);
 
       bool has_sync_error = (num_read_bytes > RECEIVE_ENCODER_PACKET_SIZE && is_reading_encoders) 
-      || (num_read_bytes > RECIEVE_LIDAR_PACKET_SIZE && is_reading_lidar);
+      || (num_read_bytes > RECIEVE_LIDAR_PACKET_SIZE && is_reading_lidar) 
+      || (num_read_bytes > RECIEVE_OTOS_PACKET_SIZE && is_reading_otos);
 
       if (has_completed_reading_a_task) { //received a full packet
         break;
