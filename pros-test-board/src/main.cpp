@@ -108,7 +108,7 @@ void process_musty_commands_task(void* ignore) {
   } else if (is_reading_encoders){
     command_val = 100;
   } else if (is_reading_otos){
-    command_val = 300;
+    command_val = 201;
   }
 
   transmit_buf[0] = command_val; // send the header byte to request sensor readings (value: 100)
@@ -201,32 +201,29 @@ void process_musty_commands_task(void* ignore) {
         pros::lcd::print(5, "COBS error in lidar: %d", cobs_error_count);
         pros::lcd::print(6, "res status:" + res.status);
       }
-    } else if (num_read_bytes == RECIEVE_OTOS_PACKET_SIZE && is_reading_otos){
+    } else if (num_read_bytes == RECIEVE_OTOS_PACKET_SIZE){
+      
       res = cobs_decode(decode_buf, MAX_BUFFER_SIZE, receive_buf, RECIEVE_OTOS_PACKET_SIZE);
       if (res.status == COBS_DECODE_OK){
        
-        union {
-          uint32_t asInt;
-          float asFloat;
-        } converter;
+        memcpy(&x, &decode_buf[0], sizeof(float));
+        memcpy(&y, &decode_buf[4], sizeof(float));
+        memcpy(&h, &decode_buf[8], sizeof(float));
+
         
-        converter.asInt = ((decode_buf[3] << 24) | (decode_buf[2] << 16) | (decode_buf[1] << 8) | decode_buf[0]);
-        x = converter.asFloat;
-        converter.asInt = ((decode_buf[7] << 24) | (decode_buf[6] << 16) | (decode_buf[5] << 8) | decode_buf[4]);
-        y = converter.asFloat;
-        converter.asInt = ((decode_buf[11] << 24) | (decode_buf[10] << 16) | (decode_buf[9] << 8) | decode_buf[8]);
-        h = converter.asFloat;
-        pros::lcd::print(4, "x =  %5.2f, y = %5.2f, h = %5.2f", x, y, h);
-        pros::lcd::print(6, "receive packets: %d", receive_counter);
+        
+        pros::lcd::print(4, "x =  %5.2f, y = %5.2f, h = %5.2f\n", x, y, h);
+        pros::lcd::print(6, "receive packets: %d\n", receive_counter);
 
         receive_counter++;
         loop_counter++;
 
       } else {
         cobs_error_count++;
-        pros::lcd::print(5, "COBS error in encoders: %d", cobs_error_count);
+        pros::lcd::print(5, "COBS error in otos: %d\n", cobs_error_count);
       }
     }
+
 
 
 
