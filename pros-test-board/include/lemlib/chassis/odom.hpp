@@ -10,7 +10,7 @@ namespace lemlib {
  * @param sensors the sensors to be used
  * @param drivetrain drivetrain to be used
  */
-void setSensors(lemlib::OdomSensors sensors, lemlib::Drivetrain drivetrain);
+void setDrivetrain(lemlib::Drivetrain drivetrain);
 /**
  * @brief Get the pose of the robot
  *
@@ -57,4 +57,8 @@ void update();
  *
  */
 void init();
+/** 
+* @brief send Musty the calibration key to calibrate the otos sensor
+*/
+void calibrate_otos(bool is_red_alliance);
 } // namespace lemlib

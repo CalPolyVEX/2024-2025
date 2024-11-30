@@ -1,54 +1,11 @@
 {
     "py/object": "pros.conductor.project.Project",
     "py/state": {
-        "project_name": "test_pros",
+        "project_name": "LemLib",
         "target": "v5",
         "templates": {
-            "LemLib": {
-                "location": "/Users/isaacpruett/Library/Application Support/PROS/templates/LemLib@0.5.4",
-                "metadata": {
-                    "origin": "LemLib"
-                },
-                "name": "LemLib",
-                "py/object": "pros.conductor.templates.local_template.LocalTemplate",
-                "supported_kernels": "^4.1.0",
-                "system_files": [
-                    "include\\lemlib\\chassis\\trackingWheel.hpp",
-                    "include\\lemlib\\pid.hpp",
-                    "include\\lemlib\\api.hpp",
-                    "include\\lemlib\\asset.hpp",
-                    "include\\lemlib\\logger\\stdout.hpp",
-                    "firmware\\hot-cold-asset.mk",
-                    "include\\fmt\\LICENSE",
-                    "include\\lemlib\\chassis\\odom.hpp",
-                    "include\\fmt\\args.h",
-                    "include\\lemlib\\README.md",
-                    "include\\lemlib\\logger\\telemetrySink.hpp",
-                    "include\\lemlib\\VERSION",
-                    "include\\lemlib\\logger\\buffer.hpp",
-                    "firmware\\LemLib.a",
-                    "include\\lemlib\\util.hpp",
-                    "include\\fmt\\format.h",
-                    "include\\fmt\\core.h",
-                    "include\\fmt\\format-inl.h",
-                    "include\\lemlib\\LICENSE",
-                    "include\\lemlib\\timer.hpp",
-                    "include\\lemlib\\logger\\message.hpp",
-                    "include\\lemlib\\logger\\logger.hpp",
-                    "static\\example.txt",
-                    "include\\lemlib\\driveCurve.hpp",
-                    "include\\lemlib\\exitcondition.hpp",
-                    "include\\lemlib\\logger\\infoSink.hpp",
-                    "include\\lemlib\\logger\\baseSink.hpp",
-                    "include\\lemlib\\pose.hpp",
-                    "include\\lemlib\\chassis\\chassis.hpp"
-                ],
-                "target": "v5",
-                "user_files": [],
-                "version": "0.5.4"
-            },
             "kernel": {
-                "location": "C:\\Users\\John Seng\\AppData\\Roaming\\PROS\\templates\\kernel@4.1.0",
+                "location": "/home/aang/.config/pros/templates/kernel@4.1.0",
                 "metadata": {
                     "cold_addr": "58720256",
                     "cold_output": "bin/cold.package.bin",
@@ -121,7 +78,7 @@
                 "version": "4.1.0"
             },
             "liblvgl": {
-                "location": "C:\\Users\\John Seng\\AppData\\Roaming\\PROS\\templates\\liblvgl@8.3.8",
+                "location": "/Users/isaacpruett/Library/Application Support/PROS/templates/liblvgl@8.3.8",
                 "metadata": {
                     "origin": "pros-mainline"
                 },
