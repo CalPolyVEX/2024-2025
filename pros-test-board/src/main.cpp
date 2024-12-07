@@ -1,9 +1,9 @@
 #include "main.h"
+#include "display.h"
 //#include "pros/llemu.hpp"
 
 #include "lemlib/api.hpp" // IWYU pragma: keep
 #include "lemlib/chassis/odom.hpp" // IWYU pragma: keep
-#include "liblvgl/llemu.hpp"
 
 //#include "lemlib/chassis/chassis.cpp"
 
@@ -52,7 +52,7 @@ void initialize() {
     lemlib::init(); // initialize lemlib
     
     //pros::screen::draw_line(0, 0, 200, 200);
-
+    initializeScreen();
 
     colorSensor.disable_gesture();
     pros::c::optical_rgb_s_t color = colorSensor.get_rgb();
@@ -113,8 +113,9 @@ void autonomous() {
 void opcontrol() {
     int scale = 4;
     //chassis.follow()
-    while (1){   
-
+    while (1) {
+        updateRobotPositionOnScreen(lemlib::getPose());
+        /*
         pros::screen::erase();
         //printf("Pose: (%f, %f, %f) \n", lemlib::getPose().x, lemlib::getPose().y, lemlib::getPose().theta);
         pros::screen::set_pen(pros::Color::red);
@@ -123,7 +124,7 @@ void opcontrol() {
         pros::screen::draw_circle((240 + lemlib::getPose().x * scale) , (136 + lemlib::getPose().y * scale) , 12);
 
         //pros::lcd::print(1, "Pose: (%f, %f, %f) \n", lemlib::getPose().x, lemlib::getPose().y, lemlib::getPose().theta);
-        
+        */
         chassis.arcade(
             controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y), 
             controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X)
