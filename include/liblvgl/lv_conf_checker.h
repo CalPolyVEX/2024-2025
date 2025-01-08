@@ -171,8 +171,9 @@
 #define LV_COLOR_DEPTH 16 /*Color depth: 1/8/16/32*/
 #endif
 #ifndef LV_COLOR_16_SWAP
-#define LV_COLOR_16_SWAP 0 /*Swap the 2 bytes of RGB565 color. Useful if the display has a 8 bit interface (e.g.       \
-                              SPI)*/
+#define LV_COLOR_16_SWAP                                                                                               \
+    0 /*Swap the 2 bytes of RGB565 color. Useful if the display has a 8 bit interface (e.g.                            \
+         SPI)*/
 #endif
 #ifndef LV_COLOR_SCREEN_TRANSP
 #define LV_COLOR_SCREEN_TRANSP                                                                                         \
@@ -580,8 +581,9 @@
 #endif
 #if USE_LV_BTN != 0
 #ifndef LV_BTN_INK_EFFECT
-#define LV_BTN_INK_EFFECT 1 /*Enable button-state animations - draw a circle on click (dependencies:                   \
-                               USE_LV_ANIMATION)*/
+#define LV_BTN_INK_EFFECT                                                                                              \
+    1 /*Enable button-state animations - draw a circle on click (dependencies:                                         \
+         USE_LV_ANIMATION)*/
 #endif
 #endif
 
