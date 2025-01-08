@@ -14,21 +14,21 @@
 */
 
 // drivetrain
-pros::MotorGroup rightMG({-8, 14, 17}, pros::MotorGearset::blue);
-pros::MotorGroup leftMG({7, -4, -18}, pros::MotorGearset::blue);
+pros::MotorGroup leftMG({15, -9, -18}, pros::MotorGearset::blue);
+pros::MotorGroup rightMG({-19, 4, 5}, pros::MotorGearset::blue);
 //----------
 
 // TODO rename this when the other mechanism is on the bot
-pros::Motor fish_mech(3, pros::MotorCartridge::red);
+pros::Motor fish_mech(7, pros::MotorCartridge::red);
 
-pros::Motor conveyor(12, pros::MotorGearset::blue);
-pros::Motor roller_intake(15, pros::MotorCartridge::blue);
+pros::Motor conveyor(2, pros::MotorGearset::blue);
+pros::Motor roller_intake(-6, pros::MotorCartridge::blue);
 //===================================================================
 
 //----------------------------- sensors -----------------------------
 // pros::Distance ring_dist(6);
 
-pros::Optical conveyor_color_detector(5);
+pros::Optical conveyor_color_detector(3);
 //===================================================================
 
 //----------------------------- pneumatics -----------------------------
