@@ -1,5 +1,0 @@
-breathe
-myst-parser
-furo
-sphinx-copybutton
-linkify-it-py

@@ -1,0 +1,37 @@
+---
+  name: C Quality Check and Formatting
+  # Controls when the workflow will run
+  on:
+    push:
+      branches:
+        - master
+        - main
+    pull_request:
+  # The sequence of runs in this workflow:
+  jobs:
+    lint:
+      runs-on: ubuntu-latest
+      timeout-minutes: 10
+      steps:
+        - run: lsb_release -a
+        - run: uname -a
+        - name: Check out Repository Code
+          uses: actions/checkout@v3
+          with:
+            submodules: true # Fetch submodules
+            fetch-depth: 0 # Fetch all history for .GitInfo and .Lastmod
+        - name: Make sure script/format.sh is executable
+          run: |
+            chmod +x script/format.sh
+        - name: Run clang-format
+          run: |
+            ./script/format.sh format
+        - name: Install clang-format
+          run: sudo apt install clang-format
+        - name: Commit changes
+          uses: EndBug/add-and-commit@v9
+          with:
+            author_name: ${{ github.actor }}
+            author_email: ${{ github.actor }}@users.noreply.github.com
+            message: "Code formatting and linting"
+            add: "." # Add all files
