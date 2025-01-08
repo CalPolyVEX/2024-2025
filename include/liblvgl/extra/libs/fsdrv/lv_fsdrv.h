@@ -52,4 +52,3 @@ void lv_fs_win32_init(void);
 #endif
 
 #endif /*LV_FSDRV_H*/
-

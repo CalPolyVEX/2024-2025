@@ -80,23 +80,22 @@ extern "C" {
  * BLock Image Transfer descriptor structure
  */
 typedef struct {
+        const lv_color_t* src; /**< Source buffer pointer (must be aligned on 32 bytes)*/
+        lv_area_t src_area; /**< Area to be copied from source*/
+        lv_coord_t src_width; /**< Source buffer width*/
+        lv_coord_t src_height; /**< Source buffer height*/
+        int32_t src_stride; /**< Source buffer stride in bytes (must be aligned on 16 px)*/
 
-    const lv_color_t * src;  /**< Source buffer pointer (must be aligned on 32 bytes)*/
-    lv_area_t src_area;      /**< Area to be copied from source*/
-    lv_coord_t src_width;    /**< Source buffer width*/
-    lv_coord_t src_height;   /**< Source buffer height*/
-    int32_t src_stride;      /**< Source buffer stride in bytes (must be aligned on 16 px)*/
+        const lv_color_t* dst; /**< Destination buffer pointer (must be aligned on 32 bytes)*/
+        lv_area_t dst_area; /**< Target area in destination buffer (must be the same as src_area)*/
+        lv_coord_t dst_width; /**< Destination buffer width*/
+        lv_coord_t dst_height; /**< Destination buffer height*/
+        int32_t dst_stride; /**< Destination buffer stride in bytes (must be aligned on 16 px)*/
 
-    const lv_color_t * dst;  /**< Destination buffer pointer (must be aligned on 32 bytes)*/
-    lv_area_t dst_area;      /**< Target area in destination buffer (must be the same as src_area)*/
-    lv_coord_t dst_width;    /**< Destination buffer width*/
-    lv_coord_t dst_height;   /**< Destination buffer height*/
-    int32_t dst_stride;      /**< Destination buffer stride in bytes (must be aligned on 16 px)*/
-
-    lv_opa_t opa;            /**< Opacity - alpha mix (0 = source not copied, 255 = 100% opaque)*/
-    uint32_t angle;          /**< Rotation angle (1/10 of degree)*/
-    uint32_t zoom;           /**< 256 = no zoom (1:1 scale ratio)*/
-    lv_point_t pivot;        /**< The coordinates of rotation pivot in source image buffer*/
+        lv_opa_t opa; /**< Opacity - alpha mix (0 = source not copied, 255 = 100% opaque)*/
+        uint32_t angle; /**< Rotation angle (1/10 of degree)*/
+        uint32_t zoom; /**< 256 = no zoom (1:1 scale ratio)*/
+        lv_point_t pivot; /**< The coordinates of rotation pivot in source image buffer*/
 } lv_gpu_nxp_vglite_blit_info_t;
 
 /**********************
@@ -115,8 +114,8 @@ typedef struct {
  * @retval LV_RES_OK Fill completed
  * @retval LV_RES_INV Error occurred (\see LV_GPU_NXP_VG_LITE_LOG_ERRORS)
  */
-lv_res_t lv_gpu_nxp_vglite_fill(lv_color_t * dest_buf, lv_coord_t dest_width, lv_coord_t dest_height,
-                                const lv_area_t * fill_area, lv_color_t color, lv_opa_t opa);
+lv_res_t lv_gpu_nxp_vglite_fill(lv_color_t* dest_buf, lv_coord_t dest_width, lv_coord_t dest_height,
+                                const lv_area_t* fill_area, lv_color_t color, lv_opa_t opa);
 
 /**
  * BLock Image Transfer.
@@ -125,7 +124,7 @@ lv_res_t lv_gpu_nxp_vglite_fill(lv_color_t * dest_buf, lv_coord_t dest_width, lv
  * @retval LV_RES_OK Transfer complete
  * @retval LV_RES_INV Error occurred (\see LV_GPU_NXP_VG_LITE_LOG_ERRORS)
  */
-lv_res_t lv_gpu_nxp_vglite_blit(lv_gpu_nxp_vglite_blit_info_t * blit);
+lv_res_t lv_gpu_nxp_vglite_blit(lv_gpu_nxp_vglite_blit_info_t* blit);
 
 /**
  * BLock Image Transfer with transformation.
@@ -134,7 +133,7 @@ lv_res_t lv_gpu_nxp_vglite_blit(lv_gpu_nxp_vglite_blit_info_t * blit);
  * @retval LV_RES_OK Transfer complete
  * @retval LV_RES_INV Error occurred (\see LV_GPU_NXP_VG_LITE_LOG_ERRORS)
  */
-lv_res_t lv_gpu_nxp_vglite_blit_transform(lv_gpu_nxp_vglite_blit_info_t * blit);
+lv_res_t lv_gpu_nxp_vglite_blit_transform(lv_gpu_nxp_vglite_blit_info_t* blit);
 
 /**********************
  *      MACROS

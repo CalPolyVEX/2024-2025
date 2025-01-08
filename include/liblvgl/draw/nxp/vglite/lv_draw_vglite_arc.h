@@ -63,7 +63,7 @@ extern "C" {
  * @param start_angle the starting angle in degrees
  * @param end_angle the ending angle in degrees
  */
-lv_res_t lv_gpu_nxp_vglite_draw_arc(lv_draw_ctx_t * draw_ctx, const lv_draw_arc_dsc_t * dsc, const lv_point_t * center,
+lv_res_t lv_gpu_nxp_vglite_draw_arc(lv_draw_ctx_t* draw_ctx, const lv_draw_arc_dsc_t* dsc, const lv_point_t* center,
                                     int32_t radius, int32_t start_angle, int32_t end_angle);
 
 /**********************

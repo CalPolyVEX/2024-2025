@@ -75,14 +75,14 @@ extern "C" {
  * interrupt init/wait/deinit.
  */
 typedef struct {
-    /** Callback for PXP interrupt initialization*/
-    lv_res_t (*pxp_interrupt_init)(void);
+        /** Callback for PXP interrupt initialization*/
+        lv_res_t (*pxp_interrupt_init)(void);
 
-    /** Callback for PXP interrupt de-initialization*/
-    void (*pxp_interrupt_deinit)(void);
+        /** Callback for PXP interrupt de-initialization*/
+        void (*pxp_interrupt_deinit)(void);
 
-    /** Callback that should start PXP and wait for operation complete*/
-    void (*pxp_run)(void);
+        /** Callback that should start PXP and wait for operation complete*/
+        void (*pxp_run)(void);
 } lv_nxp_pxp_cfg_t;
 
 /**********************
@@ -112,35 +112,31 @@ void lv_gpu_nxp_pxp_run(void);
  *      MACROS
  **********************/
 
-#define PXP_COND_STOP(cond, txt)              \
-    do {                                      \
-        if (cond) {                           \
-            LV_LOG_ERROR("%s. STOP!", txt);   \
-            for ( ; ; );                      \
-        }                                     \
-    } while(0)
+#define PXP_COND_STOP(cond, txt)                                                                                       \
+    do {                                                                                                               \
+        if (cond) {                                                                                                    \
+            LV_LOG_ERROR("%s. STOP!", txt);                                                                            \
+            for (;;);                                                                                                  \
+        }                                                                                                              \
+    } while (0)
 
 #if LV_GPU_NXP_PXP_LOG_ERRORS
-#define PXP_RETURN_INV(fmt, ...)              \
-    do {                                      \
-        LV_LOG_ERROR(fmt, ##__VA_ARGS__);     \
-        return LV_RES_INV;                    \
+#define PXP_RETURN_INV(fmt, ...)                                                                                       \
+    do {                                                                                                               \
+        LV_LOG_ERROR(fmt, ##__VA_ARGS__);                                                                              \
+        return LV_RES_INV;                                                                                             \
     } while (0)
 #else
-#define PXP_RETURN_INV(fmt, ...)              \
-    do {                                      \
-        return LV_RES_INV;                    \
-    }while(0)
+#define PXP_RETURN_INV(fmt, ...)                                                                                       \
+    do { return LV_RES_INV; } while (0)
 #endif /*LV_GPU_NXP_PXP_LOG_ERRORS*/
 
 #if LV_GPU_NXP_PXP_LOG_TRACES
-#define PXP_LOG_TRACE(fmt, ...)               \
-    do {                                      \
-        LV_LOG_ERROR(fmt, ##__VA_ARGS__);     \
-    } while (0)
+#define PXP_LOG_TRACE(fmt, ...)                                                                                        \
+    do { LV_LOG_ERROR(fmt, ##__VA_ARGS__); } while (0)
 #else
-#define PXP_LOG_TRACE(fmt, ...)               \
-    do {                                      \
+#define PXP_LOG_TRACE(fmt, ...)                                                                                        \
+    do {                                                                                                               \
     } while (0)
 #endif /*LV_GPU_NXP_PXP_LOG_TRACES*/
 

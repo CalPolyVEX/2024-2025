@@ -117,7 +117,6 @@ void lemlib::update() {
             pros::delay(1);
             if (timeout_counter > 10) { break; }
         }
-
     }
 
     if (read_success) {
@@ -133,18 +132,14 @@ void lemlib::update() {
     }
 }
 
-pros::Serial* get_serial_ptr(){
-    if (s == nullptr) {
-        std::cerr << "Error: Serial instance is not initialized.\n";
-    }
+pros::Serial* get_serial_ptr() {
+    if (s == nullptr) { std::cerr << "Error: Serial instance is not initialized.\n"; }
     return s;
 }
 
-void lemlib::calibrate_otos(bool is_red_alliance){
+void lemlib::calibrate_otos(bool is_red_alliance) {
     u_int8_t alliance_command = 255;
-    if (is_red_alliance){
-        alliance_command = 127;
-    }
+    if (is_red_alliance) { alliance_command = 127; }
 
     u_int8_t transmit_buffer[TRANSMIT_PACKET_SIZE] = {COMMAND_CALIBRATE_OTOS, alliance_command};
     s->write(transmit_buffer, TRANSMIT_PACKET_SIZE);
@@ -162,7 +157,7 @@ void lemlib::init() {
         trackingTask = new pros::Task {[=] {
             while (true) {
                 update();
-                
+
                 pros::delay(10);
             }
         }};

@@ -29,12 +29,12 @@ extern "C" {
  * To avoid repeating this heavy load images can be cached.
  */
 typedef struct {
-    lv_img_decoder_dsc_t dec_dsc; /**< Image information*/
+        lv_img_decoder_dsc_t dec_dsc; /**< Image information*/
 
-    /** Count the cache entries's life. Add `time_to_open` to `life` when the entry is used.
-     * Decrement all lifes by one every in every ::lv_img_cache_open.
-     * If life == 0 the entry can be reused*/
-    int32_t life;
+        /** Count the cache entries's life. Add `time_to_open` to `life` when the entry is used.
+         * Decrement all lifes by one every in every ::lv_img_cache_open.
+         * If life == 0 the entry can be reused*/
+        int32_t life;
 } _lv_img_cache_entry_t;
 
 /**********************
@@ -50,7 +50,7 @@ typedef struct {
  * @param frame_id the index of the frame. Used only with animated images, set 0 for normal images
  * @return pointer to the cache entry or NULL if can open the image
  */
-_lv_img_cache_entry_t * _lv_img_cache_open(const void * src, lv_color_t color, int32_t frame_id);
+_lv_img_cache_entry_t* _lv_img_cache_open(const void* src, lv_color_t color, int32_t frame_id);
 
 /**
  * Set the number of images to be cached.
@@ -65,7 +65,7 @@ void lv_img_cache_set_size(uint16_t new_slot_num);
  * Useful if the image source is updated therefore it needs to be cached again.
  * @param src an image source path to a file or pointer to an `lv_img_dsc_t` variable.
  */
-void lv_img_cache_invalidate_src(const void * src);
+void lv_img_cache_invalidate_src(const void* src);
 
 /**********************
  *      MACROS

@@ -28,22 +28,22 @@ extern "C" {
  **********************/
 
 typedef struct {
-    const lv_font_t * font;
-    uint32_t sel_start;
-    uint32_t sel_end;
-    lv_color_t color;
-    lv_color_t sel_color;
-    lv_color_t sel_bg_color;
-    lv_coord_t line_space;
-    lv_coord_t letter_space;
-    lv_coord_t ofs_x;
-    lv_coord_t ofs_y;
-    lv_opa_t opa;
-    lv_base_dir_t bidi_dir;
-    lv_text_align_t align;
-    lv_text_flag_t flag;
-    lv_text_decor_t decor : 3;
-    lv_blend_mode_t blend_mode: 3;
+        const lv_font_t* font;
+        uint32_t sel_start;
+        uint32_t sel_end;
+        lv_color_t color;
+        lv_color_t sel_color;
+        lv_color_t sel_bg_color;
+        lv_coord_t line_space;
+        lv_coord_t letter_space;
+        lv_coord_t ofs_x;
+        lv_coord_t ofs_y;
+        lv_opa_t opa;
+        lv_base_dir_t bidi_dir;
+        lv_text_align_t align;
+        lv_text_flag_t flag;
+        lv_text_decor_t decor : 3;
+        lv_blend_mode_t blend_mode : 3;
 } lv_draw_label_dsc_t;
 
 /** Store some info to speed up drawing of very large texts
@@ -52,15 +52,15 @@ typedef struct {
  * This structure stores an earlier (e.g. at -1000 px) coordinate and the index of that line.
  * Therefore the calculations can start from here.*/
 typedef struct _lv_draw_label_hint_t {
-    /** Index of the line at `y` coordinate*/
-    int32_t line_start;
+        /** Index of the line at `y` coordinate*/
+        int32_t line_start;
 
-    /** Give the `y` coordinate of the first letter at `line start` index. Relative to the label's coordinates*/
-    int32_t y;
+        /** Give the `y` coordinate of the first letter at `line start` index. Relative to the label's coordinates*/
+        int32_t y;
 
-    /** The 'y1' coordinate of the label when the hint was saved.
-     * Used to invalidate the hint if the label has moved too much.*/
-    int32_t coord_y;
+        /** The 'y1' coordinate of the label when the hint was saved.
+         * Used to invalidate the hint if the label has moved too much.*/
+        int32_t coord_y;
 } lv_draw_label_hint_t;
 
 struct _lv_draw_ctx_t;
@@ -68,7 +68,7 @@ struct _lv_draw_ctx_t;
  * GLOBAL PROTOTYPES
  **********************/
 
-LV_ATTRIBUTE_FAST_MEM void lv_draw_label_dsc_init(lv_draw_label_dsc_t * dsc);
+LV_ATTRIBUTE_FAST_MEM void lv_draw_label_dsc_init(lv_draw_label_dsc_t* dsc);
 
 /**
  * Write a text
@@ -79,10 +79,10 @@ LV_ATTRIBUTE_FAST_MEM void lv_draw_label_dsc_init(lv_draw_label_dsc_t * dsc);
  * @param hint pointer to a `lv_draw_label_hint_t` variable.
  * It is managed by the draw to speed up the drawing of very long texts (thousands of lines).
  */
-LV_ATTRIBUTE_FAST_MEM void lv_draw_label(struct _lv_draw_ctx_t * draw_ctx, const lv_draw_label_dsc_t * dsc,
-                                         const lv_area_t * coords, const char * txt, lv_draw_label_hint_t * hint);
+LV_ATTRIBUTE_FAST_MEM void lv_draw_label(struct _lv_draw_ctx_t* draw_ctx, const lv_draw_label_dsc_t* dsc,
+                                         const lv_area_t* coords, const char* txt, lv_draw_label_hint_t* hint);
 
-void lv_draw_letter(struct _lv_draw_ctx_t * draw_ctx, const lv_draw_label_dsc_t * dsc,  const lv_point_t * pos_p,
+void lv_draw_letter(struct _lv_draw_ctx_t* draw_ctx, const lv_draw_label_dsc_t* dsc, const lv_point_t* pos_p,
                     uint32_t letter);
 
 /***********************

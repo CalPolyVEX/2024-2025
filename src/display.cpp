@@ -9,32 +9,31 @@
 #define ROBOT_WIDTH 15
 #define ROBOT_HEIGHT 15
 #define LABEL_COUNT 12
-#define MAGNITUDE 15 
+#define MAGNITUDE 15
 
-lv_obj_t *canvas = lv_canvas_create(lv_scr_act());
+lv_obj_t* canvas = lv_canvas_create(lv_scr_act());
 lv_draw_rect_dsc_t position;
 lv_draw_rect_dsc_t pointer;
 
-lv_obj_t *labels[LABEL_COUNT];
+lv_obj_t* labels[LABEL_COUNT];
 char* label_texts[LABEL_COUNT] = {"", "", "", "", "", "", "", "", "", "", "", ""};
 
 void draw_robot_position(float x, float y, float h) {
     int screenX = roundf((-x * 1.7) + 113);
     int screenY = roundf((y * 1.7) + 113);
-    
+
     int pointerX = (screenX + 5) + roundf(MAGNITUDE * cos(h));
     int pointerY = (screenY + 5) - roundf(MAGNITUDE * sin(h));
 
     lv_canvas_fill_bg(canvas, lv_palette_lighten(LV_PALETTE_GREY, 3), LV_OPA_COVER);
     lv_canvas_draw_rect(canvas, screenX, screenY, ROBOT_WIDTH, ROBOT_HEIGHT, &position);
 
-    lv_canvas_draw_rect(canvas, pointerX, pointerY, ROBOT_WIDTH/3, ROBOT_HEIGHT/3, &pointer);
-
+    lv_canvas_draw_rect(canvas, pointerX, pointerY, ROBOT_WIDTH / 3, ROBOT_HEIGHT / 3, &pointer);
 }
 
 void initialize_robot_on_screen() {
     static lv_color_t colorBuffer[LV_CANVAS_BUF_SIZE_TRUE_COLOR(CANVAS_WIDTH, CANVAS_HEIGHT)];
-    
+
     lv_canvas_set_buffer(canvas, colorBuffer, CANVAS_WIDTH, CANVAS_HEIGHT, LV_IMG_CF_TRUE_COLOR);
     lv_canvas_fill_bg(canvas, lv_palette_lighten(LV_PALETTE_GREY, 3), LV_OPA_COVER);
 

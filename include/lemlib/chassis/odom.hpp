@@ -57,8 +57,8 @@ void update();
  *
  */
 void init();
-/** 
-* @brief send Musty the calibration key to calibrate the otos sensor
-*/
+/**
+ * @brief send Musty the calibration key to calibrate the otos sensor
+ */
 void calibrate_otos(bool is_red_alliance);
 } // namespace lemlib

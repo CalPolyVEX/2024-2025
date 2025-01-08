@@ -6,7 +6,6 @@
 #ifndef LV_DRAW_SDL_IMG_H
 #define LV_DRAW_SDL_IMG_H
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -33,8 +32,8 @@ extern "C" {
  **********************/
 
 typedef struct lv_draw_sdl_img_header_t {
-    lv_img_header_t base;
-    SDL_Rect rect;
+        lv_img_header_t base;
+        SDL_Rect rect;
 } lv_draw_sdl_img_header_t;
 
 /**********************
@@ -56,9 +55,9 @@ typedef struct lv_draw_sdl_img_header_t {
 /*=====================
  * Other functions
  *====================*/
-bool lv_draw_sdl_img_load_texture(lv_draw_sdl_ctx_t * ctx, lv_draw_sdl_cache_key_head_img_t * key, size_t key_size,
-                                  const void * src, int32_t frame_id, SDL_Texture ** texture,
-                                  lv_draw_sdl_img_header_t ** header);
+bool lv_draw_sdl_img_load_texture(lv_draw_sdl_ctx_t* ctx, lv_draw_sdl_cache_key_head_img_t* key, size_t key_size,
+                                  const void* src, int32_t frame_id, SDL_Texture** texture,
+                                  lv_draw_sdl_img_header_t** header);
 /**********************
  *      MACROS
  **********************/

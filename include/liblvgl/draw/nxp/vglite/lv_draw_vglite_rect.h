@@ -62,7 +62,7 @@ extern "C" {
  * @param dsc description of the rectangle
  * @param coords the area where rectangle is clipped
  */
-lv_res_t lv_gpu_nxp_vglite_draw_bg(lv_draw_ctx_t * draw_ctx, const lv_draw_rect_dsc_t * dsc, const lv_area_t * coords);
+lv_res_t lv_gpu_nxp_vglite_draw_bg(lv_draw_ctx_t* draw_ctx, const lv_draw_rect_dsc_t* dsc, const lv_area_t* coords);
 
 /**********************
  *      MACROS

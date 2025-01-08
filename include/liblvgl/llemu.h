@@ -1,7 +1,7 @@
 /**
  * \file liblvgl/llemu.h
  * \ingroup c-llemu
- * 
+ *
  * Legacy LCD Emulator
  *
  * \details This file defines a high-level API for emulating the three-button, UART-based
@@ -18,18 +18,18 @@
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- * 
+ *
  * \defgroup c-llemu LLEMU C API
  * @{
  * LLEMU - <B>L</B>egacy <B>L</B>cd <B>EMU</B>lator
- * 
+ *
  * \image html llemu/llemu-3.8.png
- * 
+ *
  * LLEMU provides a virtual 40x8 LCD screen with 3 buttons. The user can set the
  * text of the screen and set create functions that are run when the buttons are
- * pressed. 
- * 
- * LLEMU is a emulation of the UART-based LCD screens that were available with 
+ * pressed.
+ *
+ * LLEMU is a emulation of the UART-based LCD screens that were available with
  * VEX's cortex product line.
  * @}
  */
@@ -58,18 +58,18 @@ typedef void (*lcd_btn_cb_fn_t)(void);
 #define LCD_BTN_RIGHT 1
 
 typedef struct lcd_s {
-	lv_obj_t* frame;
-	lv_obj_t* screen;
-	lv_obj_t* lcd_text[8];
-	lv_obj_t* btn_container;
-	lv_obj_t* btns[3];             // < 0 => left; 1 => center; 2 => right
-	lcd_btn_cb_fn_t callbacks[3];  // < 0 => left; 1 => center; 2 => right
-	volatile uint8_t touch_bits;   // < 4 => left; 2 => center; 1 => right (no
-	                               // multitouch support)
+        lv_obj_t* frame;
+        lv_obj_t* screen;
+        lv_obj_t* lcd_text[8];
+        lv_obj_t* btn_container;
+        lv_obj_t* btns[3]; // < 0 => left; 1 => center; 2 => right
+        lcd_btn_cb_fn_t callbacks[3]; // < 0 => left; 1 => center; 2 => right
+        volatile uint8_t touch_bits; // < 4 => left; 2 => center; 1 => right (no
+                                     // multitouch support)
 } lcd_s_t;
 
 /**
- * \ingroup c-llemu 
+ * \ingroup c-llemu
  */
 
 /**
@@ -79,16 +79,16 @@ typedef struct lcd_s {
 
 /**
  * \enum lcd_text_align_e
- * 
- * @brief Represents how to align the text in the LCD 
+ *
+ * @brief Represents how to align the text in the LCD
  */
 typedef enum lcd_text_align_e {
-	/// Align the text to the left side of LCD line
-	LCD_TEXT_ALIGN_LEFT = 0,
-	/// Align the text to the center of the LCD line
-	LCD_TEXT_ALIGN_CENTER = 1,
-	/// Align the text to the right side of the LCD line
-	LCD_TEXT_ALIGN_RIGHT = 2
+    /// Align the text to the left side of LCD line
+    LCD_TEXT_ALIGN_LEFT = 0,
+    /// Align the text to the center of the LCD line
+    LCD_TEXT_ALIGN_CENTER = 1,
+    /// Align the text to the right side of the LCD line
+    LCD_TEXT_ALIGN_RIGHT = 2
 } text_align_e_t;
 
 /// @}
@@ -96,13 +96,13 @@ typedef enum lcd_text_align_e {
 #ifdef __cplusplus
 
 /**
- * \ingroup c-llemu 
+ * \ingroup c-llemu
  */
 namespace c {
 #endif
 
 /**
- * \ingroup c-llemu 
+ * \ingroup c-llemu
  */
 
 /**
@@ -114,7 +114,7 @@ namespace c {
  * Checks whether the emulated three-button LCD has already been initialized.
  *
  * \return True if the LCD has been initialized or false if not.
- * 
+ *
  * \b Example
  * \code
  * if (pros::c::lcd_is_initialized()) {
@@ -132,14 +132,14 @@ bool lcd_is_initialized(void);
  *
  * \return True if the LCD was successfully initialized, or false if it has
  * already been initialized.
- * 
+ *
  * \b Example
  * \code
  * #include "pros/llemu.h"
- * 
+ *
  * void initialize() {
  *   if (pros::c::lcd_initialize()) {
- *     pros::c::lcd_print("LLEMU!");	
+ *     pros::c::lcd_print("LLEMU!");
  *   }
  *   else {
  * 	   printf("Error: LLEMU could not initailize\n");
@@ -161,11 +161,11 @@ bool lcd_initialize(void);
  *
  * \return True if the operation was successful, or false otherwise, setting
  * errno values as specified above.
- * 
+ *
  * \b Example
  * \code
  * #include "pros/llemu.h"
- * 
+ *
  * void disabled() {
  *   pros::c::lcd_shutdown();
  * }
@@ -190,11 +190,11 @@ bool lcd_shutdown(void);
  *
  * \return True if the operation was successful, or false otherwise, setting
  * errno values as specified above.
- * 
+ *
  * \b Example
  * \code
  * #include "pros/llemu.h"
- * 
+ *
  * void initialize() {
  *   pros::c::lcd_initialize();
  *   pros::c::lcd_print(0, "My formatted text: %d!", 2);
@@ -218,11 +218,11 @@ bool lcd_print(int16_t line, const char* fmt, ...);
  *
  * \return True if the operation was successful, or false otherwise, setting
  * errno values as specified above.
- * 
+ *
  * \b Example
  * \code
  * #include "pros/llemu.h"
- * 
+ *
  * void initialize() {
  *   pros::c::lcd_initialize();
  *   pros::c::lcd_set_text(0, "My custom LLEMU text!");
@@ -241,11 +241,11 @@ bool lcd_set_text(int16_t line, const char* text);
  *
  * \return True if the operation was successful, or false otherwise, setting
  * errno values as specified above.
- * 
+ *
  * \b Example
  * \code
  * #include "pros/llemu.h"
- * 
+ *
  * void initialize() {
  *   pros::c::lcd_initialize();
  *   pros::c::lcd_clear(); // Clear the LCD screen
@@ -267,11 +267,11 @@ bool lcd_clear(void);
  *
  * \return True if the operation was successful, or false otherwise, setting
  * errno values as specified above.
- * 
+ *
  * \b Example
  * \code
  * #include "pros/llemu.h"
- * 
+ *
  * void initialize() {
  *   pros::c::lcd_initialize();
  *   pros::c::lcd_clear_line(0); // Clear line 0
@@ -295,18 +295,18 @@ bool lcd_clear_line(int16_t line);
  *
  * \return True if the operation was successful, or false otherwise, setting
  * errno values as specified above.
- * 
+ *
  * \b Example
  * \code
  * #include "pros/llemu.h"
- * 
+ *
  * void left_callback() {
  *   static int i = 0;
- *   
+ *
  *   i++;
  *   pros::c::lcd_print(0, "Left button pressed %i times", i);
  * }
- * 
+ *
  * void initialize() {
  *   pros::c::lcd_initialize();
  *   pros::c::lcd_register_btn0_cb();
@@ -330,18 +330,18 @@ bool lcd_register_btn0_cb(lcd_btn_cb_fn_t cb);
  *
  * \return True if the operation was successful, or false otherwise, setting
  * errno values as specified above.
- * 
+ *
  * \b Example
  * \code
  * #include "pros/llemu.h"
- * 
+ *
  * void center_callback() {
  *   static int i = 0;
- *   
+ *
  *   i++;
  *   pros::c::lcd_print(0, "Center button pressed %i times", i);
  * }
- * 
+ *
  * void initialize() {
  *   pros::c::lcd_initialize();
  *   pros::c::lcd_register_btn1_cb();
@@ -365,18 +365,18 @@ bool lcd_register_btn1_cb(lcd_btn_cb_fn_t cb);
  *
  * \return True if the operation was successful, or false otherwise, setting
  * errno values as specified above.
- * 
+ *
  * \b Example
  * \code
  * #include "pros/llemu.h"
- * 
+ *
  * void right_callback() {
  *   static int i = 0;
- *   
+ *
  *   i++;
  *   pros::c::lcd_print(0, "Right button pressed %i times", i);
  * }
- * 
+ *
  * void initialize() {
  *   pros::c::lcd_initialize();
  *   pros::c::lcd_register_btn2_cb();
@@ -403,13 +403,13 @@ uint8_t lcd_read_buttons(void);
 
 /**
  * Changes the alignment of text on the LCD background
- * 
+ *
  * \param alignment
  * 		An enum specifying the alignment. Available alignments are:
  * 			TEXT_ALIGN_LEFT
  * 			TEXT_ALIGN_RIGHT
  * 			TEXT_ALIGN_CENTER
- * 
+ *
  * \b Example
  * \code
  * #include "pros/llemu.h"
@@ -427,12 +427,11 @@ uint8_t lcd_read_buttons(void);
  */
 void lcd_set_text_align(text_align_e_t alignment);
 
-
 ///@}
 
 #ifdef __cplusplus
-}  // namespace c
-}  // namespace pros
-}  // extern "C"
+} // namespace c
+} // namespace pros
+} // extern "C"
 #endif
-#endif  // _LIBLVGL_LLEMU_H_
+#endif // _LIBLVGL_LLEMU_H_
