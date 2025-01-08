@@ -1,7 +1,7 @@
 {
     "py/object": "pros.conductor.project.Project",
     "py/state": {
-        "project_name": "LemLib",
+        "project_name": "2024-2025",
         "target": "v5",
         "templates": {
             "kernel": {
@@ -254,7 +254,9 @@
                 "version": "8.3.8"
             }
         },
-        "upload_options": {},
+        "upload_options": {
+            "description": "Gear Slingers robot code for High Stakes (2024-2025 Season)"
+        },
         "use_early_access": false
     }
 }
