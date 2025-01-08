@@ -13,7 +13,7 @@
 #include "musty/cobs.h"
 #include "odom.hpp"
 
-#define MUSTY_SERIALPORT 2
+#define MUSTY_SERIALPORT 8
 #define MUSTY_BAUDRATE 460800
 
 #define TRANSMIT_PACKET_SIZE 2
