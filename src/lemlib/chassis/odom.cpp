@@ -10,7 +10,6 @@
 #include "lemlib/util.hpp"
 #include "lemlib/chassis/odom.hpp"
 #include "lemlib/chassis/chassis.hpp"
-#include "lemlib/chassis/trackingWheel.hpp"
 #include "musty/cobs.h"
 #include "odom.hpp"
 
@@ -78,6 +77,23 @@ lemlib::Pose lemlib::estimatePose(float time, bool radians) {
 }
 
 void lemlib::update() {
+
+    // calculate the local speed of the robot
+    static Pose lastPose = getPose(true);
+    Pose curPose = getPose(true);
+    float deltaTime = 0.01; // 10 ms bc sleep call in tracking task
+
+    float deltaX = curPose.x - lastPose.x;
+    float deltaY = curPose.y - lastPose.y;
+    float deltaTheta = curPose.theta - lastPose.theta;
+
+    float localX = deltaX * cos(curPose.theta) + deltaY * sin(curPose.theta);
+    float localY = -deltaX * sin(curPose.theta) + deltaY * cos(curPose.theta);
+
+    odomLocalSpeed = Pose(localX / deltaTime, localY / deltaTime, deltaTheta / deltaTime);
+
+    lastPose = curPose;
+
     uint8_t transmit_buffer[TRANSMIT_PACKET_SIZE] = {COMMAND_READ_OTOS, 255};
     uint8_t receive_buffer[MAX_BUFFER_SIZE] = {0};
     uint8_t decode_buffer[MAX_BUFFER_SIZE] = {0};
@@ -126,6 +142,9 @@ void lemlib::update() {
             memcpy(&x, &decode_buffer[0], sizeof(float));
             memcpy(&y, &decode_buffer[4], sizeof(float));
             memcpy(&h, &decode_buffer[8], sizeof(float));
+
+            h *= -1;
+            h += 90; //cartesian to vex coords
 
             odomPose = lemlib::Pose(x, y, degToRad(h));
         }

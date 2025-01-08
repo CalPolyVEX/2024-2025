@@ -16,11 +16,14 @@ lv_draw_rect_dsc_t position;
 lv_draw_rect_dsc_t pointer;
 
 lv_obj_t* labels[LABEL_COUNT];
-char* label_texts[LABEL_COUNT] = {"", "", "", "", "", "", "", "", "", "", "", ""};
+const char* label_texts[LABEL_COUNT] = {"", "", "", "", "", "", "", "", "", "", "", ""};
 
 void draw_robot_position(float x, float y, float h) {
     int screenX = roundf((-x * 1.7) + 113);
     int screenY = roundf((y * 1.7) + 113);
+    
+    h -= M_PI_2;
+    h *= -1; // vex coords to cartesian coords
 
     int pointerX = (screenX + 5) + roundf(MAGNITUDE * cos(h));
     int pointerY = (screenY + 5) - roundf(MAGNITUDE * sin(h));
