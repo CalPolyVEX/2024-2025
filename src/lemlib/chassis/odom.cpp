@@ -77,7 +77,6 @@ lemlib::Pose lemlib::estimatePose(float time, bool radians) {
 }
 
 void lemlib::update() {
-
     // calculate the local speed of the robot
     static Pose lastPose = getPose(true);
     Pose curPose = getPose(true);
@@ -144,7 +143,7 @@ void lemlib::update() {
             memcpy(&h, &decode_buffer[8], sizeof(float));
 
             h *= -1;
-            h += 90; //cartesian to vex coords
+            h += 90; // cartesian to vex coords
 
             odomPose = lemlib::Pose(x, y, degToRad(h));
         }

@@ -1,12 +1,10 @@
-//#include "hardware_map.h"
+// #include "hardware_map.h"
 #ifndef HARDWARE_MAP_H
 #include "hardware_map.h"
 #endif
 #include "display.h"
 
-
 #define IS_USING_COLOR_SENSOR true
-
 
 void score_with_fish_mech() { fish_mech.move_absolute(230.0, 100); }
 
