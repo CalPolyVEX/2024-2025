@@ -4,9 +4,7 @@
 // this abstracts all the devices that are used by the v5 brain so that we can change ports and parameters quickly and
 // debug easily.
 
-
 extern bool alliance_color; // true is red, false is blue
-
 
 //----------------------------- motors & motor groups -----------------------------
 
