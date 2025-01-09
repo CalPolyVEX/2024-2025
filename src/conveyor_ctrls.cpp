@@ -9,15 +9,16 @@
 
 bool scoring_opposite = false;
 
-//TODO TUNE PROXIMITY SENSOR
-bool has_red_ring(){
-    bool has_ring = conveyor_color_detector.get_proximity() > 120;
-    bool is_red = conveyor_color_detector.get_rgb().red > conveyor_color_detector.get_rgb().blue && conveyor_color_detector.get_rgb().red > conveyor_color_detector.get_rgb().green;
-    if (is_red && has_ring){
-        print_text_at(6, "red ring");
-        return true;
-    }
-    return false;
+// TODO TUNE PROXIMITY SENSOR
+bool has_red_ring() {
+  bool has_ring = conveyor_color_detector.get_proximity() > 120;
+  bool is_red = conveyor_color_detector.get_rgb().red > conveyor_color_detector.get_rgb().blue &&
+                conveyor_color_detector.get_rgb().red > conveyor_color_detector.get_rgb().green;
+  if (is_red && has_ring) {
+    print_text_at(6, "red ring");
+    return true;
+  }
+  return false;
 }
 
 bool has_blue_ring() {
@@ -56,15 +57,15 @@ void conveyor_deposit_and_intake(int speed = 600) {
   // make the conveyor go fast. that's pretty much all this does lol.
   conveyor.move_velocity(speed);
 
-    //color sorting
-    //TODO test this, make it better
-    if (has_blue_ring() && alliance_color == true && scoring_opposite == false){
-        rejector.extend();
-        pros::delay(500); 
-        //basically 8.17 inches
-    } else {
-        rejector.retract();
-    }
+  // color sorting
+  // TODO test this, make it better
+  if (has_blue_ring() && alliance_color == true && scoring_opposite == false) {
+    rejector.extend();
+    pros::delay(500);
+    // basically 8.17 inches
+  } else {
+    rejector.retract();
+  }
 
   if (has_red_ring() && alliance_color == false && scoring_opposite == false) {
     rejector.extend();
@@ -94,11 +95,11 @@ bool load_for_fish_mech() {
 
       // if we see no ring, keep moving
 
-            // speed = 50% of 600. for the conveyor to go slow enough to get a prox read
-            // and honestly this is here because it was in Joseph's opcontrol vex block code.
+      // speed = 50% of 600. for the conveyor to go slow enough to get a prox read
+      // and honestly this is here because it was in Joseph's opcontrol vex block code.
 
-            //TODO test higher speed
-            conveyor.move_velocity(300);
+      // TODO test higher speed
+      conveyor.move_velocity(300);
 
     } else {
       if (!has_set_target) {
