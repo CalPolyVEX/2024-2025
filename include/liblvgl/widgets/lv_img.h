@@ -38,18 +38,18 @@ extern "C" {
  * Data of image
  */
 typedef struct {
-        lv_obj_t obj;
-        const void* src; /*Image source: Pointer to an array or a file or a symbol*/
-        lv_point_t offset;
-        lv_coord_t w; /*Width of the image (Handled by the library)*/
-        lv_coord_t h; /*Height of the image (Handled by the library)*/
-        uint16_t angle; /*rotation angle of the image*/
-        lv_point_t pivot; /*rotation center of the image*/
-        uint16_t zoom; /*256 means no zoom, 512 double size, 128 half size*/
-        uint8_t src_type : 2; /*See: lv_img_src_t*/
-        uint8_t cf : 5; /*Color format from `lv_img_color_format_t`*/
-        uint8_t antialias : 1; /*Apply anti-aliasing in transformations (rotate, zoom)*/
-        uint8_t obj_size_mode : 2; /*Image size mode when image size and object size is different.*/
+    lv_obj_t obj;
+    const void* src; /*Image source: Pointer to an array or a file or a symbol*/
+    lv_point_t offset;
+    lv_coord_t w; /*Width of the image (Handled by the library)*/
+    lv_coord_t h; /*Height of the image (Handled by the library)*/
+    uint16_t angle; /*rotation angle of the image*/
+    lv_point_t pivot; /*rotation center of the image*/
+    uint16_t zoom; /*256 means no zoom, 512 double size, 128 half size*/
+    uint8_t src_type : 2; /*See: lv_img_src_t*/
+    uint8_t cf : 5; /*Color format from `lv_img_color_format_t`*/
+    uint8_t antialias : 1; /*Apply anti-aliasing in transformations (rotate, zoom)*/
+    uint8_t obj_size_mode : 2; /*Image size mode when image size and object size is different.*/
 } lv_img_t;
 
 extern const lv_obj_class_t lv_img_class;
@@ -58,15 +58,15 @@ extern const lv_obj_class_t lv_img_class;
  * Image size mode, when image size and object size is different
  */
 enum {
-    /** Zoom doesn't affect the coordinates of the object,
-     *  however if zoomed in the image is drawn out of the its coordinates.
-     *  The layout's won't change on zoom */
-    LV_IMG_SIZE_MODE_VIRTUAL = 0,
+  /** Zoom doesn't affect the coordinates of the object,
+   *  however if zoomed in the image is drawn out of the its coordinates.
+   *  The layout's won't change on zoom */
+  LV_IMG_SIZE_MODE_VIRTUAL = 0,
 
-    /** If the object size is set to SIZE_CONTENT, then object size equals zoomed image size.
-     *  It causes layout recalculation.
-     *  If the object size is set explicitly, the image will be cropped when zoomed in.*/
-    LV_IMG_SIZE_MODE_REAL,
+  /** If the object size is set to SIZE_CONTENT, then object size equals zoomed image size.
+   *  It causes layout recalculation.
+   *  If the object size is set explicitly, the image will be cropped when zoomed in.*/
+  LV_IMG_SIZE_MODE_REAL,
 };
 
 typedef uint8_t lv_img_size_mode_t;

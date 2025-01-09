@@ -60,9 +60,9 @@ namespace pros {
  * This enumeration defines the different types of objects that can be detected by the Vision Sensor
  */
 typedef enum vision_object_type {
-    E_VISION_OBJECT_NORMAL = 0,
-    E_VISION_OBJECT_COLOR_CODE = 1,
-    E_VISION_OBJECT_LINE = 2
+  E_VISION_OBJECT_NORMAL = 0,
+  E_VISION_OBJECT_COLOR_CODE = 1,
+  E_VISION_OBJECT_LINE = 2
 } vision_object_type_e_t;
 
 /**
@@ -70,17 +70,17 @@ typedef enum vision_object_type {
  * This structure contains the parameters used by the Vision Sensor to detect objects.
  */
 typedef struct __attribute__((__packed__)) vision_signature {
-        uint8_t id;
-        uint8_t _pad[3];
-        float range;
-        int32_t u_min;
-        int32_t u_max;
-        int32_t u_mean;
-        int32_t v_min;
-        int32_t v_max;
-        int32_t v_mean;
-        uint32_t rgb;
-        uint32_t type;
+    uint8_t id;
+    uint8_t _pad[3];
+    float range;
+    int32_t u_min;
+    int32_t u_max;
+    int32_t u_mean;
+    int32_t v_min;
+    int32_t v_max;
+    int32_t v_mean;
+    uint32_t rgb;
+    uint32_t type;
 } vision_signature_s_t;
 
 /**
@@ -94,24 +94,24 @@ typedef uint16_t vision_color_code_t;
  * This structure contains a descriptor of an object detected by the Vision Sensor
  */
 typedef struct __attribute__((__packed__)) vision_object {
-        /// Object signature
-        uint16_t signature;
-        /// Object type, e.g. normal, color code, or line detection
-        vision_object_type_e_t type;
-        /// Left boundary coordinate of the object
-        int16_t left_coord;
-        /// Top boundary coordinate of the object
-        int16_t top_coord;
-        /// Width of the object
-        int16_t width;
-        /// Height of the object
-        int16_t height;
-        /// Angle of a color code object in 0.1 degree units (e.g. 10 -> 1 degree, 155 -> 15.5 degrees)
-        uint16_t angle;
-        /// Coordinates of the middle of the object (computed from the values above)
-        int16_t x_middle_coord;
-        /// Coordinates of the middle of the object (computed from the values above)
-        int16_t y_middle_coord;
+    /// Object signature
+    uint16_t signature;
+    /// Object type, e.g. normal, color code, or line detection
+    vision_object_type_e_t type;
+    /// Left boundary coordinate of the object
+    int16_t left_coord;
+    /// Top boundary coordinate of the object
+    int16_t top_coord;
+    /// Width of the object
+    int16_t width;
+    /// Height of the object
+    int16_t height;
+    /// Angle of a color code object in 0.1 degree units (e.g. 10 -> 1 degree, 155 -> 15.5 degrees)
+    uint16_t angle;
+    /// Coordinates of the middle of the object (computed from the values above)
+    int16_t x_middle_coord;
+    /// Coordinates of the middle of the object (computed from the values above)
+    int16_t y_middle_coord;
 } vision_object_s_t;
 
 /**
@@ -119,10 +119,10 @@ typedef struct __attribute__((__packed__)) vision_object {
  * This enumeration defines different zero points for returned vision objects.
  */
 typedef enum vision_zero {
-    /// (0,0) coordinate is the top left of the FOV
-    E_VISION_ZERO_TOPLEFT = 0,
-    /// (0,0) coordinate is the center of the FOV
-    E_VISION_ZERO_CENTER = 1
+  /// (0,0) coordinate is the top left of the FOV
+  E_VISION_ZERO_TOPLEFT = 0,
+  /// (0,0) coordinate is the center of the FOV
+  E_VISION_ZERO_CENTER = 1
 } vision_zero_e_t;
 
 #ifdef PROS_USE_SIMPLE_NAMES

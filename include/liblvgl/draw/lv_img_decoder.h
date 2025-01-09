@@ -32,10 +32,10 @@ extern "C" {
 /**
  * Source of image.*/
 enum {
-    LV_IMG_SRC_VARIABLE, /** Binary/C variable*/
-    LV_IMG_SRC_FILE, /** File in filesystem*/
-    LV_IMG_SRC_SYMBOL, /** Symbol (@ref lv_symbol_def.h)*/
-    LV_IMG_SRC_UNKNOWN, /** Unknown source*/
+  LV_IMG_SRC_VARIABLE, /** Binary/C variable*/
+  LV_IMG_SRC_FILE, /** File in filesystem*/
+  LV_IMG_SRC_SYMBOL, /** Symbol (@ref lv_symbol_def.h)*/
+  LV_IMG_SRC_UNKNOWN, /** Unknown source*/
 };
 
 typedef uint8_t lv_img_src_t;
@@ -83,50 +83,50 @@ typedef lv_res_t (*lv_img_decoder_read_line_f_t)(struct _lv_img_decoder_t* decod
 typedef void (*lv_img_decoder_close_f_t)(struct _lv_img_decoder_t* decoder, struct _lv_img_decoder_dsc_t* dsc);
 
 typedef struct _lv_img_decoder_t {
-        lv_img_decoder_info_f_t info_cb;
-        lv_img_decoder_open_f_t open_cb;
-        lv_img_decoder_read_line_f_t read_line_cb;
-        lv_img_decoder_close_f_t close_cb;
+    lv_img_decoder_info_f_t info_cb;
+    lv_img_decoder_open_f_t open_cb;
+    lv_img_decoder_read_line_f_t read_line_cb;
+    lv_img_decoder_close_f_t close_cb;
 
 #if LV_USE_USER_DATA
-        void* user_data;
+    void* user_data;
 #endif
 } lv_img_decoder_t;
 
 /**Describe an image decoding session. Stores data about the decoding*/
 typedef struct _lv_img_decoder_dsc_t {
-        /**The decoder which was able to open the image source*/
-        lv_img_decoder_t* decoder;
+    /**The decoder which was able to open the image source*/
+    lv_img_decoder_t* decoder;
 
-        /**The image source. A file path like "S:my_img.png" or pointer to an `lv_img_dsc_t` variable*/
-        const void* src;
+    /**The image source. A file path like "S:my_img.png" or pointer to an `lv_img_dsc_t` variable*/
+    const void* src;
 
-        /**Color to draw the image. USed when the image has alpha channel only*/
-        lv_color_t color;
+    /**Color to draw the image. USed when the image has alpha channel only*/
+    lv_color_t color;
 
-        /**Frame of the image, using with animated images*/
-        int32_t frame_id;
+    /**Frame of the image, using with animated images*/
+    int32_t frame_id;
 
-        /**Type of the source: file or variable. Can be set in `open` function if required*/
-        lv_img_src_t src_type;
+    /**Type of the source: file or variable. Can be set in `open` function if required*/
+    lv_img_src_t src_type;
 
-        /**Info about the opened image: color format, size, etc. MUST be set in `open` function*/
-        lv_img_header_t header;
+    /**Info about the opened image: color format, size, etc. MUST be set in `open` function*/
+    lv_img_header_t header;
 
-        /** Pointer to a buffer where the image's data (pixels) are stored in a decoded, plain format.
-         *  MUST be set in `open` function*/
-        const uint8_t* img_data;
+    /** Pointer to a buffer where the image's data (pixels) are stored in a decoded, plain format.
+     *  MUST be set in `open` function*/
+    const uint8_t* img_data;
 
-        /** How much time did it take to open the image. [ms]
-         *  If not set `lv_img_cache` will measure and set the time to open*/
-        uint32_t time_to_open;
+    /** How much time did it take to open the image. [ms]
+     *  If not set `lv_img_cache` will measure and set the time to open*/
+    uint32_t time_to_open;
 
-        /**A text to display instead of the image when the image can't be opened.
-         * Can be set in `open` function or set NULL.*/
-        const char* error_msg;
+    /**A text to display instead of the image when the image can't be opened.
+     * Can be set in `open` function or set NULL.*/
+    const char* error_msg;
 
-        /**Store any custom data here is required*/
-        void* user_data;
+    /**Store any custom data here is required*/
+    void* user_data;
 } lv_img_decoder_dsc_t;
 
 /**********************

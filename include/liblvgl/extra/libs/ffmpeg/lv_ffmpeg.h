@@ -27,19 +27,19 @@ struct ffmpeg_context_s;
 extern const lv_obj_class_t lv_ffmpeg_player_class;
 
 typedef struct {
-        lv_img_t img;
-        lv_timer_t* timer;
-        lv_img_dsc_t imgdsc;
-        bool auto_restart;
-        struct ffmpeg_context_s* ffmpeg_ctx;
+    lv_img_t img;
+    lv_timer_t* timer;
+    lv_img_dsc_t imgdsc;
+    bool auto_restart;
+    struct ffmpeg_context_s* ffmpeg_ctx;
 } lv_ffmpeg_player_t;
 
 typedef enum {
-    LV_FFMPEG_PLAYER_CMD_START,
-    LV_FFMPEG_PLAYER_CMD_STOP,
-    LV_FFMPEG_PLAYER_CMD_PAUSE,
-    LV_FFMPEG_PLAYER_CMD_RESUME,
-    _LV_FFMPEG_PLAYER_CMD_LAST
+  LV_FFMPEG_PLAYER_CMD_START,
+  LV_FFMPEG_PLAYER_CMD_STOP,
+  LV_FFMPEG_PLAYER_CMD_PAUSE,
+  LV_FFMPEG_PLAYER_CMD_RESUME,
+  _LV_FFMPEG_PLAYER_CMD_LAST
 } lv_ffmpeg_player_cmd_t;
 
 /**********************

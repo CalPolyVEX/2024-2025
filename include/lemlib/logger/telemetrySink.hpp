@@ -18,17 +18,17 @@ namespace lemlib {
  * @endcode
  */
 class TelemetrySink : public BaseSink {
-    public:
-        /**
-         * @brief Construct a new Telemetry Sink object
-         */
-        TelemetrySink();
-    private:
-        /**
-         * @brief Log the given message
-         *
-         * @param message
-         */
-        void sendMessage(const Message& message) override;
+  public:
+    /**
+     * @brief Construct a new Telemetry Sink object
+     */
+    TelemetrySink();
+  private:
+    /**
+     * @brief Log the given message
+     *
+     * @param message
+     */
+    void sendMessage(const Message& message) override;
 };
 } // namespace lemlib

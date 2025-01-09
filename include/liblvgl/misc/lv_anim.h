@@ -35,8 +35,8 @@ LV_EXPORT_CONST_INT(LV_ANIM_PLAYTIME_INFINITE);
 
 /** Can be used to indicate if animations are enabled or disabled in a case*/
 typedef enum {
-    LV_ANIM_OFF,
-    LV_ANIM_ON,
+  LV_ANIM_OFF,
+  LV_ANIM_ON,
 } lv_anim_enable_t;
 
 struct _lv_anim_t;
@@ -71,31 +71,31 @@ typedef void (*lv_anim_deleted_cb_t)(struct _lv_anim_t*);
 
 /** Describes an animation*/
 typedef struct _lv_anim_t {
-        void* var; /**<Variable to animate*/
-        lv_anim_exec_xcb_t exec_cb; /**< Function to execute to animate*/
-        lv_anim_start_cb_t start_cb; /**< Call it when the animation is starts (considering `delay`)*/
-        lv_anim_ready_cb_t ready_cb; /**< Call it when the animation is ready*/
-        lv_anim_deleted_cb_t deleted_cb; /**< Call it when the animation is deleted*/
-        lv_anim_get_value_cb_t get_value_cb; /**< Get the current value in relative mode*/
+    void* var; /**<Variable to animate*/
+    lv_anim_exec_xcb_t exec_cb; /**< Function to execute to animate*/
+    lv_anim_start_cb_t start_cb; /**< Call it when the animation is starts (considering `delay`)*/
+    lv_anim_ready_cb_t ready_cb; /**< Call it when the animation is ready*/
+    lv_anim_deleted_cb_t deleted_cb; /**< Call it when the animation is deleted*/
+    lv_anim_get_value_cb_t get_value_cb; /**< Get the current value in relative mode*/
 #if LV_USE_USER_DATA
-        void* user_data; /**< Custom user data*/
+    void* user_data; /**< Custom user data*/
 #endif
-        lv_anim_path_cb_t path_cb; /**< Describe the path (curve) of animations*/
-        int32_t start_value; /**< Start value*/
-        int32_t current_value; /**< Current value*/
-        int32_t end_value; /**< End value*/
-        int32_t time; /**< Animation time in ms*/
-        int32_t act_time; /**< Current time in animation. Set to negative to make delay.*/
-        uint32_t playback_delay; /**< Wait before play back*/
-        uint32_t playback_time; /**< Duration of playback animation*/
-        uint32_t repeat_delay; /**< Wait before repeat*/
-        uint16_t repeat_cnt; /**< Repeat count for the animation*/
-        uint8_t early_apply : 1; /**< 1: Apply start value immediately even is there is `delay`*/
+    lv_anim_path_cb_t path_cb; /**< Describe the path (curve) of animations*/
+    int32_t start_value; /**< Start value*/
+    int32_t current_value; /**< Current value*/
+    int32_t end_value; /**< End value*/
+    int32_t time; /**< Animation time in ms*/
+    int32_t act_time; /**< Current time in animation. Set to negative to make delay.*/
+    uint32_t playback_delay; /**< Wait before play back*/
+    uint32_t playback_time; /**< Duration of playback animation*/
+    uint32_t repeat_delay; /**< Wait before repeat*/
+    uint16_t repeat_cnt; /**< Repeat count for the animation*/
+    uint8_t early_apply : 1; /**< 1: Apply start value immediately even is there is `delay`*/
 
-        /*Animation system use these - user shouldn't set*/
-        uint8_t playback_now : 1; /**< Play back is in progress*/
-        uint8_t run_round : 1; /**< Indicates the animation has run in this round*/
-        uint8_t start_cb_called : 1; /**< Indicates that the `start_cb` was already called*/
+    /*Animation system use these - user shouldn't set*/
+    uint8_t playback_now : 1; /**< Play back is in progress*/
+    uint8_t run_round : 1; /**< Indicates the animation has run in this round*/
+    uint8_t start_cb_called : 1; /**< Indicates that the `start_cb` was already called*/
 } lv_anim_t;
 
 /**********************
@@ -155,9 +155,9 @@ static inline void lv_anim_set_delay(lv_anim_t* a, uint32_t delay) { a->act_time
  * @param end       the end value
  */
 static inline void lv_anim_set_values(lv_anim_t* a, int32_t start, int32_t end) {
-    a->start_value = start;
-    a->current_value = start;
-    a->end_value = end;
+  a->start_value = start;
+  a->current_value = start;
+  a->end_value = end;
 }
 
 /**
@@ -170,8 +170,8 @@ static inline void lv_anim_set_values(lv_anim_t* a, int32_t start, int32_t end) 
  * @param exec_cb   a function to execute.
  */
 static inline void lv_anim_set_custom_exec_cb(lv_anim_t* a, lv_anim_custom_exec_cb_t exec_cb) {
-    a->var = a;
-    a->exec_cb = (lv_anim_exec_xcb_t)exec_cb;
+  a->var = a;
+  a->exec_cb = (lv_anim_exec_xcb_t)exec_cb;
 }
 
 /**
@@ -195,7 +195,7 @@ static inline void lv_anim_set_start_cb(lv_anim_t* a, lv_anim_start_cb_t start_c
  * @param get_value_cb  a function call when the animation starts
  */
 static inline void lv_anim_set_get_value_cb(lv_anim_t* a, lv_anim_get_value_cb_t get_value_cb) {
-    a->get_value_cb = get_value_cb;
+  a->get_value_cb = get_value_cb;
 }
 
 /**
@@ -327,7 +327,7 @@ struct _lv_timer_t* lv_anim_get_timer(void);
  * @return          true: at least 1 animation is deleted, false: no animation is deleted
  */
 static inline bool lv_anim_custom_del(lv_anim_t* a, lv_anim_custom_exec_cb_t exec_cb) {
-    return lv_anim_del(a ? a->var : NULL, (lv_anim_exec_xcb_t)exec_cb);
+  return lv_anim_del(a ? a->var : NULL, (lv_anim_exec_xcb_t)exec_cb);
 }
 
 /**
@@ -340,7 +340,7 @@ static inline bool lv_anim_custom_del(lv_anim_t* a, lv_anim_custom_exec_cb_t exe
  * @return          pointer to the animation.
  */
 static inline lv_anim_t* lv_anim_custom_get(lv_anim_t* a, lv_anim_custom_exec_cb_t exec_cb) {
-    return lv_anim_get(a ? a->var : NULL, (lv_anim_exec_xcb_t)exec_cb);
+  return lv_anim_get(a ? a->var : NULL, (lv_anim_exec_xcb_t)exec_cb);
 }
 
 /**

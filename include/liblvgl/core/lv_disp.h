@@ -26,22 +26,22 @@ extern "C" {
  **********************/
 
 typedef enum {
-    LV_SCR_LOAD_ANIM_NONE,
-    LV_SCR_LOAD_ANIM_OVER_LEFT,
-    LV_SCR_LOAD_ANIM_OVER_RIGHT,
-    LV_SCR_LOAD_ANIM_OVER_TOP,
-    LV_SCR_LOAD_ANIM_OVER_BOTTOM,
-    LV_SCR_LOAD_ANIM_MOVE_LEFT,
-    LV_SCR_LOAD_ANIM_MOVE_RIGHT,
-    LV_SCR_LOAD_ANIM_MOVE_TOP,
-    LV_SCR_LOAD_ANIM_MOVE_BOTTOM,
-    LV_SCR_LOAD_ANIM_FADE_IN,
-    LV_SCR_LOAD_ANIM_FADE_ON = LV_SCR_LOAD_ANIM_FADE_IN, /*For backward compatibility*/
-    LV_SCR_LOAD_ANIM_FADE_OUT,
-    LV_SCR_LOAD_ANIM_OUT_LEFT,
-    LV_SCR_LOAD_ANIM_OUT_RIGHT,
-    LV_SCR_LOAD_ANIM_OUT_TOP,
-    LV_SCR_LOAD_ANIM_OUT_BOTTOM,
+  LV_SCR_LOAD_ANIM_NONE,
+  LV_SCR_LOAD_ANIM_OVER_LEFT,
+  LV_SCR_LOAD_ANIM_OVER_RIGHT,
+  LV_SCR_LOAD_ANIM_OVER_TOP,
+  LV_SCR_LOAD_ANIM_OVER_BOTTOM,
+  LV_SCR_LOAD_ANIM_MOVE_LEFT,
+  LV_SCR_LOAD_ANIM_MOVE_RIGHT,
+  LV_SCR_LOAD_ANIM_MOVE_TOP,
+  LV_SCR_LOAD_ANIM_MOVE_BOTTOM,
+  LV_SCR_LOAD_ANIM_FADE_IN,
+  LV_SCR_LOAD_ANIM_FADE_ON = LV_SCR_LOAD_ANIM_FADE_IN, /*For backward compatibility*/
+  LV_SCR_LOAD_ANIM_FADE_OUT,
+  LV_SCR_LOAD_ANIM_OUT_LEFT,
+  LV_SCR_LOAD_ANIM_OUT_RIGHT,
+  LV_SCR_LOAD_ANIM_OUT_TOP,
+  LV_SCR_LOAD_ANIM_OUT_BOTTOM,
 } lv_scr_load_anim_t;
 
 /**********************
@@ -238,7 +238,7 @@ static inline lv_coord_t lv_dpx(lv_coord_t n) { return LV_DPX(n); }
  * @return      `n x current_dpi/160`
  */
 static inline lv_coord_t lv_disp_dpx(const lv_disp_t* disp, lv_coord_t n) {
-    return _LV_DPX_CALC(lv_disp_get_dpi(disp), n);
+  return _LV_DPX_CALC(lv_disp_get_dpi(disp), n);
 }
 
 #ifdef __cplusplus

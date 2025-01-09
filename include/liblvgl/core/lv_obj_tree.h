@@ -28,9 +28,9 @@ struct _lv_obj_t;
 struct _lv_obj_class_t;
 
 typedef enum {
-    LV_OBJ_TREE_WALK_NEXT,
-    LV_OBJ_TREE_WALK_SKIP_CHILDREN,
-    LV_OBJ_TREE_WALK_END,
+  LV_OBJ_TREE_WALK_NEXT,
+  LV_OBJ_TREE_WALK_SKIP_CHILDREN,
+  LV_OBJ_TREE_WALK_END,
 } lv_obj_tree_walk_res_t;
 
 typedef lv_obj_tree_walk_res_t (*lv_obj_tree_walk_cb_t)(struct _lv_obj_t*, void*);

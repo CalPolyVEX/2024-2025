@@ -30,20 +30,20 @@ struct _lv_obj_t;
 
 /** Scrollbar modes: shows when should the scrollbars be visible*/
 enum {
-    LV_SCROLLBAR_MODE_OFF, /**< Never show scrollbars*/
-    LV_SCROLLBAR_MODE_ON, /**< Always show scrollbars*/
-    LV_SCROLLBAR_MODE_ACTIVE, /**< Show scroll bars when object is being scrolled*/
-    LV_SCROLLBAR_MODE_AUTO, /**< Show scroll bars when the content is large enough to be scrolled*/
+  LV_SCROLLBAR_MODE_OFF, /**< Never show scrollbars*/
+  LV_SCROLLBAR_MODE_ON, /**< Always show scrollbars*/
+  LV_SCROLLBAR_MODE_ACTIVE, /**< Show scroll bars when object is being scrolled*/
+  LV_SCROLLBAR_MODE_AUTO, /**< Show scroll bars when the content is large enough to be scrolled*/
 };
 
 typedef uint8_t lv_scrollbar_mode_t;
 
 /** Scroll span align options. Tells where to align the snappable children when scroll stops.*/
 enum {
-    LV_SCROLL_SNAP_NONE, /**< Do not align, leave where it is*/
-    LV_SCROLL_SNAP_START, /**< Align to the left/top*/
-    LV_SCROLL_SNAP_END, /**< Align to the right/bottom*/
-    LV_SCROLL_SNAP_CENTER /**< Align to the center*/
+  LV_SCROLL_SNAP_NONE, /**< Do not align, leave where it is*/
+  LV_SCROLL_SNAP_START, /**< Align to the left/top*/
+  LV_SCROLL_SNAP_END, /**< Align to the right/bottom*/
+  LV_SCROLL_SNAP_CENTER /**< Align to the center*/
 };
 
 typedef uint8_t lv_scroll_snap_t;

@@ -46,16 +46,16 @@ namespace c {
  * \enum optical_direction_e_t
  */
 typedef enum optical_direction_e {
-    NO_GESTURE = 0,
-    /// The direction indicating an upward gesture.
-    UP = 1,
-    /// The direction indicating a downward gesture.
-    DOWN = 2,
-    /// The direction indicating a rightward gesture.
-    RIGHT = 3,
-    /// The direction indicating a leftward gesture.
-    LEFT = 4,
-    ERROR = PROS_ERR
+  NO_GESTURE = 0,
+  /// The direction indicating an upward gesture.
+  UP = 1,
+  /// The direction indicating a downward gesture.
+  DOWN = 2,
+  /// The direction indicating a rightward gesture.
+  RIGHT = 3,
+  /// The direction indicating a leftward gesture.
+  LEFT = 4,
+  ERROR = PROS_ERR
 } optical_direction_e_t;
 
 /**
@@ -63,10 +63,10 @@ typedef enum optical_direction_e {
  * The RGB and Brightness values for the optical sensor.
  */
 typedef struct optical_rgb_s {
-        double red;
-        double green;
-        double blue;
-        double brightness;
+    double red;
+    double green;
+    double blue;
+    double brightness;
 } optical_rgb_s_t;
 
 /**
@@ -74,10 +74,10 @@ typedef struct optical_rgb_s {
  * The RGB and clear values for the optical sensor.
  */
 typedef struct optical_raw_s {
-        uint32_t clear;
-        uint32_t red;
-        uint32_t green;
-        uint32_t blue;
+    uint32_t clear;
+    uint32_t red;
+    uint32_t green;
+    uint32_t blue;
 } optical_raw_s_t;
 
 /**
@@ -85,14 +85,14 @@ typedef struct optical_raw_s {
  * This structure contains the raw gesture data.
  */
 typedef struct optical_gesture_s {
-        uint8_t udata; /// Up data
-        uint8_t ddata; /// Down data
-        uint8_t ldata; /// Left data
-        uint8_t rdata; /// Right data
-        uint8_t type; /// Type of gesture
-        uint8_t pad; /// Padding
-        uint16_t count; /// Number of gestures
-        uint32_t time; /// Time since gesture recognized
+    uint8_t udata; /// Up data
+    uint8_t ddata; /// Down data
+    uint8_t ldata; /// Left data
+    uint8_t rdata; /// Right data
+    uint8_t type; /// Type of gesture
+    uint8_t pad; /// Padding
+    uint16_t count; /// Number of gestures
+    uint32_t time; /// Time since gesture recognized
 } optical_gesture_s_t;
 
 /**

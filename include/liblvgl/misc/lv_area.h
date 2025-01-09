@@ -35,56 +35,56 @@ typedef int16_t lv_coord_t;
  * Represents a point on the screen.
  */
 typedef struct {
-        lv_coord_t x;
-        lv_coord_t y;
+    lv_coord_t x;
+    lv_coord_t y;
 } lv_point_t;
 
 /** Represents an area of the screen.*/
 typedef struct {
-        lv_coord_t x1;
-        lv_coord_t y1;
-        lv_coord_t x2;
-        lv_coord_t y2;
+    lv_coord_t x1;
+    lv_coord_t y1;
+    lv_coord_t x2;
+    lv_coord_t y2;
 } lv_area_t;
 
 /** Alignments*/
 enum {
-    LV_ALIGN_DEFAULT = 0,
-    LV_ALIGN_TOP_LEFT,
-    LV_ALIGN_TOP_MID,
-    LV_ALIGN_TOP_RIGHT,
-    LV_ALIGN_BOTTOM_LEFT,
-    LV_ALIGN_BOTTOM_MID,
-    LV_ALIGN_BOTTOM_RIGHT,
-    LV_ALIGN_LEFT_MID,
-    LV_ALIGN_RIGHT_MID,
-    LV_ALIGN_CENTER,
+  LV_ALIGN_DEFAULT = 0,
+  LV_ALIGN_TOP_LEFT,
+  LV_ALIGN_TOP_MID,
+  LV_ALIGN_TOP_RIGHT,
+  LV_ALIGN_BOTTOM_LEFT,
+  LV_ALIGN_BOTTOM_MID,
+  LV_ALIGN_BOTTOM_RIGHT,
+  LV_ALIGN_LEFT_MID,
+  LV_ALIGN_RIGHT_MID,
+  LV_ALIGN_CENTER,
 
-    LV_ALIGN_OUT_TOP_LEFT,
-    LV_ALIGN_OUT_TOP_MID,
-    LV_ALIGN_OUT_TOP_RIGHT,
-    LV_ALIGN_OUT_BOTTOM_LEFT,
-    LV_ALIGN_OUT_BOTTOM_MID,
-    LV_ALIGN_OUT_BOTTOM_RIGHT,
-    LV_ALIGN_OUT_LEFT_TOP,
-    LV_ALIGN_OUT_LEFT_MID,
-    LV_ALIGN_OUT_LEFT_BOTTOM,
-    LV_ALIGN_OUT_RIGHT_TOP,
-    LV_ALIGN_OUT_RIGHT_MID,
-    LV_ALIGN_OUT_RIGHT_BOTTOM,
+  LV_ALIGN_OUT_TOP_LEFT,
+  LV_ALIGN_OUT_TOP_MID,
+  LV_ALIGN_OUT_TOP_RIGHT,
+  LV_ALIGN_OUT_BOTTOM_LEFT,
+  LV_ALIGN_OUT_BOTTOM_MID,
+  LV_ALIGN_OUT_BOTTOM_RIGHT,
+  LV_ALIGN_OUT_LEFT_TOP,
+  LV_ALIGN_OUT_LEFT_MID,
+  LV_ALIGN_OUT_LEFT_BOTTOM,
+  LV_ALIGN_OUT_RIGHT_TOP,
+  LV_ALIGN_OUT_RIGHT_MID,
+  LV_ALIGN_OUT_RIGHT_BOTTOM,
 };
 
 typedef uint8_t lv_align_t;
 
 enum {
-    LV_DIR_NONE = 0x00,
-    LV_DIR_LEFT = (1 << 0),
-    LV_DIR_RIGHT = (1 << 1),
-    LV_DIR_TOP = (1 << 2),
-    LV_DIR_BOTTOM = (1 << 3),
-    LV_DIR_HOR = LV_DIR_LEFT | LV_DIR_RIGHT,
-    LV_DIR_VER = LV_DIR_TOP | LV_DIR_BOTTOM,
-    LV_DIR_ALL = LV_DIR_HOR | LV_DIR_VER,
+  LV_DIR_NONE = 0x00,
+  LV_DIR_LEFT = (1 << 0),
+  LV_DIR_RIGHT = (1 << 1),
+  LV_DIR_TOP = (1 << 2),
+  LV_DIR_BOTTOM = (1 << 3),
+  LV_DIR_HOR = LV_DIR_LEFT | LV_DIR_RIGHT,
+  LV_DIR_VER = LV_DIR_TOP | LV_DIR_BOTTOM,
+  LV_DIR_ALL = LV_DIR_HOR | LV_DIR_VER,
 };
 
 typedef uint8_t lv_dir_t;
@@ -109,10 +109,10 @@ void lv_area_set(lv_area_t* area_p, lv_coord_t x1, lv_coord_t y1, lv_coord_t x2,
  * @param src pointer to the source area
  */
 inline static void lv_area_copy(lv_area_t* dest, const lv_area_t* src) {
-    dest->x1 = src->x1;
-    dest->y1 = src->y1;
-    dest->x2 = src->x2;
-    dest->y2 = src->y2;
+  dest->x1 = src->x1;
+  dest->y1 = src->y1;
+  dest->x2 = src->x2;
+  dest->y2 = src->y2;
 }
 
 /**
@@ -121,7 +121,7 @@ inline static void lv_area_copy(lv_area_t* dest, const lv_area_t* src) {
  * @return the width of the area (if x1 == x2 -> width = 1)
  */
 static inline lv_coord_t lv_area_get_width(const lv_area_t* area_p) {
-    return (lv_coord_t)(area_p->x2 - area_p->x1 + 1);
+  return (lv_coord_t)(area_p->x2 - area_p->x1 + 1);
 }
 
 /**
@@ -130,7 +130,7 @@ static inline lv_coord_t lv_area_get_width(const lv_area_t* area_p) {
  * @return the height of the area (if y1 == y2 -> height = 1)
  */
 static inline lv_coord_t lv_area_get_height(const lv_area_t* area_p) {
-    return (lv_coord_t)(area_p->y2 - area_p->y1 + 1);
+  return (lv_coord_t)(area_p->y2 - area_p->y1 + 1);
 }
 
 /**
@@ -254,7 +254,7 @@ void lv_point_transform(lv_point_t* p, int32_t angle, int32_t zoom, const lv_poi
 #define _LV_COORD_TYPE_PX_NEG (3 << _LV_COORD_TYPE_SHIFT)
 
 #define LV_COORD_IS_PX(x)                                                                                              \
-    (_LV_COORD_TYPE(x) == _LV_COORD_TYPE_PX || _LV_COORD_TYPE(x) == _LV_COORD_TYPE_PX_NEG ? true : false)
+  (_LV_COORD_TYPE(x) == _LV_COORD_TYPE_PX || _LV_COORD_TYPE(x) == _LV_COORD_TYPE_PX_NEG ? true : false)
 #define LV_COORD_IS_SPEC(x) (_LV_COORD_TYPE(x) == _LV_COORD_TYPE_SPEC ? true : false)
 
 #define LV_COORD_SET_SPEC(x) ((x) | _LV_COORD_TYPE_SPEC)

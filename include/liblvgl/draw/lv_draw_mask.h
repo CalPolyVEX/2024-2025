@@ -37,8 +37,8 @@ enum { LV_DRAW_MASK_RES_TRANSP, LV_DRAW_MASK_RES_FULL_COVER, LV_DRAW_MASK_RES_CH
 typedef uint8_t lv_draw_mask_res_t;
 
 typedef struct {
-        void* param;
-        void* custom_id;
+    void* param;
+    void* custom_id;
 } _lv_draw_mask_saved_t;
 
 typedef _lv_draw_mask_saved_t _lv_draw_mask_saved_arr_t[_LV_MASK_MAX_NUM];
@@ -47,8 +47,8 @@ typedef _lv_draw_mask_saved_t _lv_draw_mask_saved_arr_t[_LV_MASK_MAX_NUM];
 static inline uint8_t lv_draw_mask_get_cnt(void) { return 0; }
 
 static inline bool lv_draw_mask_is_any(const lv_area_t* a) {
-    LV_UNUSED(a);
-    return false;
+  LV_UNUSED(a);
+  return false;
 }
 
 #endif
@@ -56,21 +56,21 @@ static inline bool lv_draw_mask_is_any(const lv_area_t* a) {
 #if LV_DRAW_COMPLEX
 
 enum {
-    LV_DRAW_MASK_TYPE_LINE,
-    LV_DRAW_MASK_TYPE_ANGLE,
-    LV_DRAW_MASK_TYPE_RADIUS,
-    LV_DRAW_MASK_TYPE_FADE,
-    LV_DRAW_MASK_TYPE_MAP,
-    LV_DRAW_MASK_TYPE_POLYGON,
+  LV_DRAW_MASK_TYPE_LINE,
+  LV_DRAW_MASK_TYPE_ANGLE,
+  LV_DRAW_MASK_TYPE_RADIUS,
+  LV_DRAW_MASK_TYPE_FADE,
+  LV_DRAW_MASK_TYPE_MAP,
+  LV_DRAW_MASK_TYPE_POLYGON,
 };
 
 typedef uint8_t lv_draw_mask_type_t;
 
 enum {
-    LV_DRAW_MASK_LINE_SIDE_LEFT = 0,
-    LV_DRAW_MASK_LINE_SIDE_RIGHT,
-    LV_DRAW_MASK_LINE_SIDE_TOP,
-    LV_DRAW_MASK_LINE_SIDE_BOTTOM,
+  LV_DRAW_MASK_LINE_SIDE_LEFT = 0,
+  LV_DRAW_MASK_LINE_SIDE_RIGHT,
+  LV_DRAW_MASK_LINE_SIDE_TOP,
+  LV_DRAW_MASK_LINE_SIDE_BOTTOM,
 };
 
 /**
@@ -83,121 +83,121 @@ typedef lv_draw_mask_res_t (*lv_draw_mask_xcb_t)(lv_opa_t* mask_buf, lv_coord_t 
 typedef uint8_t lv_draw_mask_line_side_t;
 
 typedef struct {
-        lv_draw_mask_xcb_t cb;
-        lv_draw_mask_type_t type;
+    lv_draw_mask_xcb_t cb;
+    lv_draw_mask_type_t type;
 } _lv_draw_mask_common_dsc_t;
 
 typedef struct {
-        /*The first element must be the common descriptor*/
-        _lv_draw_mask_common_dsc_t dsc;
+    /*The first element must be the common descriptor*/
+    _lv_draw_mask_common_dsc_t dsc;
 
-        struct {
-                /*First point*/
-                lv_point_t p1;
+    struct {
+        /*First point*/
+        lv_point_t p1;
 
-                /*Second point*/
-                lv_point_t p2;
+        /*Second point*/
+        lv_point_t p2;
 
-                /*Which side to keep?*/
-                lv_draw_mask_line_side_t side : 2;
-        } cfg;
+        /*Which side to keep?*/
+        lv_draw_mask_line_side_t side : 2;
+    } cfg;
 
-        /*A point of the line*/
-        lv_point_t origo;
+    /*A point of the line*/
+    lv_point_t origo;
 
-        /*X / (1024*Y) steepness (X is 0..1023 range). What is the change of X in 1024 Y?*/
-        int32_t xy_steep;
+    /*X / (1024*Y) steepness (X is 0..1023 range). What is the change of X in 1024 Y?*/
+    int32_t xy_steep;
 
-        /*Y / (1024*X) steepness (Y is 0..1023 range). What is the change of Y in 1024 X?*/
-        int32_t yx_steep;
+    /*Y / (1024*X) steepness (Y is 0..1023 range). What is the change of Y in 1024 X?*/
+    int32_t yx_steep;
 
-        /*Helper which stores yx_steep for flat lines and xy_steep for steep (non flat) lines*/
-        int32_t steep;
+    /*Helper which stores yx_steep for flat lines and xy_steep for steep (non flat) lines*/
+    int32_t steep;
 
-        /*Steepness in 1 px in 0..255 range. Used only by flat lines.*/
-        int32_t spx;
+    /*Steepness in 1 px in 0..255 range. Used only by flat lines.*/
+    int32_t spx;
 
-        /*1: It's a flat line? (Near to horizontal)*/
-        uint8_t flat : 1;
+    /*1: It's a flat line? (Near to horizontal)*/
+    uint8_t flat : 1;
 
-        /*Invert the mask. The default is: Keep the left part.
-         *It is used to select left/right/top/bottom*/
-        uint8_t inv : 1;
+    /*Invert the mask. The default is: Keep the left part.
+     *It is used to select left/right/top/bottom*/
+    uint8_t inv : 1;
 } lv_draw_mask_line_param_t;
 
 typedef struct {
-        /*The first element must be the common descriptor*/
-        _lv_draw_mask_common_dsc_t dsc;
+    /*The first element must be the common descriptor*/
+    _lv_draw_mask_common_dsc_t dsc;
 
-        struct {
-                lv_point_t vertex_p;
-                lv_coord_t start_angle;
-                lv_coord_t end_angle;
-        } cfg;
+    struct {
+        lv_point_t vertex_p;
+        lv_coord_t start_angle;
+        lv_coord_t end_angle;
+    } cfg;
 
-        lv_draw_mask_line_param_t start_line;
-        lv_draw_mask_line_param_t end_line;
-        uint16_t delta_deg;
+    lv_draw_mask_line_param_t start_line;
+    lv_draw_mask_line_param_t end_line;
+    uint16_t delta_deg;
 } lv_draw_mask_angle_param_t;
 
 typedef struct {
-        uint8_t* buf;
-        lv_opa_t* cir_opa; /*Opacity of values on the circumference of an 1/4 circle*/
-        uint16_t* x_start_on_y; /*The x coordinate of the circle for each y value*/
-        uint16_t* opa_start_on_y; /*The index of `cir_opa` for each y value*/
-        int32_t life; /*How many times the entry way used*/
-        uint32_t used_cnt; /*Like a semaphore to count the referencing masks*/
-        lv_coord_t radius; /*The radius of the entry*/
+    uint8_t* buf;
+    lv_opa_t* cir_opa; /*Opacity of values on the circumference of an 1/4 circle*/
+    uint16_t* x_start_on_y; /*The x coordinate of the circle for each y value*/
+    uint16_t* opa_start_on_y; /*The index of `cir_opa` for each y value*/
+    int32_t life; /*How many times the entry way used*/
+    uint32_t used_cnt; /*Like a semaphore to count the referencing masks*/
+    lv_coord_t radius; /*The radius of the entry*/
 } _lv_draw_mask_radius_circle_dsc_t;
 
 typedef _lv_draw_mask_radius_circle_dsc_t _lv_draw_mask_radius_circle_dsc_arr_t[LV_CIRCLE_CACHE_SIZE];
 
 typedef struct {
-        /*The first element must be the common descriptor*/
-        _lv_draw_mask_common_dsc_t dsc;
+    /*The first element must be the common descriptor*/
+    _lv_draw_mask_common_dsc_t dsc;
 
-        struct {
-                lv_area_t rect;
-                lv_coord_t radius;
-                /*Invert the mask. 0: Keep the pixels inside.*/
-                uint8_t outer : 1;
-        } cfg;
+    struct {
+        lv_area_t rect;
+        lv_coord_t radius;
+        /*Invert the mask. 0: Keep the pixels inside.*/
+        uint8_t outer : 1;
+    } cfg;
 
-        _lv_draw_mask_radius_circle_dsc_t* circle;
+    _lv_draw_mask_radius_circle_dsc_t* circle;
 } lv_draw_mask_radius_param_t;
 
 typedef struct {
-        /*The first element must be the common descriptor*/
-        _lv_draw_mask_common_dsc_t dsc;
+    /*The first element must be the common descriptor*/
+    _lv_draw_mask_common_dsc_t dsc;
 
-        struct {
-                lv_area_t coords;
-                lv_coord_t y_top;
-                lv_coord_t y_bottom;
-                lv_opa_t opa_top;
-                lv_opa_t opa_bottom;
-        } cfg;
+    struct {
+        lv_area_t coords;
+        lv_coord_t y_top;
+        lv_coord_t y_bottom;
+        lv_opa_t opa_top;
+        lv_opa_t opa_bottom;
+    } cfg;
 
 } lv_draw_mask_fade_param_t;
 
 typedef struct _lv_draw_mask_map_param_t {
-        /*The first element must be the common descriptor*/
-        _lv_draw_mask_common_dsc_t dsc;
+    /*The first element must be the common descriptor*/
+    _lv_draw_mask_common_dsc_t dsc;
 
-        struct {
-                lv_area_t coords;
-                const lv_opa_t* map;
-        } cfg;
+    struct {
+        lv_area_t coords;
+        const lv_opa_t* map;
+    } cfg;
 } lv_draw_mask_map_param_t;
 
 typedef struct {
-        /*The first element must be the common descriptor*/
-        _lv_draw_mask_common_dsc_t dsc;
+    /*The first element must be the common descriptor*/
+    _lv_draw_mask_common_dsc_t dsc;
 
-        struct {
-                lv_point_t* points;
-                uint16_t point_cnt;
-        } cfg;
+    struct {
+        lv_point_t* points;
+        uint16_t point_cnt;
+    } cfg;
 } lv_draw_mask_polygon_param_t;
 
 /**********************

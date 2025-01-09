@@ -37,23 +37,23 @@ typedef lv_color_t lv_grad_color_t;
  *  it's possible to cache the computation in this structure instance.
  *  Whenever possible, this structure is reused instead of recomputing the gradient map */
 typedef struct _lv_gradient_cache_t {
-        uint32_t key; /**< A discriminating key that's built from the drawing operation.
-                       * If the key does not match, the cache item is not used */
-        uint32_t life : 30; /**< A life counter that's incremented on usage. Higher counter is
-                             * less likely to be evicted from the cache */
-        uint32_t filled : 1; /**< Used to skip dithering in it if already done */
-        uint32_t not_cached : 1; /**< The cache was too small so this item is not managed by the cache*/
-        lv_color_t* map; /**< The computed gradient low bitdepth color map, points into the
-                          * cache's buffer, no free needed */
-        lv_coord_t alloc_size; /**< The map allocated size in colors */
-        lv_coord_t size; /**< The computed gradient color map size, in colors */
+    uint32_t key; /**< A discriminating key that's built from the drawing operation.
+                   * If the key does not match, the cache item is not used */
+    uint32_t life : 30; /**< A life counter that's incremented on usage. Higher counter is
+                         * less likely to be evicted from the cache */
+    uint32_t filled : 1; /**< Used to skip dithering in it if already done */
+    uint32_t not_cached : 1; /**< The cache was too small so this item is not managed by the cache*/
+    lv_color_t* map; /**< The computed gradient low bitdepth color map, points into the
+                      * cache's buffer, no free needed */
+    lv_coord_t alloc_size; /**< The map allocated size in colors */
+    lv_coord_t size; /**< The computed gradient color map size, in colors */
 #if _DITHER_GRADIENT
-        lv_color32_t* hmap; /**< If dithering, we need to store the current, high bitdepth gradient
-                             * map too, points to the cache's buffer, no free needed */
+    lv_color32_t* hmap; /**< If dithering, we need to store the current, high bitdepth gradient
+                         * map too, points to the cache's buffer, no free needed */
 #if LV_DITHER_ERROR_DIFFUSION == 1
-        lv_scolor24_t* error_acc; /**< Error diffusion dithering algorithm requires storing the last error
-                                   * drawn, points to the cache's buffer, no free needed  */
-        lv_coord_t w; /**< The error array width in pixels */
+    lv_scolor24_t* error_acc; /**< Error diffusion dithering algorithm requires storing the last error
+                               * drawn, points to the cache's buffer, no free needed  */
+    lv_coord_t w; /**< The error array width in pixels */
 #endif
 #endif
 } lv_grad_t;

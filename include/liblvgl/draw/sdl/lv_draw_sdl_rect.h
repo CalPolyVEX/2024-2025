@@ -32,8 +32,8 @@ extern "C" {
  **********************/
 
 typedef struct lv_draw_sdl_rect_header_t {
-        lv_img_header_t base;
-        SDL_Rect rect;
+    lv_img_header_t base;
+    SDL_Rect rect;
 } lv_draw_sdl_rect_header_t;
 
 /**********************

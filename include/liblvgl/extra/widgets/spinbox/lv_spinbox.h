@@ -33,16 +33,16 @@ extern "C" {
 
 /*Data of spinbox*/
 typedef struct {
-        lv_textarea_t ta; /*Ext. of ancestor*/
-        /*New data for this type*/
-        int32_t value;
-        int32_t range_max;
-        int32_t range_min;
-        int32_t step;
-        uint16_t digit_count : 4;
-        uint16_t dec_point_pos : 4; /*if 0, there is no separator and the number is an integer*/
-        uint16_t rollover : 1; // Set to true for rollover functionality
-        uint16_t digit_step_dir : 2; // the direction the digit will step on encoder button press when editing
+    lv_textarea_t ta; /*Ext. of ancestor*/
+    /*New data for this type*/
+    int32_t value;
+    int32_t range_max;
+    int32_t range_min;
+    int32_t step;
+    uint16_t digit_count : 4;
+    uint16_t dec_point_pos : 4; /*if 0, there is no separator and the number is an integer*/
+    uint16_t rollover : 1; // Set to true for rollover functionality
+    uint16_t digit_step_dir : 2; // the direction the digit will step on encoder button press when editing
 } lv_spinbox_t;
 
 extern const lv_obj_class_t lv_spinbox_class;

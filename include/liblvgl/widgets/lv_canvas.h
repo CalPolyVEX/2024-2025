@@ -32,8 +32,8 @@ extern const lv_obj_class_t lv_canvas_class;
 
 /*Data of canvas*/
 typedef struct {
-        lv_img_t img;
-        lv_img_dsc_t dsc;
+    lv_img_t img;
+    lv_img_dsc_t dsc;
 } lv_canvas_t;
 
 /**********************
@@ -78,7 +78,7 @@ void lv_canvas_set_px_color(lv_obj_t* canvas, lv_coord_t x, lv_coord_t y, lv_col
  * DEPRECATED: added only for backward compatibility
  */
 static inline void lv_canvas_set_px(lv_obj_t* canvas, lv_coord_t x, lv_coord_t y, lv_color_t c) {
-    lv_canvas_set_px_color(canvas, x, y, c);
+  lv_canvas_set_px_color(canvas, x, y, c);
 }
 
 /**

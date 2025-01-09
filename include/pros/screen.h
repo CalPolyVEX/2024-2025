@@ -47,16 +47,16 @@ namespace pros {
  * Different font sizes that can be used in printing text.
  */
 typedef enum {
-    /// Small text font size
-    E_TEXT_SMALL = 0,
-    /// Normal/Medium text font size
-    E_TEXT_MEDIUM,
-    /// Large text font size
-    E_TEXT_LARGE,
-    /// Medium centered text
-    E_TEXT_MEDIUM_CENTER,
-    /// Large centered text
-    E_TEXT_LARGE_CENTER
+  /// Small text font size
+  E_TEXT_SMALL = 0,
+  /// Normal/Medium text font size
+  E_TEXT_MEDIUM,
+  /// Large text font size
+  E_TEXT_LARGE,
+  /// Medium centered text
+  E_TEXT_MEDIUM_CENTER,
+  /// Large centered text
+  E_TEXT_LARGE_CENTER
 } text_format_e_t;
 
 /**
@@ -64,14 +64,14 @@ typedef enum {
  * Enum indicating what the current touch status is for the touchscreen.
  */
 typedef enum {
-    /// Last interaction with screen was a quick press
-    E_TOUCH_RELEASED = 0,
-    /// Last interaction with screen was a release
-    E_TOUCH_PRESSED,
-    /// User is holding screen down
-    E_TOUCH_HELD,
-    /// An error occured while taking/returning the mutex
-    E_TOUCH_ERROR
+  /// Last interaction with screen was a quick press
+  E_TOUCH_RELEASED = 0,
+  /// Last interaction with screen was a release
+  E_TOUCH_PRESSED,
+  /// User is holding screen down
+  E_TOUCH_HELD,
+  /// An error occured while taking/returning the mutex
+  E_TOUCH_ERROR
 } last_touch_e_t;
 
 /**
@@ -79,11 +79,11 @@ typedef enum {
  *  Struct representing screen touch status, screen last x, screen last y, press count, release count.
  */
 typedef struct screen_touch_status_s {
-        last_touch_e_t touch_status; ///< Represents if the screen is being held, released, or pressed.
-        int16_t x; ///< Represents the x value of the location of the touch.
-        int16_t y; ///< Represents the y value of the location of the touch.
-        int32_t press_count; ///< Represents how many times the screen has be pressed.
-        int32_t release_count; ///< Represents how many times the user released after a touch on the screen.
+    last_touch_e_t touch_status; ///< Represents if the screen is being held, released, or pressed.
+    int16_t x; ///< Represents the x value of the location of the touch.
+    int16_t y; ///< Represents the y value of the location of the touch.
+    int32_t press_count; ///< Represents how many times the screen has be pressed.
+    int32_t release_count; ///< Represents how many times the user released after a touch on the screen.
 } screen_touch_status_s_t;
 
 #ifdef PROS_USE_SIMPLE_NAMES

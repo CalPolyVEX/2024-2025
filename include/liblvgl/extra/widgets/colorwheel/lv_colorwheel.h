@@ -31,19 +31,19 @@ typedef uint8_t lv_colorwheel_mode_t;
 
 /*Data of color picker*/
 typedef struct {
-        lv_obj_t obj;
-        lv_color_hsv_t hsv;
+    lv_obj_t obj;
+    lv_color_hsv_t hsv;
 
-        struct {
-                lv_point_t pos;
-                uint8_t recolor : 1;
-        } knob;
+    struct {
+        lv_point_t pos;
+        uint8_t recolor : 1;
+    } knob;
 
-        uint32_t last_click_time;
-        uint32_t last_change_time;
-        lv_point_t last_press_point;
-        lv_colorwheel_mode_t mode : 2;
-        uint8_t mode_fixed : 1;
+    uint32_t last_click_time;
+    uint32_t last_change_time;
+    lv_point_t last_press_point;
+    lv_colorwheel_mode_t mode : 2;
+    uint8_t mode_fixed : 1;
 } lv_colorwheel_t;
 
 extern const lv_obj_class_t lv_colorwheel_class;

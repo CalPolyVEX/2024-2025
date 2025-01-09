@@ -27,8 +27,8 @@ struct _lv_obj_t;
 typedef void (*lv_layout_update_cb_t)(struct _lv_obj_t*, void* user_data);
 
 typedef struct {
-        lv_layout_update_cb_t cb;
-        void* user_data;
+    lv_layout_update_cb_t cb;
+    void* user_data;
 } lv_layout_dsc_t;
 
 /**********************

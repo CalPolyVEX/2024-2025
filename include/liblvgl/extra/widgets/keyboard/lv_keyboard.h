@@ -30,7 +30,7 @@ extern "C" {
  *      DEFINES
  *********************/
 #define LV_KEYBOARD_CTRL_BTN_FLAGS                                                                                     \
-    (LV_BTNMATRIX_CTRL_NO_REPEAT | LV_BTNMATRIX_CTRL_CLICK_TRIG | LV_BTNMATRIX_CTRL_CHECKED)
+  (LV_BTNMATRIX_CTRL_NO_REPEAT | LV_BTNMATRIX_CTRL_CLICK_TRIG | LV_BTNMATRIX_CTRL_CHECKED)
 
 /**********************
  *      TYPEDEFS
@@ -38,24 +38,24 @@ extern "C" {
 
 /** Current keyboard mode.*/
 enum {
-    LV_KEYBOARD_MODE_TEXT_LOWER,
-    LV_KEYBOARD_MODE_TEXT_UPPER,
-    LV_KEYBOARD_MODE_SPECIAL,
-    LV_KEYBOARD_MODE_NUMBER,
-    LV_KEYBOARD_MODE_USER_1,
-    LV_KEYBOARD_MODE_USER_2,
-    LV_KEYBOARD_MODE_USER_3,
-    LV_KEYBOARD_MODE_USER_4,
+  LV_KEYBOARD_MODE_TEXT_LOWER,
+  LV_KEYBOARD_MODE_TEXT_UPPER,
+  LV_KEYBOARD_MODE_SPECIAL,
+  LV_KEYBOARD_MODE_NUMBER,
+  LV_KEYBOARD_MODE_USER_1,
+  LV_KEYBOARD_MODE_USER_2,
+  LV_KEYBOARD_MODE_USER_3,
+  LV_KEYBOARD_MODE_USER_4,
 };
 
 typedef uint8_t lv_keyboard_mode_t;
 
 /*Data of keyboard*/
 typedef struct {
-        lv_btnmatrix_t btnm;
-        lv_obj_t* ta; /*Pointer to the assigned text area*/
-        lv_keyboard_mode_t mode; /*Key map type*/
-        uint8_t popovers : 1; /*Show button titles in popovers on press*/
+    lv_btnmatrix_t btnm;
+    lv_obj_t* ta; /*Pointer to the assigned text area*/
+    lv_keyboard_mode_t mode; /*Key map type*/
+    uint8_t popovers : 1; /*Show button titles in popovers on press*/
 } lv_keyboard_t;
 
 extern const lv_obj_class_t lv_keyboard_class;
@@ -153,7 +153,7 @@ static inline uint16_t lv_keyboard_get_selected_btn(const lv_obj_t* obj) { retur
  * @return          text of btn_index` button
  */
 static inline const char* lv_keyboard_get_btn_text(const lv_obj_t* obj, uint16_t btn_id) {
-    return lv_btnmatrix_get_btn_text(obj, btn_id);
+  return lv_btnmatrix_get_btn_text(obj, btn_id);
 }
 
 /*=====================

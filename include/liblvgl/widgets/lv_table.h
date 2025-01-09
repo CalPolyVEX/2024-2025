@@ -36,26 +36,26 @@ LV_EXPORT_CONST_INT(LV_TABLE_CELL_NONE);
  **********************/
 
 enum {
-    LV_TABLE_CELL_CTRL_MERGE_RIGHT = 1 << 0,
-    LV_TABLE_CELL_CTRL_TEXT_CROP = 1 << 1,
-    LV_TABLE_CELL_CTRL_CUSTOM_1 = 1 << 4,
-    LV_TABLE_CELL_CTRL_CUSTOM_2 = 1 << 5,
-    LV_TABLE_CELL_CTRL_CUSTOM_3 = 1 << 6,
-    LV_TABLE_CELL_CTRL_CUSTOM_4 = 1 << 7,
+  LV_TABLE_CELL_CTRL_MERGE_RIGHT = 1 << 0,
+  LV_TABLE_CELL_CTRL_TEXT_CROP = 1 << 1,
+  LV_TABLE_CELL_CTRL_CUSTOM_1 = 1 << 4,
+  LV_TABLE_CELL_CTRL_CUSTOM_2 = 1 << 5,
+  LV_TABLE_CELL_CTRL_CUSTOM_3 = 1 << 6,
+  LV_TABLE_CELL_CTRL_CUSTOM_4 = 1 << 7,
 };
 
 typedef uint8_t lv_table_cell_ctrl_t;
 
 /*Data of table*/
 typedef struct {
-        lv_obj_t obj;
-        uint16_t col_cnt;
-        uint16_t row_cnt;
-        char** cell_data;
-        lv_coord_t* row_h;
-        lv_coord_t* col_w;
-        uint16_t col_act;
-        uint16_t row_act;
+    lv_obj_t obj;
+    uint16_t col_cnt;
+    uint16_t row_cnt;
+    char** cell_data;
+    lv_coord_t* row_h;
+    lv_coord_t* col_w;
+    uint16_t col_act;
+    uint16_t row_act;
 } lv_table_t;
 
 extern const lv_obj_class_t lv_table_class;
@@ -65,7 +65,7 @@ extern const lv_obj_class_t lv_table_class;
  * Used in `LV_EVENT_DRAW_PART_BEGIN` and `LV_EVENT_DRAW_PART_END`
  */
 typedef enum {
-    LV_TABLE_DRAW_PART_CELL, /**< A cell*/
+  LV_TABLE_DRAW_PART_CELL, /**< A cell*/
 } lv_table_draw_part_type_t;
 
 /**********************

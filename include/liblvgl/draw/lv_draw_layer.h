@@ -26,9 +26,9 @@ struct _lv_draw_ctx_t;
 struct _lv_draw_layer_ctx_t;
 
 typedef enum {
-    LV_DRAW_LAYER_FLAG_NONE,
-    LV_DRAW_LAYER_FLAG_HAS_ALPHA,
-    LV_DRAW_LAYER_FLAG_CAN_SUBDIVIDE,
+  LV_DRAW_LAYER_FLAG_NONE,
+  LV_DRAW_LAYER_FLAG_HAS_ALPHA,
+  LV_DRAW_LAYER_FLAG_CAN_SUBDIVIDE,
 } lv_draw_layer_flags_t;
 
 /**********************

@@ -41,50 +41,50 @@ namespace pros {
  * \struct gps_position_s_t
  */
 typedef struct __attribute__((__packed__)) gps_position_s {
-        /// X Position (meters)
-        double x;
-        /// Y Position (meters)
-        double y;
+    /// X Position (meters)
+    double x;
+    /// Y Position (meters)
+    double y;
 } gps_position_s_t;
 
 /**
  * \struct gps_status_s_t
  */
 typedef struct __attribute__((__packed__)) gps_status_s {
-        /// X Position (meters)
-        double x;
-        /// Y Position (meters)
-        double y;
-        /// Perceived Pitch based on GPS + IMU
-        double pitch;
-        /// Perceived Roll based on GPS + IMU
-        double roll;
-        /// Perceived Yaw based on GPS + IMU
-        double yaw;
+    /// X Position (meters)
+    double x;
+    /// Y Position (meters)
+    double y;
+    /// Perceived Pitch based on GPS + IMU
+    double pitch;
+    /// Perceived Roll based on GPS + IMU
+    double roll;
+    /// Perceived Yaw based on GPS + IMU
+    double yaw;
 } gps_status_s_t;
 
 /**
  * \struct gps_orientation_s_t
  */
 typedef struct __attribute__((__packed__)) gps_orientation_s {
-        /// Perceived Pitch based on GPS + IMU
-        double pitch;
-        /// Perceived Roll based on GPS + IMU
-        double roll;
-        /// Perceived Yaw based on GPS + IMU
-        double yaw;
+    /// Perceived Pitch based on GPS + IMU
+    double pitch;
+    /// Perceived Roll based on GPS + IMU
+    double roll;
+    /// Perceived Yaw based on GPS + IMU
+    double yaw;
 } gps_orientation_s_t;
 
 /**
  * \struct gps_raw_s
  */
 struct gps_raw_s {
-        /// Perceived Pitch based on GPS + IMU
-        double x;
-        /// Perceived Roll based on GPS + IMU
-        double y;
-        /// Perceived Yaw based on GPS + IMU
-        double z;
+    /// Perceived Pitch based on GPS + IMU
+    double x;
+    /// Perceived Roll based on GPS + IMU
+    double y;
+    /// Perceived Yaw based on GPS + IMU
+    double z;
 };
 
 /**

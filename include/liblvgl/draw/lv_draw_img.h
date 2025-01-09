@@ -30,18 +30,18 @@ extern "C" {
  **********************/
 
 typedef struct {
-        int16_t angle;
-        uint16_t zoom;
-        lv_point_t pivot;
+    int16_t angle;
+    uint16_t zoom;
+    lv_point_t pivot;
 
-        lv_color_t recolor;
-        lv_opa_t recolor_opa;
+    lv_color_t recolor;
+    lv_opa_t recolor_opa;
 
-        lv_opa_t opa;
-        lv_blend_mode_t blend_mode : 4;
+    lv_opa_t opa;
+    lv_blend_mode_t blend_mode : 4;
 
-        int32_t frame_id;
-        uint8_t antialias : 1;
+    int32_t frame_id;
+    uint8_t antialias : 1;
 } lv_draw_img_dsc_t;
 
 struct _lv_draw_ctx_t;

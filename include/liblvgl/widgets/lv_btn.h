@@ -27,7 +27,7 @@ extern "C" {
  **********************/
 
 typedef struct {
-        lv_obj_t obj;
+    lv_obj_t obj;
 } lv_btn_t;
 
 extern const lv_obj_class_t lv_btn_class;
