@@ -82,7 +82,6 @@ void conveyor_deposit_and_intake(int speed = 600) {
 
 void move_conveyor_backward() { conveyor_deposit_and_intake(-600); }
 
-
 bool has_set_target = false;
 
 bool load_for_fish_mech() {
