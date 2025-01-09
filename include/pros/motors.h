@@ -544,16 +544,16 @@ int32_t motor_is_over_temp(int8_t port);
  * \enum motor_fault_e_t
  */
 typedef enum motor_fault_e {
-    /// No faults
-    E_MOTOR_FAULT_NO_FAULTS = 0x00,
-    /// Analogous to motor_is_over_temp()
-    E_MOTOR_FAULT_MOTOR_OVER_TEMP = 0x01,
-    /// Indicates a motor h-bridge fault
-    E_MOTOR_FAULT_DRIVER_FAULT = 0x02,
-    /// Analogous to motor_is_over_current()
-    E_MOTOR_FAULT_OVER_CURRENT = 0x04,
-    /// Indicates an h-bridge over current
-    E_MOTOR_FAULT_DRV_OVER_CURRENT = 0x08
+  /// No faults
+  E_MOTOR_FAULT_NO_FAULTS = 0x00,
+  /// Analogous to motor_is_over_temp()
+  E_MOTOR_FAULT_MOTOR_OVER_TEMP = 0x01,
+  /// Indicates a motor h-bridge fault
+  E_MOTOR_FAULT_DRIVER_FAULT = 0x02,
+  /// Analogous to motor_is_over_current()
+  E_MOTOR_FAULT_OVER_CURRENT = 0x04,
+  /// Indicates an h-bridge over current
+  E_MOTOR_FAULT_DRV_OVER_CURRENT = 0x08
 } motor_fault_e_t;
 
 #ifdef PROS_USE_SIMPLE_NAMES
@@ -613,14 +613,14 @@ uint32_t motor_get_faults(int8_t port);
  *
  */
 typedef enum motor_flag_e {
-    /// There are no flags raised
-    E_MOTOR_FLAGS_NONE = 0x00,
-    /// Cannot currently communicate to the motor
-    E_MOTOR_FLAGS_BUSY = 0x01,
-    /// Analogous to motor_is_stopped()
-    E_MOTOR_FLAGS_ZERO_VELOCITY = 0x02,
-    /// Analogous to motor_get_zero_position_flag()
-    E_MOTOR_FLAGS_ZERO_POSITION = 0x04
+  /// There are no flags raised
+  E_MOTOR_FLAGS_NONE = 0x00,
+  /// Cannot currently communicate to the motor
+  E_MOTOR_FLAGS_BUSY = 0x01,
+  /// Analogous to motor_is_stopped()
+  E_MOTOR_FLAGS_ZERO_VELOCITY = 0x02,
+  /// Analogous to motor_get_zero_position_flag()
+  E_MOTOR_FLAGS_ZERO_POSITION = 0x04
 } motor_flag_e_t;
 
 #ifdef PROS_USE_SIMPLE_NAMES
@@ -856,14 +856,14 @@ int32_t motor_get_voltage(int8_t port);
  * Indicates the current 'brake mode' of a motor.
  */
 typedef enum motor_brake_mode_e {
-    /// Motor coasts when stopped, traditional behavior
-    E_MOTOR_BRAKE_COAST = 0,
-    /// Motor brakes when stopped
-    E_MOTOR_BRAKE_BRAKE = 1,
-    /// Motor actively holds position when stopped
-    E_MOTOR_BRAKE_HOLD = 2,
-    /// Invalid brake mode
-    E_MOTOR_BRAKE_INVALID = INT32_MAX
+  /// Motor coasts when stopped, traditional behavior
+  E_MOTOR_BRAKE_COAST = 0,
+  /// Motor brakes when stopped
+  E_MOTOR_BRAKE_BRAKE = 1,
+  /// Motor actively holds position when stopped
+  E_MOTOR_BRAKE_HOLD = 2,
+  /// Invalid brake mode
+  E_MOTOR_BRAKE_INVALID = INT32_MAX
 } motor_brake_mode_e_t;
 
 /**
@@ -871,14 +871,14 @@ typedef enum motor_brake_mode_e {
  * Indicates the units used by the motor encoders.
  */
 typedef enum motor_encoder_units_e {
-    /// Position is recorded as angle in degrees as a floating point number
-    E_MOTOR_ENCODER_DEGREES = 0,
-    /// Position is recorded as angle in rotations as a floating point number
-    E_MOTOR_ENCODER_ROTATIONS = 1,
-    /// Position is recorded as raw encoder ticks as a whole number
-    E_MOTOR_ENCODER_COUNTS = 2,
-    /// Invalid motor encoder units
-    E_MOTOR_ENCODER_INVALID = INT32_MAX
+  /// Position is recorded as angle in degrees as a floating point number
+  E_MOTOR_ENCODER_DEGREES = 0,
+  /// Position is recorded as angle in rotations as a floating point number
+  E_MOTOR_ENCODER_ROTATIONS = 1,
+  /// Position is recorded as raw encoder ticks as a whole number
+  E_MOTOR_ENCODER_COUNTS = 2,
+  /// Invalid motor encoder units
+  E_MOTOR_ENCODER_INVALID = INT32_MAX
 } motor_encoder_units_e_t;
 
 /**
@@ -886,16 +886,16 @@ typedef enum motor_encoder_units_e {
  * Indicates the current internal gear ratio of a motor.
  */
 typedef enum motor_gearset_e {
-    E_MOTOR_GEARSET_36 = 0, // 36:1, 100 RPM, Red gear set
-    E_MOTOR_GEAR_RED = E_MOTOR_GEARSET_36, // 36:1, 100 RPM, Red gear set
-    E_MOTOR_GEAR_100 = E_MOTOR_GEARSET_36, // 36:1, 100 RPM, Red gear set
-    E_MOTOR_GEARSET_18 = 1, // 18:1, 200 RPM, Green gear set
-    E_MOTOR_GEAR_GREEN = E_MOTOR_GEARSET_18, // 18:1, 200 RPM, Green gear set
-    E_MOTOR_GEAR_200 = E_MOTOR_GEARSET_18, // 18:1, 200 RPM, Green gear set
-    E_MOTOR_GEARSET_06 = 2, // 6:1, 600 RPM, Blue gear set
-    E_MOTOR_GEAR_BLUE = E_MOTOR_GEARSET_06, // 6:1, 600 RPM, Blue gear set
-    E_MOTOR_GEAR_600 = E_MOTOR_GEARSET_06, // 6:1, 600 RPM, Blue gear set
-    E_MOTOR_GEARSET_INVALID = INT32_MAX, // Error: Invalid Gearset
+  E_MOTOR_GEARSET_36 = 0, // 36:1, 100 RPM, Red gear set
+  E_MOTOR_GEAR_RED = E_MOTOR_GEARSET_36, // 36:1, 100 RPM, Red gear set
+  E_MOTOR_GEAR_100 = E_MOTOR_GEARSET_36, // 36:1, 100 RPM, Red gear set
+  E_MOTOR_GEARSET_18 = 1, // 18:1, 200 RPM, Green gear set
+  E_MOTOR_GEAR_GREEN = E_MOTOR_GEARSET_18, // 18:1, 200 RPM, Green gear set
+  E_MOTOR_GEAR_200 = E_MOTOR_GEARSET_18, // 18:1, 200 RPM, Green gear set
+  E_MOTOR_GEARSET_06 = 2, // 6:1, 600 RPM, Blue gear set
+  E_MOTOR_GEAR_BLUE = E_MOTOR_GEARSET_06, // 6:1, 600 RPM, Blue gear set
+  E_MOTOR_GEAR_600 = E_MOTOR_GEARSET_06, // 6:1, 600 RPM, Blue gear set
+  E_MOTOR_GEARSET_INVALID = INT32_MAX, // Error: Invalid Gearset
 } motor_gearset_e_t;
 
 #ifdef PROS_USE_SIMPLE_NAMES
@@ -951,23 +951,23 @@ typedef enum motor_gearset_e {
  * 0x21 represents 2.0625, 0x22 represents 2.125, etc.
  */
 typedef struct motor_pid_full_s {
-        /// The feedforward constant
-        uint8_t kf;
-        /// The proportional constant
-        uint8_t kp;
-        /// The integral constants
-        uint8_t ki;
-        /// The derivative constant
-        uint8_t kd;
-        /// A constant used for filtering the profile acceleration
-        uint8_t filter;
-        /// The integral limit
-        uint16_t limit;
-        /// The threshold for determining if a position movement hasreached its goa l. This has no effect for velocity
-        /// PID calculations.
-        uint8_t threshold;
-        /// The rate at which the PID computation is run in ms
-        uint8_t loopspeed;
+    /// The feedforward constant
+    uint8_t kf;
+    /// The proportional constant
+    uint8_t kp;
+    /// The integral constants
+    uint8_t ki;
+    /// The derivative constant
+    uint8_t kd;
+    /// A constant used for filtering the profile acceleration
+    uint8_t filter;
+    /// The integral limit
+    uint16_t limit;
+    /// The threshold for determining if a position movement hasreached its goa l. This has no effect for velocity
+    /// PID calculations.
+    uint8_t threshold;
+    /// The rate at which the PID computation is run in ms
+    uint8_t loopspeed;
 } motor_pid_full_s_t;
 
 /**
@@ -979,14 +979,14 @@ typedef struct motor_pid_full_s {
  * 0x21 represents 2.0625, 0x22 represents 2.125, etc.
  */
 typedef struct motor_pid_s {
-        /// The feedforward constant
-        uint8_t kf;
-        /// The proportional constant
-        uint8_t kp;
-        /// The integral constants
-        uint8_t ki;
-        /// The derivative constant
-        uint8_t kd;
+    /// The feedforward constant
+    uint8_t kf;
+    /// The proportional constant
+    uint8_t kp;
+    /// The integral constants
+    uint8_t ki;
+    /// The derivative constant
+    uint8_t kd;
 } motor_pid_s_t;
 
 #ifdef __cplusplus

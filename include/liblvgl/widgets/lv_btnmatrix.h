@@ -32,19 +32,19 @@ LV_EXPORT_CONST_INT(LV_BTNMATRIX_BTN_NONE);
 /** Type to store button control bits (disabled, hidden etc.)
  * The first 3 bits are used to store the width*/
 enum {
-    _LV_BTNMATRIX_WIDTH = 0x0007, /**< Reserved to stire the size units*/
-    LV_BTNMATRIX_CTRL_HIDDEN = 0x0008, /**< Button hidden*/
-    LV_BTNMATRIX_CTRL_NO_REPEAT = 0x0010, /**< Do not repeat press this button.*/
-    LV_BTNMATRIX_CTRL_DISABLED = 0x0020, /**< Disable this button.*/
-    LV_BTNMATRIX_CTRL_CHECKABLE = 0x0040, /**< The button can be toggled.*/
-    LV_BTNMATRIX_CTRL_CHECKED = 0x0080, /**< Button is currently toggled (e.g. checked).*/
-    LV_BTNMATRIX_CTRL_CLICK_TRIG =
-        0x0100, /**< 1: Send LV_EVENT_VALUE_CHANGE on CLICK, 0: Send LV_EVENT_VALUE_CHANGE on PRESS*/
-    LV_BTNMATRIX_CTRL_POPOVER = 0x0200, /**< Show a popover when pressing this key*/
-    LV_BTNMATRIX_CTRL_RECOLOR = 0x1000, /**< Enable text recoloring with `#color`*/
-    _LV_BTNMATRIX_CTRL_RESERVED = 0x2000, /**< Reserved for later use*/
-    LV_BTNMATRIX_CTRL_CUSTOM_1 = 0x4000, /**< Custom free to use flag*/
-    LV_BTNMATRIX_CTRL_CUSTOM_2 = 0x8000, /**< Custom free to use flag*/
+  _LV_BTNMATRIX_WIDTH = 0x0007, /**< Reserved to stire the size units*/
+  LV_BTNMATRIX_CTRL_HIDDEN = 0x0008, /**< Button hidden*/
+  LV_BTNMATRIX_CTRL_NO_REPEAT = 0x0010, /**< Do not repeat press this button.*/
+  LV_BTNMATRIX_CTRL_DISABLED = 0x0020, /**< Disable this button.*/
+  LV_BTNMATRIX_CTRL_CHECKABLE = 0x0040, /**< The button can be toggled.*/
+  LV_BTNMATRIX_CTRL_CHECKED = 0x0080, /**< Button is currently toggled (e.g. checked).*/
+  LV_BTNMATRIX_CTRL_CLICK_TRIG =
+      0x0100, /**< 1: Send LV_EVENT_VALUE_CHANGE on CLICK, 0: Send LV_EVENT_VALUE_CHANGE on PRESS*/
+  LV_BTNMATRIX_CTRL_POPOVER = 0x0200, /**< Show a popover when pressing this key*/
+  LV_BTNMATRIX_CTRL_RECOLOR = 0x1000, /**< Enable text recoloring with `#color`*/
+  _LV_BTNMATRIX_CTRL_RESERVED = 0x2000, /**< Reserved for later use*/
+  LV_BTNMATRIX_CTRL_CUSTOM_1 = 0x4000, /**< Custom free to use flag*/
+  LV_BTNMATRIX_CTRL_CUSTOM_2 = 0x8000, /**< Custom free to use flag*/
 };
 
 typedef uint16_t lv_btnmatrix_ctrl_t;
@@ -54,14 +54,14 @@ typedef bool (*lv_btnmatrix_btn_draw_cb_t)(lv_obj_t* btnm, uint32_t btn_id, cons
 
 /*Data of button matrix*/
 typedef struct {
-        lv_obj_t obj;
-        const char** map_p; /*Pointer to the current map*/
-        lv_area_t* button_areas; /*Array of areas of buttons*/
-        lv_btnmatrix_ctrl_t* ctrl_bits; /*Array of control bytes*/
-        uint16_t btn_cnt; /*Number of button in 'map_p'(Handled by the library)*/
-        uint16_t row_cnt; /*Number of rows in 'map_p'(Handled by the library)*/
-        uint16_t btn_id_sel; /*Index of the active button (being pressed/released etc) or LV_BTNMATRIX_BTN_NONE*/
-        uint8_t one_check : 1; /*Single button toggled at once*/
+    lv_obj_t obj;
+    const char** map_p; /*Pointer to the current map*/
+    lv_area_t* button_areas; /*Array of areas of buttons*/
+    lv_btnmatrix_ctrl_t* ctrl_bits; /*Array of control bytes*/
+    uint16_t btn_cnt; /*Number of button in 'map_p'(Handled by the library)*/
+    uint16_t row_cnt; /*Number of rows in 'map_p'(Handled by the library)*/
+    uint16_t btn_id_sel; /*Index of the active button (being pressed/released etc) or LV_BTNMATRIX_BTN_NONE*/
+    uint8_t one_check : 1; /*Single button toggled at once*/
 } lv_btnmatrix_t;
 
 extern const lv_obj_class_t lv_btnmatrix_class;
@@ -71,7 +71,7 @@ extern const lv_obj_class_t lv_btnmatrix_class;
  * Used in `LV_EVENT_DRAW_PART_BEGIN` and `LV_EVENT_DRAW_PART_END`
  */
 typedef enum {
-    LV_BTNMATRIX_DRAW_PART_BTN, /**< The rectangle and label of buttons*/
+  LV_BTNMATRIX_DRAW_PART_BTN, /**< The rectangle and label of buttons*/
 } lv_btnmatrix_draw_part_type_t;
 
 /**********************

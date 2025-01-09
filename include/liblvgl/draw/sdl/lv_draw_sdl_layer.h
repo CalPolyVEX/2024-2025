@@ -23,12 +23,12 @@ extern "C" {
  *      TYPEDEFS
  **********************/
 typedef struct _lv_draw_sdl_layer_ctx_t {
-        lv_draw_layer_ctx_t base;
+    lv_draw_layer_ctx_t base;
 
-        SDL_Texture* orig_target;
-        SDL_Texture* target;
-        SDL_Rect target_rect;
-        lv_draw_layer_flags_t flags;
+    SDL_Texture* orig_target;
+    SDL_Texture* target;
+    SDL_Rect target_rect;
+    lv_draw_layer_flags_t flags;
 } lv_draw_sdl_layer_ctx_t;
 
 /**********************

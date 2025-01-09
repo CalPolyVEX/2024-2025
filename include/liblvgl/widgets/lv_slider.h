@@ -34,20 +34,20 @@ extern "C" {
  **********************/
 
 enum {
-    LV_SLIDER_MODE_NORMAL = LV_BAR_MODE_NORMAL,
-    LV_SLIDER_MODE_SYMMETRICAL = LV_BAR_MODE_SYMMETRICAL,
-    LV_SLIDER_MODE_RANGE = LV_BAR_MODE_RANGE
+  LV_SLIDER_MODE_NORMAL = LV_BAR_MODE_NORMAL,
+  LV_SLIDER_MODE_SYMMETRICAL = LV_BAR_MODE_SYMMETRICAL,
+  LV_SLIDER_MODE_RANGE = LV_BAR_MODE_RANGE
 };
 
 typedef uint8_t lv_slider_mode_t;
 
 typedef struct {
-        lv_bar_t bar; /*Add the ancestor's type first*/
-        lv_area_t left_knob_area;
-        lv_area_t right_knob_area;
-        int32_t* value_to_set; /*Which bar value to set*/
-        uint8_t dragging : 1; /*1: the slider is being dragged*/
-        uint8_t left_knob_focus : 1; /*1: with encoder now the right knob can be adjusted*/
+    lv_bar_t bar; /*Add the ancestor's type first*/
+    lv_area_t left_knob_area;
+    lv_area_t right_knob_area;
+    int32_t* value_to_set; /*Which bar value to set*/
+    uint8_t dragging : 1; /*1: the slider is being dragged*/
+    uint8_t left_knob_focus : 1; /*1: with encoder now the right knob can be adjusted*/
 } lv_slider_t;
 
 extern const lv_obj_class_t lv_slider_class;
@@ -57,8 +57,8 @@ extern const lv_obj_class_t lv_slider_class;
  * Used in `LV_EVENT_DRAW_PART_BEGIN` and `LV_EVENT_DRAW_PART_END`
  */
 typedef enum {
-    LV_SLIDER_DRAW_PART_KNOB, /**< The main (right) knob's rectangle*/
-    LV_SLIDER_DRAW_PART_KNOB_LEFT, /**< The left knob's rectangle*/
+  LV_SLIDER_DRAW_PART_KNOB, /**< The main (right) knob's rectangle*/
+  LV_SLIDER_DRAW_PART_KNOB_LEFT, /**< The left knob's rectangle*/
 } lv_slider_draw_part_type_t;
 
 /**********************
@@ -83,7 +83,7 @@ lv_obj_t* lv_slider_create(lv_obj_t* parent);
  * @param anim      LV_ANIM_ON: set the value with an animation; LV_ANIM_OFF: change the value immediately
  */
 static inline void lv_slider_set_value(lv_obj_t* obj, int32_t value, lv_anim_enable_t anim) {
-    lv_bar_set_value(obj, value, anim);
+  lv_bar_set_value(obj, value, anim);
 }
 
 /**
@@ -93,7 +93,7 @@ static inline void lv_slider_set_value(lv_obj_t* obj, int32_t value, lv_anim_ena
  * @param anim      LV_ANIM_ON: set the value with an animation; LV_ANIM_OFF: change the value immediately
  */
 static inline void lv_slider_set_left_value(lv_obj_t* obj, int32_t value, lv_anim_enable_t anim) {
-    lv_bar_set_start_value(obj, value, anim);
+  lv_bar_set_start_value(obj, value, anim);
 }
 
 /**
@@ -110,7 +110,7 @@ static inline void lv_slider_set_range(lv_obj_t* obj, int32_t min, int32_t max) 
  * @param mode      the mode of the slider. See ::lv_slider_mode_t
  */
 static inline void lv_slider_set_mode(lv_obj_t* obj, lv_slider_mode_t mode) {
-    lv_bar_set_mode(obj, (lv_bar_mode_t)mode);
+  lv_bar_set_mode(obj, (lv_bar_mode_t)mode);
 }
 
 /*=====================
@@ -158,10 +158,10 @@ bool lv_slider_is_dragged(const lv_obj_t* obj);
  * @return          see ::lv_slider_mode_t
  */
 static inline lv_slider_mode_t lv_slider_get_mode(lv_obj_t* slider) {
-    lv_bar_mode_t mode = lv_bar_get_mode(slider);
-    if (mode == LV_BAR_MODE_SYMMETRICAL) return LV_SLIDER_MODE_SYMMETRICAL;
-    else if (mode == LV_BAR_MODE_RANGE) return LV_SLIDER_MODE_RANGE;
-    else return LV_SLIDER_MODE_NORMAL;
+  lv_bar_mode_t mode = lv_bar_get_mode(slider);
+  if (mode == LV_BAR_MODE_SYMMETRICAL) return LV_SLIDER_MODE_SYMMETRICAL;
+  else if (mode == LV_BAR_MODE_RANGE) return LV_SLIDER_MODE_RANGE;
+  else return LV_SLIDER_MODE_NORMAL;
 }
 
 /**********************

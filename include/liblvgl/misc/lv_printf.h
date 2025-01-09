@@ -64,8 +64,8 @@ extern "C" {
 #include "lv_types.h"
 
 typedef struct {
-        const char* fmt;
-        va_list* va;
+    const char* fmt;
+    va_list* va;
 } lv_vaformat_t;
 
 /**

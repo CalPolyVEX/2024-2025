@@ -29,23 +29,23 @@ extern "C" {
  * Represents a date on the calendar object (platform-agnostic).
  */
 typedef struct {
-        uint16_t year;
-        int8_t month; /** 1..12*/
-        int8_t day; /** 1..31*/
+    uint16_t year;
+    int8_t month; /** 1..12*/
+    int8_t day; /** 1..31*/
 } lv_calendar_date_t;
 
 /*Data of calendar*/
 typedef struct {
-        lv_obj_t obj;
-        lv_obj_t* btnm;
-        /*New data for this type*/
-        lv_calendar_date_t today; /*Date of today*/
-        lv_calendar_date_t showed_date; /*Currently visible month (day is ignored)*/
-        lv_calendar_date_t*
-            highlighted_dates; /*Apply different style on these days (pointer to an array defined by the user)*/
-        uint16_t highlighted_dates_num; /*Number of elements in `highlighted_days`*/
-        const char* map[8 * 7];
-        char nums[7 * 6][4];
+    lv_obj_t obj;
+    lv_obj_t* btnm;
+    /*New data for this type*/
+    lv_calendar_date_t today; /*Date of today*/
+    lv_calendar_date_t showed_date; /*Currently visible month (day is ignored)*/
+    lv_calendar_date_t*
+        highlighted_dates; /*Apply different style on these days (pointer to an array defined by the user)*/
+    uint16_t highlighted_dates_num; /*Number of elements in `highlighted_days`*/
+    const char* map[8 * 7];
+    char nums[7 * 6][4];
 } lv_calendar_t;
 
 extern const lv_obj_class_t lv_calendar_class;

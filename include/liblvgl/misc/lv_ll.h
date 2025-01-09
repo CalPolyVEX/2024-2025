@@ -30,9 +30,9 @@ typedef uint8_t lv_ll_node_t;
 
 /** Description of a linked list*/
 typedef struct {
-        uint32_t n_size;
-        lv_ll_node_t* head;
-        lv_ll_node_t* tail;
+    uint32_t n_size;
+    lv_ll_node_t* head;
+    lv_ll_node_t* tail;
 } lv_ll_t;
 
 /**********************

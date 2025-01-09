@@ -131,43 +131,43 @@ void lv_vglite_invalidate_cache(void);
  **********************/
 
 #define VG_LITE_COND_STOP(cond, txt)                                                                                   \
-    do {                                                                                                               \
-        if (cond) {                                                                                                    \
-            LV_LOG_ERROR("%s. STOP!", txt);                                                                            \
-            for (;;);                                                                                                  \
-        }                                                                                                              \
-    } while (0)
+  do {                                                                                                                 \
+    if (cond) {                                                                                                        \
+      LV_LOG_ERROR("%s. STOP!", txt);                                                                                  \
+      for (;;);                                                                                                        \
+    }                                                                                                                  \
+  } while (0)
 
 #if LV_GPU_NXP_VG_LITE_LOG_ERRORS
 #define VG_LITE_ERR_RETURN_INV(err, fmt, ...)                                                                          \
-    do {                                                                                                               \
-        if (err != VG_LITE_SUCCESS) {                                                                                  \
-            LV_LOG_ERROR(fmt, ##__VA_ARGS__);                                                                          \
-            return LV_RES_INV;                                                                                         \
-        }                                                                                                              \
-    } while (0)
+  do {                                                                                                                 \
+    if (err != VG_LITE_SUCCESS) {                                                                                      \
+      LV_LOG_ERROR(fmt, ##__VA_ARGS__);                                                                                \
+      return LV_RES_INV;                                                                                               \
+    }                                                                                                                  \
+  } while (0)
 #else
 #define VG_LITE_ERR_RETURN_INV(err, fmt, ...)                                                                          \
-    do {                                                                                                               \
-        if (err != VG_LITE_SUCCESS) { return LV_RES_INV; }                                                             \
-    } while (0)
+  do {                                                                                                                 \
+    if (err != VG_LITE_SUCCESS) { return LV_RES_INV; }                                                                 \
+  } while (0)
 #endif /*LV_GPU_NXP_VG_LITE_LOG_ERRORS*/
 
 #if LV_GPU_NXP_VG_LITE_LOG_TRACES
 #define VG_LITE_LOG_TRACE(fmt, ...)                                                                                    \
-    do { LV_LOG_ERROR(fmt, ##__VA_ARGS__); } while (0)
+  do { LV_LOG_ERROR(fmt, ##__VA_ARGS__); } while (0)
 
 #define VG_LITE_RETURN_INV(fmt, ...)                                                                                   \
-    do {                                                                                                               \
-        LV_LOG_ERROR(fmt, ##__VA_ARGS__);                                                                              \
-        return LV_RES_INV;                                                                                             \
-    } while (0)
+  do {                                                                                                                 \
+    LV_LOG_ERROR(fmt, ##__VA_ARGS__);                                                                                  \
+    return LV_RES_INV;                                                                                                 \
+  } while (0)
 #else
 #define VG_LITE_LOG_TRACE(fmt, ...)                                                                                    \
-    do {                                                                                                               \
-    } while (0)
+  do {                                                                                                                 \
+  } while (0)
 #define VG_LITE_RETURN_INV(fmt, ...)                                                                                   \
-    do { return LV_RES_INV; } while (0)
+  do { return LV_RES_INV; } while (0)
 #endif /*LV_GPU_NXP_VG_LITE_LOG_TRACES*/
 
 #endif /*LV_USE_GPU_NXP_VG_LITE*/

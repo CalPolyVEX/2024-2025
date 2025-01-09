@@ -34,16 +34,16 @@ extern const lv_obj_class_t lv_animimg_class;
 
 /*Data of image*/
 typedef struct {
-        lv_img_t img;
-        lv_anim_t anim;
-        /*picture sequence */
-        lv_img_dsc_t** dsc;
-        int8_t pic_count;
+    lv_img_t img;
+    lv_anim_t anim;
+    /*picture sequence */
+    lv_img_dsc_t** dsc;
+    int8_t pic_count;
 } lv_animimg_t;
 
 /*Image parts*/
 enum {
-    LV_ANIM_IMG_PART_MAIN,
+  LV_ANIM_IMG_PART_MAIN,
 };
 
 typedef uint8_t lv_animimg_part_t;

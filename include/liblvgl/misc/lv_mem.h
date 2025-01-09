@@ -33,20 +33,20 @@ extern "C" {
  * Heap information structure.
  */
 typedef struct {
-        uint32_t total_size; /**< Total heap size*/
-        uint32_t free_cnt;
-        uint32_t free_size; /**< Size of available memory*/
-        uint32_t free_biggest_size;
-        uint32_t used_cnt;
-        uint32_t max_used; /**< Max size of Heap memory used*/
-        uint8_t used_pct; /**< Percentage used*/
-        uint8_t frag_pct; /**< Amount of fragmentation*/
+    uint32_t total_size; /**< Total heap size*/
+    uint32_t free_cnt;
+    uint32_t free_size; /**< Size of available memory*/
+    uint32_t free_biggest_size;
+    uint32_t used_cnt;
+    uint32_t max_used; /**< Max size of Heap memory used*/
+    uint8_t used_pct; /**< Percentage used*/
+    uint8_t frag_pct; /**< Amount of fragmentation*/
 } lv_mem_monitor_t;
 
 typedef struct {
-        void* p;
-        uint16_t size;
-        uint8_t used : 1;
+    void* p;
+    uint16_t size;
+    uint8_t used : 1;
 } lv_mem_buf_t;
 
 typedef lv_mem_buf_t lv_mem_buf_arr_t[LV_MEM_BUF_MAX_NUM];
@@ -176,17 +176,17 @@ LV_ATTRIBUTE_FAST_MEM void* lv_memcpy(void* dst, const void* src, size_t len);
  * @param len number of byte to copy
  */
 LV_ATTRIBUTE_FAST_MEM static inline void* lv_memcpy_small(void* dst, const void* src, size_t len) {
-    uint8_t* d8 = (uint8_t*)dst;
-    const uint8_t* s8 = (const uint8_t*)src;
+  uint8_t* d8 = (uint8_t*)dst;
+  const uint8_t* s8 = (const uint8_t*)src;
 
-    while (len) {
-        *d8 = *s8;
-        d8++;
-        s8++;
-        len--;
-    }
+  while (len) {
+    *d8 = *s8;
+    d8++;
+    s8++;
+    len--;
+  }
 
-    return dst;
+  return dst;
 }
 
 /**

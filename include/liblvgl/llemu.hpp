@@ -65,12 +65,12 @@ namespace lcd {
  * @brief Represents how to align the text in the LCD
  */
 enum class Text_Align {
-    /// Align the text to the left side of LCD line
-    LEFT = 0,
-    /// Align the text to the center of the LCD line
-    CENTER = 1,
-    /// Align the text to the right side of the LCD line
-    RIGHT = 2
+  /// Align the text to the left side of LCD line
+  LEFT = 0,
+  /// Align the text to the center of the LCD line
+  CENTER = 1,
+  /// Align the text to the right side of the LCD line
+  RIGHT = 2
 };
 
 /**

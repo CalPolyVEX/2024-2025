@@ -40,10 +40,10 @@ extern "C" {
  * Options for text rendering.
  */
 enum {
-    LV_TEXT_FLAG_NONE = 0x00,
-    LV_TEXT_FLAG_RECOLOR = 0x01, /**< Enable parsing of recolor command*/
-    LV_TEXT_FLAG_EXPAND = 0x02, /**< Ignore max-width to avoid automatic word wrapping*/
-    LV_TEXT_FLAG_FIT = 0x04, /**< Max-width is already equal to the longest line. (Used to skip some calculation)*/
+  LV_TEXT_FLAG_NONE = 0x00,
+  LV_TEXT_FLAG_RECOLOR = 0x01, /**< Enable parsing of recolor command*/
+  LV_TEXT_FLAG_EXPAND = 0x02, /**< Ignore max-width to avoid automatic word wrapping*/
+  LV_TEXT_FLAG_FIT = 0x04, /**< Max-width is already equal to the longest line. (Used to skip some calculation)*/
 };
 
 typedef uint8_t lv_text_flag_t;
@@ -51,19 +51,19 @@ typedef uint8_t lv_text_flag_t;
 /**
  * State machine for text renderer.*/
 enum {
-    LV_TEXT_CMD_STATE_WAIT, /**< Waiting for command*/
-    LV_TEXT_CMD_STATE_PAR, /**< Processing the parameter*/
-    LV_TEXT_CMD_STATE_IN, /**< Processing the command*/
+  LV_TEXT_CMD_STATE_WAIT, /**< Waiting for command*/
+  LV_TEXT_CMD_STATE_PAR, /**< Processing the parameter*/
+  LV_TEXT_CMD_STATE_IN, /**< Processing the command*/
 };
 
 typedef uint8_t lv_text_cmd_state_t;
 
 /** Label align policy*/
 enum {
-    LV_TEXT_ALIGN_AUTO, /**< Align text auto*/
-    LV_TEXT_ALIGN_LEFT, /**< Align text to left*/
-    LV_TEXT_ALIGN_CENTER, /**< Align text to center*/
-    LV_TEXT_ALIGN_RIGHT, /**< Align text to right*/
+  LV_TEXT_ALIGN_AUTO, /**< Align text auto*/
+  LV_TEXT_ALIGN_LEFT, /**< Align text to left*/
+  LV_TEXT_ALIGN_CENTER, /**< Align text to center*/
+  LV_TEXT_ALIGN_RIGHT, /**< Align text to right*/
 };
 
 typedef uint8_t lv_text_align_t;
@@ -166,21 +166,21 @@ void _lv_txt_encoded_letter_next_2(const char* txt, uint32_t* letter, uint32_t* 
  * @return false: 'letter' is not break char
  */
 static inline bool _lv_txt_is_break_char(uint32_t letter) {
-    uint8_t i;
-    bool ret = false;
+  uint8_t i;
+  bool ret = false;
 
-    /* each chinese character can be break */
-    if (letter >= 0x4E00 && letter <= 0x9FA5) { return true; }
+  /* each chinese character can be break */
+  if (letter >= 0x4E00 && letter <= 0x9FA5) { return true; }
 
-    /*Compare the letter to TXT_BREAK_CHARS*/
-    for (i = 0; LV_TXT_BREAK_CHARS[i] != '\0'; i++) {
-        if (letter == (uint32_t)LV_TXT_BREAK_CHARS[i]) {
-            ret = true; /*If match then it is break char*/
-            break;
-        }
+  /*Compare the letter to TXT_BREAK_CHARS*/
+  for (i = 0; LV_TXT_BREAK_CHARS[i] != '\0'; i++) {
+    if (letter == (uint32_t)LV_TXT_BREAK_CHARS[i]) {
+      ret = true; /*If match then it is break char*/
+      break;
     }
+  }
 
-    return ret;
+  return ret;
 }
 
 /***************************************************************

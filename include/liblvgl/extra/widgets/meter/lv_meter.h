@@ -31,75 +31,75 @@ extern "C" {
  **********************/
 
 typedef struct {
-        lv_color_t tick_color;
-        uint16_t tick_cnt;
-        uint16_t tick_length;
-        uint16_t tick_width;
+    lv_color_t tick_color;
+    uint16_t tick_cnt;
+    uint16_t tick_length;
+    uint16_t tick_width;
 
-        lv_color_t tick_major_color;
-        uint16_t tick_major_nth;
-        uint16_t tick_major_length;
-        uint16_t tick_major_width;
+    lv_color_t tick_major_color;
+    uint16_t tick_major_nth;
+    uint16_t tick_major_length;
+    uint16_t tick_major_width;
 
-        int16_t label_gap;
-        int16_t label_color;
+    int16_t label_gap;
+    int16_t label_color;
 
-        int32_t min;
-        int32_t max;
-        int16_t r_mod;
-        uint16_t angle_range;
-        int16_t rotation;
+    int32_t min;
+    int32_t max;
+    int16_t r_mod;
+    uint16_t angle_range;
+    int16_t rotation;
 } lv_meter_scale_t;
 
 enum {
-    LV_METER_INDICATOR_TYPE_NEEDLE_IMG,
-    LV_METER_INDICATOR_TYPE_NEEDLE_LINE,
-    LV_METER_INDICATOR_TYPE_SCALE_LINES,
-    LV_METER_INDICATOR_TYPE_ARC,
+  LV_METER_INDICATOR_TYPE_NEEDLE_IMG,
+  LV_METER_INDICATOR_TYPE_NEEDLE_LINE,
+  LV_METER_INDICATOR_TYPE_SCALE_LINES,
+  LV_METER_INDICATOR_TYPE_ARC,
 };
 
 typedef uint8_t lv_meter_indicator_type_t;
 
 typedef struct {
-        lv_meter_scale_t* scale;
-        lv_meter_indicator_type_t type;
-        lv_opa_t opa;
-        int32_t start_value;
-        int32_t end_value;
+    lv_meter_scale_t* scale;
+    lv_meter_indicator_type_t type;
+    lv_opa_t opa;
+    int32_t start_value;
+    int32_t end_value;
 
-        union {
-                struct {
-                        const void* src;
-                        lv_point_t pivot;
-                } needle_img;
+    union {
+        struct {
+            const void* src;
+            lv_point_t pivot;
+        } needle_img;
 
-                struct {
-                        uint16_t width;
-                        int16_t r_mod;
-                        lv_color_t color;
-                } needle_line;
+        struct {
+            uint16_t width;
+            int16_t r_mod;
+            lv_color_t color;
+        } needle_line;
 
-                struct {
-                        uint16_t width;
-                        const void* src;
-                        lv_color_t color;
-                        int16_t r_mod;
-                } arc;
+        struct {
+            uint16_t width;
+            const void* src;
+            lv_color_t color;
+            int16_t r_mod;
+        } arc;
 
-                struct {
-                        int16_t width_mod;
-                        lv_color_t color_start;
-                        lv_color_t color_end;
-                        uint8_t local_grad : 1;
-                } scale_lines;
-        } type_data;
+        struct {
+            int16_t width_mod;
+            lv_color_t color_start;
+            lv_color_t color_end;
+            uint8_t local_grad : 1;
+        } scale_lines;
+    } type_data;
 } lv_meter_indicator_t;
 
 /*Data of line meter*/
 typedef struct {
-        lv_obj_t obj;
-        lv_ll_t scale_ll;
-        lv_ll_t indicator_ll;
+    lv_obj_t obj;
+    lv_ll_t scale_ll;
+    lv_ll_t indicator_ll;
 } lv_meter_t;
 
 extern const lv_obj_class_t lv_meter_class;
@@ -109,10 +109,10 @@ extern const lv_obj_class_t lv_meter_class;
  * Used in `LV_EVENT_DRAW_PART_BEGIN` and `LV_EVENT_DRAW_PART_END`
  */
 typedef enum {
-    LV_METER_DRAW_PART_ARC, /**< The arc indicator*/
-    LV_METER_DRAW_PART_NEEDLE_LINE, /**< The needle lines*/
-    LV_METER_DRAW_PART_NEEDLE_IMG, /**< The needle images*/
-    LV_METER_DRAW_PART_TICK, /**< The tick lines and labels*/
+  LV_METER_DRAW_PART_ARC, /**< The arc indicator*/
+  LV_METER_DRAW_PART_NEEDLE_LINE, /**< The needle lines*/
+  LV_METER_DRAW_PART_NEEDLE_IMG, /**< The needle images*/
+  LV_METER_DRAW_PART_TICK, /**< The tick lines and labels*/
 } lv_meter_draw_part_type_t;
 
 /**********************

@@ -628,12 +628,12 @@ std::uint32_t fill_circle(const std::int16_t x, const std::int16_t y, const std:
  */
 template <typename... Params>
 void print(pros::text_format_e_t txt_fmt, const std::int16_t line, const char* text, Params... args) {
-    pros::c::screen_print(txt_fmt, line, text, convert_args(args)...);
+  pros::c::screen_print(txt_fmt, line, text, convert_args(args)...);
 }
 
 template <typename... Params> void print(pros::text_format_e_t txt_fmt, const std::int16_t x, const std::int16_t y,
                                          const char* text, Params... args) {
-    pros::c::screen_print_at(txt_fmt, x, y, text, convert_args(args)...);
+  pros::c::screen_print_at(txt_fmt, x, y, text, convert_args(args)...);
 }
 
 /******************************************************************************/

@@ -37,10 +37,10 @@ LV_EXPORT_CONST_INT(LV_CHART_POINT_NONE);
  * Chart types
  */
 enum {
-    LV_CHART_TYPE_NONE, /**< Don't draw the series*/
-    LV_CHART_TYPE_LINE, /**< Connect the points with lines*/
-    LV_CHART_TYPE_BAR, /**< Draw columns*/
-    LV_CHART_TYPE_SCATTER, /**< Draw points and lines in 2D (x,y coordinates)*/
+  LV_CHART_TYPE_NONE, /**< Don't draw the series*/
+  LV_CHART_TYPE_LINE, /**< Connect the points with lines*/
+  LV_CHART_TYPE_BAR, /**< Draw columns*/
+  LV_CHART_TYPE_SCATTER, /**< Draw points and lines in 2D (x,y coordinates)*/
 };
 
 typedef uint8_t lv_chart_type_t;
@@ -49,8 +49,8 @@ typedef uint8_t lv_chart_type_t;
  * Chart update mode for `lv_chart_set_next`
  */
 enum {
-    LV_CHART_UPDATE_MODE_SHIFT, /**< Shift old data to the left and add the new one the right*/
-    LV_CHART_UPDATE_MODE_CIRCULAR, /**< Add the new data in a circular way*/
+  LV_CHART_UPDATE_MODE_SHIFT, /**< Shift old data to the left and add the new one the right*/
+  LV_CHART_UPDATE_MODE_CIRCULAR, /**< Add the new data in a circular way*/
 };
 
 typedef uint8_t lv_chart_update_mode_t;
@@ -59,11 +59,11 @@ typedef uint8_t lv_chart_update_mode_t;
  * Enumeration of the axis'
  */
 enum {
-    LV_CHART_AXIS_PRIMARY_Y = 0x00,
-    LV_CHART_AXIS_SECONDARY_Y = 0x01,
-    LV_CHART_AXIS_PRIMARY_X = 0x02,
-    LV_CHART_AXIS_SECONDARY_X = 0x04,
-    _LV_CHART_AXIS_LAST
+  LV_CHART_AXIS_PRIMARY_Y = 0x00,
+  LV_CHART_AXIS_SECONDARY_Y = 0x01,
+  LV_CHART_AXIS_PRIMARY_X = 0x02,
+  LV_CHART_AXIS_SECONDARY_X = 0x04,
+  _LV_CHART_AXIS_LAST
 };
 
 typedef uint8_t lv_chart_axis_t;
@@ -72,52 +72,52 @@ typedef uint8_t lv_chart_axis_t;
  * Descriptor a chart series
  */
 typedef struct {
-        lv_coord_t* x_points;
-        lv_coord_t* y_points;
-        lv_color_t color;
-        uint16_t start_point;
-        uint8_t hidden : 1;
-        uint8_t x_ext_buf_assigned : 1;
-        uint8_t y_ext_buf_assigned : 1;
-        uint8_t x_axis_sec : 1;
-        uint8_t y_axis_sec : 1;
+    lv_coord_t* x_points;
+    lv_coord_t* y_points;
+    lv_color_t color;
+    uint16_t start_point;
+    uint8_t hidden : 1;
+    uint8_t x_ext_buf_assigned : 1;
+    uint8_t y_ext_buf_assigned : 1;
+    uint8_t x_axis_sec : 1;
+    uint8_t y_axis_sec : 1;
 } lv_chart_series_t;
 
 typedef struct {
-        lv_point_t pos;
-        lv_coord_t point_id;
-        lv_color_t color;
-        lv_chart_series_t* ser;
-        lv_dir_t dir;
-        uint8_t pos_set : 1; /*1: pos is set; 0: point_id is set*/
+    lv_point_t pos;
+    lv_coord_t point_id;
+    lv_color_t color;
+    lv_chart_series_t* ser;
+    lv_dir_t dir;
+    uint8_t pos_set : 1; /*1: pos is set; 0: point_id is set*/
 } lv_chart_cursor_t;
 
 typedef struct {
-        lv_coord_t major_len;
-        lv_coord_t minor_len;
-        lv_coord_t draw_size;
-        uint32_t minor_cnt : 15;
-        uint32_t major_cnt : 15;
-        uint32_t label_en : 1;
+    lv_coord_t major_len;
+    lv_coord_t minor_len;
+    lv_coord_t draw_size;
+    uint32_t minor_cnt : 15;
+    uint32_t major_cnt : 15;
+    uint32_t label_en : 1;
 } lv_chart_tick_dsc_t;
 
 typedef struct {
-        lv_obj_t obj;
-        lv_ll_t series_ll; /**< Linked list for the series (stores lv_chart_series_t)*/
-        lv_ll_t cursor_ll; /**< Linked list for the cursors (stores lv_chart_cursor_t)*/
-        lv_chart_tick_dsc_t tick[4];
-        lv_coord_t ymin[2];
-        lv_coord_t ymax[2];
-        lv_coord_t xmin[2];
-        lv_coord_t xmax[2];
-        lv_coord_t pressed_point_id;
-        uint16_t hdiv_cnt; /**< Number of horizontal division lines*/
-        uint16_t vdiv_cnt; /**< Number of vertical division lines*/
-        uint16_t point_cnt; /**< Point number in a data line*/
-        uint16_t zoom_x;
-        uint16_t zoom_y;
-        lv_chart_type_t type : 3; /**< Line or column chart*/
-        lv_chart_update_mode_t update_mode : 1;
+    lv_obj_t obj;
+    lv_ll_t series_ll; /**< Linked list for the series (stores lv_chart_series_t)*/
+    lv_ll_t cursor_ll; /**< Linked list for the cursors (stores lv_chart_cursor_t)*/
+    lv_chart_tick_dsc_t tick[4];
+    lv_coord_t ymin[2];
+    lv_coord_t ymax[2];
+    lv_coord_t xmin[2];
+    lv_coord_t xmax[2];
+    lv_coord_t pressed_point_id;
+    uint16_t hdiv_cnt; /**< Number of horizontal division lines*/
+    uint16_t vdiv_cnt; /**< Number of vertical division lines*/
+    uint16_t point_cnt; /**< Point number in a data line*/
+    uint16_t zoom_x;
+    uint16_t zoom_y;
+    lv_chart_type_t type : 3; /**< Line or column chart*/
+    lv_chart_update_mode_t update_mode : 1;
 } lv_chart_t;
 
 extern const lv_obj_class_t lv_chart_class;
@@ -127,13 +127,13 @@ extern const lv_obj_class_t lv_chart_class;
  * Used in `LV_EVENT_DRAW_PART_BEGIN` and `LV_EVENT_DRAW_PART_END`
  */
 typedef enum {
-    LV_CHART_DRAW_PART_DIV_LINE_INIT, /**< Used before/after drawn the div lines*/
-    LV_CHART_DRAW_PART_DIV_LINE_HOR, /**< Used for each horizontal division lines*/
-    LV_CHART_DRAW_PART_DIV_LINE_VER, /**< Used for each vertical division lines*/
-    LV_CHART_DRAW_PART_LINE_AND_POINT, /**< Used on line and scatter charts for lines and points*/
-    LV_CHART_DRAW_PART_BAR, /**< Used on bar charts for the rectangles*/
-    LV_CHART_DRAW_PART_CURSOR, /**< Used on cursor lines and points*/
-    LV_CHART_DRAW_PART_TICK_LABEL, /**< Used on tick lines and labels*/
+  LV_CHART_DRAW_PART_DIV_LINE_INIT, /**< Used before/after drawn the div lines*/
+  LV_CHART_DRAW_PART_DIV_LINE_HOR, /**< Used for each horizontal division lines*/
+  LV_CHART_DRAW_PART_DIV_LINE_VER, /**< Used for each vertical division lines*/
+  LV_CHART_DRAW_PART_LINE_AND_POINT, /**< Used on line and scatter charts for lines and points*/
+  LV_CHART_DRAW_PART_BAR, /**< Used on bar charts for the rectangles*/
+  LV_CHART_DRAW_PART_CURSOR, /**< Used on cursor lines and points*/
+  LV_CHART_DRAW_PART_TICK_LABEL, /**< Used on tick lines and labels*/
 } lv_chart_draw_part_type_t;
 
 /**********************

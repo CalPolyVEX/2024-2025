@@ -24,7 +24,7 @@
 #endif
 #ifndef LV_MEM_ADR
 #define LV_MEM_ADR                                                                                                     \
-    0 /*Set an address for memory pool instead of allocation it as an array. Can be in external SRAM too.*/
+  0 /*Set an address for memory pool instead of allocation it as an array. Can be in external SRAM too.*/
 #endif
 #ifndef LV_MEM_AUTO_DEFRAG
 #define LV_MEM_AUTO_DEFRAG 1 /*Automatically defrag on free*/
@@ -108,7 +108,7 @@
  * Special formats are handled with `disp_drv.vdb_wr`)*/
 #ifndef LV_VDB_PX_BPP
 #define LV_VDB_PX_BPP                                                                                                  \
-    LV_COLOR_SIZE /*LV_COLOR_SIZE comes from LV_COLOR_DEPTH below to set 8, 16 or 32 bit pixel size automatically */
+  LV_COLOR_SIZE /*LV_COLOR_SIZE comes from LV_COLOR_DEPTH below to set 8, 16 or 32 bit pixel size automatically */
 #endif
 
 /* Place VDB to a specific address (e.g. in external RAM)
@@ -172,12 +172,12 @@
 #endif
 #ifndef LV_COLOR_16_SWAP
 #define LV_COLOR_16_SWAP                                                                                               \
-    0 /*Swap the 2 bytes of RGB565 color. Useful if the display has a 8 bit interface (e.g.                            \
-         SPI)*/
+  0 /*Swap the 2 bytes of RGB565 color. Useful if the display has a 8 bit interface (e.g.                              \
+       SPI)*/
 #endif
 #ifndef LV_COLOR_SCREEN_TRANSP
 #define LV_COLOR_SCREEN_TRANSP                                                                                         \
-    0 /*1: Enable screen transparency. Useful for OSD or other overlapping GUIs. Requires ARGB8888 colors*/
+  0 /*1: Enable screen transparency. Useful for OSD or other overlapping GUIs. Requires ARGB8888 colors*/
 #endif
 #ifndef LV_COLOR_TRANSP
 #define LV_COLOR_TRANSP LV_COLOR_LIME /*Images pixels with this color will not be drawn (with chroma keying)*/
@@ -195,11 +195,11 @@
 #endif
 #ifndef LV_TXT_LINE_BREAK_LONG_PRE_MIN_LEN
 #define LV_TXT_LINE_BREAK_LONG_PRE_MIN_LEN                                                                             \
-    3 /* Minimum number of characters of a word to put on a line before a break */
+  3 /* Minimum number of characters of a word to put on a line before a break */
 #endif
 #ifndef LV_TXT_LINE_BREAK_LONG_POST_MIN_LEN
 #define LV_TXT_LINE_BREAK_LONG_POST_MIN_LEN                                                                            \
-    1 /* Minimum number of characters of a word to put on a line after a break */
+  1 /* Minimum number of characters of a word to put on a line after a break */
 #endif
 
 /*Feature usage*/
@@ -217,7 +217,7 @@
 #endif
 #ifndef USE_LV_REAL_DRAW
 #define USE_LV_REAL_DRAW                                                                                               \
-    1 /*1: Enable function which draw directly to the frame buffer instead of VDB (required if LV_VDB_SIZE = 0)*/
+  1 /*1: Enable function which draw directly to the frame buffer instead of VDB (required if LV_VDB_SIZE = 0)*/
 #endif
 #ifndef USE_LV_FILESYSTEM
 #define USE_LV_FILESYSTEM 1 /*1: Enable file system (might be required for images*/
@@ -247,7 +247,7 @@
 /*HAL settings*/
 #ifndef LV_TICK_CUSTOM
 #define LV_TICK_CUSTOM                                                                                                 \
-    0 /*1: use a custom tick source (removing the need to manually update the tick with `lv_tick_inc`) */
+  0 /*1: use a custom tick source (removing the need to manually update the tick with `lv_tick_inc`) */
 #endif
 #if LV_TICK_CUSTOM == 1
 #ifndef LV_TICK_CUSTOM_INCLUDE
@@ -582,8 +582,8 @@
 #if USE_LV_BTN != 0
 #ifndef LV_BTN_INK_EFFECT
 #define LV_BTN_INK_EFFECT                                                                                              \
-    1 /*Enable button-state animations - draw a circle on click (dependencies:                                         \
-         USE_LV_ANIMATION)*/
+  1 /*Enable button-state animations - draw a circle on click (dependencies:                                           \
+       USE_LV_ANIMATION)*/
 #endif
 #endif
 

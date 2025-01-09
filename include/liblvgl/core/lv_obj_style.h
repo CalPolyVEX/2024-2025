@@ -28,29 +28,29 @@ extern "C" {
 struct _lv_obj_t;
 
 typedef enum {
-    _LV_STYLE_STATE_CMP_SAME, /*The style properties in the 2 states are identical*/
-    _LV_STYLE_STATE_CMP_DIFF_REDRAW, /*The differences can be shown with a simple redraw*/
-    _LV_STYLE_STATE_CMP_DIFF_DRAW_PAD, /*The differences can be shown with a simple redraw*/
-    _LV_STYLE_STATE_CMP_DIFF_LAYOUT, /*The differences can be shown with a simple redraw*/
+  _LV_STYLE_STATE_CMP_SAME, /*The style properties in the 2 states are identical*/
+  _LV_STYLE_STATE_CMP_DIFF_REDRAW, /*The differences can be shown with a simple redraw*/
+  _LV_STYLE_STATE_CMP_DIFF_DRAW_PAD, /*The differences can be shown with a simple redraw*/
+  _LV_STYLE_STATE_CMP_DIFF_LAYOUT, /*The differences can be shown with a simple redraw*/
 } _lv_style_state_cmp_t;
 
 typedef uint32_t lv_style_selector_t;
 
 typedef struct {
-        lv_style_t* style;
-        uint32_t selector : 24;
-        uint32_t is_local : 1;
-        uint32_t is_trans : 1;
+    lv_style_t* style;
+    uint32_t selector : 24;
+    uint32_t is_local : 1;
+    uint32_t is_trans : 1;
 } _lv_obj_style_t;
 
 typedef struct {
-        uint16_t time;
-        uint16_t delay;
-        lv_style_selector_t selector;
-        lv_style_prop_t prop;
-        lv_anim_path_cb_t path_cb;
+    uint16_t time;
+    uint16_t delay;
+    lv_style_selector_t selector;
+    lv_style_prop_t prop;
+    lv_anim_path_cb_t path_cb;
 #if LV_USE_USER_DATA
-        void* user_data;
+    void* user_data;
 #endif
 } _lv_obj_style_transition_dsc_t;
 
@@ -91,7 +91,7 @@ void lv_obj_remove_style(struct _lv_obj_t* obj, lv_style_t* style, lv_style_sele
  * @param obj       pointer to an object
  */
 static inline void lv_obj_remove_style_all(struct _lv_obj_t* obj) {
-    lv_obj_remove_style(obj, NULL, LV_PART_ANY | LV_STATE_ANY);
+  lv_obj_remove_style(obj, NULL, LV_PART_ANY | LV_STATE_ANY);
 }
 
 /**
@@ -204,30 +204,30 @@ lv_part_t lv_obj_style_get_selector_part(lv_style_selector_t selector);
 #include "lv_obj_style_gen.h"
 
 static inline void lv_obj_set_style_pad_all(struct _lv_obj_t* obj, lv_coord_t value, lv_style_selector_t selector) {
-    lv_obj_set_style_pad_left(obj, value, selector);
-    lv_obj_set_style_pad_right(obj, value, selector);
-    lv_obj_set_style_pad_top(obj, value, selector);
-    lv_obj_set_style_pad_bottom(obj, value, selector);
+  lv_obj_set_style_pad_left(obj, value, selector);
+  lv_obj_set_style_pad_right(obj, value, selector);
+  lv_obj_set_style_pad_top(obj, value, selector);
+  lv_obj_set_style_pad_bottom(obj, value, selector);
 }
 
 static inline void lv_obj_set_style_pad_hor(struct _lv_obj_t* obj, lv_coord_t value, lv_style_selector_t selector) {
-    lv_obj_set_style_pad_left(obj, value, selector);
-    lv_obj_set_style_pad_right(obj, value, selector);
+  lv_obj_set_style_pad_left(obj, value, selector);
+  lv_obj_set_style_pad_right(obj, value, selector);
 }
 
 static inline void lv_obj_set_style_pad_ver(struct _lv_obj_t* obj, lv_coord_t value, lv_style_selector_t selector) {
-    lv_obj_set_style_pad_top(obj, value, selector);
-    lv_obj_set_style_pad_bottom(obj, value, selector);
+  lv_obj_set_style_pad_top(obj, value, selector);
+  lv_obj_set_style_pad_bottom(obj, value, selector);
 }
 
 static inline void lv_obj_set_style_pad_gap(struct _lv_obj_t* obj, lv_coord_t value, lv_style_selector_t selector) {
-    lv_obj_set_style_pad_row(obj, value, selector);
-    lv_obj_set_style_pad_column(obj, value, selector);
+  lv_obj_set_style_pad_row(obj, value, selector);
+  lv_obj_set_style_pad_column(obj, value, selector);
 }
 
 static inline void lv_obj_set_style_size(struct _lv_obj_t* obj, lv_coord_t value, lv_style_selector_t selector) {
-    lv_obj_set_style_width(obj, value, selector);
-    lv_obj_set_style_height(obj, value, selector);
+  lv_obj_set_style_width(obj, value, selector);
+  lv_obj_set_style_height(obj, value, selector);
 }
 
 lv_text_align_t lv_obj_calculate_style_text_align(const struct _lv_obj_t* obj, lv_part_t part, const char* txt);

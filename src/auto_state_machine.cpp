@@ -5,11 +5,11 @@
 
 char* choose_next_state(char* prev_state) {
 #ifdef GOLD_BOT
-    return do_gold_tree(prev_state);
+  return do_gold_tree(prev_state);
 #endif
 
 #ifdef GREEN_BOT
-    return do_green_tree(prev_state);
+  return do_green_tree(prev_state);
 #endif
 }
 

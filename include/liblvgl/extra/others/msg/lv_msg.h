@@ -25,10 +25,10 @@ extern "C" {
  **********************/
 
 typedef struct {
-        uint32_t id; /*Identifier of the message*/
-        void* user_data; /*Set the the user_data set in `lv_msg_subscribe`*/
-        void* _priv_data; /*Used internally*/
-        const void* payload; /*Pointer to the data of the message*/
+    uint32_t id; /*Identifier of the message*/
+    void* user_data; /*Set the the user_data set in `lv_msg_subscribe`*/
+    void* _priv_data; /*Used internally*/
+    const void* payload; /*Pointer to the data of the message*/
 } lv_msg_t;
 
 typedef void (*lv_msg_subscribe_cb_t)(void* s, lv_msg_t* msg);

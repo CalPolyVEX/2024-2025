@@ -42,12 +42,12 @@ typedef void (*lv_timer_cb_t)(struct _lv_timer_t*);
  * Descriptor of a lv_timer
  */
 typedef struct _lv_timer_t {
-        uint32_t period; /**< How often the timer should run*/
-        uint32_t last_run; /**< Last time the timer ran*/
-        lv_timer_cb_t timer_cb; /**< Timer function*/
-        void* user_data; /**< Custom user data*/
-        int32_t repeat_count; /**< 1: One time;  -1 : infinity;  n>0: residual times*/
-        uint32_t paused : 1;
+    uint32_t period; /**< How often the timer should run*/
+    uint32_t last_run; /**< Last time the timer ran*/
+    lv_timer_cb_t timer_cb; /**< Timer function*/
+    void* user_data; /**< Custom user data*/
+    int32_t repeat_count; /**< 1: One time;  -1 : infinity;  n>0: residual times*/
+    uint32_t paused : 1;
 } lv_timer_t;
 
 /**********************
@@ -76,14 +76,14 @@ LV_ATTRIBUTE_TIMER_HANDLER uint32_t lv_timer_handler(void);
  * @param __ms the period for running lv_timer_handler()
  */
 static inline LV_ATTRIBUTE_TIMER_HANDLER uint32_t lv_timer_handler_run_in_period(uint32_t ms) {
-    static uint32_t last_tick = 0;
-    uint32_t curr_tick = lv_tick_get();
+  static uint32_t last_tick = 0;
+  uint32_t curr_tick = lv_tick_get();
 
-    if ((curr_tick - last_tick) >= (ms)) {
-        last_tick = curr_tick;
-        return lv_timer_handler();
-    }
-    return 1;
+  if ((curr_tick - last_tick) >= (ms)) {
+    last_tick = curr_tick;
+    return lv_timer_handler();
+  }
+  return 1;
 }
 
 /**

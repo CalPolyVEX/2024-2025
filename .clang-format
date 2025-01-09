@@ -1,5 +1,5 @@
 ---
-Language:        Cpp
+Language: Cpp
 AccessModifierOffset: 0
 AlignAfterOpenBracket: Align
 AlignArrayOfStructures: None
@@ -52,7 +52,7 @@ BreakInheritanceList: BeforeColon
 BreakStringLiterals: true
 ColumnLimit: 120
 CompactNamespaces: false
-ConstructorInitializerIndentWidth: 4
+ConstructorInitializerIndentWidth: 2
 Cpp11BracedListStyle: true
 EmptyLineAfterAccessModifier: Never
 EmptyLineBeforeAccessModifier: Never
@@ -60,7 +60,7 @@ IndentAccessModifiers: true
 IndentCaseLabels: true
 IndentExternBlock: AfterExternBlock
 IndentGotoLabels: true
-IndentWidth: 4
+IndentWidth: 2
 IndentWrappedFunctionNames: false
 KeepEmptyLinesAtTheStartOfBlocks: false
 PackConstructorInitializers: Never
@@ -81,5 +81,5 @@ SpaceInEmptyBlock: false
 SpaceInEmptyParentheses: false
 SpacesInCStyleCastParentheses: false
 SpacesInConditionalStatement: false
-TabWidth: 4
+TabWidth: 2
 UseTab: Never

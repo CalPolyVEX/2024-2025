@@ -30,17 +30,17 @@ extern "C" {
 struct _lv_disp_drv_t;
 
 typedef struct {
-        lv_draw_ctx_t base_draw;
+    lv_draw_ctx_t base_draw;
 
-        /** Fill an area of the destination buffer with a color*/
-        void (*blend)(lv_draw_ctx_t* draw_ctx, const lv_draw_sw_blend_dsc_t* dsc);
+    /** Fill an area of the destination buffer with a color*/
+    void (*blend)(lv_draw_ctx_t* draw_ctx, const lv_draw_sw_blend_dsc_t* dsc);
 } lv_draw_sw_ctx_t;
 
 typedef struct {
-        lv_draw_layer_ctx_t base_draw;
+    lv_draw_layer_ctx_t base_draw;
 
-        uint32_t buf_size_bytes : 31;
-        uint32_t has_alpha : 1;
+    uint32_t buf_size_bytes : 31;
+    uint32_t has_alpha : 1;
 } lv_draw_sw_layer_ctx_t;
 
 /**********************

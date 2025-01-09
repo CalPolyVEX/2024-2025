@@ -27,20 +27,20 @@ struct _lv_monkey;
 typedef struct _lv_monkey lv_monkey_t;
 
 typedef struct {
-        /**< Input device type*/
-        lv_indev_type_t type;
+    /**< Input device type*/
+    lv_indev_type_t type;
 
-        /**< Monkey execution period*/
-        struct {
-                uint32_t min;
-                uint32_t max;
-        } period_range;
+    /**< Monkey execution period*/
+    struct {
+        uint32_t min;
+        uint32_t max;
+    } period_range;
 
-        /**< The range of input value*/
-        struct {
-                int32_t min;
-                int32_t max;
-        } input_range;
+    /**< The range of input value*/
+    struct {
+        int32_t min;
+        int32_t max;
+    } input_range;
 } lv_monkey_config_t;
 
 /**********************

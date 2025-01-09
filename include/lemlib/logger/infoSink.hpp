@@ -20,17 +20,17 @@ namespace lemlib {
  * @endcode
  */
 class InfoSink : public BaseSink {
-    public:
-        /**
-         * @brief Construct a new Info Sink object
-         */
-        InfoSink();
-    private:
-        /**
-         * @brief Log the given message
-         *
-         * @param message
-         */
-        void sendMessage(const Message& message) override;
+  public:
+    /**
+     * @brief Construct a new Info Sink object
+     */
+    InfoSink();
+  private:
+    /**
+     * @brief Log the given message
+     *
+     * @param message
+     */
+    void sendMessage(const Message& message) override;
 };
 } // namespace lemlib

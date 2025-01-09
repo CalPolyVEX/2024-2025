@@ -32,21 +32,21 @@ enum { LV_ARC_MODE_NORMAL, LV_ARC_MODE_SYMMETRICAL, LV_ARC_MODE_REVERSE };
 typedef uint8_t lv_arc_mode_t;
 
 typedef struct {
-        lv_obj_t obj;
-        uint16_t rotation;
-        uint16_t indic_angle_start;
-        uint16_t indic_angle_end;
-        uint16_t bg_angle_start;
-        uint16_t bg_angle_end;
-        int16_t value; /*Current value of the arc*/
-        int16_t min_value; /*Minimum value of the arc*/
-        int16_t max_value; /*Maximum value of the arc*/
-        uint16_t dragging : 1;
-        uint16_t type : 2;
-        uint16_t min_close : 1; /*1: the last pressed angle was closer to minimum end*/
-        uint16_t chg_rate; /*Drag angle rate of change of the arc (degrees/sec)*/
-        uint32_t last_tick; /*Last dragging event timestamp of the arc*/
-        int16_t last_angle; /*Last dragging angle of the arc*/
+    lv_obj_t obj;
+    uint16_t rotation;
+    uint16_t indic_angle_start;
+    uint16_t indic_angle_end;
+    uint16_t bg_angle_start;
+    uint16_t bg_angle_end;
+    int16_t value; /*Current value of the arc*/
+    int16_t min_value; /*Minimum value of the arc*/
+    int16_t max_value; /*Maximum value of the arc*/
+    uint16_t dragging : 1;
+    uint16_t type : 2;
+    uint16_t min_close : 1; /*1: the last pressed angle was closer to minimum end*/
+    uint16_t chg_rate; /*Drag angle rate of change of the arc (degrees/sec)*/
+    uint32_t last_tick; /*Last dragging event timestamp of the arc*/
+    int16_t last_angle; /*Last dragging angle of the arc*/
 } lv_arc_t;
 
 extern const lv_obj_class_t lv_arc_class;
@@ -56,9 +56,9 @@ extern const lv_obj_class_t lv_arc_class;
  * Used in `LV_EVENT_DRAW_PART_BEGIN` and `LV_EVENT_DRAW_PART_END`
  */
 typedef enum {
-    LV_ARC_DRAW_PART_BACKGROUND, /**< The background arc*/
-    LV_ARC_DRAW_PART_FOREGROUND, /**< The foreground arc*/
-    LV_ARC_DRAW_PART_KNOB, /**< The knob*/
+  LV_ARC_DRAW_PART_BACKGROUND, /**< The background arc*/
+  LV_ARC_DRAW_PART_FOREGROUND, /**< The foreground arc*/
+  LV_ARC_DRAW_PART_KNOB, /**< The knob*/
 } lv_arc_draw_part_type_t;
 
 /**********************

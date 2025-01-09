@@ -23,7 +23,7 @@ extern "C" {
  *      TYPEDEFS
  **********************/
 typedef struct {
-        lv_obj_t obj;
+    lv_obj_t obj;
 } lv_win_t;
 
 extern const lv_obj_class_t lv_win_class;

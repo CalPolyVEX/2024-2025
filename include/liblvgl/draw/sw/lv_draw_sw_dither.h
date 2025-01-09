@@ -30,7 +30,7 @@ extern "C" {
 #if _DITHER_GRADIENT
 /*A signed error color component*/
 typedef struct {
-        int8_t r, g, b;
+    int8_t r, g, b;
 } lv_scolor24_t;
 
 struct _lv_gradient_cache_t;

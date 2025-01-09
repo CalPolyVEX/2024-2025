@@ -30,28 +30,28 @@ extern "C" {
  **********************/
 
 typedef enum {
-    LV_LRU_OK = 0,
-    LV_LRU_MISSING_CACHE,
-    LV_LRU_MISSING_KEY,
-    LV_LRU_MISSING_VALUE,
-    LV_LRU_LOCK_ERROR,
-    LV_LRU_VALUE_TOO_LARGE
+  LV_LRU_OK = 0,
+  LV_LRU_MISSING_CACHE,
+  LV_LRU_MISSING_KEY,
+  LV_LRU_MISSING_VALUE,
+  LV_LRU_LOCK_ERROR,
+  LV_LRU_VALUE_TOO_LARGE
 } lv_lru_res_t;
 
 typedef void(lv_lru_free_t)(void* v);
 typedef struct _lv_lru_item_t lv_lru_item_t;
 
 typedef struct lv_lru_t {
-        lv_lru_item_t** items;
-        uint64_t access_count;
-        size_t free_memory;
-        size_t total_memory;
-        size_t average_item_length;
-        size_t hash_table_size;
-        uint32_t seed;
-        lv_lru_free_t* value_free;
-        lv_lru_free_t* key_free;
-        lv_lru_item_t* free_items;
+    lv_lru_item_t** items;
+    uint64_t access_count;
+    size_t free_memory;
+    size_t total_memory;
+    size_t average_item_length;
+    size_t hash_table_size;
+    uint32_t seed;
+    lv_lru_free_t* value_free;
+    lv_lru_free_t* key_free;
+    lv_lru_item_t* free_items;
 } lv_lru_t;
 
 /**********************

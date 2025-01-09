@@ -40,8 +40,8 @@ lemlib::Pose offsetPose(0, 0, 0); // the offset of the robot
 void lemlib::setDrivetrain(lemlib::Drivetrain drivetrain) { drive = drivetrain; }
 
 lemlib::Pose lemlib::getPose(bool radians) {
-    if (radians) return odomPose;
-    else return lemlib::Pose(odomPose.x, odomPose.y, radToDeg(odomPose.theta));
+  if (radians) return odomPose;
+  else return lemlib::Pose(odomPose.x, odomPose.y, radToDeg(odomPose.theta));
 }
 
 void lemlib::setPose(lemlib::Pose pose, bool radians) {
@@ -52,103 +52,102 @@ void lemlib::setPose(lemlib::Pose pose, bool radians) {
 }
 
 lemlib::Pose lemlib::getSpeed(bool radians) {
-    if (radians) return odomSpeed;
-    else return lemlib::Pose(odomSpeed.x, odomSpeed.y, radToDeg(odomSpeed.theta));
+  if (radians) return odomSpeed;
+  else return lemlib::Pose(odomSpeed.x, odomSpeed.y, radToDeg(odomSpeed.theta));
 }
 
 lemlib::Pose lemlib::getLocalSpeed(bool radians) {
-    if (radians) return odomLocalSpeed;
-    else return lemlib::Pose(odomLocalSpeed.x, odomLocalSpeed.y, radToDeg(odomLocalSpeed.theta));
+  if (radians) return odomLocalSpeed;
+  else return lemlib::Pose(odomLocalSpeed.x, odomLocalSpeed.y, radToDeg(odomLocalSpeed.theta));
 }
 
 lemlib::Pose lemlib::estimatePose(float time, bool radians) {
-    // get current position and speed
-    Pose curPose = getPose(true);
-    Pose localSpeed = getLocalSpeed(true);
-    // calculate the change in local position
-    Pose deltaLocalPose = localSpeed * time;
+  // get current position and speed
+  Pose curPose = getPose(true);
+  Pose localSpeed = getLocalSpeed(true);
+  // calculate the change in local position
+  Pose deltaLocalPose = localSpeed * time;
 
-    // calculate the future pose
-    float avgHeading = curPose.theta + deltaLocalPose.theta / 2;
-    Pose futurePose = curPose;
-    futurePose.x += deltaLocalPose.y * sin(avgHeading);
-    futurePose.y += deltaLocalPose.y * cos(avgHeading);
-    futurePose.x += deltaLocalPose.x * -cos(avgHeading);
-    futurePose.y += deltaLocalPose.x * sin(avgHeading);
-    if (!radians) futurePose.theta = radToDeg(futurePose.theta);
+  // calculate the future pose
+  float avgHeading = curPose.theta + deltaLocalPose.theta / 2;
+  Pose futurePose = curPose;
+  futurePose.x += deltaLocalPose.y * sin(avgHeading);
+  futurePose.y += deltaLocalPose.y * cos(avgHeading);
+  futurePose.x += deltaLocalPose.x * -cos(avgHeading);
+  futurePose.y += deltaLocalPose.x * sin(avgHeading);
+  if (!radians) futurePose.theta = radToDeg(futurePose.theta);
 
-    return futurePose;
+  return futurePose;
 }
 
 void lemlib::update() {
+  // calculate the local speed of the robot
+  static Pose lastPose = getPose(true);
+  Pose curPose = getPose(true);
+  float deltaTime = 0.01; // 10 ms bc sleep call in tracking task
 
-    // calculate the local speed of the robot
-    static Pose lastPose = getPose(true);
-    Pose curPose = getPose(true);
-    float deltaTime = 0.01; // 10 ms bc sleep call in tracking task
+  float deltaX = curPose.x - lastPose.x;
+  float deltaY = curPose.y - lastPose.y;
+  float deltaTheta = curPose.theta - lastPose.theta;
 
-    float deltaX = curPose.x - lastPose.x;
-    float deltaY = curPose.y - lastPose.y;
-    float deltaTheta = curPose.theta - lastPose.theta;
+  float localX = deltaX * cos(curPose.theta) + deltaY * sin(curPose.theta);
+  float localY = -deltaX * sin(curPose.theta) + deltaY * cos(curPose.theta);
 
-    float localX = deltaX * cos(curPose.theta) + deltaY * sin(curPose.theta);
-    float localY = -deltaX * sin(curPose.theta) + deltaY * cos(curPose.theta);
+  odomLocalSpeed = Pose(localX / deltaTime, localY / deltaTime, deltaTheta / deltaTime);
 
-    odomLocalSpeed = Pose(localX / deltaTime, localY / deltaTime, deltaTheta / deltaTime);
+  lastPose = curPose;
 
-    lastPose = curPose;
+  uint8_t transmit_buffer[TRANSMIT_PACKET_SIZE] = {COMMAND_READ_OTOS, 255};
+  uint8_t receive_buffer[MAX_BUFFER_SIZE] = {0};
+  uint8_t decode_buffer[MAX_BUFFER_SIZE] = {0};
 
-    uint8_t transmit_buffer[TRANSMIT_PACKET_SIZE] = {COMMAND_READ_OTOS, 255};
-    uint8_t receive_buffer[MAX_BUFFER_SIZE] = {0};
-    uint8_t decode_buffer[MAX_BUFFER_SIZE] = {0};
+  uint8_t* temp_buf_ptr = receive_buffer;
+  int num_read_bytes = 0;
+  int num_waiting_bytes = 0;
+  int timeout_counter = 0;
+  bool read_success = false;
 
-    uint8_t* temp_buf_ptr = receive_buffer;
-    int num_read_bytes = 0;
-    int num_waiting_bytes = 0;
-    int timeout_counter = 0;
-    bool read_success = false;
+  cobs_decode_result res;
 
-    cobs_decode_result res;
+  float x, y, h;
 
-    float x, y, h;
+  // send the command to the Musty board
+  s->write(transmit_buffer, TRANSMIT_PACKET_SIZE);
 
-    // send the command to the Musty board
-    s->write(transmit_buffer, TRANSMIT_PACKET_SIZE);
+  // read the data from the Musty board
+  while (true) {
+    num_waiting_bytes = s->get_read_avail();
 
-    // read the data from the Musty board
-    while (true) {
-        num_waiting_bytes = s->get_read_avail();
-
-        if (num_waiting_bytes > 0) {
-            num_read_bytes = s->read(temp_buf_ptr, num_waiting_bytes);
-            temp_buf_ptr += num_read_bytes;
-        }
-
-        if (num_read_bytes == RECEIVE_OTOS_PACKET_SIZE) {
-            read_success = true;
-            break;
-
-        } else if (num_read_bytes > RECEIVE_OTOS_PACKET_SIZE) {
-            s->flush();
-            break;
-
-        } else {
-            timeout_counter++;
-            pros::delay(1);
-            if (timeout_counter > 10) { break; }
-        }
+    if (num_waiting_bytes > 0) {
+      num_read_bytes = s->read(temp_buf_ptr, num_waiting_bytes);
+      temp_buf_ptr += num_read_bytes;
     }
 
-    if (read_success) {
-        res = musty_cobs_decode(decode_buffer, MAX_BUFFER_SIZE, receive_buffer, RECEIVE_OTOS_PACKET_SIZE);
+    if (num_read_bytes == RECEIVE_OTOS_PACKET_SIZE) {
+      read_success = true;
+      break;
 
-        if (res.status == COBS_DECODE_OK) {
-            memcpy(&x, &decode_buffer[0], sizeof(float));
-            memcpy(&y, &decode_buffer[4], sizeof(float));
-            memcpy(&h, &decode_buffer[8], sizeof(float));
+    } else if (num_read_bytes > RECEIVE_OTOS_PACKET_SIZE) {
+      s->flush();
+      break;
 
-            h *= -1;
-            h += 90; //cartesian to vex coords
+    } else {
+      timeout_counter++;
+      pros::delay(1);
+      if (timeout_counter > 10) { break; }
+    }
+  }
+
+  if (read_success) {
+    res = musty_cobs_decode(decode_buffer, MAX_BUFFER_SIZE, receive_buffer, RECEIVE_OTOS_PACKET_SIZE);
+
+    if (res.status == COBS_DECODE_OK) {
+      memcpy(&x, &decode_buffer[0], sizeof(float));
+      memcpy(&y, &decode_buffer[4], sizeof(float));
+      memcpy(&h, &decode_buffer[8], sizeof(float));
+
+      h *= -1;
+      h += 90; // cartesian to vex coords
 
             odomPose = lemlib::Pose(x, y, degToRad(h)) + offsetPose;
         }
@@ -156,26 +155,26 @@ void lemlib::update() {
 }
 
 pros::Serial* get_serial_ptr() {
-    if (s == nullptr) { std::cerr << "Error: Serial instance is not initialized.\n"; }
-    return s;
+  if (s == nullptr) { std::cerr << "Error: Serial instance is not initialized.\n"; }
+  return s;
 }
 
 void lemlib::calibrate_otos(bool is_red_alliance) {
-    u_int8_t alliance_command = 255;
-    if (is_red_alliance) { alliance_command = 127; }
+  u_int8_t alliance_command = 255;
+  if (is_red_alliance) { alliance_command = 127; }
 
-    u_int8_t transmit_buffer[TRANSMIT_PACKET_SIZE] = {COMMAND_CALIBRATE_OTOS, alliance_command};
-    s->write(transmit_buffer, TRANSMIT_PACKET_SIZE);
+  u_int8_t transmit_buffer[TRANSMIT_PACKET_SIZE] = {COMMAND_CALIBRATE_OTOS, alliance_command};
+  s->write(transmit_buffer, TRANSMIT_PACKET_SIZE);
 }
 
 void lemlib::init() {
-    if (trackingTask == nullptr) {
-        pros::Serial s1(MUSTY_SERIALPORT,
-                        MUSTY_BAUDRATE); // need to initialize the serial port twice, so here is the first time
-        pros::delay(100); // Let VEX OS configure port
+  if (trackingTask == nullptr) {
+    pros::Serial s1(MUSTY_SERIALPORT,
+                    MUSTY_BAUDRATE); // need to initialize the serial port twice, so here is the first time
+    pros::delay(100); // Let VEX OS configure port
 
-        s = new pros::Serial(MUSTY_SERIALPORT, MUSTY_BAUDRATE); // create a serial port on #2 at 460800 baud
-        pros::delay(100); // Let VEX OS configure port
+    s = new pros::Serial(MUSTY_SERIALPORT, MUSTY_BAUDRATE); // create a serial port on #2 at 460800 baud
+    pros::delay(100); // Let VEX OS configure port
 
         trackingTask = new pros::Task {[=] {
             while (true) {

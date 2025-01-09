@@ -58,14 +58,14 @@ typedef void (*lcd_btn_cb_fn_t)(void);
 #define LCD_BTN_RIGHT 1
 
 typedef struct lcd_s {
-        lv_obj_t* frame;
-        lv_obj_t* screen;
-        lv_obj_t* lcd_text[8];
-        lv_obj_t* btn_container;
-        lv_obj_t* btns[3]; // < 0 => left; 1 => center; 2 => right
-        lcd_btn_cb_fn_t callbacks[3]; // < 0 => left; 1 => center; 2 => right
-        volatile uint8_t touch_bits; // < 4 => left; 2 => center; 1 => right (no
-                                     // multitouch support)
+    lv_obj_t* frame;
+    lv_obj_t* screen;
+    lv_obj_t* lcd_text[8];
+    lv_obj_t* btn_container;
+    lv_obj_t* btns[3]; // < 0 => left; 1 => center; 2 => right
+    lcd_btn_cb_fn_t callbacks[3]; // < 0 => left; 1 => center; 2 => right
+    volatile uint8_t touch_bits; // < 4 => left; 2 => center; 1 => right (no
+                                 // multitouch support)
 } lcd_s_t;
 
 /**
@@ -83,12 +83,12 @@ typedef struct lcd_s {
  * @brief Represents how to align the text in the LCD
  */
 typedef enum lcd_text_align_e {
-    /// Align the text to the left side of LCD line
-    LCD_TEXT_ALIGN_LEFT = 0,
-    /// Align the text to the center of the LCD line
-    LCD_TEXT_ALIGN_CENTER = 1,
-    /// Align the text to the right side of the LCD line
-    LCD_TEXT_ALIGN_RIGHT = 2
+  /// Align the text to the left side of LCD line
+  LCD_TEXT_ALIGN_LEFT = 0,
+  /// Align the text to the center of the LCD line
+  LCD_TEXT_ALIGN_CENTER = 1,
+  /// Align the text to the right side of the LCD line
+  LCD_TEXT_ALIGN_RIGHT = 2
 } text_align_e_t;
 
 /// @}

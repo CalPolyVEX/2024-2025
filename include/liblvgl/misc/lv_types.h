@@ -40,9 +40,9 @@ extern "C" {
  * LVGL error codes.
  */
 enum {
-    LV_RES_INV = 0, /*Typically indicates that the object is deleted (become invalid) in the action
-                      function or an operation was failed*/
-    LV_RES_OK, /*The object is valid (no deleted) after the action*/
+  LV_RES_INV = 0, /*Typically indicates that the object is deleted (become invalid) in the action
+                    function or an operation was failed*/
+  LV_RES_OK, /*The object is valid (no deleted) after the action*/
 };
 
 typedef uint8_t lv_res_t;
