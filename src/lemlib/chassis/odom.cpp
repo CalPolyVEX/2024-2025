@@ -45,10 +45,9 @@ lemlib::Pose lemlib::getPose(bool radians) {
 }
 
 void lemlib::setPose(lemlib::Pose pose, bool radians) {
-    if (radians) odomPose = pose;
-    else odomPose = lemlib::Pose(pose.x, pose.y, degToRad(pose.theta));
-    offsetPose = odomPose;
-
+  if (radians) odomPose = pose;
+  else odomPose = lemlib::Pose(pose.x, pose.y, degToRad(pose.theta));
+  offsetPose = odomPose;
 }
 
 lemlib::Pose lemlib::getSpeed(bool radians) {
@@ -149,9 +148,9 @@ void lemlib::update() {
       h *= -1;
       h += 90; // cartesian to vex coords
 
-            odomPose = lemlib::Pose(x, y, degToRad(h)) + offsetPose;
-        }
+      odomPose = lemlib::Pose(x, y, degToRad(h)) + offsetPose;
     }
+  }
 }
 
 pros::Serial* get_serial_ptr() {
@@ -176,11 +175,11 @@ void lemlib::init() {
     s = new pros::Serial(MUSTY_SERIALPORT, MUSTY_BAUDRATE); // create a serial port on #2 at 460800 baud
     pros::delay(100); // Let VEX OS configure port
 
-        trackingTask = new pros::Task {[=] {
-            while (true) {
-                update();
-                pros::delay(10);
-            }
-        }};
-    }
+    trackingTask = new pros::Task {[=] {
+      while (true) {
+        update();
+        pros::delay(10);
+      }
+    }};
+  }
 }
