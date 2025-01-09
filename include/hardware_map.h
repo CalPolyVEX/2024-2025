@@ -1,7 +1,12 @@
 #include "main.h"
 #include "lemlib/api.hpp"
+#include "pros/adi.hpp"
 // this abstracts all the devices that are used by the v5 brain so that we can change ports and parameters quickly and
 // debug easily.
+
+
+extern bool alliance_color; // true is red, false is blue
+
 
 //----------------------------- motors & motor groups -----------------------------
 
@@ -60,9 +65,9 @@ pros::Optical conveyor_color_detector(3);
 //===================================================================
 
 //----------------------------- pneumatics -----------------------------
-pros::adi::DigitalOut mogoGrabber('A', false);
+pros::adi::Pneumatics mogoGrabber('A', false);
 
-pros::adi::DigitalOut rejector('B', false);
+pros::adi::Pneumatics rejector('B', false);
 
-pros::adi::DigitalOut doinker('H', false);
+pros::adi::Pneumatics doinker('H', false);
 //===================================================================

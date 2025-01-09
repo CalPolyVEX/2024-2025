@@ -1,4 +1,5 @@
 //#include "hardware_map.h"
+#include <cstdlib>
 #ifndef HARDWARE_MAP_H
 #include "hardware_map.h"
 #endif
@@ -7,20 +8,44 @@
 
 #define IS_USING_COLOR_SENSOR true
 
+bool scoring_opposite = false;
 
-void score_with_fish_mech() { fish_mech.move_absolute(230.0, 100); }
+
+bool has_red_ring(){
+    bool has_ring = conveyor_color_detector.get_proximity() > 120;
+    bool is_red = conveyor_color_detector.get_rgb().red > conveyor_color_detector.get_rgb().blue && conveyor_color_detector.get_rgb().red > conveyor_color_detector.get_rgb().green;
+    if (is_red && has_ring){
+        print_text_at(6, "red ring");
+        return true;
+    }
+    return false;
+}
+
+bool has_blue_ring(){
+    bool has_ring = conveyor_color_detector.get_proximity() > 120;
+    bool is_blue = conveyor_color_detector.get_rgb().blue > conveyor_color_detector.get_rgb().red && conveyor_color_detector.get_rgb().green > conveyor_color_detector.get_rgb().red;
+    if (is_blue && has_ring){
+        print_text_at(6, "blue ring");
+        return true;
+    }
+    return false;
+}
+
+void score_with_fish_mech() { 
+    fish_mech.move_absolute(230.0, 100);
+}
 
 // this is a delta movement
 void set_conveyor_target_in_inches(float inches, int speed = 300) {
     // create the Ticks/Inch ratio as a variable. this is stated as an expression so that it is easily edited.
 
     // circumference is pi * diameter, in case that wasn't extemely clear.
+    // effectively, circumference is inches per revolution
 
-    // conveyor.set_zero_position(conveyor.get_position());
 
     float encoder_ticks_per_inch =
-        (1800.0 * (60.0 / 36.0)) / (1.3 * M_PI); //   (( ticks per rotation (blue)  *   (gear ratio = (output/input)))
-                                                 //   /   (circumference of sprocket) == ticks/inch
+        (1800.0 * (60.0 / 36.0)) / (1.3 * M_PI); 
+//   (( ticks per rotation (blue)  *   (gear ratio = (output/input)))   /   (circumference of sprocket) == ticks/inch
 
     // ^this amounts to 734.561275809
 
@@ -28,53 +53,60 @@ void set_conveyor_target_in_inches(float inches, int speed = 300) {
     conveyor.move_relative((inches * encoder_ticks_per_inch), speed);
 }
 
-void conveyor_deposit_and_intake() {
-    // make the roller go fast. that's pretty much all this does lol.
+void conveyor_deposit_and_intake(int speed = 600) {
 
-    roller_intake.move_velocity(600);
+    // make the roller go fast. that's pretty much all this does lol.
+    roller_intake.move_velocity(speed);
 
     // make the conveyor go fast. that's pretty much all this does lol.
-    conveyor.move_velocity(600);
+    conveyor.move_velocity(speed);
+
+
+    if (has_blue_ring() && alliance_color == true && scoring_opposite == false){
+        rejector.extend();
+        pros::delay(500); 
+        //basically 8.17 inches
+    } else {
+        rejector.retract();
+    }
+
+
+    if (has_red_ring() && alliance_color == false && scoring_opposite == false){
+        rejector.extend();
+        pros::delay(500);
+    } else {
+        rejector.retract();
+    }
+    
+    if (conveyor.get_actual_velocity() == 0){
+        pros::delay(200);
+        if (conveyor.get_actual_velocity() == 0){
+            conveyor.move_velocity(-600);
+        }
+    }
+
 }
 
 void move_conveyor_backward() {
-    // when L2 pressed in Joseph's code
-
-    // make the roller go fast backward. that's pretty much all this does lol.
-
-    roller_intake.move_velocity(-600);
-
-    // make the conveyor go fast backward. that's pretty much all this does lol.
-    conveyor.move_velocity(-600);
+    conveyor_deposit_and_intake(-600);
 }
+bool has_set_target = false;
 
 bool load_for_fish_mech() {
     double thresh = 5.0;
 
-    bool has_set_target = false;
-    // get rgb data from opti sensor
-    pros::c::optical_rgb_s_t color = conveyor_color_detector.get_rgb();
-
-    // get prox data from opti sensor
-    uint8_t prox = conveyor_color_detector.get_proximity();
-
-    // these variables track redness & blueness of the ring
-    bool red_ring = false;
-    // these variables track redness & blueness of the ring
-    bool blue_ring = false;
+    
 
     print_text_at(4, "fishy fishy fish fish time");
 
-    print_text_at(7, fmt::format("prox is {}", prox).c_str());
-
     if (IS_USING_COLOR_SENSOR) {
-        if (prox <= 120) { //  NO RING  NO RING  NO RING  NO RING  NO RING  NO RING
+        if (!(has_blue_ring() or has_red_ring())) { //  NO RING  NO RING  NO RING  NO RING  NO RING  NO RING
 
             // if we see no ring, keep moving
 
             // speed = 50% of 600. for the conveyor to go slow enough to get a prox read
             // and honestly this is here because it was in Joseph's opcontrol vex block code.
-            conveyor.move_velocity(100);
+            conveyor.move_velocity(300);
 
         } else {
             if (!has_set_target) {
@@ -82,35 +114,20 @@ bool load_for_fish_mech() {
                 set_conveyor_target_in_inches(3.2);
             }
 
-            if (std::abs(conveyor.get_target_position() - conveyor.get_position()) >= thresh) {
-                // Do nothing, the ring isnt in place yet here.
-
-            } else if (color.red > color.blue) { // THERE IS A RED RING
-
-                // there is a red ring here. do red ring things
-                red_ring = true;
-            } else if (color.blue > color.red) { // THERE IS A BLUE RING
-
-                // redundant but nobody cares
-                // there is a blue ring here. do blue ring things.
-                blue_ring = true;
+            if (std::abs(conveyor.get_target_position() - conveyor.get_position()) < thresh){
+                has_set_target = false;
+                return true;
             }
+            
+            // the ring is in place. stop the conveyor.
+            conveyor.move_velocity(0);
+            return false;
+            
+            
         }
 
-        // print_text_at(6, fmt::format("is red or blue ring: {} | is red: {} | is blue: {}", red_ring || blue_ring,
-        // red_ring, blue_ring).c_str());
-
-        if (blue_ring || red_ring) {
-            // there is a ring. do ring things
-
-            // float num_rotations = 1.5;
-            //  evaluated to 3.676 inches
-            // advance the ring to fish mech pos
-            print_text_at(4, "done fishin");
-
-            return true;
-            // conveyor.brake();
-        }
+        
+       
         return false;
 
     } else {
@@ -119,4 +136,6 @@ bool load_for_fish_mech() {
     }
 }
 
-void deposit_with_fish_mech() { fish_mech.move_absolute(230.0, 100); }
+void deposit_with_fish_mech() { 
+    fish_mech.move_absolute(230.0, 100); 
+}

@@ -35,6 +35,8 @@ lemlib::Pose odomPose(0, 0, 0); // the pose of the robot
 lemlib::Pose odomSpeed(0, 0, 0); // the speed of the robot
 lemlib::Pose odomLocalSpeed(0, 0, 0); // the local speed of the robot
 
+lemlib::Pose offsetPose(0, 0, 0); // the offset of the robot
+
 void lemlib::setDrivetrain(lemlib::Drivetrain drivetrain) { drive = drivetrain; }
 
 lemlib::Pose lemlib::getPose(bool radians) {
@@ -45,6 +47,8 @@ lemlib::Pose lemlib::getPose(bool radians) {
 void lemlib::setPose(lemlib::Pose pose, bool radians) {
     if (radians) odomPose = pose;
     else odomPose = lemlib::Pose(pose.x, pose.y, degToRad(pose.theta));
+    offsetPose = odomPose;
+
 }
 
 lemlib::Pose lemlib::getSpeed(bool radians) {
@@ -146,7 +150,7 @@ void lemlib::update() {
             h *= -1;
             h += 90; //cartesian to vex coords
 
-            odomPose = lemlib::Pose(x, y, degToRad(h));
+            odomPose = lemlib::Pose(x, y, degToRad(h)) + offsetPose;
         }
     }
 }
@@ -176,7 +180,6 @@ void lemlib::init() {
         trackingTask = new pros::Task {[=] {
             while (true) {
                 update();
-
                 pros::delay(10);
             }
         }};

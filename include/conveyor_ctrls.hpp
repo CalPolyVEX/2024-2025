@@ -7,5 +7,7 @@ void conveyor_deposit_and_intake();
 void move_conveyor_backward();
 bool load_for_fish_mech();
 void deposit_with_fish_mech();
+bool has_red_ring();
+bool has_blue_ring();
 
 #endif // CONVEYOR_CTRLS_H
