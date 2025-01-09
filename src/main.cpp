@@ -42,22 +42,22 @@ void initialize() {
     
     lemlib::init(); // initialize lemlib
 
-  fish_mech.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
-  fish_mech.set_encoder_units(pros::MotorEncoderUnits::degrees);
+    fish_mech.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
+    fish_mech.set_encoder_units(pros::MotorEncoderUnits::degrees);
 
-  // TODO: see if we can use hard braking instead of coasting,
-  // it should be more accurate and make little-to-no-diff because
-  // the conveyor is already tensioned and frictioned.
-  // it seems to stop abruptly as hard braking anyway
-  conveyor.set_brake_mode_all(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_COAST);
+    // TODO: see if we can use hard braking instead of coasting,
+    // it should be more accurate and make little-to-no-diff because
+    // the conveyor is already tensioned and frictioned.
+    // it seems to stop abruptly as hard braking anyway
+    conveyor.set_brake_mode_all(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_COAST);
 
-  conveyor.set_encoder_units(pros::motor_encoder_units_e_t::E_MOTOR_ENCODER_COUNTS);
+    conveyor.set_encoder_units(pros::motor_encoder_units_e_t::E_MOTOR_ENCODER_COUNTS);
 
-  // this coast behavior makes sense though, the roller doesnt need to brake hard.
-  roller_intake.set_brake_mode_all(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_COAST);
+    // this coast behavior makes sense though, the roller doesnt need to brake hard.
+    roller_intake.set_brake_mode_all(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_COAST);
 
-  conveyor_color_detector.disable_gesture();
-  pros::c::optical_rgb_s_t color = conveyor_color_detector.get_rgb();
+    conveyor_color_detector.disable_gesture();
+    pros::c::optical_rgb_s_t color = conveyor_color_detector.get_rgb();
 
     if (has_red_ring()) {
         lemlib::calibrate_otos(true);
@@ -71,7 +71,6 @@ void initialize() {
 
     initialize_screen();
 
-    
 
     while (IS_DEBUGGING_OTOS) {
        

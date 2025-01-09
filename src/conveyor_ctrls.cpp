@@ -9,7 +9,7 @@
 
 bool scoring_opposite = false;
 
-
+//TODO TUNE PROXIMITY SENSOR
 bool has_red_ring(){
     bool has_ring = conveyor_color_detector.get_proximity() > 120;
     bool is_red = conveyor_color_detector.get_rgb().red > conveyor_color_detector.get_rgb().blue && conveyor_color_detector.get_rgb().red > conveyor_color_detector.get_rgb().green;
@@ -60,7 +60,8 @@ void conveyor_deposit_and_intake(int speed = 600) {
     // make the conveyor go fast. that's pretty much all this does lol.
     conveyor.move_velocity(speed);
 
-
+    //color sorting
+    //TODO test this, make it better
     if (has_blue_ring() && alliance_color == true && scoring_opposite == false){
         rejector.extend();
         pros::delay(500); 
@@ -89,6 +90,7 @@ void conveyor_deposit_and_intake(int speed = 600) {
 void move_conveyor_backward() {
     conveyor_deposit_and_intake(-600);
 }
+
 bool has_set_target = false;
 
 bool load_for_fish_mech() {
@@ -105,6 +107,8 @@ bool load_for_fish_mech() {
 
             // speed = 50% of 600. for the conveyor to go slow enough to get a prox read
             // and honestly this is here because it was in Joseph's opcontrol vex block code.
+
+            //TODO test higher speed
             conveyor.move_velocity(300);
 
     } else {
