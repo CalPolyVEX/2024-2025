@@ -26,6 +26,33 @@ pros::Task* telemetry_in_auto_task = nullptr;
 
 button_expanded fish_mech_loading_conveyor_button;
 
+
+// drivetrain, chassis and PID controllers definitions===================================
+lemlib::ControllerSettings lateralPIDController(10, // proportional gain (kP)
+                                                0, // integral gain (kI)
+                                                3, // derivative gain (kD)
+                                                3, // anti windup
+                                                1, // small error range, in inches
+                                                100, // small error range timeout, in milliseconds
+                                                3, // large error range, in inches
+                                                500, // large error range timeout, in milliseconds
+                                                20 // maximum acceleration (slew)
+);
+lemlib::ControllerSettings angularPIDController(2, // proportional gain (kP)
+                                                0, // integral gain (kI)
+                                                10, // derivative gain (kD)
+                                                3, // anti windup
+                                                1, // small error range, in inches
+                                                100, // small error range timeout, in milliseconds
+                                                3, // large error range, in inches
+                                                500, // large error range timeout, in milliseconds
+                                                0 // maximum acceleration (slew)
+);
+
+lemlib::Drivetrain drivetrain(&leftMG, &rightMG, 12.25, lemlib::Omniwheel::NEW_325, 450, 0);
+
+lemlib::Chassis chassis(drivetrain, lateralPIDController, angularPIDController);
+
 /**
  * Runs initialization code. This occurs as soon as the program is started.
  *

@@ -59,7 +59,11 @@ void conveyor_deposit_and_intake(int speed = 600) {
 
   // color sorting
   // TODO test this, make it better
-  if (has_blue_ring() && alliance_color == true && scoring_opposite == false) {
+  bool is_blue_alliance = not alliance_color;
+  bool is_red_alliance = alliance_color;
+
+
+  if ((has_blue_ring() and is_red_alliance) or (has_red_ring() and is_red_alliance) and scoring_opposite == false) {
     rejector.extend();
     pros::delay(500);
     // basically 8.17 inches
@@ -67,12 +71,6 @@ void conveyor_deposit_and_intake(int speed = 600) {
     rejector.retract();
   }
 
-  if (has_red_ring() && alliance_color == false && scoring_opposite == false) {
-    rejector.extend();
-    pros::delay(500);
-  } else {
-    rejector.retract();
-  }
 
   if (conveyor.get_actual_velocity() == 0) {
     pros::delay(200);

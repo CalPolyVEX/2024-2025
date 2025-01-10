@@ -1,7 +1,7 @@
 
 
-char* choose_next_state(char* prev_state);
+int choose_next_state(int prev_state);
 
-char* do_green_tree(char* prev_state);
+int do_green_tree(int prev_state);
 
-char* do_gold_tree(char* prev_state);
+int do_gold_tree(int prev_state);

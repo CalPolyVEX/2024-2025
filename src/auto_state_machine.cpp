@@ -3,7 +3,7 @@
 
 #include "auto_state_machine.h"
 
-char* choose_next_state(char* prev_state) {
+int choose_next_state(int prev_state) {
 #ifdef GOLD_BOT
   return do_gold_tree(prev_state);
 #endif
