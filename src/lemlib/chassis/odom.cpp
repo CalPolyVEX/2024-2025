@@ -5,15 +5,18 @@
 
 #include <math.h>
 #include <string.h>
+#include "fmt/core.h"
+#include "display.h"
+//#include "fmt/format.h"
 #include "pros/rtos.hpp"
 #include "pros/serial.hpp"
 #include "lemlib/util.hpp"
 #include "lemlib/chassis/odom.hpp"
 #include "lemlib/chassis/chassis.hpp"
 #include "musty/cobs.h"
-#include "odom.hpp"
+#include "lemlib/chassis/odom.hpp"
 
-#define MUSTY_SERIALPORT 8
+#define MUSTY_SERIALPORT 11
 #define MUSTY_BAUDRATE 460800
 
 #define TRANSMIT_PACKET_SIZE 2
@@ -22,8 +25,18 @@
 
 #define COMMAND_READ_LIDAR 200
 #define COMMAND_READ_ENCODERS 100
+
+
 #define COMMAND_READ_OTOS 201
-#define COMMAND_CALIBRATE_OTOS 202
+#define COMMAND_CALIBRATE_OTOS_RED 0
+#define COMMAND_CALIBRATE_OTOS_BLUE 255
+//#define COMMAND_CALIBRATE_OTOS 202
+
+
+bool red_alliance = false;
+
+bool should_calibrate = false;
+
 
 // tracking thread
 pros::Task* trackingTask = nullptr;
@@ -96,7 +109,7 @@ void lemlib::update() {
 
   lastPose = curPose;
 
-  uint8_t transmit_buffer[TRANSMIT_PACKET_SIZE] = {COMMAND_READ_OTOS, 255};
+  uint8_t transmit_buffer[TRANSMIT_PACKET_SIZE] = {COMMAND_READ_OTOS, 127};
   uint8_t receive_buffer[MAX_BUFFER_SIZE] = {0};
   uint8_t decode_buffer[MAX_BUFFER_SIZE] = {0};
 
@@ -109,6 +122,20 @@ void lemlib::update() {
   cobs_decode_result res;
 
   float x, y, h;
+  print_text_at(4, fmt::format("0: {}, 1: {}", transmit_buffer[0], transmit_buffer[1]).c_str());
+  if (should_calibrate){
+    should_calibrate = false;
+    if (red_alliance) {
+      transmit_buffer[1] = COMMAND_CALIBRATE_OTOS_RED;
+    } else {
+      transmit_buffer[1] = COMMAND_CALIBRATE_OTOS_BLUE;
+    }
+    // send the command to the Musty board
+    //print_text_at(9, fmt::format("Calibrating OTOS: {}", transmit_buffer[1]).c_str());
+    s->write(transmit_buffer, TRANSMIT_PACKET_SIZE);
+    return;
+  }
+
 
   // send the command to the Musty board
   s->write(transmit_buffer, TRANSMIT_PACKET_SIZE);
@@ -136,6 +163,10 @@ void lemlib::update() {
       if (timeout_counter > 10) { break; }
     }
   }
+  //print_text_at(6, fmt::format("num_read_bytes: {}", num_read_bytes).c_str());
+  //print_text_at(8, fmt::format("num_waiting_bytes: {}", num_waiting_bytes).c_str());  
+  //print_text_at(9, fmt::format("timeout_counter: {}", timeout_counter).c_str());
+  //print_text_at(7, fmt::format("millis: {}", pros::millis()).c_str());
 
   if (read_success) {
     res = musty_cobs_decode(decode_buffer, MAX_BUFFER_SIZE, receive_buffer, RECEIVE_OTOS_PACKET_SIZE);
@@ -148,6 +179,7 @@ void lemlib::update() {
       h *= -1;
       h += 90; // cartesian to vex coords
 
+      //print_text_at(5, fmt::format("x: {}, y: {}, h: {}", x, y, h).c_str());
       odomPose = lemlib::Pose(x, y, degToRad(h)) + offsetPose;
     }
   }
@@ -159,11 +191,9 @@ pros::Serial* get_serial_ptr() {
 }
 
 void lemlib::calibrate_otos(bool is_red_alliance) {
-  u_int8_t alliance_command = 255;
-  if (is_red_alliance) { alliance_command = 127; }
-
-  u_int8_t transmit_buffer[TRANSMIT_PACKET_SIZE] = {COMMAND_CALIBRATE_OTOS, alliance_command};
-  s->write(transmit_buffer, TRANSMIT_PACKET_SIZE);
+  should_calibrate = true;
+  red_alliance = is_red_alliance;
+  //print_text_at(8, "calibrating otos");
 }
 
 void lemlib::init() {

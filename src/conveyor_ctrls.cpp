@@ -9,9 +9,11 @@
 
 bool scoring_opposite = false;
 
+uint8_t prox_thresh = 120; 
+
 // TODO TUNE PROXIMITY SENSOR
 bool has_red_ring() {
-  bool has_ring = conveyor_color_detector.get_proximity() > 120;
+  bool has_ring = conveyor_color_detector.get_proximity() > prox_thresh;
   bool is_red = conveyor_color_detector.get_rgb().red > conveyor_color_detector.get_rgb().blue &&
                 conveyor_color_detector.get_rgb().red > conveyor_color_detector.get_rgb().green;
   if (is_red && has_ring) {
@@ -22,7 +24,7 @@ bool has_red_ring() {
 }
 
 bool has_blue_ring() {
-  bool has_ring = conveyor_color_detector.get_proximity() > 120;
+  bool has_ring = conveyor_color_detector.get_proximity() > prox_thresh;
   bool is_blue = conveyor_color_detector.get_rgb().blue > conveyor_color_detector.get_rgb().red &&
                  conveyor_color_detector.get_rgb().green > conveyor_color_detector.get_rgb().red;
   if (is_blue && has_ring) {
@@ -62,7 +64,8 @@ void conveyor_deposit_and_intake(int speed = 600) {
   bool is_blue_alliance = not alliance_color;
   bool is_red_alliance = alliance_color;
 
-  if ((has_blue_ring() and is_red_alliance) or (has_red_ring() and is_red_alliance) and scoring_opposite == false) {
+
+  if ((has_blue_ring() and is_red_alliance) or (has_red_ring() and is_blue_alliance) and not scoring_opposite) {
     rejector.extend();
     pros::delay(500);
     // basically 8.17 inches

@@ -61,6 +61,8 @@ lemlib::Chassis chassis(drivetrain, lateralPIDController, angularPIDController);
 
 void initialize() {
   // TODO initialize the otos using lemlib::setPose() and the color sensor
+  initialize_screen();
+
 
   lemlib::init(); // initialize lemlib
 
@@ -90,10 +92,11 @@ void initialize() {
   }
   pros::delay(500); // dont do anything for half a sec so we can init the otos
 
-  initialize_screen();
+  print_text_at(8, "done calibrating");
 
   while (IS_DEBUGGING_OTOS) {
-    printf("Pose: (%f, %f, %f) \n", lemlib::getPose().x, lemlib::getPose().y, lemlib::getPose().theta);
+    update_robot_position_on_screen(lemlib::getPose(true));
+    //printf("Pose: (%f, %f, %f) \n", lemlib::getPose().x, lemlib::getPose().y, lemlib::getPose().theta);
 
     pros::delay(10);
   }
