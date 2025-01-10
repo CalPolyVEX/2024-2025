@@ -26,7 +26,6 @@ pros::Task* telemetry_in_auto_task = nullptr;
 
 button_expanded fish_mech_loading_conveyor_button;
 
-
 // drivetrain, chassis and PID controllers definitions===================================
 lemlib::ControllerSettings lateralPIDController(10, // proportional gain (kP)
                                                 0, // integral gain (kI)

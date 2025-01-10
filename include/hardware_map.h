@@ -27,7 +27,6 @@ pros::Motor fish_mech(7, pros::MotorCartridge::red);
 pros::Motor conveyor(2, pros::MotorGearset::blue);
 pros::Motor roller_intake(-6, pros::MotorCartridge::blue);
 
-
 //===================================================================
 
 //----------------------------- sensors -----------------------------

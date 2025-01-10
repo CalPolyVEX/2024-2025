@@ -62,7 +62,6 @@ void conveyor_deposit_and_intake(int speed = 600) {
   bool is_blue_alliance = not alliance_color;
   bool is_red_alliance = alliance_color;
 
-
   if ((has_blue_ring() and is_red_alliance) or (has_red_ring() and is_red_alliance) and scoring_opposite == false) {
     rejector.extend();
     pros::delay(500);
@@ -70,7 +69,6 @@ void conveyor_deposit_and_intake(int speed = 600) {
   } else {
     rejector.retract();
   }
-
 
   if (conveyor.get_actual_velocity() == 0) {
     pros::delay(200);
