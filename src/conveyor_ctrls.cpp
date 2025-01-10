@@ -9,7 +9,7 @@
 
 bool scoring_opposite = false;
 
-uint8_t prox_thresh = 120; 
+uint8_t prox_thresh = 120;
 
 // TODO TUNE PROXIMITY SENSOR
 bool has_red_ring() {
@@ -63,7 +63,6 @@ void conveyor_deposit_and_intake(int speed = 600) {
   // TODO test this, make it better
   bool is_blue_alliance = not alliance_color;
   bool is_red_alliance = alliance_color;
-
 
   if ((has_blue_ring() and is_red_alliance) or (has_red_ring() and is_blue_alliance) and not scoring_opposite) {
     rejector.extend();

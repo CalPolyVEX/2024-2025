@@ -63,7 +63,6 @@ void initialize() {
   // TODO initialize the otos using lemlib::setPose() and the color sensor
   initialize_screen();
 
-
   lemlib::init(); // initialize lemlib
 
   fish_mech.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
@@ -96,7 +95,7 @@ void initialize() {
 
   while (IS_DEBUGGING_OTOS) {
     update_robot_position_on_screen(lemlib::getPose(true));
-    //printf("Pose: (%f, %f, %f) \n", lemlib::getPose().x, lemlib::getPose().y, lemlib::getPose().theta);
+    // printf("Pose: (%f, %f, %f) \n", lemlib::getPose().x, lemlib::getPose().y, lemlib::getPose().theta);
 
     pros::delay(10);
   }
