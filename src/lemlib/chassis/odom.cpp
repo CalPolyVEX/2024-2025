@@ -16,7 +16,7 @@
 #include "musty/cobs.h"
 #include "lemlib/chassis/odom.hpp"
 
-#define MUSTY_SERIALPORT 11
+#define MUSTY_SERIALPORT 12
 #define MUSTY_BAUDRATE 460800
 
 #define TRANSMIT_PACKET_SIZE 2
