@@ -201,7 +201,7 @@ void lemlib::calibrate_otos(bool is_red_alliance) {
     setPose(Pose(RED_STARTING_POSE));
   } else {
     setPose(Pose(BLUE_STARTING_POSE));
-    }
+  }
 }
 
 void lemlib::init() {
