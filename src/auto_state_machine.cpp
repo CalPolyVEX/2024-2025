@@ -1,4 +1,4 @@
-//#define GOLD_BOT
+// #define GOLD_BOT
 #define GREEN_BOT
 
 #include "auto_state_machine.h"

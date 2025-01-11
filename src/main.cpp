@@ -124,68 +124,63 @@ void competition_initialize() {
  * */
 void autonomous() {
   telemetry_in_auto_task = new pros::Task {[=] {
-     while (true) {
-       update_robot_position_on_screen(lemlib::getPose(true));
-       pros::delay(100);
-     }
-   },
-   "telemetry auton task"};
+                                             while (true) {
+                                               update_robot_position_on_screen(lemlib::getPose(true));
+                                               pros::delay(100);
+                                             }
+                                           },
+                                           "telemetry auton task"};
   print_text_at(7, "am moving rn");
   chassis.turnToHeading(0, 3000);
-  //chassis.moveToPoint(8, 0, 3000);
+  // chassis.moveToPoint(8, 0, 3000);
   chassis.waitUntilDone();
   print_text_at(7, "done moving");
 }
 
-void update_buttons(){
+void update_buttons() {
   // put all button_expanded updates here
-  fish_mech_loading_conveyor_button.update(controller.get_digital(
-      pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_A));
-                                           
+  fish_mech_loading_conveyor_button.update(
+      controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_A));
 }
-
-
 
 // initializes opmode tasks and mechanisms for opmode(), before main loop runs.
 void op_init() {
-  button_update_task = new pros::Task {[=] 
-  {
-    while (true) {
-      update_buttons();
-      pros::delay(20);
-    }
-  },"button update task"};
+  button_update_task = new pros::Task {[=] {
+                                         while (true) {
+                                           update_buttons();
+                                           pros::delay(20);
+                                         }
+                                       },
+                                       "button update task"};
 
-  intake_task = new pros::Task {[=] 
-  {
-    
-    while (true) {
-      // print_text_at(5, "intaking");
-      if (fish_mech_loading_conveyor_button.is_toggled()) {
-        if (fish_mech_loading_conveyor_button.just_pressed()) {
-          // if button has just been pressed (not held) (and we have toggled the
-          // button):
-          controller.rumble("....");
-          while (!load_for_fish_mech()) {
-            pros::delay(20);
-            if (!fish_mech_loading_conveyor_button.is_toggled()) { break; }
-            // sets target for the conveyor to reach
-          }
-          // the conveyor moves about 4 in for the fish mech to load the ring.
-          set_conveyor_target_in_inches(3.676);
-        }
-        if (std::abs(conveyor.get_position() - conveyor.get_target_position()) <=
-            CONVEYOR_TARGET_THRESH) {
-          conveyor.brake();
-        }
-        // move the conveyor to the fish mech position
-      } else {
-        conveyor_deposit_and_intake();
-      }
-      pros::delay(60);
-    }
-  },
-  "intake task"};
+  intake_task = new pros::Task {[=] {
+                                  while (true) {
+                                    // print_text_at(5, "intaking");
+                                    if (fish_mech_loading_conveyor_button.is_toggled()) {
+                                      if (fish_mech_loading_conveyor_button.just_pressed()) {
+                                        // if button has just been pressed (not held) (and we have toggled the
+                                        // button):
+                                        controller.rumble("....");
+                                        while (!load_for_fish_mech()) {
+                                          pros::delay(20);
+                                          if (!fish_mech_loading_conveyor_button.is_toggled()) { break; }
+                                          // sets target for the conveyor to reach
+                                        }
+                                        // the conveyor moves about 4 in for the fish mech to load the ring.
+                                        set_conveyor_target_in_inches(3.676);
+                                      }
+                                      if (std::abs(conveyor.get_position() - conveyor.get_target_position()) <=
+                                          CONVEYOR_TARGET_THRESH) {
+                                        conveyor.brake();
+                                      }
+                                      // move the conveyor to the fish mech position
+                                    } else {
+                                      conveyor_deposit_and_intake();
+                                    }
+                                    pros::delay(60);
+                                  }
+                                },
+                                "intake task"};
 }
 
 /**
