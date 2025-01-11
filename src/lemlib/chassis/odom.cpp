@@ -31,6 +31,9 @@
 #define COMMAND_CALIBRATE_OTOS_BLUE 255
 // #define COMMAND_CALIBRATE_OTOS 202
 
+#define RED_STARTING_POSE 0, 0, 0
+#define BLUE_STARTING_POSE 0, 0, 180
+
 bool red_alliance = false;
 
 bool should_calibrate = false;
@@ -177,6 +180,8 @@ void lemlib::update() {
 
       // print_text_at(5, fmt::format("x: {}, y: {}, h: {}", x, y, h).c_str());
       odomPose = lemlib::Pose(x, y, degToRad(h)) + offsetPose;
+      // Adding poses doesn't add the angle, so we need to add the angle separately
+      odomPose.theta += degToRad(offsetPose.theta);
     }
   }
 }
@@ -190,6 +195,13 @@ void lemlib::calibrate_otos(bool is_red_alliance) {
   should_calibrate = true;
   red_alliance = is_red_alliance;
   // print_text_at(8, "calibrating otos");
+
+  // if red alliance set the odomPose to the red starting position
+  if (red_alliance) {
+    setPose(Pose(RED_STARTING_POSE));
+  } else {
+    setPose(Pose(BLUE_STARTING_POSE));
+    }
 }
 
 void lemlib::init() {
