@@ -19,8 +19,8 @@ lv_obj_t* labels[LABEL_COUNT];
 const char* label_texts[LABEL_COUNT] = {"", "", "", "", "", "", "", "", "", "", "", ""};
 
 void draw_robot_position(float x, float y, float h) {
-  int screenX = roundf((-x * 1.7) + 113);
-  int screenY = roundf((y * 1.7) + 113);
+  int screenX = roundf((x * 1.7) + 113);
+  int screenY = roundf((-y * 1.7) + 113);
 
   h -= M_PI_2;
   h *= -1; // vex coords to cartesian coords

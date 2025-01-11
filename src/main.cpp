@@ -5,6 +5,7 @@
 #include "hardware_map.h"
 // #endif
 #include "lemlib/api.hpp" // IWYU pragma: keep
+#include "lemlib/chassis/chassis.hpp"
 #include "lemlib/chassis/odom.hpp" // IWYU pragma: keep
 #include "conveyor_ctrls.hpp"
 #include "button_helper_class.h"
@@ -27,15 +28,15 @@ pros::Task* telemetry_in_auto_task = nullptr;
 button_expanded fish_mech_loading_conveyor_button;
 
 // drivetrain, chassis and PID controllers definitions===================================
-lemlib::ControllerSettings lateralPIDController(10, // proportional gain (kP)
-                                                0, // integral gain (kI)
+lemlib::ControllerSettings lateralPIDController(9, // proportional gain (kP)
+                                                .1, // integral gain (kI)
                                                 3, // derivative gain (kD)
                                                 3, // anti windup
-                                                1, // small error range, in inches
+                                                0.25, // small error range, in inches
                                                 100, // small error range timeout, in milliseconds
-                                                3, // large error range, in inches
-                                                500, // large error range timeout, in milliseconds
-                                                20 // maximum acceleration (slew)
+                                                1, // large error range, in inches
+                                                750, // large error range timeout, in milliseconds
+                                                16 // maximum acceleration (slew)
 );
 lemlib::ControllerSettings angularPIDController(2, // proportional gain (kP)
                                                 0, // integral gain (kI)
@@ -92,6 +93,8 @@ void initialize() {
     print_text_at(5, "color sensor sees blue");
   }
 
+  
+  
   lemlib::calibrate_otos(true);
   pros::delay(500); // dont do anything for half a sec so we can init the otos
 
@@ -131,8 +134,10 @@ void autonomous() {
                                            },
                                            "telemetry auton task"};
   print_text_at(7, "am moving rn");
-  chassis.turnToHeading(0, 3000);
-  // chassis.moveToPoint(8, 0, 3000);
+  //chassis.turnToHeading(0, 3000);
+  lemlib::MoveToPointParams params = {.forwards = false};
+  chassis.moveToPoint(-8, 0, 2000, params);
+  //chassis.moveToPose(-8, 0, 90, 1200);
   chassis.waitUntilDone();
   print_text_at(7, "done moving");
 }

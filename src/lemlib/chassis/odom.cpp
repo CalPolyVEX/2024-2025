@@ -179,7 +179,7 @@ void lemlib::update() {
       h += 90; // cartesian to vex coords
 
       // print_text_at(5, fmt::format("x: {}, y: {}, h: {}", x, y, h).c_str());
-      odomPose = lemlib::Pose(x, y, degToRad(h)) + offsetPose;
+      odomPose = lemlib::Pose(-x, -y, degToRad(h)) + offsetPose;
       // Adding poses doesn't add the angle, so we need to add the angle separately
       odomPose.theta += degToRad(offsetPose.theta);
     }
