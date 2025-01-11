@@ -93,8 +93,6 @@ void initialize() {
     print_text_at(5, "color sensor sees blue");
   }
 
-  
-  
   lemlib::calibrate_otos(true);
   pros::delay(500); // dont do anything for half a sec so we can init the otos
 
@@ -134,10 +132,10 @@ void autonomous() {
                                            },
                                            "telemetry auton task"};
   print_text_at(7, "am moving rn");
-  //chassis.turnToHeading(0, 3000);
+  // chassis.turnToHeading(0, 3000);
   lemlib::MoveToPointParams params = {.forwards = false};
   chassis.moveToPoint(-8, 0, 2000, params);
-  //chassis.moveToPose(-8, 0, 90, 1200);
+  // chassis.moveToPose(-8, 0, 90, 1200);
   chassis.waitUntilDone();
   print_text_at(7, "done moving");
 }
