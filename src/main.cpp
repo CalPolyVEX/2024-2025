@@ -31,8 +31,6 @@ button_expanded conveyor_enabled_button;
 button_expanded mogo_grabber_button;
 button_expanded conveyor_reverse_button;
 
-
-
 // drivetrain, chassis and PID controllers definitions===================================
 lemlib::ControllerSettings lateralPIDController(9, // proportional gain (kP)
                                                 .1, // integral gain (kI)
@@ -88,16 +86,16 @@ void initialize() {
 
   conveyor_color_detector.disable_gesture();
   pros::c::optical_rgb_s_t color = conveyor_color_detector.get_rgb();
-  //while (true) {
-  //print_text_at(7, fmt::format("color sensor sees: ({}, {}, {})", color.red, color.green, color.blue).c_str());
-  //print_text_at(8, fmt::format("prox sensor sees: {}", conveyor_color_detector.get_proximity()).c_str());
+  // while (true) {
+  // print_text_at(7, fmt::format("color sensor sees: ({}, {}, {})", color.red, color.green, color.blue).c_str());
+  // print_text_at(8, fmt::format("prox sensor sees: {}", conveyor_color_detector.get_proximity()).c_str());
   if (has_red_ring()) {
-    //lemlib::calibrate_otos(true);
+    // lemlib::calibrate_otos(true);
     alliance_color = true;
     print_text_at(5, "color sensor sees red");
   } else if (has_blue_ring()) {
     alliance_color = false;
-    //lemlib::calibrate_otos(false);
+    // lemlib::calibrate_otos(false);
     print_text_at(5, "color sensor sees blue");
   } else {
     print_text_at(5, "color sensor sees nothing");
@@ -106,9 +104,8 @@ void initialize() {
   lemlib::calibrate_otos(true);
   pros::delay(100);
   //}
-  
-  
-  //lemlib::calibrate_otos(true);
+
+  // lemlib::calibrate_otos(true);
   pros::delay(500); // dont do anything for half a sec so we can init the otos
 
   print_text_at(8, "done calibrating");
@@ -151,11 +148,11 @@ void autonomous() {
   lemlib::MoveToPointParams params = {.forwards = false};
   chassis.moveToPoint(-8, 0, 2000, params);
   // chassis.moveToPose(-8, 0, 90, 1200);
-  //chassis.turnToHeading(0, 500);
-  //lemlib::MoveToPointParams params = {.forwards = false};
+  // chassis.turnToHeading(0, 500);
+  // lemlib::MoveToPointParams params = {.forwards = false};
   chassis.follow(pathTest_txt, 3, 3000);
-  //chassis.moveToPoint(-8, 0, 2000, params);
-  //chassis.moveToPose(-8, 0, 90, 1200);
+  // chassis.moveToPoint(-8, 0, 2000, params);
+  // chassis.moveToPose(-8, 0, 90, 1200);
   chassis.waitUntilDone();
   print_text_at(7, "done moving");
 }
@@ -164,31 +161,28 @@ void update_buttons() {
   // put all button_expanded updates here
   fish_mech_loading_conveyor_button.update(
       controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_A));
-  conveyor_enabled_button.update(
-      controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_L1));
-  mogo_grabber_button.update(
-      controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_R1));
-  conveyor_reverse_button.update(
-      controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_R2));
+  conveyor_enabled_button.update(controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_L1));
+  mogo_grabber_button.update(controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_R1));
+  conveyor_reverse_button.update(controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_R2));
 }
 
 // initializes opmode tasks and mechanisms for opmode(), before main loop runs.
 void op_init() {
   mogo_grabber_task = new pros::Task {[=] {
-    while (true) {
-      if (mogo_grabber_button.is_toggled()) {
-        mogo_grabber.extend();
-      } else {
-        if (mogo_grabber_button.just_pressed()) {
-          conveyor.move_velocity(-600);
-          pros::delay(200);
-        }
-        mogo_grabber.retract();
-      }
-      pros::delay(20);
-    }
-  },
-  "mogo grabber task"};
+                                        while (true) {
+                                          if (mogo_grabber_button.is_toggled()) {
+                                            mogo_grabber.extend();
+                                          } else {
+                                            if (mogo_grabber_button.just_pressed()) {
+                                              conveyor.move_velocity(-600);
+                                              pros::delay(200);
+                                            }
+                                            mogo_grabber.retract();
+                                          }
+                                          pros::delay(20);
+                                        }
+                                      },
+                                      "mogo grabber task"};
 
   button_update_task = new pros::Task {[=] {
                                          while (true) {
@@ -198,46 +192,43 @@ void op_init() {
                                        },
                                        "button update task"};
 
-  intake_task = new pros::Task {[=] {
-                                  while (true) {
-                                    // print_text_at(5, "intaking");
-                                    if (fish_mech_loading_conveyor_button.is_toggled() and conveyor_enabled_button.is_toggled()) {
-                                      if (fish_mech_loading_conveyor_button.just_pressed()) {
-                                        // if button has just been pressed (not held) (and we have toggled the
-                                        // button):
-                                        controller.rumble("....");
-                                        while (!fish_mech_is_loaded() and fish_mech_loading_conveyor_button.is_toggled()) {
-                                          pros::delay(20);
-                                        }
-                                        // sets target for the conveyor to reach
-                                        // the conveyor moves about 4 in for the fish mech to load the ring.
-                                        set_conveyor_target_in_inches(.75);
-                                      }
-                                      if (std::abs(conveyor.get_position() - conveyor.get_target_position()) <=
-                                          CONVEYOR_TARGET_THRESH) {
-                                        conveyor.brake();
-                                      }
-                                      // move the conveyor to the fish mech position
-                                    } else {
-                                      if (conveyor_enabled_button.is_toggled() and not conveyor_reverse_button.is_pressed()) {
-                                        //conveyor_reverse_button.update(false);
-                                        conveyor_deposit_and_intake();
+  intake_task = new pros::Task {
+      [=] {
+        while (true) {
+          // print_text_at(5, "intaking");
+          if (fish_mech_loading_conveyor_button.is_toggled() and conveyor_enabled_button.is_toggled()) {
+            if (fish_mech_loading_conveyor_button.just_pressed()) {
+              // if button has just been pressed (not held) (and we have toggled the
+              // button):
+              controller.rumble("....");
+              while (!fish_mech_is_loaded() and fish_mech_loading_conveyor_button.is_toggled()) { pros::delay(20); }
+              // sets target for the conveyor to reach
+              // the conveyor moves about 4 in for the fish mech to load the ring.
+              set_conveyor_target_in_inches(.75);
+            }
+            if (std::abs(conveyor.get_position() - conveyor.get_target_position()) <= CONVEYOR_TARGET_THRESH) {
+              conveyor.brake();
+            }
+            // move the conveyor to the fish mech position
+          } else {
+            if (conveyor_enabled_button.is_toggled() and not conveyor_reverse_button.is_pressed()) {
+              // conveyor_reverse_button.update(false);
+              conveyor_deposit_and_intake();
 
-                                      } else if (conveyor_reverse_button.is_pressed()) {
-                                        
-                                        conveyor_enabled_button.toggled = false;
-                                        
-                                        conveyor.move_velocity(-600);
-                                        roller_intake.move_velocity(-600);
-                                      } else {
-                                        conveyor.move_velocity(0);
-                                        roller_intake.move_velocity(120);
-                                      }
-                                    }
-                                    pros::delay(60);
-                                  }
-                                },
-                                "intake task"};
+            } else if (conveyor_reverse_button.is_pressed()) {
+              conveyor_enabled_button.toggled = false;
+
+              conveyor.move_velocity(-600);
+              roller_intake.move_velocity(-600);
+            } else {
+              conveyor.move_velocity(0);
+              roller_intake.move_velocity(120);
+            }
+          }
+          pros::delay(60);
+        }
+      },
+      "intake task"};
 }
 
 /**

@@ -7,11 +7,10 @@ class button_expanded {
   private:
     bool value = false;
     bool prev_value = false;
-    
   public:
     bool toggled = false;
     // Methods
-    
+
     bool just_pressed();
     void update(bool new_val);
     bool is_pressed();

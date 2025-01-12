@@ -71,13 +71,13 @@ void conveyor_deposit_and_intake(int speed = 600) {
     rejector.retract();
   }
 
-  if (conveyor.get_actual_velocity() == 0) { 
+  if (conveyor.get_actual_velocity() == 0) {
     // JAAAAAAM (maybe)
 
     pros::delay(200);
 
-    if (conveyor.get_actual_velocity() == 0) { 
-      //actually jammed
+    if (conveyor.get_actual_velocity() == 0) {
+      // actually jammed
       conveyor.move_velocity(-600);
     }
   }
@@ -104,8 +104,6 @@ bool fish_mech_is_loaded() {
       conveyor.move_velocity(300);
 
     } else {
-
-      
       return true;
     }
 
