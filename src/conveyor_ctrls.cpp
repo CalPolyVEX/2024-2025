@@ -1,5 +1,4 @@
 // #include "hardware_map.h"
-#include <cstdlib>
 #ifndef HARDWARE_MAP_H
 #include "hardware_map.h"
 #endif
@@ -9,7 +8,7 @@
 
 bool scoring_opposite = false;
 
-uint8_t prox_thresh = 120;
+uint8_t prox_thresh = 130;
 
 // TODO TUNE PROXIMITY SENSOR
 bool has_red_ring() {
@@ -72,9 +71,15 @@ void conveyor_deposit_and_intake(int speed = 600) {
     rejector.retract();
   }
 
-  if (conveyor.get_actual_velocity() == 0) {
+  if (conveyor.get_actual_velocity() == 0) { 
+    // JAAAAAAM (maybe)
+
     pros::delay(200);
-    if (conveyor.get_actual_velocity() == 0) { conveyor.move_velocity(-600); }
+
+    if (conveyor.get_actual_velocity() == 0) { 
+      //actually jammed
+      conveyor.move_velocity(-600);
+    }
   }
 }
 
@@ -82,7 +87,7 @@ void move_conveyor_backward() { conveyor_deposit_and_intake(-600); }
 
 bool has_set_target = false;
 
-bool load_for_fish_mech() {
+bool fish_mech_is_loaded() {
   double thresh = 5.0;
 
   print_text_at(4, "fishy fishy fish fish time");
@@ -99,19 +104,9 @@ bool load_for_fish_mech() {
       conveyor.move_velocity(300);
 
     } else {
-      if (!has_set_target) {
-        has_set_target = true;
-        set_conveyor_target_in_inches(3.2);
-      }
 
-      if (std::abs(conveyor.get_target_position() - conveyor.get_position()) < thresh) {
-        has_set_target = false;
-        return true;
-      }
-
-      // the ring is in place. stop the conveyor.
-      conveyor.move_velocity(0);
-      return false;
+      
+      return true;
     }
 
     return false;

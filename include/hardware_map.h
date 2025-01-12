@@ -22,9 +22,9 @@ pros::MotorGroup rightMG({-19, 4, 5}, pros::MotorGearset::blue);
 //----------
 
 // TODO rename this when the other mechanism is on the bot
-pros::Motor fish_mech(7, pros::MotorCartridge::red);
+pros::Motor fish_mech(3, pros::MotorCartridge::red);
 
-pros::Motor conveyor(2, pros::MotorGearset::blue);
+pros::Motor conveyor(-2, pros::MotorGearset::blue);
 pros::Motor roller_intake(-6, pros::MotorCartridge::blue);
 
 //===================================================================
@@ -32,13 +32,13 @@ pros::Motor roller_intake(-6, pros::MotorCartridge::blue);
 //----------------------------- sensors -----------------------------
 // pros::Distance ring_dist(6);
 
-pros::Optical conveyor_color_detector(3);
+pros::Optical conveyor_color_detector(13);
 //===================================================================
 
 //----------------------------- pneumatics -----------------------------
-pros::adi::Pneumatics mogoGrabber('A', false);
+pros::adi::Pneumatics mogo_grabber('C', false);
 
 pros::adi::Pneumatics rejector('B', false);
 
-pros::adi::Pneumatics doinker('H', false);
+pros::adi::Pneumatics doinker('D', false);
 //===================================================================
