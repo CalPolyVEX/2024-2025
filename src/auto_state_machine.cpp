@@ -1,7 +1,7 @@
-// #define GOLD_BOT
-#define GREEN_BOT
+// #define GOLD_BOT //Tim
+#define GREEN_BOT // Joseph
 
-#include "auto_state_machine.h"
+#include "auto_state_machine.hpp"
 
 int choose_next_state(int prev_state) {
 #ifdef GOLD_BOT

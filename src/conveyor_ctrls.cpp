@@ -10,7 +10,6 @@ bool scoring_opposite = false;
 
 uint8_t prox_thresh = 130;
 
-// TODO TUNE PROXIMITY SENSOR
 bool has_red_ring() {
   bool has_ring = conveyor_color_detector.get_proximity() > prox_thresh;
   bool is_red = conveyor_color_detector.get_rgb().red > conveyor_color_detector.get_rgb().blue &&
@@ -33,7 +32,16 @@ bool has_blue_ring() {
   return false;
 }
 
-void score_with_fish_mech() { fish_mech.move_absolute(230.0, 100); }
+void zero_fish_mech() {
+  if (fish_mech.get_current_draw() < 1000) {
+    fish_mech.move_voltage(-1000);
+  } else {
+    fish_mech.move_velocity(0);
+    fish_mech.tare_position();
+  }
+}
+
+void score_with_fish_mech() { fish_mech.move_absolute(250.0, 100); }
 
 // this is a delta movement
 void set_conveyor_target_in_inches(float inches, int speed = 300) {
@@ -59,14 +67,14 @@ void conveyor_deposit_and_intake(int speed = 600) {
   conveyor.move_velocity(speed);
 
   // color sorting
-  // TODO test this, make it better
+
   bool is_blue_alliance = not alliance_color;
   bool is_red_alliance = alliance_color;
 
   if ((has_blue_ring() and is_red_alliance) or (has_red_ring() and is_blue_alliance) and not scoring_opposite) {
     rejector.extend();
-    pros::delay(500);
-    // basically 8.17 inches
+    pros::delay(100);
+    //   basically 8.17/5 inches
   } else {
     rejector.retract();
   }
@@ -115,4 +123,4 @@ bool fish_mech_is_loaded() {
   }
 }
 
-void deposit_with_fish_mech() { fish_mech.move_absolute(230.0, 100); }
+// void deposit_with_fish_mech() { fish_mech.move_absolute(250.0, 100); }
