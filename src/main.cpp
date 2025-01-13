@@ -229,28 +229,6 @@ void op_init() {
                                        "button update task"};
 
   intake_task = new pros::Task {
-    [=] {
-        while (true) {
-          // print_text_at(5, "intaking");
-          if (fish_mech_loading_conveyor_button.is_toggled() and conveyor_enabled_button.is_toggled()) {
-            if (fish_mech_loading_conveyor_button.just_pressed()) {
-              // if button has just been pressed (not held) (and we have toggled the
-              // button):
-              controller.rumble("....");
-              while (!fish_mech_is_loaded() and fish_mech_loading_conveyor_button.is_toggled()) { pros::delay(20); }
-              // sets target for the conveyor to reach
-              // the conveyor moves about 4 in for the fish mech to load the ring.
-              set_conveyor_target_in_inches(.75);
-            }
-            if (std::abs(conveyor.get_position() - conveyor.get_target_position()) <= CONVEYOR_TARGET_THRESH) {
-              conveyor.brake();
-            }
-            // move the conveyor to the fish mech position
-          } else {
-            if (conveyor_enabled_button.is_toggled() and not conveyor_reverse_button.is_pressed()) {
-              // conveyor_reverse_button.update(false);
-              conveyor_deposit_and_intake();
-  intake_task = new pros::Task {
       [=] {
         while (true) {
           // print_text_at(5, "intaking");
