@@ -1,14 +1,12 @@
-// #define GOLD_BOT //Tim
-#define GREEN_BOT // Joseph
-
 #include "auto_state_machine.hpp"
+#include "config.h"
 
 int choose_next_state(int prev_state) {
 #ifdef GOLD_BOT
   return do_gold_tree(prev_state);
 #endif
 
-#ifdef GREEN_BOT
+#ifdef PROTOTYPE_BOT
   return do_green_tree(prev_state);
 #endif
 }

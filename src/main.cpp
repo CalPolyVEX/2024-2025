@@ -1,5 +1,6 @@
 #include "main.h"
 #include "display.h"
+#include "config.h"
 // #include "pros/llemu.hpp"
 // #ifndef HARDWARE_MAP_H
 #include "auto_state_machine.cpp"
@@ -196,7 +197,7 @@ void op_init() {
   mogo_grabber_task =
       new pros::Task {[=] {
                         while (true) {
-#ifdef GREEN_BOT
+#ifdef PROTOTYPE_BOT
                           if (mogo_grabber_button.is_toggled()) {
                             mogo_grabber.extend();
                           } else {
@@ -269,7 +270,7 @@ void op_init() {
   fish_mech_task = new pros::Task {
       [=] {
         while (true) {
-#ifdef GREEN_BOT
+#ifdef PROTOTYPE_BOT
           int fish_axis = controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_Y);
           deadband(fish_axis, 38); // 30% deadband of 127
 #endif

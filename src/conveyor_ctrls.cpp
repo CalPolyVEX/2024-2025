@@ -11,9 +11,12 @@ bool scoring_opposite = false;
 uint8_t prox_thresh = 130;
 
 bool has_red_ring() {
+  conveyor_color_detector.set_led_pwm(100);
+  pros::delay(2);
   bool has_ring = conveyor_color_detector.get_proximity() > prox_thresh;
   bool is_red = conveyor_color_detector.get_rgb().red > conveyor_color_detector.get_rgb().blue &&
                 conveyor_color_detector.get_rgb().red > conveyor_color_detector.get_rgb().green;
+  conveyor_color_detector.set_led_pwm(0);
   if (is_red && has_ring) {
     print_text_at(6, "red ring");
     return true;
@@ -22,9 +25,12 @@ bool has_red_ring() {
 }
 
 bool has_blue_ring() {
+  conveyor_color_detector.set_led_pwm(100);
+  pros::delay(2);
   bool has_ring = conveyor_color_detector.get_proximity() > prox_thresh;
   bool is_blue = conveyor_color_detector.get_rgb().blue > conveyor_color_detector.get_rgb().red &&
                  conveyor_color_detector.get_rgb().green > conveyor_color_detector.get_rgb().red;
+  conveyor_color_detector.set_led_pwm(0);
   if (is_blue && has_ring) {
     print_text_at(6, "blue ring");
     return true;
