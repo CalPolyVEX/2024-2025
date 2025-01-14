@@ -14,6 +14,7 @@
 #include "button_helper_class.h"
 #include "pros/misc.h"
 #include "pros/rtos.hpp"
+#include <type_traits>
 
 ASSET(pathTest_txt);
 
@@ -76,7 +77,7 @@ lemlib::Chassis chassis(drivetrain, lateralPIDController, angularPIDController);
 void initialize() {
   // TODO initialize the otos using lemlib::setPose() and the color sensor
   initialize_screen();
-
+  conveyor_color_detector.set_led_pwm(100);
   lemlib::init(); // initialize lemlib
 
   fish_mech.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
@@ -137,6 +138,7 @@ void initialize() {
 
     pros::delay(10);
   }
+  conveyor_color_detector.set_led_pwm(0);
 }
 
 /**
@@ -159,6 +161,9 @@ void competition_initialize() {
 void autonomous() {
   print_text_at(7, "am moving rn");
   // chassis.turnToHeading(0, 3000);
+  // set_conveyor_target_in_inches(5, 600);
+  // while (true) { pros::delay(100); }
+
   lemlib::MoveToPointParams params = {.forwards = false};
   chassis.moveToPoint(-8, 0, 2000, params);
   // chassis.moveToPose(-8, 0, 90, 1200);
@@ -172,6 +177,7 @@ void autonomous() {
   // chassis.moveToPoint(-8, 0, 2000, params);
   // chassis.moveToPose(-8, 0, 90, 1200);
   chassis.waitUntilDone();
+
   print_text_at(7, "done moving");
 }
 
@@ -253,14 +259,17 @@ void op_init() {
           } else {
             print_text_at(9, "");
             if (conveyor_enabled_button.is_toggled() and not conveyor_reverse_button.is_pressed()) {
+              conveyor_color_detector.set_led_pwm(100);
               // conveyor_reverse_button.update(false);
               conveyor_deposit_and_intake();
             } else if (conveyor_reverse_button.is_pressed()) {
+              conveyor_color_detector.set_led_pwm(0);
               conveyor_enabled_button.toggled = false;
 
               conveyor.move_velocity(-600);
               roller_intake.move_velocity(-600);
             } else {
+              conveyor_color_detector.set_led_pwm(0);
               conveyor.move_velocity(0);
               roller_intake.move_velocity(120);
             }
