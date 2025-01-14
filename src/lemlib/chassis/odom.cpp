@@ -5,7 +5,7 @@
 
 #include <math.h>
 #include <string.h>
-#include "fmt/core.h"
+// #include "fmt/core.h"
 #include "display.h"
 // #include "fmt/format.h"
 #include "pros/rtos.hpp"
@@ -122,7 +122,7 @@ void lemlib::update() {
   cobs_decode_result res;
 
   float x, y, h;
-  print_text_at(4, fmt::format("0: {}, 1: {}", transmit_buffer[0], transmit_buffer[1]).c_str());
+  // print_text_at(4, fmt::format("0: {}, 1: {}", transmit_buffer[0], transmit_buffer[1]).c_str());
   if (should_calibrate) {
     should_calibrate = false;
     if (red_alliance) {

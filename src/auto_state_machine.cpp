@@ -21,6 +21,7 @@ int do_gold_tree(int prev_state) {
 }
 
 int do_green_tree(int prev_state) {
-  // see other tree. TODO
+  // see other tree.
+  // TODO
   return do_green_tree(prev_state);
 }

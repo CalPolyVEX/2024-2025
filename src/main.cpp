@@ -4,6 +4,7 @@
 // #include "pros/llemu.hpp"
 // #ifndef HARDWARE_MAP_H
 #include "auto_state_machine.cpp"
+#include "fmt/core.h"
 #include "hardware_map.h"
 // #endif
 #include "lemlib/api.hpp" // IWYU pragma: keep
@@ -202,10 +203,7 @@ void op_init() {
                             mogo_grabber.extend();
                           } else {
                             mogo_grabber.retract();
-                            if (mogo_grabber_button.just_pressed()) {
-                              conveyor.move_velocity(-600);
-                              pros::delay(200);
-                            }
+                            if (mogo_grabber_button.just_pressed()) { conveyor.move_relative(-900, 600); }
                           }
 #endif
 
@@ -224,7 +222,7 @@ void op_init() {
   button_update_task = new pros::Task {[=] {
                                          while (true) {
                                            update_buttons();
-                                           pros::delay(20);
+                                           pros::delay(10);
                                          }
                                        },
                                        "button update task"};
@@ -235,10 +233,15 @@ void op_init() {
           // print_text_at(5, "intaking");
           if (fish_mech_loading_conveyor_button.is_toggled() and conveyor_enabled_button.is_toggled()) {
             if (fish_mech_loading_conveyor_button.just_pressed()) {
+              print_text_at(9, "fishin");
               // if button has just been pressed (not held) (and we have toggled the
               // button):
               controller.rumble("....");
-              while (!fish_mech_is_loaded() and fish_mech_loading_conveyor_button.is_toggled()) { pros::delay(20); }
+
+              while (!fish_mech_is_loaded() and fish_mech_loading_conveyor_button.is_toggled() and
+                     conveyor_enabled_button.is_toggled()) {
+                pros::delay(20);
+              }
               // sets target for the conveyor to reach
               // the conveyor moves about 4 in for the fish mech to load the ring.
               set_conveyor_target_in_inches(.75);
@@ -248,10 +251,10 @@ void op_init() {
             }
             // move the conveyor to the fish mech position
           } else {
+            print_text_at(9, "");
             if (conveyor_enabled_button.is_toggled() and not conveyor_reverse_button.is_pressed()) {
               // conveyor_reverse_button.update(false);
               conveyor_deposit_and_intake();
-
             } else if (conveyor_reverse_button.is_pressed()) {
               conveyor_enabled_button.toggled = false;
 
@@ -267,44 +270,51 @@ void op_init() {
       },
       "intake task"};
 
-  fish_mech_task = new pros::Task {
-      [=] {
-        while (true) {
-#ifdef PROTOTYPE_BOT
-          int fish_axis = controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_Y);
-          deadband(fish_axis, 38); // 30% deadband of 127
-#endif
-#ifdef GOLD_BOT
-          int fish_axis = controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_UP) ? 127 : 0;
-          fish_axis -= controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_DOWN) ? 127 : 0;
-#endif
-
-          if (fish_axis > 0 or fish_axis < 0) {
-            fish_mech_override_flag = true;
-            fish_mech.move_velocity(fish_axis);
-          } else if (fish_mech.get_position() < 160) {
-            if (fish_mech.get_position() != 0 and not fish_mech_override_flag) { zero_fish_mech(); }
-          }
-
-          if (fish_score_button.just_pressed() and not fish_mech_override_flag) {
-            fish_mech_override_flag = false;
-
-            score_with_fish_mech();
-
-            if ((std::abs(fish_mech.get_position() - fish_mech.get_target_position()) > 3) and
-                not fish_mech_override_flag) {
-              // thresh of 3 degrees
-              pros::delay(20);
+  /*
+    fish_mech_task = new pros::Task {
+        [=] {
+          while (true) {
+            print_text_at(7, fmt::format("fish_mech_pos = {}", fish_mech.get_position()).c_str());
+            print_text_at(6, fmt::format("fish_mech_target = {}", fish_mech.get_target_position()).c_str());
+            print_text_at(9, fmt::format("fish override = {}", fish_mech_override_flag).c_str());
+            print_text_at(10, fmt::format("fish current milliamps {}", fish_mech.get_current_draw()).c_str());
+  #ifdef GREEN_BOT
+            int fish_axis = controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_Y);
+            deadband(fish_axis, 38); // 30% deadband of 127
+  #endif
+  #ifdef GOLD_BOT
+            int fish_axis = controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_UP) ? 127 : 0;
+            fish_axis -= controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_DOWN) ? 127 : 0;
+  #endif
+            print_text_at(11, fmt::format("fish axis val = {}", fish_axis).c_str());
+            if (fish_axis > 0 or fish_axis < 0) {
+              fish_mech_override_flag = true;
+              fish_mech.move_velocity(fish_axis);
+            } else if (fish_mech.get_position() < 160) {
+              if (fish_mech.get_position() != 0) { zero_fish_mech(); }
+            } else {
+              fish_mech.move_velocity(0);
             }
 
-            pros::delay(400);
+            if (fish_score_button.just_pressed()) { fish_mech_override_flag = false; }
 
-            if (fish_mech.get_position() != 0 and not fish_mech_override_flag) { zero_fish_mech(); }
+            if (not fish_mech_override_flag) {
+              score_with_fish_mech();
+
+              if ((std::abs(fish_mech.get_position() - fish_mech.get_target_position()) > 3) and
+                  not fish_mech_override_flag) {
+                // thresh of 3 degrees
+                pros::delay(20);
+              }
+
+              pros::delay(1000);
+              fish_mech.move_absolute(0, -600);
+            }
+            pros::delay(20);
           }
-          pros::delay(20);
-        }
-      },
-      "fish mech task"};
+        },
+        "fish mech task"};
+  */
 }
 
 /**

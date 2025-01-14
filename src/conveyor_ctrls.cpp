@@ -8,7 +8,7 @@
 
 bool scoring_opposite = false;
 
-uint8_t prox_thresh = 130;
+#define prox_thresh 130;
 
 bool has_red_ring() {
   conveyor_color_detector.set_led_pwm(100);
@@ -39,8 +39,9 @@ bool has_blue_ring() {
 }
 
 void zero_fish_mech() {
+  // print_text_at(3, fmt::format("current limit = {}", fish_mech.get_current_limit()).c_str());
   if (fish_mech.get_current_draw() < 1000) {
-    fish_mech.move_voltage(-1000);
+    fish_mech.move_velocity(-600);
   } else {
     fish_mech.move_velocity(0);
     fish_mech.tare_position();
@@ -99,34 +100,25 @@ void conveyor_deposit_and_intake(int speed = 600) {
 
 void move_conveyor_backward() { conveyor_deposit_and_intake(-600); }
 
-bool has_set_target = false;
+// bool has_set_target = false;
 
 bool fish_mech_is_loaded() {
   double thresh = 5.0;
 
   print_text_at(4, "fishy fishy fish fish time");
 
-  if (IS_USING_COLOR_SENSOR) {
-    if (!(has_blue_ring() or has_red_ring())) { //  NO RING  NO RING  NO RING  NO RING  NO RING  NO RING
+  if (!(has_blue_ring() or has_red_ring())) { //  NO RING  NO RING  NO RING  NO RING  NO RING  NO RING
 
-      // if we see no ring, keep moving
-
-      // speed = 50% of 600. for the conveyor to go slow enough to get a prox read
-      // and honestly this is here because it was in Joseph's opcontrol vex block code.
-
-      // TODO test higher speed
-      conveyor.move_velocity(300);
-
-    } else {
-      return true;
-    }
-
-    return false;
-
+    // if we see no ring, keep moving
+    // speed = 50% of 600. for the conveyor to go slow enough to get a prox read
+    // and honestly this is here because it was in Joseph's opcontrol vex block code.
+    // TODO test higher speed
+    conveyor.move_velocity(600);
   } else {
-    throw std::invalid_argument(
-        "Why are you not using the color sensor? no other sensor is implemented. please define the macro to true.");
+    return true;
   }
+
+  return false;
 }
 
 // void deposit_with_fish_mech() { fish_mech.move_absolute(250.0, 100); }
