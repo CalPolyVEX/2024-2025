@@ -73,3 +73,33 @@ pros::adi::Pneumatics rejector('C', false);
 pros::adi::Pneumatics doinker('B', false);
 //===================================================================
 #endif
+
+#ifdef GREEN_BOT
+// drivetrain
+pros::MotorGroup leftMG({1, -2, 3}, pros::MotorGearset::blue);
+pros::MotorGroup rightMG({-6, 7, -8}, pros::MotorGearset::blue);
+//----------
+
+// TODO rename this when the other mechanism is on the bot
+pros::Motor fish_mech(-9, pros::MotorCartridge::red);
+
+pros::Motor conveyor(-4, pros::MotorGearset::blue);
+pros::Motor roller_intake(5, pros::MotorCartridge::blue);
+
+//===================================================================
+
+//----------------------------- sensors -----------------------------
+// pros::Distance ring_dist(6);
+
+pros::Optical conveyor_color_detector(21);
+//===================================================================
+
+//----------------------------- pneumatics -----------------------------
+pros::adi::Pneumatics mogo_grabber('D', false);
+
+pros::adi::Pneumatics rejector('C', false);
+
+pros::adi::Pneumatics doinker('B', false);
+//===================================================================
+
+#endif

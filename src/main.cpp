@@ -207,6 +207,15 @@ void op_init() {
                           }
 #endif
 
+#ifdef GREEN_BOT
+                          if (mogo_grabber_button.is_toggled()) {
+                            mogo_grabber.extend();
+                          } else {
+                            mogo_grabber.retract();
+                            if (mogo_grabber_button.just_pressed()) { conveyor.move_relative(-900, 600); }
+                          }
+#endif
+
 #ifdef GOLD_BOT
                           if (controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_R1)) {
                             mogo_grabber.retract();
