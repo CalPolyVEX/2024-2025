@@ -3,6 +3,6 @@
 
 #define GOLD_BOT // Tim
 // define PROTOTYPE_BOT // Joseph
-//#define GREEN_BOT
+// #define GREEN_BOT
 
 #endif
