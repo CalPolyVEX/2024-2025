@@ -84,7 +84,7 @@ pros::MotorGroup rightMG({-6, 7, -8}, pros::MotorGearset::blue);
 pros::Motor fish_mech(-9, pros::MotorCartridge::red);
 
 pros::Motor conveyor(-4, pros::MotorGearset::blue);
-pros::Motor roller_intake(5, pros::MotorCartridge::blue);
+pros::Motor roller_intake(-5, pros::MotorCartridge::blue);
 
 //===================================================================
 
