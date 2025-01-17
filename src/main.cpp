@@ -10,7 +10,7 @@
 #include "lemlib/chassis/chassis.hpp"
 #include "lemlib/chassis/odom.hpp" // IWYU pragma: keep
 #include "conveyor_ctrls.hpp"
-#include "button_helper_class.h"
+#include "button_manager.hpp"
 #include "pros/misc.h"
 #include "pros/rtos.hpp"
 
@@ -26,18 +26,9 @@ pros::Controller controller(CONTROLLER_MASTER);
 pros::Task* intake_task = nullptr;
 pros::Task* button_update_task = nullptr;
 pros::Task* telemetry_task = nullptr;
-pros::Task* mogo_grabber_task = nullptr;
 pros::Task* fish_mech_task = nullptr;
 
 #define IS_DEBUGGING_OTOS false
-
-button_expanded fish_mech_loading_conveyor_button;
-button_expanded conveyor_enabled_button;
-button_expanded mogo_grabber_button;
-button_expanded conveyor_reverse_button;
-button_expanded fish_score_button;
-button_expanded color_rejection_enable;
-button_expanded doinker_button;
 
 // drivetrain, chassis and PID controllers definitions===================================
 lemlib::ControllerSettings lateralPIDController(9, // proportional gain (kP)
@@ -64,6 +55,8 @@ lemlib::ControllerSettings angularPIDController(2, // proportional gain (kP)
 lemlib::Drivetrain drivetrain(&leftMG, &rightMG, 12.25, lemlib::Omniwheel::NEW_325, 450, 0);
 
 lemlib::Chassis chassis(drivetrain, lateralPIDController, angularPIDController);
+
+ButtonManager button_manager;
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -174,17 +167,17 @@ void autonomous() {
   print_text_at(7, "done moving");
 }
 
-void update_buttons() {
-  // put all button_expanded updates here
-  fish_mech_loading_conveyor_button.update(
-      controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_A));
-  conveyor_enabled_button.update(controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_L1));
-  mogo_grabber_button.update(controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_R1));
-  conveyor_reverse_button.update(controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_L2));
-  fish_score_button.update(controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_Y));
-  color_rejection_enable.update(controller.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT));
-  doinker_button.update(controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT));
-}
+// void update_buttons() {
+//   // put all button_expanded updates here
+//   fish_mech_loading_conveyor_button.update(
+//       controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_A));
+//   conveyor_enabled_button.update(controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_L1));
+//   mogo_grabber_button.update(controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_R1));
+//   conveyor_reverse_button.update(controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_L2));
+//   fish_score_button.update(controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_Y));
+//   color_rejection_enable.update(controller.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT));
+//   doinker_button.update(controller.get_digital(pros::E_CONTROLLER_DIGITAL_RIGHT));
+// }
 
 void deadband(int& val, int deadband) {
   if (std::abs(val) < deadband) { val = 0; }
@@ -194,36 +187,9 @@ bool fish_mech_override_flag = true;
 
 // initializes opmode tasks and mechanisms for opmode(), before main loop runs.
 void op_init() {
-  mogo_grabber_task =
-      new pros::Task {[=] {
-                        while (true) {
-#ifdef PROTOTYPE_BOT
-                          if (mogo_grabber_button.is_toggled()) {
-                            mogo_grabber.extend();
-                          } else {
-                            mogo_grabber.retract();
-                            if (mogo_grabber_button.just_pressed()) {
-                              conveyor.move_velocity(-600);
-                              pros::delay(200);
-                            }
-                          }
-#endif
-
-#ifdef GOLD_BOT
-                          if (controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_R1)) {
-                            mogo_grabber.retract();
-                          } else if (controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_R2)) {
-                            mogo_grabber.extend();
-                          }
-#endif
-                          pros::delay(20);
-                        }
-                      },
-                      "mogo grabber task"};
-
   button_update_task = new pros::Task {[=] {
                                          while (true) {
-                                           update_buttons();
+                                           button_manager.update(controller);
                                            pros::delay(20);
                                          }
                                        },
@@ -233,12 +199,16 @@ void op_init() {
       [=] {
         while (true) {
           // print_text_at(5, "intaking");
-          if (fish_mech_loading_conveyor_button.is_toggled() and conveyor_enabled_button.is_toggled()) {
-            if (fish_mech_loading_conveyor_button.just_pressed()) {
+          if (false) {
+            if (button_manager.getFishState() == FishState::SequenceStart) {
               // if button has just been pressed (not held) (and we have toggled the
               // button):
               controller.rumble("....");
-              while (!fish_mech_is_loaded() and fish_mech_loading_conveyor_button.is_toggled()) { pros::delay(20); }
+              print_text_at(7, "Should be rumbling...");
+              pros::delay(500);
+              print_text_at(7, "Should still be rumbling? (extra stuff)");
+
+              while (!fish_mech_is_loaded()) { pros::delay(20); }
               // sets target for the conveyor to reach
               // the conveyor moves about 4 in for the fish mech to load the ring.
               set_conveyor_target_in_inches(.75);
@@ -247,20 +217,6 @@ void op_init() {
               conveyor.brake();
             }
             // move the conveyor to the fish mech position
-          } else {
-            if (conveyor_enabled_button.is_toggled() and not conveyor_reverse_button.is_pressed()) {
-              // conveyor_reverse_button.update(false);
-              conveyor_deposit_and_intake();
-
-            } else if (conveyor_reverse_button.is_pressed()) {
-              conveyor_enabled_button.toggled = false;
-
-              conveyor.move_velocity(-600);
-              roller_intake.move_velocity(-600);
-            } else {
-              conveyor.move_velocity(0);
-              roller_intake.move_velocity(120);
-            }
           }
           pros::delay(60);
         }
@@ -286,7 +242,7 @@ void op_init() {
             if (fish_mech.get_position() != 0 and not fish_mech_override_flag) { zero_fish_mech(); }
           }
 
-          if (fish_score_button.just_pressed() and not fish_mech_override_flag) {
+          if (button_manager.getFishState() == FishState::SequenceStart and not fish_mech_override_flag) {
             fish_mech_override_flag = false;
 
             score_with_fish_mech();
@@ -311,28 +267,55 @@ void op_init() {
  * Runs in driver control
  */
 void opcontrol() {
-  op_init();
+  //op_init();
 
   while (1) {
+    button_manager.update(controller);
     update_robot_position_on_screen(lemlib::getPose(true));
 
-    if (not color_rejection_enable.is_toggled()) {
-      scoring_opposite = false;
-      controller.clear();
-    } else {
-      controller.print(0, 0, "chucking color");
-      scoring_opposite = true;
+    switch (button_manager.getConveyorState()) {
+      case ConveyorState::Idle:
+        break;
+      case ConveyorState::Forward:
+        conveyor.move_velocity(600);
+        roller_intake.move_velocity(600);
+        break;
+      case ConveyorState::Reverse:
+        conveyor.move_velocity(-600);
+        roller_intake.move_velocity(-600);
+        break;
+      case ConveyorState::Off:
+        conveyor.move_velocity(0);
+        roller_intake.move_velocity(0);
+        break;
+      case ConveyorState::WaitingForRing:
+        conveyor.move_velocity(600);
+        roller_intake.move_velocity(600);
+        break;
     }
 
-    if (doinker_button.is_toggled()) {
+    if (button_manager.isColorRejectionEnabled()) {
+      scoring_opposite = true;
+      print_text_at(0, "color rejection enabled?");
+    } else {
+      scoring_opposite = false;
+    }
+
+    if (button_manager.isDoinkerDown()) {
       doinker.extend();
     } else {
       doinker.retract();
     }
 
+    if (button_manager.isMogoGrabberOpen()) {
+      mogo_grabber.extend();
+    } else {
+      mogo_grabber.retract();
+    }
+
     chassis.arcade(controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y),
                    controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X));
-    // controller.print(1, 0, "Pose:(%1.1f, %1.1f)", lemlib::getPose().x, lemlib::getPose().y);
+    
     pros::delay(50);
   }
 }

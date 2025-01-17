@@ -66,14 +66,7 @@ void set_conveyor_target_in_inches(float inches, int speed = 300) {
 }
 
 void conveyor_deposit_and_intake(int speed = 600) {
-  // make the roller go fast. that's pretty much all this does lol.
-  roller_intake.move_velocity(speed);
-
-  // make the conveyor go fast. that's pretty much all this does lol.
-  conveyor.move_velocity(speed);
-
   // color sorting
-
   bool is_blue_alliance = not alliance_color;
   bool is_red_alliance = alliance_color;
 
