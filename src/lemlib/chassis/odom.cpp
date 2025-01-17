@@ -1,3 +1,5 @@
+#pragma once
+
 // The implementation below is mostly based off of
 // the document written by 5225A (Pilons)
 // Here is a link to the original document
@@ -15,8 +17,9 @@
 #include "lemlib/chassis/chassis.hpp"
 #include "musty/cobs.h"
 #include "lemlib/chassis/odom.hpp"
+#include "hardware_map.h"
 
-#define MUSTY_SERIALPORT 12
+#define MUSTY_SERIALPORT musty_port
 #define MUSTY_BAUDRATE 460800
 
 #define TRANSMIT_PACKET_SIZE 2
@@ -31,8 +34,8 @@
 #define COMMAND_CALIBRATE_OTOS_BLUE 255
 // #define COMMAND_CALIBRATE_OTOS 202
 
-#define RED_STARTING_POSE 0, 0, 0
-#define BLUE_STARTING_POSE 0, 0, 180
+#define RED_STARTING_POSE start_red_pose
+#define BLUE_STARTING_POSE start_blue_pose
 
 bool red_alliance = false;
 
@@ -198,9 +201,9 @@ void lemlib::calibrate_otos(bool is_red_alliance) {
 
   // if red alliance set the odomPose to the red starting position
   if (red_alliance) {
-    setPose(Pose(RED_STARTING_POSE));
+    setPose(RED_STARTING_POSE);
   } else {
-    setPose(Pose(BLUE_STARTING_POSE));
+    setPose(BLUE_STARTING_POSE);
   }
 }
 

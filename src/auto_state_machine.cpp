@@ -17,11 +17,11 @@ int do_gold_tree(int prev_state) {
     // manipulate prev_state into a different int to get the next state
   }
 
-  return do_gold_tree(prev_state); // recurse with new state
+  return choose_next_state(prev_state); // recurse with new state
 }
 
 int do_green_tree(int prev_state) {
   // see other tree.
-  // TODO
-  return do_green_tree(prev_state);
+  // TODO.
+  return choose_next_state(prev_state);
 }

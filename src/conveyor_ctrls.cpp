@@ -1,4 +1,7 @@
+#pragma once
+
 // #include "hardware_map.h"
+#include "pros/rtos.hpp"
 #ifndef HARDWARE_MAP_H
 #include "hardware_map.h"
 #endif
@@ -39,12 +42,14 @@ bool has_blue_ring() {
 }
 
 void zero_fish_mech() {
-  // print_text_at(3, fmt::format("current limit = {}", fish_mech.get_current_limit()).c_str());
-  if (fish_mech.get_current_draw() < 1000) {
-    fish_mech.move_velocity(-600);
-  } else {
-    fish_mech.move_velocity(0);
-    fish_mech.tare_position();
+  fish_mech.move_velocity(-600);
+  if (fish_mech.get_actual_velocity() == 0) {
+    // we might be at zero waitaminit
+    pros::delay(300);
+    if (fish_mech.get_actual_velocity() == 0) {
+      fish_mech.tare_position();
+      fish_mech.move_velocity(0);
+    }
   }
 }
 
@@ -79,7 +84,7 @@ void conveyor_deposit_and_intake(int speed = 600) {
   bool is_red_alliance = alliance_color;
 
   if ((has_blue_ring() and is_red_alliance) or (has_red_ring() and is_blue_alliance) and not scoring_opposite) {
-    set_conveyor_target_in_inches(6.8, 400);
+    set_conveyor_target_in_inches(6.8, 300);
     rejector.extend();
     pros::delay(200);
     //   basically 8.17/5 inches
@@ -104,21 +109,7 @@ void move_conveyor_backward() { conveyor_deposit_and_intake(-600); }
 // bool has_set_target = false;
 
 bool fish_mech_is_loaded() {
-  double thresh = 5.0;
-
-  print_text_at(4, "fishy fishy fish fish time");
-
-  if (!(has_blue_ring() or has_red_ring())) { //  NO RING  NO RING  NO RING  NO RING  NO RING  NO RING
-
-    // if we see no ring, keep moving
-    // speed = 50% of 600. for the conveyor to go slow enough to get a prox read
-    // and honestly this is here because it was in Joseph's opcontrol vex block code.
-    // TODO test higher speed
-    conveyor.move_velocity(600);
-  } else {
-    return true;
-  }
-
+  if (has_blue_ring() or has_red_ring()) { return true; }
   return false;
 }
 
