@@ -167,31 +167,23 @@ void autonomous() {
   // Drive straight, grab mogo, and back up
   // Note: starting angled toward mogo, initial heading is still set to 90 internally
   // doinker.extend();
-  chassis.moveToPoint(45, 0, 8000, speedParams); //13.5 extra for 50, reading 51.33, -5 for 50, reading 49.37, 
-  chassis.waitUntilDone();
+  // chassis.moveToPoint(45, 0, 8000, speedParams); //13.5 extra for 50, reading 51.33, -5 for 50, reading 49.37, 
+  // chassis.waitUntilDone();
   // chassis.moveToPoint(20, 0, 2000, params);
   // doinker.retract();
 
-
+  // Test path without LemLib
   // chassis.moveToPose(-8, 0, 90, 1200);
-  chassis.turnToHeading(45, 2000);
-  chassis.waitUntilDone();
+  // chassis.turnToHeading(45, 2000);
+  // chassis.waitUntilDone();
 
-  chassis.moveToPoint(20, 0, 2000, params);
-  chassis.waitUntilDone();
+  // chassis.moveToPoint(20, 0, 2000, params);
+  // chassis.waitUntilDone();
 
-  chassis.turnToHeading(90, 2000);
-  chassis.waitUntilDone();
+  // chassis.turnToHeading(90, 2000);
+  // chassis.waitUntilDone();
 
-  
-  // lemlib::MoveToPointParams params = {.forwards = false};
-  // chassis.turnToHeading(0, 500);
-  // lemlib::MoveToPointParams params = {.forwards = false};
-  // chassis.follow(pathTest_txt, 3, 3000);
-  // chassis.moveToPoint(-8, 0, 2000, params);
-  // chassis.moveToPose(-8, 0, 90, 1200);
-  // chassis.moveToPoint(-8, 0, 2000, params);
-  // chassis.moveToPose(-8, 0, 90, 1200);
+  chassis.follow(pathTest_txt, 7, 2000);
   chassis.waitUntilDone();
   // print_text_at(9, pros::Task::current().get_name());
 }
