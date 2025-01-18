@@ -13,6 +13,7 @@
 #include "conveyor_ctrls.hpp"
 #include "button_helper_class.h"
 #include "pros/misc.h"
+#include "pros/motors.h"
 #include "pros/rtos.hpp"
 
 ASSET(pathTest_txt);
@@ -42,22 +43,22 @@ button_expanded doinker_button;
 
 // drivetrain, chassis and PID controllers definitions===================================
 lemlib::ControllerSettings lateralPIDController(9, // proportional gain (kP)
-                                                .1, // integral gain (kI)
-                                                3, // derivative gain (kD)
+                                                0.5, // integral gain (kI)
+                                                0.9, // derivative gain (kD)
                                                 3, // anti windup
                                                 0.25, // small error range, in inches
                                                 100, // small error range timeout, in milliseconds
                                                 1, // large error range, in inches
-                                                750, // large error range timeout, in milliseconds
+                                                500, // large error range timeout, in milliseconds
                                                 16 // maximum acceleration (slew)
 );
-lemlib::ControllerSettings angularPIDController(2, // proportional gain (kP)
+lemlib::ControllerSettings angularPIDController(2, // pr7oportional gain (kP)
                                                 0, // integral gain (kI)
                                                 10, // derivative gain (kD)
                                                 3, // anti windup
-                                                1, // small error range, in inches
+                                                0.5, // small error range, in inches
                                                 100, // small error range timeout, in milliseconds
-                                                3, // large error range, in inches
+                                                1, // large error range, in inches
                                                 500, // large error range timeout, in milliseconds
                                                 0 // maximum acceleration (slew)
 );
@@ -76,8 +77,7 @@ lemlib::Chassis chassis(drivetrain, lateralPIDController, angularPIDController);
 void initialize() {
   // TODO initialize the otos using lemlib::setPose() and the color sensor
   initialize_screen();
-
-  lemlib::init(); // initialize lemlib
+  chassis.setBrakeMode(pros::E_MOTOR_BRAKE_BRAKE);
 
   fish_mech.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
   fish_mech.set_encoder_units(pros::MotorEncoderUnits::degrees);
@@ -120,7 +120,6 @@ void initialize() {
   //}
 
   // lemlib::calibrate_otos(true);
-  pros::delay(600); // dont do anything for half a sec so we can init the otos
 
   print_text_at(8, "done calibrating");
   telemetry_task = new pros::Task {[=] {
@@ -137,6 +136,9 @@ void initialize() {
 
     pros::delay(10);
   }
+
+  lemlib::init(); // initialize lemlib
+  pros::delay(600); // dont do anything for half a sec so we can init the otos
 }
 
 /**
@@ -160,19 +162,38 @@ void autonomous() {
   print_text_at(7, "am moving rn");
   // chassis.turnToHeading(0, 3000);
   lemlib::MoveToPointParams params = {.forwards = false};
-  chassis.moveToPoint(-8, 0, 2000, params);
+  lemlib::MoveToPointParams speedParams = {.maxSpeed=127};
+
+  // Drive straight, grab mogo, and back up
+  // Note: starting angled toward mogo, initial heading is still set to 90 internally
+  // doinker.extend();
+  chassis.moveToPoint(45, 0, 8000, speedParams); //13.5 extra for 50, reading 51.33, -5 for 50, reading 49.37, 
+  chassis.waitUntilDone();
+  // chassis.moveToPoint(20, 0, 2000, params);
+  // doinker.retract();
+
+
   // chassis.moveToPose(-8, 0, 90, 1200);
-  // chassis.turnToHeading(0, 500);
+  chassis.turnToHeading(45, 2000);
+  chassis.waitUntilDone();
+
+  chassis.moveToPoint(20, 0, 2000, params);
+  chassis.waitUntilDone();
+
+  chassis.turnToHeading(90, 2000);
+  chassis.waitUntilDone();
+
+  
   // lemlib::MoveToPointParams params = {.forwards = false};
   // chassis.turnToHeading(0, 500);
   // lemlib::MoveToPointParams params = {.forwards = false};
-  chassis.follow(pathTest_txt, 3, 3000);
+  // chassis.follow(pathTest_txt, 3, 3000);
   // chassis.moveToPoint(-8, 0, 2000, params);
   // chassis.moveToPose(-8, 0, 90, 1200);
   // chassis.moveToPoint(-8, 0, 2000, params);
   // chassis.moveToPose(-8, 0, 90, 1200);
   chassis.waitUntilDone();
-  print_text_at(7, "done moving");
+  // print_text_at(9, pros::Task::current().get_name());
 }
 
 void update_buttons() {
@@ -199,15 +220,6 @@ void op_init() {
       new pros::Task {[=] {
                         while (true) {
 #ifdef PROTOTYPE_BOT
-                          if (mogo_grabber_button.is_toggled()) {
-                            mogo_grabber.extend();
-                          } else {
-                            mogo_grabber.retract();
-                            if (mogo_grabber_button.just_pressed()) { conveyor.move_relative(-900, 600); }
-                          }
-#endif
-
-#ifdef GREEN_BOT
                           if (mogo_grabber_button.is_toggled()) {
                             mogo_grabber.extend();
                           } else {
@@ -331,6 +343,8 @@ void op_init() {
  */
 void opcontrol() {
   op_init();
+  
+  chassis.setBrakeMode(pros::E_MOTOR_BRAKE_COAST);
 
   while (1) {
     update_robot_position_on_screen(lemlib::getPose(true));

@@ -148,6 +148,10 @@ void lemlib::update() {
       temp_buf_ptr += num_read_bytes;
     }
 
+    print_text_at(8, fmt::format("Number of bytes: {}", num_read_bytes).c_str());
+    print_text_at(9, fmt::format("timeut = {}", timeout_counter).c_str());
+    print_text_at(10, fmt::format("Number of waiting bytes: {}", num_waiting_bytes).c_str());
+
     if (num_read_bytes == RECEIVE_OTOS_PACKET_SIZE) {
       read_success = true;
       break;
@@ -161,11 +165,13 @@ void lemlib::update() {
       pros::delay(1);
       if (timeout_counter > 10) { break; }
     }
+    
   }
   // print_text_at(6, fmt::format("num_read_bytes: {}", num_read_bytes).c_str());
   // print_text_at(8, fmt::format("num_waiting_bytes: {}", num_waiting_bytes).c_str());
   // print_text_at(9, fmt::format("timeout_counter: {}", timeout_counter).c_str());
-  // print_text_at(7, fmt::format("millis: {}", pros::millis()).c_str());
+  // print_text_at(10, fmt::format("millis: {}", pros::millis()).c_str());
+  print_text_at(11, pros::Task::current().get_name());
 
   if (read_success) {
     res = musty_cobs_decode(decode_buffer, MAX_BUFFER_SIZE, receive_buffer, RECEIVE_OTOS_PACKET_SIZE);
@@ -212,12 +218,17 @@ void lemlib::init() {
 
     s = new pros::Serial(MUSTY_SERIALPORT, MUSTY_BAUDRATE); // create a serial port on #2 at 460800 baud
     pros::delay(100); // Let VEX OS configure port
+    print_text_at(4, pros::Task::current().get_name());
 
     trackingTask = new pros::Task {[=] {
       while (true) {
         update();
         pros::delay(10);
+        
+        print_text_at(5, pros::Task::current().get_name());
       }
-    }};
+    
+    print_text_at(6, pros::Task::current().get_name());
+    }, "odom task"};
   }
 }
