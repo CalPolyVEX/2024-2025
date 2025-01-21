@@ -1,5 +1,3 @@
-#pragma once
-
 // The implementation below is mostly based off of
 // the document written by 5225A (Pilons)
 // Here is a link to the original document
@@ -221,6 +219,6 @@ void lemlib::init() {
         update();
         pros::delay(10);
       }
-    }};
+    },"odom task"};
   }
 }

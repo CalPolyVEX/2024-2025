@@ -36,7 +36,7 @@ inline pros::Motor intake(-6, pros::MotorCartridge::blue);
 
 inline pros::Optical conveyor_color_detector(13);
 
-int musty_port = 12;
+inline int musty_port = 12;
 //===================================================================
 
 //----------------------------- pneumatics -----------------------------
@@ -71,7 +71,7 @@ inline pros::Motor intake(-6, pros::MotorCartridge::blue);
 
 inline pros::Optical conveyor_color_detector(13);
 
-int musty_port = 12;
+inline int musty_port = 12;
 //===================================================================
 
 //----------------------------- pneumatics -----------------------------

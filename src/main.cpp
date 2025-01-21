@@ -12,6 +12,7 @@
 #include "lemlib/chassis/odom.hpp" // IWYU pragma: keep
 #include "conveyor_ctrls.hpp"
 #include "pros/misc.h"
+#include "pros/misc.hpp"
 #include "pros/rtos.hpp"
 #include "globals.h"
 #include <cstdlib>
@@ -187,6 +188,8 @@ bool conveyor_is_enabled = false;
 void opcontrol() {
   bool fish_mech_override_flag = false;
 
+  bool is_loading = false;
+
   while (1) {
     update_robot_position_on_screen(lemlib::getPose(true));
 
@@ -197,17 +200,35 @@ void opcontrol() {
       conveyor_is_enabled = false;
       
     }
-    
-  
-    //TODO implement fish mech conveyor here.
-
-
-    if (conveyor_is_enabled){
-      conveyor_deposit_and_intake();
-    } else {
-      conveyor.move_velocity(0);
-      intake.move_velocity(50);
+    if (controller.get_digital_new_press(LOAD_NEXT_RING)){
+      if (is_loading){
+        controller.rumble("....");
+      } else {
+        controller.rumble(". .");
+      }  
+      is_loading = !is_loading;
     }
+
+    if (is_loading){
+      if (not fish_mech_is_loaded()){
+        conveyor_deposit_and_intake();
+
+      } else {
+        is_loading = false;
+        //set_conveyor_target_in_inches(float inches)
+        controller.rumble(".-");
+      }
+    } else {
+      if (conveyor_is_enabled){
+        conveyor_deposit_and_intake();
+      } else {
+        conveyor.move_velocity(0);
+        intake.move_velocity(50);
+      }
+    }
+
+
+    
 
     #ifdef GOLD_BOT
 
