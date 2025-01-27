@@ -5,6 +5,7 @@
 //  #ifndef HARDWARE_MAP_H
 #include "auto_state_machine.cpp"
 
+#include "fmt/format.h"
 #include "hardware_map.h"
 // #endif
 #include "lemlib/api.hpp" // IWYU pragma: keep
@@ -25,7 +26,7 @@ ASSET(pathTest_txt);
 
 pros::Controller controller(CONTROLLER_MASTER);
 
-pros::Task* intake_task = nullptr;
+pros::Task* fish_mech_task = nullptr;
 
 pros::Task* telemetry_task = nullptr;
 
@@ -67,13 +68,14 @@ lemlib::Chassis chassis(drivetrain, lateralPIDController, angularPIDController);
 
 void initialize() {
   initialize_screen();
+
   conveyor_color_detector.set_led_pwm(100);
+
   lemlib::init(); // initialize lemlib
 
   fish_mech.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
   fish_mech.set_encoder_units(pros::MotorEncoderUnits::degrees);
 
-  // it should be more accurate and make little-to-no-diff because
   // the conveyor is already tensioned and frictioned.
   // it seems to stop abruptly as hard braking anyway
   conveyor.set_brake_mode_all(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_COAST);
@@ -105,7 +107,7 @@ void initialize() {
     print_text_at(5, "color sensor sees nothing");
   }
 
-  lemlib::calibrate_otos(true);
+  lemlib::calibrate_otos(alliance_color);
 
   //}
 
@@ -113,6 +115,7 @@ void initialize() {
   pros::delay(600); // dont do anything for half a sec so we can init the otos
 
   print_text_at(8, "done calibrating");
+  /*
   telemetry_task = new pros::Task {[=] {
                                      while (true) {
                                        update_robot_position_on_screen(lemlib::getPose(true));
@@ -120,6 +123,7 @@ void initialize() {
                                      }
                                    },
                                    "telemetry task"};
+  */
 
   while (IS_DEBUGGING_OTOS) {
     update_robot_position_on_screen(lemlib::getPose(true));
@@ -181,12 +185,100 @@ void deadband(int& val, int deadband) {
 bool conveyor_is_enabled = false;
 
 
+void op_init(){
+  
+
+  fish_mech_task = new pros::Task {[=] {
+    bool fish_mech_override_flag = true;
+
+    while (true){
+      
+      #ifdef GOLD_BOT
+
+      int fish_axis = controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_UP) ? 90 : 0;
+      fish_axis -= controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_DOWN) ? 90 : 0;
+
+      #endif
+
+
+      #ifdef GREEN_BOT  
+      // FISH MECH
+      int fish_axis = controller.get_analog(FISH_MANUAL_AXIS);
+      deadband(fish_axis, 30);
+
+      #endif
+
+
+      #ifdef PROTOTYPE_BOT  
+      // FISH MECH
+      int fish_axis = controller.get_analog(FISH_MANUAL_AXIS);
+      deadband(fish_axis, 30);
+
+      #endif
+
+      fish_mech_override_flag = fish_axis != 0;
+
+      //print_text_at(10, fmt::format("fish mech pos = {}", fish_mech.get_position()).c_str());
+
+      
+
+      //print_text_at(9, fmt::format("fish mech flag is {}", fish_mech_override_flag).c_str());
+
+      //print_text_at(8, fmt::format("fish velo = {}", fish_mech.get_actual_velocity()).c_str());
+
+      if (controller.get_digital_new_press(FISH_SCORE_BUTTON) and not fish_mech_override_flag) { 
+        //if we arent inputting fish manual controls and we press (Y)
+        
+        score_with_fish_mech(); // score
+        while (std::abs(fish_mech.get_position() - fish_mech.get_target_position()) >= 4 ){  // if we have not met/exceeded target
+          pros::delay(200); //wait
+          //print_text_at(5, fmt::format("misllis = {}", pros::millis()).c_str());
+        }
+
+        // if we are within/past the target then
+          
+        // end fishing.  wait to hold at pos 
+        pros::delay(FISH_DELAY);
+      }
+
+      if (fish_mech_override_flag){
+        fish_mech.move_velocity(fish_axis);
+
+      } else {
+        if (fish_mech.get_position() > 0 and fish_mech.get_position() < 161){
+          fish_mech.move_velocity(-600);
+        } else {
+          if (fish_mech.get_actual_velocity() == 0){
+            fish_mech.move_velocity(0);
+          }else {
+            fish_mech.move_velocity(-1);
+
+          }
+          //fish_mech.move_absolute(0, 600);
+          
+        }
+      }
+      //print_text_at(11, fmt::format("fish axis val = {}", fish_axis).c_str());
+
+
+      
+
+      //print_text_at(7, fmt::format("is_fishing = {}", is_fishing).c_str());
+
+      
+      
+      //print_text_at(5, fmt::to_string(pros::millis()).c_str());
+    }
+  }, "fish mech task"};
+    
+}
+
 /**
  * Runs in driver control
  */
 
 void opcontrol() {
-  bool fish_mech_override_flag = false;
+  op_init();
 
   bool is_loading = false;
 
@@ -199,17 +291,23 @@ void opcontrol() {
       conveyor_deposit_and_intake(-600);
       conveyor_is_enabled = false;
       
+    } else if (!conveyor_is_enabled){
+      conveyor.move_velocity(0);
+      intake.move_velocity(100);
     }
     if (controller.get_digital_new_press(LOAD_NEXT_RING)){
+      is_loading = !is_loading;
       if (is_loading){
         controller.rumble("....");
       } else {
-        controller.rumble(". .");
+        controller.rumble("..");
       }  
-      is_loading = !is_loading;
+      
     }
 
+
     if (is_loading){
+      conveyor_color_detector.set_led_pwm(100);
       if (not fish_mech_is_loaded()){
         conveyor_deposit_and_intake();
 
@@ -218,71 +316,24 @@ void opcontrol() {
         //set_conveyor_target_in_inches(float inches)
         controller.rumble(".-");
       }
+    } else if (conveyor_is_enabled){
+      conveyor_color_detector.set_led_pwm(100);
+
+      conveyor_deposit_and_intake();
     } else {
-      if (conveyor_is_enabled){
-        conveyor_deposit_and_intake();
-      } else {
-        conveyor.move_velocity(0);
-        intake.move_velocity(50);
-      }
+      conveyor_color_detector.set_led_pwm(0);
     }
 
-
     
-
-    #ifdef GOLD_BOT
-
-    int fish_axis = controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_UP) ? 127 : 0;
-    fish_axis -= controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_DOWN) ? 127 : 0;
-
-    #endif
-
-    
-
-    #ifdef GREEN_BOT  
-    // FISH MECH
-    int fish_axis = controller.get_analog(FISH_MANUAL_AXIS);
-    deadband(fish_axis, 30);
-
-
-    
-    
-
-    #endif
-
-
-    print_text_at(11, fmt::format("fish axis val = {}", fish_axis).c_str());
-
-    if (fish_axis > 0 or fish_axis < 0) {
-      fish_mech_override_flag = true;
-      fish_mech.move_velocity(fish_axis);
-    } else if (fish_mech.get_position() < 160) {
-      if (fish_mech.get_position() != 0) { zero_fish_mech(); }
-    } else {
-      fish_mech.move_velocity(0);
-    }
-
-    if (controller.get_digital_new_press(FISH_SCORE_BUTTON)) { fish_mech_override_flag = false; }
-
-    if (not fish_mech_override_flag) {
-      score_with_fish_mech();
-      if ((std::abs(fish_mech.get_position() - fish_mech.get_target_position()) > 3) and
-          not fish_mech_override_flag) {
-        // thresh of 3 degrees
-        pros::delay(20);
-      }
-      pros::delay(1000);
-      fish_mech.move_absolute(0, -600);
-    }
 
     if (controller.get_digital_new_press(SCORING_OPPOSITE_BUTTON)) {
       scoring_opposite = !scoring_opposite;
     }
 
     if (scoring_opposite){
-      controller.print(0, 0, "chucking color");
+      controller.print(2, 0, "chucking color");
     } else {
-      controller.clear();
+      controller.clear_line(2);
     }
 
     #ifndef MOGO_DROP // JOSEPH
@@ -308,7 +359,7 @@ void opcontrol() {
     if (controller.get_digital_new_press(DOINKER_BUTTON)) { doinker.toggle(); } // doinker is a newpress toggle
 
     chassis.arcade(controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y),
-                   controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X));
+                   -controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X));
     // controller.print(1, 0, "Pose:(%1.1f, %1.1f)", lemlib::getPose().x, lemlib::getPose().y);
     pros::delay(50);
   }

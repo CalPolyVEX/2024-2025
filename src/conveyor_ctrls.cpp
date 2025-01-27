@@ -41,19 +41,23 @@ bool has_blue_ring() {
   return false;
 }
 
-void zero_fish_mech() {
+bool zero_fish_mech() {
+  if (fish_mech.get_position() == 0){
+    return true;
+  }
   fish_mech.move_velocity(-600);
   if (fish_mech.get_actual_velocity() == 0) {
     // we might be at zero waitaminit
     pros::delay(300);
     if (fish_mech.get_actual_velocity() == 0) {
       fish_mech.tare_position();
-      fish_mech.move_velocity(0);
+      //fish_mech.move_velocity(0);
     }
   }
+  return false;
 }
 
-void score_with_fish_mech() { fish_mech.move_absolute(250.0, 100); }
+void score_with_fish_mech() { fish_mech.move_absolute(160.0, 600); }
 
 // this is a delta movement
 void set_conveyor_target_in_inches(float inches, int speed = 300) {

@@ -18,6 +18,8 @@
 
 
 #ifdef GOLD_BOT
+#define FISH_DELAY 500
+
 
 // controller
 #define MOGO_GRAB pros::E_CONTROLLER_DIGITAL_R1
@@ -28,6 +30,22 @@
 #endif
 
 #ifdef GREEN_BOT
+#define FISH_DELAY 400
+
+// controller
+#define MOGO_GRAB pros::E_CONTROLLER_DIGITAL_R1
+
+#define FISH_MANUAL_AXIS pros::E_CONTROLLER_ANALOG_RIGHT_Y
+
+
+
+
+
+#endif
+
+#ifdef PROTOTYPE_BOT
+#define FISH_DELAY 400
+
 
 // controller
 #define MOGO_GRAB pros::E_CONTROLLER_DIGITAL_R1
