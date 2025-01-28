@@ -1,6 +1,6 @@
 #include "main.h"
 #include "display.h"
-// #include "config.h"
+#include "config.h"
 //  #include "pros/llemu.hpp"
 //  #ifndef HARDWARE_MAP_H
 #include "auto_state_machine.cpp"
@@ -152,13 +152,16 @@ void competition_initialize() {
  *
  *
  * */
+#ifdef GOLD_BOT
 void autonomous() {
-  print_text_at(7, "am moving rn");
-  // chassis.turnToHeading(0, 3000);
-  // set_conveyor_target_in_inches(5, 600);
-  // while (true) { pros::delay(100); }
-
   lemlib::MoveToPointParams params = {.forwards = false};
+  lemlib::MoveToPointParams speedParams = {.maxSpeed=127};
+  doinker.extend();
+  chassis.moveToPoint(45, 0, 8000, speedParams); //13.5 extra for 50, reading 51.33, -5 for 50, reading 49.37, 
+  chassis.waitUntilDone();
+  chassis.moveToPoint(20, 0, 2000, params);
+  doinker.retract();
+
   // chassis.moveToPoint(-8, 0, 2000, params);
 
   // chassis.moveToPose(-8, 0, 90, 1200);
@@ -177,6 +180,13 @@ void autonomous() {
 
   print_text_at(7, "done moving");
 }
+#endif
+
+#ifdef GREEN_BOT
+void autonomous(){
+
+}
+#endif
 
 void deadband(int& val, int deadband) {
   if (std::abs(val) < deadband) { val = 0; }
