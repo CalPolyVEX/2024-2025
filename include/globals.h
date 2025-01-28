@@ -15,45 +15,30 @@
 #define CONVEYOR_REVERSE pros::E_CONTROLLER_DIGITAL_L2
 #define FISH_SCORE_BUTTON pros::E_CONTROLLER_DIGITAL_Y
 #define LOAD_NEXT_RING pros::E_CONTROLLER_DIGITAL_A
+#define FISH_DELAY 400
+
+#define FISH_MANUAL_AXIS pros::E_CONTROLLER_ANALOG_RIGHT_Y
 
 
 #ifdef GOLD_BOT
-#define FISH_DELAY 500
-
 
 // controller
 #define MOGO_GRAB pros::E_CONTROLLER_DIGITAL_R1
 #define MOGO_DROP pros::E_CONTROLLER_DIGITAL_R2
 
-#define FISH_SCORE_BUTTON pros::E_CONTROLLER_DIGITAL_Y
-
 #endif
 
 #ifdef GREEN_BOT
-#define FISH_DELAY 400
 
 // controller
 #define MOGO_GRAB pros::E_CONTROLLER_DIGITAL_R1
-
-#define FISH_MANUAL_AXIS pros::E_CONTROLLER_ANALOG_RIGHT_Y
-
-
-
-
 
 #endif
 
 #ifdef PROTOTYPE_BOT
-#define FISH_DELAY 400
-
 
 // controller
 #define MOGO_GRAB pros::E_CONTROLLER_DIGITAL_R1
-
-#define FISH_MANUAL_AXIS pros::E_CONTROLLER_ANALOG_RIGHT_Y
-
-
-
 
 
 #endif

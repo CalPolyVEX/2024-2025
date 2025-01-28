@@ -85,7 +85,8 @@ inline pros::adi::Pneumatics doinker('B', false);
 //===================================================================
 
 inline lemlib::Pose start_red_pose = lemlib::Pose(-44.75, -24, 90); // 72 - (15.75 + 12) (offset for dash)
-inline lemlib::Pose start_blue_pose = lemlib::Pose(44.75, 24, -90); // y is one tile off of center
+inline lemlib::Pose start_blue_pose = lemlib::Pose(-44.75, -24, 90); // 72 - (15.75 + 12) (offset for dash)
+//inline lemlib::Pose start_blue_pose = lemlib::Pose(44.75, 24, -90); // y is one tile off of center
 
 #endif
 
@@ -124,6 +125,7 @@ inline pros::adi::Pneumatics doinker('B', false);
 //===================================================================
 
 inline lemlib::Pose start_red_pose = lemlib::Pose(-52, 24, 90); // 72 - (8 + 12)
-inline lemlib::Pose start_blue_pose = lemlib::Pose(52, -24, -90); // y is one tile off of center
+inline lemlib::Pose start_blue_pose = lemlib::Pose(-52, 24, 90); // 72 - (8 + 12)
+//inline lemlib::Pose start_blue_pose = lemlib::Pose(52, -24, -90); // y is one tile off of center
 
 #endif

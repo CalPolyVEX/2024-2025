@@ -194,28 +194,15 @@ void op_init(){
 
     while (true){
       
-      #ifdef GOLD_BOT
-
-      int fish_axis = controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_UP) ? 90 : 0;
-      fish_axis -= controller.get_digital(pros::controller_digital_e_t::E_CONTROLLER_DIGITAL_DOWN) ? 90 : 0;
-
-      #endif
+      
 
 
-      #ifdef GREEN_BOT  
+        
       // FISH MECH
       int fish_axis = controller.get_analog(FISH_MANUAL_AXIS);
       deadband(fish_axis, 30);
 
-      #endif
-
-
-      #ifdef PROTOTYPE_BOT  
-      // FISH MECH
-      int fish_axis = controller.get_analog(FISH_MANUAL_AXIS);
-      deadband(fish_axis, 30);
-
-      #endif
+    
 
       fish_mech_override_flag = fish_axis != 0;
 
@@ -251,7 +238,7 @@ void op_init(){
         } else {
           if (fish_mech.get_actual_velocity() == 0){
             fish_mech.move_velocity(0);
-          }else {
+          } else {
             fish_mech.move_velocity(-1);
 
           }
@@ -259,6 +246,7 @@ void op_init(){
           
         }
       }
+      pros::delay(80);
       //print_text_at(11, fmt::format("fish axis val = {}", fish_axis).c_str());
 
 
@@ -360,7 +348,7 @@ void opcontrol() {
     if (controller.get_digital_new_press(DOINKER_BUTTON)) { doinker.toggle(); } // doinker is a newpress toggle
 
     chassis.arcade(controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y),
-                   -controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X));
+                   controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X));
     // controller.print(1, 0, "Pose:(%1.1f, %1.1f)", lemlib::getPose().x, lemlib::getPose().y);
     pros::delay(50);
   }
