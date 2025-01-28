@@ -35,22 +35,22 @@ pros::Task* telemetry_task = nullptr;
 
 // drivetrain, chassis and PID controllers definitions===================================
 lemlib::ControllerSettings lateralPIDController(9, // proportional gain (kP)
-                                                .1, // integral gain (kI)
-                                                3, // derivative gain (kD)
+                                                0.5, // integral gain (kI)
+                                                0.9, // derivative gain (kD)
                                                 3, // anti windup
                                                 0.25, // small error range, in inches
                                                 100, // small error range timeout, in milliseconds
                                                 1, // large error range, in inches
-                                                750, // large error range timeout, in milliseconds
+                                                500, // large error range timeout, in milliseconds
                                                 16 // maximum acceleration (slew)
 );
-lemlib::ControllerSettings angularPIDController(2, // proportional gain (kP)
+lemlib::ControllerSettings angularPIDController(2, // pr7oportional gain (kP)
                                                 0, // integral gain (kI)
                                                 10, // derivative gain (kD)
                                                 3, // anti windup
-                                                1, // small error range, in inches
+                                                0.5, // small error range, in inches
                                                 100, // small error range timeout, in milliseconds
-                                                3, // large error range, in inches
+                                                1, // large error range, in inches
                                                 500, // large error range timeout, in milliseconds
                                                 0 // maximum acceleration (slew)
 );
@@ -69,6 +69,7 @@ lemlib::Chassis chassis(drivetrain, lateralPIDController, angularPIDController);
 void initialize() {
   initialize_screen();
 
+  chassis.setBrakeMode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_BRAKE);
   conveyor_color_detector.set_led_pwm(100);
 
   lemlib::init(); // initialize lemlib
