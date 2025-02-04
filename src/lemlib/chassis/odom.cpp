@@ -1,5 +1,5 @@
 // The implementation below is mostly based off of
-// the document written by 5225A (Pilons)
+// the document written by 5225A (πlons)
 // Here is a link to the original document
 // http://thepilons.ca/wp-content/uploads/2018/10/Tracking.pdf
 
@@ -123,7 +123,7 @@ void lemlib::update() {
   cobs_decode_result res;
 
   float x, y, h;
-  // print_text_at(4, fmt::format("0: {}, 1: {}", transmit_buffer[0], transmit_buffer[1]).c_str());
+  print_text_at(4, fmt::format("0: {}, 1: {}", transmit_buffer[0], transmit_buffer[1]).c_str());
   if (should_calibrate) {
     should_calibrate = false;
     if (red_alliance) {
@@ -163,11 +163,12 @@ void lemlib::update() {
       if (timeout_counter > 10) { break; }
     }
   }
-  // print_text_at(6, fmt::format("num_read_bytes: {}", num_read_bytes).c_str());
-  // print_text_at(8, fmt::format("num_waiting_bytes: {}", num_waiting_bytes).c_str());
-  // print_text_at(9, fmt::format("timeout_counter: {}", timeout_counter).c_str());
-  // print_text_at(7, fmt::format("millis: {}", pros::millis()).c_str());
-
+  print_text_at(6, fmt::format("num_read_bytes: {}", num_read_bytes).c_str());
+  print_text_at(8, fmt::format("num_waiting_bytes: {}", num_waiting_bytes).c_str());
+  print_text_at(9, fmt::format("timeout_counter: {}", timeout_counter).c_str());
+  print_text_at(7, fmt::format("millis: {}", pros::millis()).c_str());
+  printf("read success ? : %d\n", read_success);
+  
   if (read_success) {
     res = musty_cobs_decode(decode_buffer, MAX_BUFFER_SIZE, receive_buffer, RECEIVE_OTOS_PACKET_SIZE);
 

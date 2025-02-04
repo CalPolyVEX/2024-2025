@@ -55,8 +55,8 @@ inline lemlib::Pose start_blue_pose = lemlib::Pose(0, 0, 90);
 #ifdef GREEN_BOT
 
 // drivetrain
-inline pros::MotorGroup leftMG({1, -2, 3}, pros::MotorGearset::blue);
-inline pros::MotorGroup rightMG({-6, 7, -8}, pros::MotorGearset::blue);
+inline pros::MotorGroup rightMG({1, -2, 3}, pros::MotorGearset::blue);
+inline pros::MotorGroup leftMG({-6, 7, -8}, pros::MotorGearset::blue);
 //----------
 
 // TODO rename this when the other mechanism is on the bot
@@ -70,7 +70,7 @@ inline pros::Motor intake(-5, pros::MotorCartridge::blue);
 //----------------------------- sensors -----------------------------
 // pros::Distance ring_dist(6);
 
-inline int musty_port = 12;
+inline int musty_port = 11;
 
 
 inline pros::Optical conveyor_color_detector(21);

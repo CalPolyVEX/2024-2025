@@ -31,7 +31,7 @@ pros::Task* fish_mech_task = nullptr;
 pros::Task* telemetry_task = nullptr;
 
 
-#define IS_DEBUGGING_OTOS false
+#define IS_DEBUGGING_OTOS true
 
 // drivetrain, chassis and PID controllers definitions===================================
 lemlib::ControllerSettings lateralPIDController(9, // proportional gain (kP)
@@ -44,13 +44,13 @@ lemlib::ControllerSettings lateralPIDController(9, // proportional gain (kP)
                                                 500, // large error range timeout, in milliseconds
                                                 16 // maximum acceleration (slew)
 );
-lemlib::ControllerSettings angularPIDController(2, // pr7oportional gain (kP)
+lemlib::ControllerSettings angularPIDController(2, // proportional gain (kP)
                                                 0, // integral gain (kI)
                                                 10, // derivative gain (kD)
                                                 3, // anti windup
-                                                0.5, // small error range, in inches
+                                                0.5, // small error range, in degrees
                                                 100, // small error range timeout, in milliseconds
-                                                1, // large error range, in inches
+                                                1, // large error range, in degrees
                                                 500, // large error range timeout, in milliseconds
                                                 0 // maximum acceleration (slew)
 );
@@ -68,11 +68,14 @@ lemlib::Chassis chassis(drivetrain, lateralPIDController, angularPIDController);
 
 void initialize() {
   initialize_screen();
+  lemlib::init(); // initialize lemlib
+  //pros::delay(300);
+  //printf("%f, %f, %f", lemlib::getPose().x, lemlib::getPose().y, lemlib::getPose().theta);
+
 
   chassis.setBrakeMode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_BRAKE);
   conveyor_color_detector.set_led_pwm(100);
 
-  lemlib::init(); // initialize lemlib
 
   fish_mech.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
   fish_mech.set_encoder_units(pros::MotorEncoderUnits::degrees);
@@ -87,7 +90,6 @@ void initialize() {
   intake.set_brake_mode_all(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_COAST);
 
   conveyor_color_detector.disable_gesture();
-  pros::c::optical_rgb_s_t color = conveyor_color_detector.get_rgb();
   // while (true) {
   // print_text_at(7, fmt::format("color sensor sees: ({}, {}, {})", color.red, color.green, color.blue).c_str());
   // print_text_at(8, fmt::format("prox sensor sees: {}", conveyor_color_detector.get_proximity()).c_str());
@@ -95,20 +97,18 @@ void initialize() {
   // print_text_at(7, fmt::format("color sensor sees: ({}, {}, {})", color.red, color.green, color.blue).c_str());
   // print_text_at(8, fmt::format("prox sensor sees: {}", conveyor_color_detector.get_proximity()).c_str());
   if (has_red_ring()) {
-    // lemlib::calibrate_otos(true);
-    // lemlib::calibrate_otos(true);
+
     alliance_color = true;
     print_text_at(5, "color sensor sees red");
   } else if (has_blue_ring()) {
     alliance_color = false;
-    // lemlib::calibrate_otos(false);
-    // lemlib::calibrate_otos(false);
+
     print_text_at(5, "color sensor sees blue");
   } else {
     print_text_at(5, "color sensor sees nothing");
   }
 
-  lemlib::calibrate_otos(alliance_color);
+  lemlib::calibrate_otos(true);
 
   //}
 
@@ -128,7 +128,9 @@ void initialize() {
 
   while (IS_DEBUGGING_OTOS) {
     update_robot_position_on_screen(lemlib::getPose(true));
-    // printf("Pose: (%f, %f, %f) \n", lemlib::getPose().x, lemlib::getPose().y, lemlib::getPose().theta);
+    printf("Pose: (%f, %f, %f) \n", lemlib::getPose().x, lemlib::getPose().y, lemlib::getPose().theta);
+    print_text_at(3, fmt::format("millis = {}", pros::millis()).c_str());
+
 
     pros::delay(10);
   }
@@ -198,7 +200,7 @@ bool conveyor_is_enabled = false;
 
 void op_init(){
   
-
+  
   fish_mech_task = new pros::Task {[=] {
     bool fish_mech_override_flag = true;
 
@@ -282,7 +284,10 @@ void opcontrol() {
   bool is_loading = false;
 
   while (1) {
+    printf("%f, %f, %f\n", lemlib::getPose().x, lemlib::getPose().y, lemlib::getPose().theta);
+
     update_robot_position_on_screen(lemlib::getPose(true));
+    print_text_at(4, fmt::format("millis = {}", pros::millis()).c_str());
 
     if (controller.get_digital_new_press(CONVEYOR_ENABLE)) {
       conveyor_is_enabled = !conveyor_is_enabled;
@@ -329,7 +334,7 @@ void opcontrol() {
       scoring_opposite = !scoring_opposite;
     }
 
-    if (scoring_opposite){
+    if (not scoring_opposite){
       controller.print(2, 0, "chucking color");
     } else {
       controller.clear_line(2);

@@ -91,21 +91,11 @@ void conveyor_deposit_and_intake(int speed = 600) {
     set_conveyor_target_in_inches(6.8, 300);
     rejector.extend();
     pros::delay(200);
-    //   basically 8.17/5 inches
   } else {
     rejector.retract();
   }
 
-  if (conveyor.get_actual_velocity() == 0) {
-    // JAAAAAAM (maybe)
-
-    pros::delay(200);
-
-    if (conveyor.get_actual_velocity() == 0) {
-      // actually jammed
-      conveyor.move_velocity(-600);
-    }
-  }
+  
 }
 
 void move_conveyor_backward() { conveyor_deposit_and_intake(-600); }
