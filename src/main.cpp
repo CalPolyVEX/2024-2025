@@ -80,7 +80,6 @@ lemlib::ControllerSettings angularPIDController(3.1, // proportional gain (kP)
                                                 0 // maximum acceleration (slew)
 );
 
-
 lemlib::Drivetrain drivetrain(&leftMG, &rightMG, 12.25, lemlib::Omniwheel::NEW_325, 450, 0);
 
 lemlib::Chassis chassis(drivetrain, lateralPIDController, angularPIDController);
@@ -210,7 +209,6 @@ void competition_initialize() {
  * */
 #ifdef GOLD_BOT
 void autonomous() {
-
   lemlib::MoveToPointParams params = {.forwards = true};
   lemlib::MoveToPointParams speedParams = {.maxSpeed = 127};
   /*
@@ -221,7 +219,7 @@ void autonomous() {
   doinker.retract();
   */
   // chassis.moveToPoint(-40, 24, 3000);
-  //chassis.moveToPoint(-28, 24, 3000, params);
+  // chassis.moveToPoint(-28, 24, 3000, params);
   chassis.turnToHeading(0, 3000);
   chassis.waitUntilDone();
   pros::delay(1000);
@@ -353,32 +351,32 @@ void opcontrol() {
 
     bool fish_mech_override_flag = fish_axis != 0;
 
-    if (fish_mech_override_flag){ //if we are inputting fish manual controls
+    if (fish_mech_override_flag) { // if we are inputting fish manual controls
       fishing = false; // force no fishing
       fish_mech.move_velocity(fish_axis); // move the fish mech
     } else {
-      fishing = fishing; //dont change fishing state
+      fishing = fishing; // dont change fishing state
     }
 
-    if ((controller.get_digital_new_press(FISH_SCORE_BUTTON) or fishing)){
-      //score with the fish mech
-      if (!fishing){ // set pos only once per fish
+    if ((controller.get_digital_new_press(FISH_SCORE_BUTTON) or fishing)) {
+      // score with the fish mech
+      if (!fishing) { // set pos only once per fish
         score_with_fish_mech(); // send out to position
       }
 
       fishing = true; // we are fishing
 
-      if (std::abs(fish_mech.get_position() - fish_mech.get_target_position()) < 4){  // if we have met target
+      if (std::abs(fish_mech.get_position() - fish_mech.get_target_position()) < 4) { // if we have met target
         fishing = false; // stop fishing, we are at target
         last_time = pros::millis(); // log current time
       }
 
-    } else if (std::abs(fish_mech.get_position()) > 5 and not fish_mech_override_flag){ // if we are not fishing and we are not inputting fish manual controls
+    } else if (std::abs(fish_mech.get_position()) > 5 and
+               not fish_mech_override_flag) { // if we are not fishing and we are not inputting fish manual controls
 
-      if (fish_mech.get_position() > 165){ // do nothing if we are past the target (manual ctrl)
-        fish_mech.move_velocity(0); //stop fish mech
-      } else{
-        
+      if (fish_mech.get_position() > 165) { // do nothing if we are past the target (manual ctrl)
+        fish_mech.move_velocity(0); // stop fish mech
+      } else {
       }
       // } else {
       //   if (pros::millis() - last_time > FISH_DELAY){
@@ -403,9 +401,8 @@ void opcontrol() {
       //     fish_mech.move_velocity(0); // hold fish mech
       //   }
     }
-  
+
     // end fish mech section
-    
 
     lemlib::Pose pose = lemlib::getPose(false); // get pose
     printf("%f, %f, %f\n", pose.x, pose.y, pose.theta); // print pos to terminal
