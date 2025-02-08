@@ -1,10 +1,5 @@
-#pragma once
-
-// #include "hardware_map.h"
-#include "pros/rtos.hpp"
-#ifndef HARDWARE_MAP_H
-#include "hardware_map.h"
-#endif
+#include "api.h"
+#include "hardware.h"
 #include "display.h"
 
 #define IS_USING_COLOR_SENSOR true

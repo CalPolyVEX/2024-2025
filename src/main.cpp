@@ -2,12 +2,10 @@
 #include "display.h"
 #include "config.h"
 //  #include "pros/llemu.hpp"
-//  #ifndef HARDWARE_MAP_H
 #include "auto_state_machine.cpp"
 
 #include "fmt/format.h"
-#include "hardware_map.h"
-// #endif
+#include "hardware.h"
 #include "lemlib/api.hpp" // IWYU pragma: keep
 #include "lemlib/chassis/chassis.hpp"
 #include "lemlib/chassis/odom.hpp" // IWYU pragma: keep
