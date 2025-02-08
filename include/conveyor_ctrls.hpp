@@ -9,7 +9,7 @@ bool fish_mech_is_loaded();
 void deposit_with_fish_mech();
 bool has_red_ring();
 bool has_blue_ring();
-void zero_fish_mech();
+bool zero_fish_mech();
 
 bool scoring_opposite;
 #endif // CONVEYOR_CTRLS_H

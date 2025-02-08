@@ -1,8 +1,19 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define GOLD_BOT // Tim
-// define PROTOTYPE_BOT // Joseph
-// #define GREEN_BOT
+ #define GOLD_BOT // Tim
+// #define GREEN_BOT // Joseph
 
+
+
+
+
+
+
+
+
+
+
+
+// #define PROTOTYPE_BOT // Joseph ctrls
 #endif
