@@ -72,7 +72,6 @@ inline pros::Motor intake(-5, pros::MotorCartridge::blue);
 
 inline int musty_port = 11;
 
-
 inline pros::Optical conveyor_color_detector(21);
 //===================================================================
 
@@ -86,13 +85,9 @@ inline pros::adi::Pneumatics doinker('B', false);
 
 inline lemlib::Pose start_red_pose = lemlib::Pose(-44.75, -24, 90); // 72 - (15.75 + 12) (offset for dash)
 inline lemlib::Pose start_blue_pose = lemlib::Pose(-44.75, -24, 90); // 72 - (15.75 + 12) (offset for dash)
-//inline lemlib::Pose start_blue_pose = lemlib::Pose(44.75, 24, -90); // y is one tile off of center
+// inline lemlib::Pose start_blue_pose = lemlib::Pose(44.75, 24, -90); // y is one tile off of center
 
 #endif
-
-
-
-
 
 #ifdef GOLD_BOT
 // drivetrain
@@ -126,6 +121,6 @@ inline pros::adi::Pneumatics doinker('B', false);
 
 inline lemlib::Pose start_red_pose = lemlib::Pose(-52, 24, 90); // 72 - (8 + 12)
 inline lemlib::Pose start_blue_pose = lemlib::Pose(-52, 24, 90); // 72 - (8 + 12)
-//inline lemlib::Pose start_blue_pose = lemlib::Pose(52, -24, -90); // y is one tile off of center
+// inline lemlib::Pose start_blue_pose = lemlib::Pose(52, -24, -90); // y is one tile off of center
 
 #endif

@@ -98,8 +98,6 @@ void conveyor_deposit_and_intake(int speed = 600) {
   } else {
     rejector.retract();
   }
-
-  
 }
 
 void move_conveyor_backward() { conveyor_deposit_and_intake(-600); }

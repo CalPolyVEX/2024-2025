@@ -1,12 +1,7 @@
 #include "config.h"
 
-
-
 #ifndef GLOBALS_H
 #define GLOBALS_H
-
-
-
 
 // controller
 #define DOINKER_BUTTON pros::E_CONTROLLER_DIGITAL_RIGHT
@@ -44,8 +39,6 @@
 // controller
 #define MOGO_GRAB pros::E_CONTROLLER_DIGITAL_R1
 
-
 #endif
-
 
 #endif

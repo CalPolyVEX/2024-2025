@@ -21,9 +21,7 @@ const char* label_texts[LABEL_COUNT] = {"", "", "", "", "", "", "", "", "", "", 
 bool display_init = false;
 
 void draw_robot_position(float x, float y, float h) {
-  if (!display_init){
-    return;
-  }
+  if (!display_init) { return; }
   int screenX = roundf((x * 1.7) + 113);
   int screenY = roundf((-y * 1.7) + 113);
 
@@ -71,29 +69,18 @@ void initialize_labels() {
 }
 
 void update_screen() {
-  if (!display_init){
-    return;
-  }
-  for (int i = 0; i < LABEL_COUNT; i++) {
-    lv_label_set_text(labels[i], label_texts[i]);
-  }
+  if (!display_init) { return; }
+  for (int i = 0; i < LABEL_COUNT; i++) { lv_label_set_text(labels[i], label_texts[i]); }
 }
 
 void print_text_at(int index, const char* text) {
-  if (!display_init){
-    return;
-  }
+  if (!display_init) { return; }
 
-  if (index >= 0 && index < LABEL_COUNT) {
-    label_texts[index] = (char*)text;
-    
-  }
+  if (index >= 0 && index < LABEL_COUNT) { label_texts[index] = (char*)text; }
 }
 
 void write_robot_position_text(lemlib::Pose pose) {
-  if (!display_init){
-    return;
-  }
+  if (!display_init) { return; }
   std::string formattedXPos = fmt::to_string(roundf(pose.x * 100) / 100);
   std::string formattedYPos = fmt::to_string(roundf(pose.y * 100) / 100);
   std::string formattedTheta = fmt::to_string(roundf(pose.theta * 100) / 100);
@@ -111,9 +98,7 @@ void initialize_screen() {
 }
 
 void update_robot_position_on_screen(lemlib::Pose pose) {
-  if (!display_init){
-    return;
-  }
+  if (!display_init) { return; }
   write_robot_position_text(pose);
   draw_robot_position(pose.x, pose.y, pose.theta);
 }
