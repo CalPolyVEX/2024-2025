@@ -13,6 +13,8 @@ bool scoring_opposite = false;
 
 #define prox_thresh 130;
 
+#define SCORE_POS 160.0
+
 bool has_red_ring() {
   // conveyor_color_detector.set_led_pwm(100);
   // pros::delay(2);
@@ -41,6 +43,7 @@ bool has_blue_ring() {
   return false;
 }
 
+/*
 bool zero_fish_mech() {
   if (fish_mech.get_position() == 0){
     return true;
@@ -56,8 +59,9 @@ bool zero_fish_mech() {
   }
   return false;
 }
+*/
 
-void score_with_fish_mech() { fish_mech.move_absolute(160.0, 600); }
+void score_with_fish_mech() { fish_mech.move_absolute(SCORE_POS, 600); }
 
 // this is a delta movement
 void set_conveyor_target_in_inches(float inches, int speed = 300) {

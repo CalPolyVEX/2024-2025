@@ -4,7 +4,7 @@
 // http://thepilons.ca/wp-content/uploads/2018/10/Tracking.pdf
 
 #include <math.h>
-#include <string.h>
+//#include <string.h>
 // #include "fmt/core.h"
 #include "display.h"
 // #include "fmt/format.h"
@@ -123,7 +123,7 @@ void lemlib::update() {
   cobs_decode_result res;
 
   float x, y, h;
-  print_text_at(4, fmt::format("0: {}, 1: {}", transmit_buffer[0], transmit_buffer[1]).c_str());
+  //print_text_at(4, fmt::format("0: {}, 1: {}", transmit_buffer[0], transmit_buffer[1]).c_str());
   if (should_calibrate) {
     should_calibrate = false;
     if (red_alliance) {
@@ -136,9 +136,10 @@ void lemlib::update() {
     s->write(transmit_buffer, TRANSMIT_PACKET_SIZE);
     return;
   }
-
+  
   // send the command to the Musty board
-  s->write(transmit_buffer, TRANSMIT_PACKET_SIZE);
+  //s->write(transmit_buffer, TRANSMIT_PACKET_SIZE);
+  
 
   // read the data from the Musty board
   while (true) {
@@ -163,19 +164,26 @@ void lemlib::update() {
       if (timeout_counter > 10) { break; }
     }
   }
-  print_text_at(6, fmt::format("num_read_bytes: {}", num_read_bytes).c_str());
-  print_text_at(8, fmt::format("num_waiting_bytes: {}", num_waiting_bytes).c_str());
-  print_text_at(9, fmt::format("timeout_counter: {}", timeout_counter).c_str());
-  print_text_at(7, fmt::format("millis: {}", pros::millis()).c_str());
+  //print_text_at(6, fmt::format("num_read_bytes: {}", num_read_bytes).c_str());
+  printf("num_read_bytes: %d\n", num_read_bytes);
+  //print_text_at(8, fmt::format("num_waiting_bytes: {}", num_waiting_bytes).c_str());
+  printf("num_waiting_bytes: %d\n", num_waiting_bytes);
+  //print_text_at(9, fmt::format("timeout_counter: {}", timeout_counter).c_str());
+  printf("timeout_counter: %d\n", timeout_counter);
+  //print_text_at(7, fmt::format("millis: {}", pros::millis()).c_str());
+  printf("millis: %d\n", pros::millis());
   printf("read success ? : %d\n", read_success);
-  
+  printf("\n");
+  printf("Pose: (%f, %f, %f) \n", odomPose.x, odomPose.y, odomPose.theta);
+  printf("\n");
+
   if (read_success) {
     res = musty_cobs_decode(decode_buffer, MAX_BUFFER_SIZE, receive_buffer, RECEIVE_OTOS_PACKET_SIZE);
-
+    printf("res.status = %d\n", res.status);
     if (res.status == COBS_DECODE_OK) {
-      memcpy(&x, &decode_buffer[0], sizeof(float));
-      memcpy(&y, &decode_buffer[4], sizeof(float));
-      memcpy(&h, &decode_buffer[8], sizeof(float));
+      x = *reinterpret_cast<float*>(&decode_buffer[0]);
+      y = *reinterpret_cast<float*>(&decode_buffer[4]);
+      h = *reinterpret_cast<float*>(&decode_buffer[8]);
 
       h *= -1;
       h += 90; // cartesian to vex coords
@@ -207,9 +215,10 @@ void lemlib::calibrate_otos(bool is_red_alliance) {
 }
 
 void lemlib::init() {
+  //TODO MOVE THE CALIBRATION THING HERE WITH NULL-POINTER CHECK OR WHATEVER
   if (trackingTask == nullptr) {
-    pros::Serial s1(MUSTY_SERIALPORT,
-                    MUSTY_BAUDRATE); // need to initialize the serial port twice, so here is the first time
+    pros::Serial s1(MUSTY_SERIALPORT, MUSTY_BAUDRATE); // need to initialize the serial port twice, so here is the first time
+    
     pros::delay(100); // Let VEX OS configure port
 
     s = new pros::Serial(MUSTY_SERIALPORT, MUSTY_BAUDRATE); // create a serial port on #2 at 460800 baud
