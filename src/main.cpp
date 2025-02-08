@@ -14,6 +14,7 @@
 #include "conveyor_ctrls.hpp"
 #include "pros/misc.h"
 #include "pros/misc.hpp"
+#include "pros/motors.h"
 #include "pros/rtos.hpp"
 #include "globals.h"
 #include <cstdlib>
@@ -35,6 +36,7 @@ pros::Task* telemetry_task = nullptr;
 #define ENABLE_SCREEN_FOR_DEBUG false
 
 // drivetrain, chassis and PID controllers definitions===================================
+/*
 lemlib::ControllerSettings lateralPIDController(9, // proportional gain (kP)
                                                 0.5, // integral gain (kI)
                                                 0.9, // derivative gain (kD)
@@ -55,6 +57,29 @@ lemlib::ControllerSettings angularPIDController(2, // proportional gain (kP)
                                                 500, // large error range timeout, in milliseconds
                                                 0 // maximum acceleration (slew)
 );
+*/
+
+lemlib::ControllerSettings lateralPIDController(7, // proportional gain (kP)
+                                                0.05, // integral gain (kI)
+                                                70, // derivative gain (kD)
+                                                3, // anti windup
+                                                0.25, // small error range, in inches
+                                                100, // small error range timeout, in milliseconds
+                                                1, // large error range, in inches
+                                                500, // large error range timeout, in milliseconds
+                                                16 // maximum acceleration (slew)
+);
+lemlib::ControllerSettings angularPIDController(3.1, // proportional gain (kP)
+                                                0.05, // integral gain (kI)
+                                                15, // derivative gain (kD)
+                                                3, // anti windup
+                                                0.5, // small error range, in degrees
+                                                100, // small error range timeout, in milliseconds
+                                                1, // large error range, in degrees
+                                                500, // large error range timeout, in milliseconds
+                                                0 // maximum acceleration (slew)
+);
+
 
 lemlib::Drivetrain drivetrain(&leftMG, &rightMG, 12.25, lemlib::Omniwheel::NEW_325, 450, 0);
 
@@ -185,16 +210,22 @@ void competition_initialize() {
  * */
 #ifdef GOLD_BOT
 void autonomous() {
-  lemlib::MoveToPointParams params = {.forwards = false};
+
+  lemlib::MoveToPointParams params = {.forwards = true};
   lemlib::MoveToPointParams speedParams = {.maxSpeed = 127};
+  /*
   doinker.extend();
   chassis.moveToPoint(45, 0, 8000, speedParams); // 13.5 extra for 50, reading 51.33, -5 for 50, reading 49.37,
   chassis.waitUntilDone();
   chassis.moveToPoint(20, 0, 2000, params);
   doinker.retract();
-
-  // chassis.moveToPoint(-8, 0, 2000, params);
-
+  */
+  // chassis.moveToPoint(-40, 24, 3000);
+  //chassis.moveToPoint(-28, 24, 3000, params);
+  chassis.turnToHeading(0, 3000);
+  chassis.waitUntilDone();
+  pros::delay(1000);
+  chassis.turnToHeading(-90, 3000);
   // chassis.moveToPose(-8, 0, 90, 1200);
   // chassis.turnToHeading(0, 500);
   // lemlib::MoveToPointParams params = {.forwards = false};
@@ -208,7 +239,7 @@ void autonomous() {
   // chassis.moveToPose(-8, 0, 90, 1200);
 
   chassis.waitUntilDone();
-
+  chassis.setBrakeMode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_COAST);
   print_text_at(7, "done moving");
 }
 #endif
@@ -315,7 +346,7 @@ void opcontrol() {
   uint32_t last_time = pros::millis();
 
   while (1) {
-    /*
+    print_text_at(5, fmt::format("fish pos = {}", fish_mech.get_position()).c_str());
     // FISH MECH
     int fish_axis = controller.get_analog(FISH_MANUAL_AXIS);
     deadband(fish_axis, 30);
@@ -337,42 +368,44 @@ void opcontrol() {
 
       fishing = true; // we are fishing
 
-      if (std::abs(fish_mech.get_position() - fish_mech.get_target_position()) < 4 ){  // if we have met target
+      if (std::abs(fish_mech.get_position() - fish_mech.get_target_position()) < 4){  // if we have met target
         fishing = false; // stop fishing, we are at target
         last_time = pros::millis(); // log current time
       }
 
-    } else if (fish_mech.get_position() != 0 and not fish_mech_override_flag){ // if we are not fishing and we are not
-    inputting fish manual controls
+    } else if (std::abs(fish_mech.get_position()) > 5 and not fish_mech_override_flag){ // if we are not fishing and we are not inputting fish manual controls
 
       if (fish_mech.get_position() > 165){ // do nothing if we are past the target (manual ctrl)
         fish_mech.move_velocity(0); //stop fish mech
-      } else {
-        if (pros::millis() - last_time > FISH_DELAY){
-          // (most recent if statement first)
-          // if we have waited long enough
-          // AND fish mech <= 165
-          // AND we are not inputting fish manual controls
-          // AND fish mech != 0
-          // AND we are not fishing
-          // AND we have not started fishing
-          // THEN
-          // retract and zero fish mech
-
-          fish_mech.move_velocity(-600); // move fish mech backwards
-            if (fish_mech.get_current_draw() > 1400) { // check if current draw exceeds threshold
-              fish_mech.move_velocity(0); // stop fish mech
-              fish_mech.tare_position(); // reset encoder position to zero
-            }
-
-        } else { // freeze fish mech
-          fish_mech.move_velocity(0); // hold fish mech
-        }
+      } else{
+        
       }
-    }
+      // } else {
+      //   if (pros::millis() - last_time > FISH_DELAY){
+      //     // (most recent if statement first)
+      //     // if we have waited long enough
+      //     // AND fish mech <= 165
+      //     // AND we are not inputting fish manual controls
+      //     // AND fish mech != 0
+      //     // AND we are not fishing
+      //     // AND we have not started fishing
+      //     // THEN
+      //     // retract and zero fish mech
 
+      //     fish_mech.move_velocity(-600); // move fish mech backwards
+      //       if (fish_mech.get_current_draw() > 500) { // check if current draw exceeds threshold
+      //         fish_mech.move_velocity(0); // stop fish mech
+      //         fish_mech.tare_position(); // reset encoder position to zero
+      //       }
+
+      //   } else { // freeze fish mech
+      //     last_time = pros::millis(); // log current time
+      //     fish_mech.move_velocity(0); // hold fish mech
+      //   }
+    }
+  
     // end fish mech section
-    */
+    
 
     lemlib::Pose pose = lemlib::getPose(false); // get pose
     printf("%f, %f, %f\n", pose.x, pose.y, pose.theta); // print pos to terminal

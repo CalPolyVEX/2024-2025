@@ -175,6 +175,7 @@ void lemlib::update() {
   printf("\n");
   printf("Pose: (%f, %f, %f) \n", odomPose.x, odomPose.y, odomPose.theta);
   printf("\n");
+  //printf("fish_mech current draw = %d\n", fish_mech.get_current_draw());
 
   if (read_success) {
     res = musty_cobs_decode(decode_buffer, MAX_BUFFER_SIZE, receive_buffer, RECEIVE_OTOS_PACKET_SIZE);
