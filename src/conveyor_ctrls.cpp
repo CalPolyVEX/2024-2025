@@ -1,5 +1,5 @@
 #include "api.h"
-#include "hardware.h"
+#include "globals.h"
 #include "display.h"
 
 #define IS_USING_COLOR_SENSOR true
