@@ -15,9 +15,8 @@
 #include "lemlib/chassis/chassis.hpp"
 #include "musty/cobs.h"
 #include "lemlib/chassis/odom.hpp"
-#include "hardware_map.h"
 
-#define MUSTY_SERIALPORT musty_port
+#define MUSTY_SERIALPORT 12
 #define MUSTY_BAUDRATE 460800
 
 #define TRANSMIT_PACKET_SIZE 2
@@ -32,8 +31,8 @@
 #define COMMAND_CALIBRATE_OTOS_BLUE 255
 // #define COMMAND_CALIBRATE_OTOS 202
 
-#define RED_STARTING_POSE start_red_pose
-#define BLUE_STARTING_POSE start_blue_pose
+#define RED_STARTING_POSE lemlib::Pose(0, 0, -90)
+#define BLUE_STARTING_POSE lemlib::Pose(0, 0, 90)
 
 bool red_alliance = false;
 
