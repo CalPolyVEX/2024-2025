@@ -15,8 +15,9 @@
 #include "lemlib/chassis/chassis.hpp"
 #include "musty/cobs.h"
 #include "lemlib/chassis/odom.hpp"
+#include "ports.h"
 
-#define MUSTY_SERIALPORT 12
+
 #define MUSTY_BAUDRATE 460800
 
 #define TRANSMIT_PACKET_SIZE 2
@@ -31,8 +32,7 @@
 #define COMMAND_CALIBRATE_OTOS_BLUE 255
 // #define COMMAND_CALIBRATE_OTOS 202
 
-#define RED_STARTING_POSE lemlib::Pose(0, 0, -90)
-#define BLUE_STARTING_POSE lemlib::Pose(0, 0, 90)
+
 
 bool red_alliance = false;
 
@@ -216,12 +216,12 @@ void lemlib::calibrate_otos(bool is_red_alliance) {
 void lemlib::init() {
   // TODO MOVE THE CALIBRATION THING HERE WITH NULL-POINTER CHECK OR WHATEVER
   if (trackingTask == nullptr) {
-    pros::Serial s1(MUSTY_SERIALPORT,
+    pros::Serial s1(MUSTY_PORT,
                     MUSTY_BAUDRATE); // need to initialize the serial port twice, so here is the first time
 
     pros::delay(100); // Let VEX OS configure port
 
-    s = new pros::Serial(MUSTY_SERIALPORT, MUSTY_BAUDRATE); // create a serial port on #2 at 460800 baud
+    s = new pros::Serial(MUSTY_PORT, MUSTY_BAUDRATE); // create a serial port on #2 at 460800 baud
     pros::delay(100); // Let VEX OS configure port
 
     trackingTask = new pros::Task {[=] {

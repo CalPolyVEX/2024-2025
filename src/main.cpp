@@ -454,7 +454,7 @@ void opcontrol() {
       controller.clear_line(2);
     }
 
-#ifndef MOGO_DROP // JOSEPH
+#ifdef GREEN_BOT // JOSEPH
     if (controller.get_digital_new_press(MOGO_GRAB)) {
       mogo_grabber.toggle();
       if (mogo_grabber.is_extended()) {
