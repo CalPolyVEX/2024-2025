@@ -12,7 +12,6 @@
 
 #endif
 
-
 #ifdef GOLD_BOT
 
 #define RED_STARTING_POSE lemlib::Pose(-52, 24, 90) // 72 - (8 + 12)

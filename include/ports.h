@@ -19,7 +19,6 @@
 #define PORT_DOINKER 'B'
 #define MUSTY_PORT 12
 
-
 #endif
 
 #ifdef GREEN_BOT
@@ -38,8 +37,6 @@
 #define PORT_CONVEYOR -4
 #define PORT_INTAKE -5
 
-
-
 #define MUSTY_PORT 11
 
 #define PORT_CONVEYOR_COLOR_SENSOR 21
@@ -47,7 +44,6 @@
 #define PORT_MOGO_GRABBER 'D'
 #define PORT_REJECTOR 'C'
 #define PORT_DOINKER 'B'
-
 
 #endif
 
@@ -65,7 +61,6 @@
 #define PORT_MOGO_GRABBER 'C'
 #define PORT_REJECTOR 'B'
 #define PORT_DOINKER 'D'
-
 
 #endif
 

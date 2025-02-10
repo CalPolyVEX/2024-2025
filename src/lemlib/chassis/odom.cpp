@@ -17,7 +17,6 @@
 #include "lemlib/chassis/odom.hpp"
 #include "ports.h"
 
-
 #define MUSTY_BAUDRATE 460800
 
 #define TRANSMIT_PACKET_SIZE 2
@@ -31,8 +30,6 @@
 #define COMMAND_CALIBRATE_OTOS_RED 0
 #define COMMAND_CALIBRATE_OTOS_BLUE 255
 // #define COMMAND_CALIBRATE_OTOS 202
-
-
 
 bool red_alliance = false;
 
