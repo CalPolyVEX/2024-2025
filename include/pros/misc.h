@@ -43,10 +43,10 @@
 #define COMPETITION_CONNECTED (1 << 2)
 #define COMPETITION_SYSTEM (1 << 3)*/
 typedef enum {
-  COMPETITION_DISABLED = 1 << 0,
-  COMPETITION_CONNECTED = 1 << 2,
-  COMPETITION_AUTONOMOUS = 1 << 1,
-  COMPETITION_SYSTEM = 1 << 3,
+	COMPETITION_DISABLED = 1 << 0,
+	COMPETITION_CONNECTED = 1 << 2,
+	COMPETITION_AUTONOMOUS = 1 << 1,
+	COMPETITION_SYSTEM = 1 << 3,
 } competition_status;
 
 #ifdef __cplusplus
@@ -176,54 +176,54 @@ namespace pros {
  * \enum
  */
 typedef enum {
-  /// The master controller.
-  E_CONTROLLER_MASTER = 0,
-  /// The partner controller.
-  E_CONTROLLER_PARTNER
+	/// The master controller.
+	E_CONTROLLER_MASTER = 0,
+	/// The partner controller.
+	E_CONTROLLER_PARTNER
 } controller_id_e_t;
 
 /**
  * \enum
  */
 typedef enum {
-  /// The horizontal axis of the controller’s left analog stick.
-  E_CONTROLLER_ANALOG_LEFT_X = 0,
-  /// The vertical axis of the controller’s left analog stick.
-  E_CONTROLLER_ANALOG_LEFT_Y,
-  /// The horizontal axis of the controller’s right analog stick.
-  E_CONTROLLER_ANALOG_RIGHT_X,
-  /// The vertical axis of the controller’s right analog stick.
-  E_CONTROLLER_ANALOG_RIGHT_Y
+	/// The horizontal axis of the controller’s left analog stick.
+	E_CONTROLLER_ANALOG_LEFT_X = 0,
+	/// The vertical axis of the controller’s left analog stick.
+	E_CONTROLLER_ANALOG_LEFT_Y,
+	/// The horizontal axis of the controller’s right analog stick.
+	E_CONTROLLER_ANALOG_RIGHT_X,
+	/// The vertical axis of the controller’s right analog stick.
+	E_CONTROLLER_ANALOG_RIGHT_Y
 } controller_analog_e_t;
 
 /**
  * \enum
  */
 typedef enum {
-  /// The first trigger on the left side of the controller.
-  E_CONTROLLER_DIGITAL_L1 = 6,
-  /// The second trigger on the left side of the controller.
-  E_CONTROLLER_DIGITAL_L2,
-  /// The first trigger on the right side of the controller.
-  E_CONTROLLER_DIGITAL_R1,
-  /// The second trigger on the right side of the controller.
-  E_CONTROLLER_DIGITAL_R2,
-  /// The up arrow on the left arrow pad of the controller.
-  E_CONTROLLER_DIGITAL_UP,
-  /// The down arrow on the left arrow pad of the controller.
-  E_CONTROLLER_DIGITAL_DOWN,
-  /// The left arrow on the left arrow pad of the controller.
-  E_CONTROLLER_DIGITAL_LEFT,
-  /// The right arrow on the left arrow pad of the controller.
-  E_CONTROLLER_DIGITAL_RIGHT,
-  /// The ‘X’ button on the right button pad of the controller.
-  E_CONTROLLER_DIGITAL_X,
-  /// The ‘B’ button on the right button pad of the controller.
-  E_CONTROLLER_DIGITAL_B,
-  /// The ‘Y’ button on the right button pad of the controller.
-  E_CONTROLLER_DIGITAL_Y,
-  /// The ‘A’ button on the right button pad of the controller.
-  E_CONTROLLER_DIGITAL_A
+	/// The first trigger on the left side of the controller.
+	E_CONTROLLER_DIGITAL_L1 = 6,
+	/// The second trigger on the left side of the controller.
+	E_CONTROLLER_DIGITAL_L2,
+	/// The first trigger on the right side of the controller.
+	E_CONTROLLER_DIGITAL_R1,
+	/// The second trigger on the right side of the controller.
+	E_CONTROLLER_DIGITAL_R2,
+	/// The up arrow on the left arrow pad of the controller.
+	E_CONTROLLER_DIGITAL_UP,
+	/// The down arrow on the left arrow pad of the controller.
+	E_CONTROLLER_DIGITAL_DOWN,
+	/// The left arrow on the left arrow pad of the controller.
+	E_CONTROLLER_DIGITAL_LEFT,
+	/// The right arrow on the left arrow pad of the controller.
+	E_CONTROLLER_DIGITAL_RIGHT,
+	/// The ‘X’ button on the right button pad of the controller.
+	E_CONTROLLER_DIGITAL_X,
+	/// The ‘B’ button on the right button pad of the controller.
+	E_CONTROLLER_DIGITAL_B,
+	/// The ‘Y’ button on the right button pad of the controller.
+	E_CONTROLLER_DIGITAL_Y,
+	/// The ‘A’ button on the right button pad of the controller.
+	E_CONTROLLER_DIGITAL_A
 } controller_digital_e_t;
 
 #ifdef PROS_USE_SIMPLE_NAMES
@@ -274,16 +274,22 @@ typedef enum {
  *
  * \returns error (in the function/scope it's in) if the controller failed to connect or an invalid id is given.
  */
-#define CONTROLLER_PORT_MUTEX_TAKE(id, port)                                                                           \
-  switch (id) {                                                                                                        \
-    case E_CONTROLLER_MASTER: port = V5_PORT_CONTROLLER_1; break;                                                      \
-    case E_CONTROLLER_PARTNER: port = V5_PORT_CONTROLLER_2; break;                                                     \
-    default: errno = EINVAL; return PROS_ERR;                                                                          \
-  }                                                                                                                    \
-  if (!internal_port_mutex_take(port)) {                                                                               \
-    errno = EACCES;                                                                                                    \
-    return PROS_ERR;                                                                                                   \
-  }
+#define CONTROLLER_PORT_MUTEX_TAKE(id, port) \
+	switch (id) {                              \
+		case E_CONTROLLER_MASTER:                \
+			port = V5_PORT_CONTROLLER_1;           \
+			break;                                 \
+		case E_CONTROLLER_PARTNER:               \
+			port = V5_PORT_CONTROLLER_2;           \
+			break;                                 \
+		default:                                 \
+			errno = EINVAL;                        \
+			return PROS_ERR;                       \
+	}                                          \
+	if (!internal_port_mutex_take(port)) {     \
+		errno = EACCES;                          \
+		return PROS_ERR;                         \
+	}
 
 #ifdef __cplusplus
 namespace c {
@@ -803,16 +809,16 @@ extern const char* baked_date;
 extern const char* baked_time;
 
 typedef struct {
-    uint16_t year; // Year - 1980
-    uint8_t day;
-    uint8_t month; // 1 = January
+	uint16_t year;  // Year - 1980
+	uint8_t day;
+	uint8_t month;  // 1 = January
 } date_s_t;
 
 typedef struct {
-    uint8_t hour;
-    uint8_t min;
-    uint8_t sec;
-    uint8_t sec_hund; // hundredths of a second
+	uint8_t hour;
+	uint8_t min;
+	uint8_t sec;
+	uint8_t sec_hund;  // hundredths of a second
 } time_s_t;
 
 ///@}
@@ -821,8 +827,8 @@ typedef struct {
 
 #ifdef __cplusplus
 }
-} // namespace pros
+}  // namespace pros
 }
 #endif
 
-#endif // _PROS_MISC_H_
+#endif  // _PROS_MISC_H_

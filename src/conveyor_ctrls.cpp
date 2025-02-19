@@ -1,4 +1,5 @@
 #include "api.h"
+#include "fmt/core.h"
 #include "globals.h"
 #include "display.h"
 
@@ -8,7 +9,7 @@ bool scoring_opposite = false;
 
 #define prox_thresh 130;
 
-#define SCORE_POS 160.0
+#define SCORE_POS 175.0
 
 bool has_red_ring() {
   // conveyor_color_detector.set_led_pwm(100);
@@ -103,5 +104,6 @@ bool fish_mech_is_loaded() {
   if (has_blue_ring() or has_red_ring()) { return true; }
   return false;
 }
+
 
 // void deposit_with_fish_mech() { fish_mech.move_absolute(250.0, 100); }

@@ -17,7 +17,7 @@
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *
+ * 
  * \defgroup apix Extended API
  * \note Also included in the Extended API is [LVGL.](https://lvgl.io/)
  */
@@ -61,7 +61,7 @@ typedef void* sem_t;
  *        The task to unblock
  *
  * \return True if the task was unblocked, false otherwise
- *
+ * 
  * \b Example:
  * \code
  * task_t task = task_create(task_fn, (void*)"PROS", TASK_PRIORITY_DEFAULT,
@@ -84,19 +84,19 @@ bool task_abort_delay(task_t task);
  *				The value to supply to task_notify_ext
  * \param notify_action
  * 				The action to supply to task_notify_ext
- *
- * \b Example:
- * \code
- * task_t task_to_delete = task_create(task_fn, (void*)"PROS", TASK_PRIORITY_DEFAULT,
- *                           TASK_STACK_DEPTH_DEFAULT, "task_fn");
- * task_t task_to_notify = task_create(task_fn, (void*)"PROS", TASK_PRIORITY_DEFAULT,
- *                           TASK_STACK_DEPTH_DEFAULT, "task_fn2");
- *
- * task_notify_ext(task_to_notify, 0, NOTIFY_ACTION_INCREMENT, NULL);
- *
- * task_notify_when_deleting(task_to_delete, task_get_current(), 0, NOTIFY_ACTION_NONE);
- * task_delete(task_to_delete);
- * \endcode
+ * 
+    * \b Example:
+    * \code
+    * task_t task_to_delete = task_create(task_fn, (void*)"PROS", TASK_PRIORITY_DEFAULT,
+    *                           TASK_STACK_DEPTH_DEFAULT, "task_fn");
+    * task_t task_to_notify = task_create(task_fn, (void*)"PROS", TASK_PRIORITY_DEFAULT,
+    *                           TASK_STACK_DEPTH_DEFAULT, "task_fn2");
+    * 
+    * task_notify_ext(task_to_notify, 0, NOTIFY_ACTION_INCREMENT, NULL);
+    * 
+    * task_notify_when_deleting(task_to_delete, task_get_current(), 0, NOTIFY_ACTION_NONE);
+    * task_delete(task_to_delete);
+    * \endcode
  */
 void task_notify_when_deleting(task_t target_task, task_t task_to_notify, uint32_t value,
                                notify_action_e_t notify_action);
@@ -105,11 +105,11 @@ void task_notify_when_deleting(task_t target_task, task_t task_to_notify, uint32
  * Creates a recursive mutex which can be locked recursively by the owner.
  *
  * \return A newly created recursive mutex.
- *
+ * 
  * \b Example:
  * \code
  * mutex_t mutex = mutex_recursive_create();
- *
+ * 
  * void task_fn(void* param) {
  *   while(1) {
  *     mutex_recursive_take(mutex, 1000);
@@ -134,7 +134,7 @@ mutex_t mutex_recursive_create(void);
  *        Amount of time to wait before timing out
  *
  * \return 1 if the mutex was obtained, 0 otherwise
- *
+ * 
  * \b Example:
  * \code
  * mutex_t mutex = mutex_recursive_create();
@@ -161,7 +161,7 @@ bool mutex_recursive_take(mutex_t mutex, uint32_t timeout);
  *        A mutex handle created by mutex_recursive_create
  *
  * \return 1 if the mutex was obtained, 0 otherwise
- *
+ * 
  * \b Example:
  * \code
  * mutex_t mutex = mutex_recursive_create();
@@ -189,7 +189,7 @@ bool mutex_recursive_give(mutex_t mutex);
  *
  * \return A handle to the current task that owns the mutex, or NULL if the
  * mutex isn't owned.
- *
+ * 
  * \b Example:
  * \code
  * mutex_t mutex = mutex_create();
@@ -206,18 +206,18 @@ bool mutex_recursive_give(mutex_t mutex);
  *                           TASK_STACK_DEPTH_DEFAULT, "task_fn");
  *
  * void opcontrol(void) {
- *   while (1) {
- *     if (joystick_get_digital(1, 7, JOY_UP)) {
- *       task_t owner = mutex_get_owner(mutex);
- *       if (owner != NULL) {
- *         printf("Mutex is owned by task %s", task_get_name(owner));
- *       } else {
- *         printf("Mutex is not owned");
- *       }
- *     }
- *     task_delay(20);
- *   }
- * }
+*   while (1) {
+*     if (joystick_get_digital(1, 7, JOY_UP)) {
+*       task_t owner = mutex_get_owner(mutex);
+*       if (owner != NULL) {
+*         printf("Mutex is owned by task %s", task_get_name(owner));
+*       } else {
+*         printf("Mutex is not owned");
+*       }
+*     }
+*     task_delay(20);
+*   }
+* }
  * \endcode
  */
 task_t mutex_get_owner(mutex_t mutex);
@@ -263,8 +263,8 @@ sem_t sem_create(uint32_t max_count, uint32_t init_count);
  * \code
  * // Binary semaphore acts as a mutex
  * sem_t sem = sem_create(1, 0);
- *
- * void task_fn(void* param) {
+ * 
+ * void task_fn(void* param) { 
  *   while(1) {
  *     sem_take(sem, 1000);
  *     // critical section
@@ -278,14 +278,14 @@ sem_t sem_create(uint32_t max_count, uint32_t init_count);
  * void opcontrol(void) {
  *   while (1) {
  *     if (joystick_get_digital(1, 7, JOY_UP)) {
- *       // honestly this is a bad example because you should never
+ *       // honestly this is a bad example because you should never 
  *       // delete a semaphore like this
  *       sem_delete(sem);
  *     }
  *     task_delay(20);
  *   }
  * }
- *
+ * 
  * \endcode
  */
 void sem_delete(sem_t sem);
@@ -294,7 +294,7 @@ void sem_delete(sem_t sem);
  * Creates a binary semaphore.
  *
  * \return A newly created semaphore.
- *
+ * 
  * \b Example:
  * \code
  * // Binary semaphore acts as a mutex
@@ -329,7 +329,7 @@ sem_t sem_binary_create(void);
  * \return True if the semaphore was successfully take, false otherwise. If
  * false is returned, then errno is set with a hint about why the sempahore
  * couldn't be taken.
- *
+ * 
  * \b Example:
  * \code
  * // Binary semaphore acts as a mutex
@@ -371,7 +371,7 @@ bool sem_wait(sem_t sem, uint32_t timeout);
  * \return True if the value was incremented, false otherwise. If false is
  * returned, then errno is set with a hint about why the semaphore couldn't be
  * taken.
- *
+ * 
  * \b Example:
  * \code
  * // Binary semaphore acts as a mutex
@@ -400,7 +400,7 @@ bool sem_post(sem_t sem);
  *
  * \return The current value of the semaphore (e.g. the number of resources
  * available)
- *
+ * 
  * \b Example of sem_get_count:
  * \code
  * // Binary semaphore acts as a mutex
@@ -428,7 +428,7 @@ uint32_t sem_get_count(sem_t sem);
  *
  * \return A handle to a newly created queue, or NULL if the queue cannot be
  * created.
- *
+ * 
  * \b Example:
  * \code
  * void opcontrol(void) {
@@ -483,7 +483,7 @@ bool queue_prepend(queue_t queue, const void* item, uint32_t timeout);
  *        indefinitely.
  *
  * \return True if the item was preprended, false otherwise.
- *
+ * 
  * \b Example:
  * \code
  * void opcontrol(void) {
@@ -509,7 +509,7 @@ bool queue_append(queue_t queue, const void* item, uint32_t timeout);
  *        the time of the call. TIMEOUT_MAX can be used to block indefinitely.
  *
  * \return True if an item was copied into the buffer, false otherwise.
- *
+ * 
  * \b Example:
  * \code
  * void opcontrol(void) {
@@ -569,7 +569,7 @@ bool queue_recv(queue_t queue, void* const buffer, uint32_t timeout);
  * \code
  * void opcontrol(void) {
  *   queue_t queue = queue_create(10, sizeof(int));
- *
+ * 
  *   int item[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
  *   queue_prepend(queue, item, 1000);
  *   queue_append(queue, item, 1000);
@@ -591,7 +591,7 @@ uint32_t queue_get_waiting(const queue_t queue);
  * \code
  * void opcontrol(void) {
  *   queue_t queue = queue_create(10, sizeof(int));
- *
+ * 
  *   int item[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
  *   queue_prepend(queue, item, 1000);
  *   queue_append(queue, item, 1000);
@@ -622,7 +622,7 @@ void queue_delete(queue_t queue);
  *
  * \param queue
  *        Queue handle to reset
- *
+ * 
  * \b Example:
  * \code
  * void opcontrol(void) {
@@ -659,7 +659,7 @@ void queue_reset(queue_t queue);
  *        The type of device to register
  *
  * \return 1 upon success, PROS_ERR upon failure
- *
+ * 
  * \b Example:
  * \code
  * void opcontrol(void) {
@@ -752,7 +752,7 @@ v5_device_e_t registry_get_plugged_type(uint8_t port);
  * 			details on the different actions.
  * \param extra_arg
  * 			An argument to pass in based on the action
- *
+ * 
  * \b Example:
  * \code
  * void opcontrol(void) {
@@ -813,7 +813,7 @@ int32_t fdctl(int file, const uint32_t action, void* const extra_arg);
  *
  * \return 1 if the operation was successful or PROS_ERR if the operation
  * failed, setting errno.
- *
+ * 
  * \b Example
  * \code
  * void autonomous() {
@@ -837,7 +837,7 @@ int32_t motor_set_reversed(int8_t port, const bool reverse);
  *
  * \return 1 if the motor has been reversed and 0 if the motor was not reversed,
  * or PROS_ERR if the operation failed, setting errno.
- *
+ * 
  * \b Example
  * \code
  * void initialize() {
@@ -936,4 +936,4 @@ int32_t motor_is_reversed(int8_t port);
 }
 #endif
 
-#endif // _PROS_API_EXTENDED_H_
+#endif  // _PROS_API_EXTENDED_H_

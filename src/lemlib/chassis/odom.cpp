@@ -31,6 +31,8 @@
 #define COMMAND_CALIBRATE_OTOS_BLUE 255
 // #define COMMAND_CALIBRATE_OTOS 202
 
+#define DEBUGGING_PACKETS false
+
 bool red_alliance = false;
 
 bool should_calibrate = false;
@@ -159,15 +161,17 @@ void lemlib::update() {
       if (timeout_counter > 10) { break; }
     }
   }
-  // print_text_at(6, fmt::format("num_read_bytes: {}", num_read_bytes).c_str());
-  printf("num_read_bytes: %d\n", num_read_bytes);
-  // print_text_at(8, fmt::format("num_waiting_bytes: {}", num_waiting_bytes).c_str());
-  printf("num_waiting_bytes: %d\n", num_waiting_bytes);
-  // print_text_at(9, fmt::format("timeout_counter: {}", timeout_counter).c_str());
-  printf("timeout_counter: %d\n", timeout_counter);
-  // print_text_at(7, fmt::format("millis: {}", pros::millis()).c_str());
-  printf("millis: %d\n", pros::millis());
-  printf("read success ? : %d\n", read_success);
+  if (DEBUGGING_PACKETS){
+    // print_text_at(6, fmt::format("num_read_bytes: {}", num_read_bytes).c_str());
+    printf("num_read_bytes: %d\n", num_read_bytes);
+    // print_text_at(8, fmt::format("num_waiting_bytes: {}", num_waiting_bytes).c_str());
+    printf("num_waiting_bytes: %d\n", num_waiting_bytes);
+    // print_text_at(9, fmt::format("timeout_counter: {}", timeout_counter).c_str());
+    printf("timeout_counter: %d\n", timeout_counter);
+    // print_text_at(7, fmt::format("millis: {}", pros::millis()).c_str());
+    printf("millis: %d\n", pros::millis());
+    printf("read success ? : %d\n", read_success);
+  } 
   printf("\n");
   printf("Pose: (%f, %f, %f) \n", odomPose.x, odomPose.y, odomPose.theta);
   printf("\n");
@@ -175,7 +179,7 @@ void lemlib::update() {
 
   if (read_success) {
     res = musty_cobs_decode(decode_buffer, MAX_BUFFER_SIZE, receive_buffer, RECEIVE_OTOS_PACKET_SIZE);
-    printf("res.status = %d\n", res.status);
+    //printf("res.status = %d\n", res.status);
     if (res.status == COBS_DECODE_OK) {
       x = *reinterpret_cast<float*>(&decode_buffer[0]);
       y = *reinterpret_cast<float*>(&decode_buffer[4]);

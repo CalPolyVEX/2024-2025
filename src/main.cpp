@@ -90,6 +90,12 @@ lemlib::Chassis chassis(drivetrain, lateralPIDController, angularPIDController);
  */
 
 void initialize() {
+
+  fish_mech.move_velocity(-600);
+  pros::delay(200);
+  fish_mech.tare_position();
+  fish_mech.brake();
+  pros::delay(200);
   // initialize_screen();
   lemlib::init(); // initialize lemlib
   // pros::delay(300);
@@ -159,6 +165,10 @@ void initialize() {
     pros::delay(10);
   }
   conveyor_color_detector.set_led_pwm(0);
+
+  //initialize the fish mech to a VERY tight zero.
+
+  
 }
 
 /**
@@ -338,7 +348,6 @@ void opcontrol() {
   bool is_loading = false;
 
   bool fishing = false;
-
   uint32_t last_time = pros::millis();
 
   while (1) {
@@ -347,63 +356,52 @@ void opcontrol() {
     int fish_axis = controller.get_analog(FISH_MANUAL_AXIS);
     deadband(fish_axis, 30);
 
-    bool fish_mech_override_flag = fish_axis != 0;
-
-    if (fish_mech_override_flag) { // if we are inputting fish manual controls
-      fishing = false; // force no fishing
-      fish_mech.move_velocity(fish_axis); // move the fish mech
-    } else {
-      fishing = fishing; // dont change fishing state
+    if (controller.get_digital_new_press(FISH_SCORE_BUTTON)){
+      fishing = true; //start fishing
+      score_with_fish_mech(); //set target on a newpress
     }
 
-    if ((controller.get_digital_new_press(FISH_SCORE_BUTTON) or fishing)) {
-      // score with the fish mech
-      if (!fishing) { // set pos only once per fish
-        score_with_fish_mech(); // send out to position
-      }
+    printf("TARGET POS = %f\n", fish_mech.get_target_position());
+    printf("CUR POS = %f\n", fish_mech.get_position());
+    if (fishing){ // if currently fishing
+      if (fish_mech.get_flags() & pros::E_MOTOR_FLAGS_ZERO_VELOCITY){ // check if we are stopped (the method DNE) BRUUUUUUUHHHHH
+        
+        // if we at target, zero.
+        printf("TRAPPED IN TARGET CALL\n");
+        if ((pros::millis() - last_time) > FISH_SCORE_DELAY){ // if we zeroing and past delay, complete zero
+          last_time = pros::millis();
+          fish_mech.move_absolute(0, 600);
+          fishing = false;
 
-      fishing = true; // we are fishing
-
-      if (std::abs(fish_mech.get_position() - fish_mech.get_target_position()) < 4) { // if we have met target
-        fishing = false; // stop fishing, we are at target
-        last_time = pros::millis(); // log current time
-      }
-
-    } else if (std::abs(fish_mech.get_position()) > 5 and
-               not fish_mech_override_flag) { // if we are not fishing and we are not inputting fish manual controls
-
-      if (fish_mech.get_position() > 165) { // do nothing if we are past the target (manual ctrl)
-        fish_mech.move_velocity(0); // stop fish mech
+        }
+        
       } else {
+        
+        printf("TRAPPED IN LAST ELSE\n");
+        last_time = pros::millis();
       }
-      // } else {
-      //   if (pros::millis() - last_time > FISH_DELAY){
-      //     // (most recent if statement first)
-      //     // if we have waited long enough
-      //     // AND fish mech <= 165
-      //     // AND we are not inputting fish manual controls
-      //     // AND fish mech != 0
-      //     // AND we are not fishing
-      //     // AND we have not started fishing
-      //     // THEN
-      //     // retract and zero fish mech
-
-      //     fish_mech.move_velocity(-600); // move fish mech backwards
-      //       if (fish_mech.get_current_draw() > 500) { // check if current draw exceeds threshold
-      //         fish_mech.move_velocity(0); // stop fish mech
-      //         fish_mech.tare_position(); // reset encoder position to zero
-      //       }
-
-      //   } else { // freeze fish mech
-      //     last_time = pros::millis(); // log current time
-      //     fish_mech.move_velocity(0); // hold fish mech
-      //   }
+        
+    } else {
+      
+      if (fish_axis != 0){ // manual override
+        printf("fish axis is %d\n", fish_axis);
+        fish_mech.move_velocity(fish_axis); // move by stick
+      } else if (fish_mech.get_position() <= 175  and (fish_mech.get_position() != 0) and not (fish_mech.get_flags() & pros::E_MOTOR_FLAGS_ZERO_VELOCITY)){
+        // if we below 160, above 0, and we ARE moving, zero
+        printf("TRAPPED IN ZERO FOR MANL\n");
+        fish_mech.move_absolute(0, 600);
+      } else{
+        printf("TRAPPED IN BRAKE\n");
+        fish_mech.brake();
+      }
     }
+
+    
 
     // end fish mech section
 
     lemlib::Pose pose = lemlib::getPose(false); // get pose
-    printf("%f, %f, %f\n", pose.x, pose.y, pose.theta); // print pos to terminal
+    //printf("%f, %f, %f\n", pose.x, pose.y, pose.theta); // print pos to terminal
 
     // update_robot_position_on_screen(lemlib::getPose(true));
     // print_text_at(4, fmt::format("millis = {}", pros::millis()).c_str());

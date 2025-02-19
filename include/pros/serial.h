@@ -12,7 +12,7 @@
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *
+ * 
  * \defgroup c-serial Generic Serial C API
  */
 
@@ -57,8 +57,8 @@ namespace c {
  *
  * \return 1 if the operation was successful or PROS_ERR if the operation
  * failed, setting errno.
- *
- * \b Example:
+ * 
+ * \b Example: 
  * \code{.c}
  * void opcontrol() {
  * 	serial_enable(1);
@@ -83,7 +83,7 @@ int32_t serial_enable(uint8_t port);
  *
  * \return 1 if the operation was successful or PROS_ERR if the operation
  * failed, setting errno.
- *
+ * 
  * \b Example:
  * \code{.c}
  * void opcontrol() {
@@ -120,7 +120,7 @@ int32_t serial_set_baudrate(uint8_t port, int32_t baudrate);
  *
  * \return 1 if the operation was successful or PROS_ERR if the operation
  * failed, setting errno.
- *
+ * 
  * \b Example:
  * \code{.c}
  * void opcontrol() {
@@ -189,7 +189,7 @@ int32_t serial_get_read_avail(uint8_t port);
  *
  * \return The number of bytes free or PROS_ERR if the operation failed,
  * setting errno.
- *
+ * 
  * \b Example:
  * \code{.c}
  * void opcontrol() {
@@ -219,7 +219,7 @@ int32_t serial_get_write_free(uint8_t port);
  *
  * \return The next byte avaliable to be read, -1 if none are available, or
  * PROS_ERR if the operation failed, setting errno.
- *
+ * 
  * \b Example:
  * \code{.c}
  * void opcontrol() {
@@ -251,7 +251,7 @@ int32_t serial_peek_byte(uint8_t port);
  *
  * \return The next byte avaliable to be read, -1 if none are available, or
  * PROS_ERR if the operation failed, setting errno.
- *
+ * 
  * \b Example:
  * \code{.c}
  * void opcontrol() {
@@ -291,7 +291,7 @@ int32_t serial_read_byte(uint8_t port);
  *
  * \return The number of bytes read or PROS_ERR if the operation failed, setting
  * errno.
- *
+ * 
  * \b Example:
  * \code{.c}
  * void opcontrol() {
@@ -402,9 +402,9 @@ int32_t serial_write(uint8_t port, uint8_t* buffer, int32_t length);
 ///@}
 
 #ifdef __cplusplus
-} // namespace c
-} // namespace pros
+}  // namespace c
+}  // namespace pros
 }
 #endif
 
-#endif // _PROS_SERIAL_H_
+#endif  // _PROS_SERIAL_H_
