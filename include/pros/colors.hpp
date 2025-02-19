@@ -17,8 +17,7 @@
 #ifndef _PROS_COLORS_HPP_
 #define _PROS_COLORS_HPP_
 
-
-namespace pros{
+namespace pros {
 /**
  * \ingroup cpp-colors
  */
@@ -33,7 +32,7 @@ namespace pros{
  * @brief
  * Enum class of possible colors
  *
- * Contains common colors, all members are self descriptive. 
+ * Contains common colors, all members are self descriptive.
  */
 enum class Color {
   alice_blue = 0x00F0F8FF,
@@ -185,6 +184,6 @@ enum class Color {
 };
 } // namespace pros
 
-  ///@}
+///@}
 
 #endif //_PROS_COLORS_HPP_

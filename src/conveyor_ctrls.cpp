@@ -105,5 +105,4 @@ bool fish_mech_is_loaded() {
   return false;
 }
 
-
 // void deposit_with_fish_mech() { fish_mech.move_absolute(250.0, 100); }
