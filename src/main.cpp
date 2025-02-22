@@ -58,8 +58,8 @@ lemlib::ControllerSettings angularPIDController(2, // proportional gain (kP)
 */
 
 lemlib::ControllerSettings lateralPIDController(7, // proportional gain (kP)
-                                                0.05, // integral gain (kI)
-                                                70, // derivative gain (kD)
+                                                0.07, // integral gain (kI)
+                                                20, // derivative gain (kD)
                                                 3, // anti windup
                                                 0.25, // small error range, in inches
                                                 100, // small error range timeout, in milliseconds
@@ -67,9 +67,9 @@ lemlib::ControllerSettings lateralPIDController(7, // proportional gain (kP)
                                                 500, // large error range timeout, in milliseconds
                                                 16 // maximum acceleration (slew)
 );
-lemlib::ControllerSettings angularPIDController(3.1, // proportional gain (kP)
-                                                0.05, // integral gain (kI)
-                                                15, // derivative gain (kD)
+lemlib::ControllerSettings angularPIDController(2.8, // proportional gain (kP)
+                                                0.06, // integral gain (kI)
+                                                18, // derivative gain (kD)
                                                 3, // anti windup
                                                 0.5, // small error range, in degrees
                                                 100, // small error range timeout, in milliseconds
@@ -224,11 +224,11 @@ void autonomous() {
   doinker.retract();
   */
   // chassis.moveToPoint(-40, 24, 3000);
-  // chassis.moveToPoint(-28, 24, 3000, params);
-  chassis.turnToHeading(0, 3000);
-  chassis.waitUntilDone();
-  pros::delay(1000);
-  chassis.turnToHeading(-90, 3000);
+  chassis.moveToPoint(-28, 24, 3000, params);
+  // chassis.turnToHeading(0, 3000);
+  // chassis.waitUntilDone();
+  // pros::delay(1000);
+  // chassis.turnToHeading(-90, 3000);
   // chassis.moveToPose(-8, 0, 90, 1200);
   // chassis.turnToHeading(0, 500);
   // lemlib::MoveToPointParams params = {.forwards = false};
