@@ -1,27 +1,25 @@
 #include "doinker.h"
 
-Doinker::Doinker(char port) : 
-    piston(pros::adi::DigitalOut(port, false)), 
+Doinker::Doinker(char port)
+  : piston(port, false),
     extended(false) {}
 
 void Doinker::toggle() {
-    if (extended) {
-        retract();
-    } else {
-        extend();
-    }
+  if (extended) {
+    retract();
+  } else {
+    extend();
+  }
 }
 
 void Doinker::extend() {
-    piston.set_value(1);
-    extended = true;
+  piston.set_value(1);
+  extended = true;
 }
 
 void Doinker::retract() {
-    piston.set_value(0);
-    extended = false;
+  piston.set_value(0);
+  extended = false;
 }
 
-bool Doinker::is_extended() {
-    return extended;
-}
+bool Doinker::is_extended() { return extended; }

@@ -92,6 +92,8 @@ lemlib::Chassis chassis(drivetrain, lateralPIDController, angularPIDController);
  */
 
 void initialize() {
+  fish_mech.initialize();
+  pros::delay(200);
   // initialize_screen();
 
   // pros::delay(300);
@@ -101,9 +103,6 @@ void initialize() {
 
   chassis.setBrakeMode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_BRAKE);
   conveyor_color_detector.set_led_pwm(100);
-
-  fish_mech.set_brake_mode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_HOLD);
-  fish_mech.set_encoder_units(pros::MotorEncoderUnits::degrees);
 
   // the conveyor is already tensioned and frictioned.
   // it seems to stop abruptly as hard braking anyway
@@ -167,12 +166,6 @@ void initialize() {
   }
   conveyor_color_detector.set_led_pwm(0);
   conveyor_color_detector.set_integration_time(5);
-
-  fish_mech.move_velocity(-1);
-  pros::delay(1400);
-  fish_mech.tare_position();
-  fish_mech.brake();
-  pros::delay(200);
   // initialize the fish mech to a VERY tight zero.
 }
 
@@ -288,62 +281,18 @@ void opcontrol() {
     printf("Pose: (%f, %f, %f) \n", odomPose.x, odomPose.y, odomPose.theta);
     printf("\n");
 
-    // print_text_at(5, fmt::format("fish pos = {}", fish_mech.get_position()).c_str());
-
     pros::delay(50);
 
     // FISH MECH
     int fish_axis = controller.get_analog(FISH_MANUAL_AXIS);
     deadband(fish_axis, 30);
+    fish_mech.manual(fish_axis);
 
-    fishing = fishing and (fish_axis == 0); // disable fishing if fish_axis != 0
+    if (controller.get_digital_new_press(FISH_SCORE_BUTTON)) { fish_mech.score(); }
 
-    if (controller.get_digital_new_press(FISH_SCORE_BUTTON)) {
-      fishing = true; // start fishing
-      score_with_fish_mech(); // set target on a newpress
-    }
-
-    // printf("TARGET POS = %f\n", fish_mech.get_target_position());
-    // printf("CUR POS = %f\n", fish_mech.get_position());
-    if (fishing) { // if currently fishing
-      if (fish_mech.get_flags() &
-          pros::E_MOTOR_FLAGS_ZERO_VELOCITY) { // check if we are stopped (the method DNE) BRUUUUUUUHHHHH
-
-        // if we at target, zero.
-        // printf("TRAPPED IN TARGET CALL\n");
-        if ((pros::millis() - last_time) > FISH_SCORE_DELAY) { // if we zeroing and past delay, complete zero
-          last_time = pros::millis();
-          fish_mech.move_absolute(0, 600);
-          fishing = false;
-        }
-
-      } else {
-        // printf("TRAPPED IN LAST ELSE\n");
-        last_time = pros::millis();
-      }
-
-    } else {
-      if (fish_axis != 0) { // manual override
-        // printf("fish axis is %d\n", fish_axis);
-        fish_mech.move_velocity(fish_axis); // move by stick
-      } else if (fish_mech.get_position() <= 175 and (fish_mech.get_position() != 0) and
-                 not(fish_mech.get_flags() & pros::E_MOTOR_FLAGS_ZERO_VELOCITY)) {
-        // if we below 160, above 0, and we ARE moving, zero
-        // printf("TRAPPED IN ZERO FOR MANL\n");
-        fish_mech.move_absolute(0, 600);
-      } else {
-        // printf("TRAPPED IN BRAKE\n");
-        fish_mech.brake();
-      }
-    }
+    fish_mech.update();
 
     // end fish mech section
-
-    lemlib::Pose pose = lemlib::getPose(false); // get pose
-    // printf("%f, %f, %f\n", pose.x, pose.y, pose.theta); // print pos to terminal
-
-    // update_robot_position_on_screen(lemlib::getPose(true));
-    // print_text_at(4, fmt::format("millis = {}", pros::millis()).c_str());
 
     if (controller.get_digital_new_press(CONVEYOR_ENABLE)) { // enable conveyor
       conveyor_is_enabled = !conveyor_is_enabled;

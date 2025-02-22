@@ -57,8 +57,6 @@ bool zero_fish_mech() {
 }
 */
 
-void score_with_fish_mech() { fish_mech.move_absolute(SCORE_POS, 600); }
-
 // this is a delta movement
 void set_conveyor_target_in_inches(float inches, int speed = 300) {
   // create the Ticks/Inch ratio as a variable. this is stated as an expression so that it is easily edited.
