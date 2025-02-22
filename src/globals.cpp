@@ -1,6 +1,7 @@
 #include "globals.h"
 #include "ports.h"
 #include "api.h"
+#include "robot/doinker.h"
 
 bool alliance_color = true;
 
@@ -25,4 +26,4 @@ pros::Optical conveyor_color_detector(PORT_CONVEYOR_COLOR_SENSOR);
 // pneumatics
 pros::adi::Pneumatics mogo_grabber(PORT_MOGO_GRABBER, false);
 pros::adi::Pneumatics rejector(PORT_REJECTOR, false);
-pros::adi::Pneumatics doinker(PORT_DOINKER, false);
+Doinker doinker(PORT_DOINKER);

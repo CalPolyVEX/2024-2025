@@ -2,6 +2,7 @@
 #define GLOBALS_H
 
 #include "api.h"
+#include "robot/doinker.h"
 
 // state variables
 extern bool alliance_color; // true if red
@@ -19,6 +20,6 @@ extern pros::Optical conveyor_color_detector;
 // pneumatics
 extern pros::adi::Pneumatics mogo_grabber;
 extern pros::adi::Pneumatics rejector;
-extern pros::adi::Pneumatics doinker;
+extern Doinker doinker;
 
 #endif
