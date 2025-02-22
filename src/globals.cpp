@@ -1,6 +1,7 @@
 #include "globals.h"
 #include "ports.h"
 #include "api.h"
+#include "robot/mogo_grabber.h"
 #include "robot/doinker.h"
 
 bool alliance_color = true;
@@ -24,6 +25,8 @@ pros::Motor intake(PORT_INTAKE_MOTOR, pros::MotorCartridge::blue);
 pros::Optical conveyor_color_detector(PORT_CONVEYOR_COLOR_SENSOR);
 
 // pneumatics
-pros::adi::Pneumatics mogo_grabber(PORT_MOGO_GRABBER, false);
 pros::adi::Pneumatics rejector(PORT_REJECTOR, false);
+
+// mechs
+MogoGrabber mogo_grabber(PORT_MOGO_GRABBER);
 Doinker doinker(PORT_DOINKER);

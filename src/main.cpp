@@ -393,18 +393,18 @@ void opcontrol() {
 #ifdef GREEN_BOT // JOSEPH
     if (controller.get_digital_new_press(MOGO_GRAB)) {
       mogo_grabber.toggle();
-      if (mogo_grabber.is_extended()) {
+      if (mogo_grabber.is_grabbed()) {
         conveyor.move_velocity(-600);
         pros::delay(100);
       }
     }
 #else // TIM
     if (controller.get_digital_new_press(MOGO_GRAB)) {
-      mogo_grabber.extend();
+      mogo_grabber.grab();
       conveyor.move_velocity(-600);
       pros::delay(100);
     } else if (controller.get_digital_new_press(MOGO_DROP)) {
-      mogo_grabber.retract();
+      mogo_grabber.release();
     }
 #endif
 

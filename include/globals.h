@@ -2,6 +2,7 @@
 #define GLOBALS_H
 
 #include "api.h"
+#include "robot/mogo_grabber.h"
 #include "robot/doinker.h"
 
 // state variables
@@ -18,8 +19,10 @@ extern pros::Motor intake;
 extern pros::Optical conveyor_color_detector;
 
 // pneumatics
-extern pros::adi::Pneumatics mogo_grabber;
 extern pros::adi::Pneumatics rejector;
+
+// mechs
+extern MogoGrabber mogo_grabber;
 extern Doinker doinker;
 
 #endif
