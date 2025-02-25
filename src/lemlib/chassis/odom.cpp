@@ -3,7 +3,7 @@
 // Here is a link to the original document
 // http://thepilons.ca/wp-content/uploads/2018/10/Tracking.pdf
 
-//#include <atomic>
+// #include <atomic>
 #include <math.h>
 #include <mutex>
 // #include <mutex>
@@ -43,7 +43,7 @@ bool should_calibrate = false;
 // tracking thread
 pros::Task* trackingTask = nullptr;
 
-//pros::Mutex* tracking_mutex = nullptr;
+// pros::Mutex* tracking_mutex = nullptr;
 pros::Mutex tracking_mutex = pros::Mutex();
 
 // global variables
@@ -54,7 +54,6 @@ lemlib::Pose odomSpeed(0, 0, 0); // the speed of the robot
 lemlib::Pose odomLocalSpeed(0, 0, 0); // the local speed of the robot
 
 lemlib::Pose offsetPose(0, 0, 0); // the offset of the robot
-
 
 pros::Task* enable_task = nullptr;
 int old_success_num = 0;
@@ -155,9 +154,7 @@ void lemlib::update() {
 
     if (num_waiting_bytes > 0) {
       num_read_bytes = s->read(temp_buf_ptr, num_waiting_bytes);
-      if (num_read_bytes != -1){
-        temp_buf_ptr += num_read_bytes;
-      }
+      if (num_read_bytes != -1) { temp_buf_ptr += num_read_bytes; }
     }
 
     if (num_read_bytes == RECEIVE_OTOS_PACKET_SIZE) {
@@ -207,7 +204,6 @@ void lemlib::update() {
   }
 }
 
-
 void lemlib::calibrate_otos(bool is_red_alliance) {
   should_calibrate = true;
   red_alliance = is_red_alliance;
@@ -220,8 +216,6 @@ void lemlib::calibrate_otos(bool is_red_alliance) {
     setPose(BLUE_STARTING_POSE);
   }
 }
-
-
 
 void lemlib::init() {
   // TODO MOVE THE CALIBRATION THING HERE WITH NULL-POINTER CHECK OR WHATEVER
@@ -236,45 +230,38 @@ void lemlib::init() {
 
     trackingTask = new pros::Task {[=] {
                                      while (true) {
-                                        tracking_mutex.take();
+                                       tracking_mutex.take();
 
-                                        update();
-                                        
+                                       update();
 
-                                        tracking_mutex.give();
-                                        pros::delay(10);
+                                       tracking_mutex.give();
+                                       pros::delay(10);
                                      }
-                                    },"odom task"};
+                                   },
+                                   "odom task"};
 
+    enable_task = new pros::Task {[=] {
+                                    while (1) {
+                                      // printf("success = %d, old_success = %d, dist = %d\n", success_read_num,
+                                      // old_success_num, (success_read_num - old_success_num));
 
-                                  
-    enable_task = new pros::Task { [=] {
-      
-      while (1) {
-        
+                                      tracking_mutex.take();
+                                      // printf("heloo");
+                                      if ((success_read_num - old_success_num) < 4) {
+                                        // pros::Serial s2(MUSTY_PORT, MUSTY_BAUDRATE);
+                                        // pros::delay(100);
+                                        s = std::make_unique<pros::Serial>(MUSTY_PORT, MUSTY_BAUDRATE);
+                                        pros::delay(100); // let vex os configure port
 
-        //printf("success = %d, old_success = %d, dist = %d\n", success_read_num, old_success_num, (success_read_num - old_success_num));
-        
-        tracking_mutex.take();
-        //printf("heloo");
-        if ((success_read_num - old_success_num) < 4){
-          //pros::Serial s2(MUSTY_PORT, MUSTY_BAUDRATE);
-          //pros::delay(100);
-          s = std::make_unique<pros::Serial>(MUSTY_PORT, MUSTY_BAUDRATE);
-          pros::delay(100); // let vex os configure port
-          
-          for (int i = 0; i < 1000; i++){
-            printf("qqqqqqqqqqqqqqqqqqqqqqqqqqqq\n");
-          }
-          
-        }
-        
-        old_success_num = success_read_num;
-        
-        tracking_mutex.give();
-        pros::delay(200);
-        
-      }
-    }, "enable task"};
+                                        for (int i = 0; i < 1000; i++) { printf("qqqqqqqqqqqqqqqqqqqqqqqqqqqq\n"); }
+                                      }
+
+                                      old_success_num = success_read_num;
+
+                                      tracking_mutex.give();
+                                      pros::delay(200);
+                                    }
+                                  },
+                                  "enable task"};
   }
 }

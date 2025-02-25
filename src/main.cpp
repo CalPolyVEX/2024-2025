@@ -58,7 +58,6 @@ lemlib::ControllerSettings angularPIDController(2.8, // proportional gain (kP)
 );
 #endif
 
-
 #ifdef GOLD_BOT
 lemlib::ControllerSettings lateralPIDController(7, // proportional gain (kP)
                                                 0.07, // integral gain (kI)
@@ -93,9 +92,8 @@ lemlib::Chassis chassis(drivetrain, lateralPIDController, angularPIDController);
  */
 
 void initialize() {
-  
   // initialize_screen();
-  
+
   // pros::delay(300);
   // printf("%f, %f, %f", lemlib::getPose().x, lemlib::getPose().y, lemlib::getPose().theta);
 
@@ -159,20 +157,18 @@ void initialize() {
   }
 
   while (IS_DEBUGGING_OTOS) {
-    
     printf("\n");
     lemlib::Pose odomPose = lemlib::getPose(true);
     printf("Pose: (%f, %f, %f) \n", odomPose.x, odomPose.y, odomPose.theta);
     printf("\n");
-    
-    //update_robot_position_on_screen(lemlib::getPose(true)); // this also updates screen
-    // printf("Pose: (%f, %f, %f) \n", lemlib::getPose().x, lemlib::getPose().y, lemlib::getPose().theta);
-    // print_text_at(3, fmt::format("millis = {}", pros::millis()).c_str());
+
+    // update_robot_position_on_screen(lemlib::getPose(true)); // this also updates screen
+    //  printf("Pose: (%f, %f, %f) \n", lemlib::getPose().x, lemlib::getPose().y, lemlib::getPose().theta);
+    //  print_text_at(3, fmt::format("millis = {}", pros::millis()).c_str());
 
     pros::delay(10);
   }
   conveyor_color_detector.set_led_pwm(0);
-
 
   fish_mech.move_velocity(-600);
   pros::delay(200);
@@ -238,7 +234,7 @@ void autonomous() {
   doinker.retract();
   */
   // chassis.moveToPoint(-40, 24, 3000);
-  //chassis.moveToPoint(-28, 24, 3000, params);
+  // chassis.moveToPoint(-28, 24, 3000, params);
   chassis.turnToHeading(0, 3000);
   // chassis.waitUntilDone();
   // pros::delay(1000);
@@ -263,12 +259,10 @@ void autonomous() {
 
 #ifdef GREEN_BOT
 void autonomous() {
-  
-  //chassis.moveToPose(-34.75, -24, 90, 3000);
+  // chassis.moveToPose(-34.75, -24, 90, 3000);
   chassis.moveToPoint(-32.75, -24, 3000);
   chassis.waitUntilDone();
   chassis.setBrakeMode(pros::E_MOTOR_BRAKE_COAST);
-
 }
 #endif
 
@@ -292,14 +286,14 @@ void opcontrol() {
 
   while (1) {
     print_text_at(5, fmt::format("fish pos = {}", fish_mech.get_position()).c_str());
-    
+
     pros::delay(50);
 
     // FISH MECH
     int fish_axis = controller.get_analog(FISH_MANUAL_AXIS);
     deadband(fish_axis, 30);
 
-    fishing = fishing and (fish_axis == 0); //disable fishing if fish_axis != 0
+    fishing = fishing and (fish_axis == 0); // disable fishing if fish_axis != 0
 
     if (controller.get_digital_new_press(FISH_SCORE_BUTTON)) {
       fishing = true; // start fishing
@@ -309,7 +303,8 @@ void opcontrol() {
     printf("TARGET POS = %f\n", fish_mech.get_target_position());
     printf("CUR POS = %f\n", fish_mech.get_position());
     if (fishing) { // if currently fishing
-      if (fish_mech.get_flags() & pros::E_MOTOR_FLAGS_ZERO_VELOCITY) { // check if we are stopped (the method DNE) BRUUUUUUUHHHHH
+      if (fish_mech.get_flags() &
+          pros::E_MOTOR_FLAGS_ZERO_VELOCITY) { // check if we are stopped (the method DNE) BRUUUUUUUHHHHH
 
         // if we at target, zero.
         printf("TRAPPED IN TARGET CALL\n");
@@ -415,6 +410,5 @@ void opcontrol() {
     chassis.arcade(controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y),
                    controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X));
     // controller.print(1, 0, "Pose:(%1.1f, %1.1f)", lemlib::getPose().x, lemlib::getPose().y);
-    
   }
 }
