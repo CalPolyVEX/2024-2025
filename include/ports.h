@@ -17,7 +17,7 @@
 #define PORT_MOGO_GRABBER 'A'
 #define PORT_REJECTOR 'C'
 #define PORT_DOINKER 'B'
-#define MUSTY_PORT 12
+#define MUSTY_PORT 18
 
 #endif
 
@@ -32,12 +32,12 @@
 #define PORT_LEFT_MOTOR_2 7
 #define PORT_LEFT_MOTOR_3 -8
 
-#define PORT_FISH_MECH -9
+#define PORT_FISH_MOTOR -9
 
-#define PORT_CONVEYOR -4
-#define PORT_INTAKE -5
+#define PORT_CONVEYOR_MOTOR -4
+#define PORT_INTAKE_MOTOR -5
 
-#define MUSTY_PORT 11
+#define MUSTY_PORT 20
 
 #define PORT_CONVEYOR_COLOR_SENSOR 21
 

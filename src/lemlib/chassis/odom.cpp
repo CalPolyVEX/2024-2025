@@ -3,7 +3,10 @@
 // Here is a link to the original document
 // http://thepilons.ca/wp-content/uploads/2018/10/Tracking.pdf
 
+//#include <atomic>
 #include <math.h>
+#include <mutex>
+// #include <mutex>
 // #include <string.h>
 //  #include "fmt/core.h"
 #include "display.h"
@@ -40,14 +43,22 @@ bool should_calibrate = false;
 // tracking thread
 pros::Task* trackingTask = nullptr;
 
+//pros::Mutex* tracking_mutex = nullptr;
+pros::Mutex tracking_mutex = pros::Mutex();
+
 // global variables
-pros::Serial* s;
+std::unique_ptr<pros::Serial> s;
 lemlib::Drivetrain drive(nullptr, nullptr, 0, 0, 0, 0); // the drivetrain to be used for odometry
 lemlib::Pose odomPose(0, 0, 0); // the pose of the robot
 lemlib::Pose odomSpeed(0, 0, 0); // the speed of the robot
 lemlib::Pose odomLocalSpeed(0, 0, 0); // the local speed of the robot
 
 lemlib::Pose offsetPose(0, 0, 0); // the offset of the robot
+
+
+pros::Task* enable_task = nullptr;
+int old_success_num = 0;
+int success_read_num = 0;
 
 void lemlib::setDrivetrain(lemlib::Drivetrain drivetrain) { drive = drivetrain; }
 
@@ -144,7 +155,9 @@ void lemlib::update() {
 
     if (num_waiting_bytes > 0) {
       num_read_bytes = s->read(temp_buf_ptr, num_waiting_bytes);
-      temp_buf_ptr += num_read_bytes;
+      if (num_read_bytes != -1){
+        temp_buf_ptr += num_read_bytes;
+      }
     }
 
     if (num_read_bytes == RECEIVE_OTOS_PACKET_SIZE) {
@@ -172,12 +185,10 @@ void lemlib::update() {
     printf("millis: %d\n", pros::millis());
     printf("read success ? : %d\n", read_success);
   }
-  printf("\n");
-  printf("Pose: (%f, %f, %f) \n", odomPose.x, odomPose.y, odomPose.theta);
-  printf("\n");
   // printf("fish_mech current draw = %d\n", fish_mech.get_current_draw());
 
   if (read_success) {
+    success_read_num++;
     res = musty_cobs_decode(decode_buffer, MAX_BUFFER_SIZE, receive_buffer, RECEIVE_OTOS_PACKET_SIZE);
     // printf("res.status = %d\n", res.status);
     if (res.status == COBS_DECODE_OK) {
@@ -196,10 +207,6 @@ void lemlib::update() {
   }
 }
 
-pros::Serial* get_serial_ptr() {
-  if (s == nullptr) { std::cerr << "Error: Serial instance is not initialized.\n"; }
-  return s;
-}
 
 void lemlib::calibrate_otos(bool is_red_alliance) {
   should_calibrate = true;
@@ -214,6 +221,8 @@ void lemlib::calibrate_otos(bool is_red_alliance) {
   }
 }
 
+
+
 void lemlib::init() {
   // TODO MOVE THE CALIBRATION THING HERE WITH NULL-POINTER CHECK OR WHATEVER
   if (trackingTask == nullptr) {
@@ -222,15 +231,50 @@ void lemlib::init() {
 
     pros::delay(100); // Let VEX OS configure port
 
-    s = new pros::Serial(MUSTY_PORT, MUSTY_BAUDRATE); // create a serial port on #2 at 460800 baud
+    s = std::make_unique<pros::Serial>(MUSTY_PORT, MUSTY_BAUDRATE); // create a serial port on #2 at 460800 baud
     pros::delay(100); // Let VEX OS configure port
 
     trackingTask = new pros::Task {[=] {
                                      while (true) {
-                                       update();
-                                       pros::delay(10);
+                                        tracking_mutex.take();
+
+                                        update();
+                                        
+
+                                        tracking_mutex.give();
+                                        pros::delay(10);
                                      }
-                                   },
-                                   "odom task"};
+                                    },"odom task"};
+
+
+                                  
+    enable_task = new pros::Task { [=] {
+      
+      while (1) {
+        
+
+        //printf("success = %d, old_success = %d, dist = %d\n", success_read_num, old_success_num, (success_read_num - old_success_num));
+        
+        tracking_mutex.take();
+        //printf("heloo");
+        if ((success_read_num - old_success_num) < 4){
+          //pros::Serial s2(MUSTY_PORT, MUSTY_BAUDRATE);
+          //pros::delay(100);
+          s = std::make_unique<pros::Serial>(MUSTY_PORT, MUSTY_BAUDRATE);
+          pros::delay(100); // let vex os configure port
+          
+          for (int i = 0; i < 1000; i++){
+            printf("qqqqqqqqqqqqqqqqqqqqqqqqqqqq\n");
+          }
+          
+        }
+        
+        old_success_num = success_read_num;
+        
+        tracking_mutex.give();
+        pros::delay(200);
+        
+      }
+    }, "enable task"};
   }
 }

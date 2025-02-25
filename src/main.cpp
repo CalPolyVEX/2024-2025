@@ -9,6 +9,7 @@
 #include "lemlib/chassis/chassis.hpp"
 #include "lemlib/chassis/odom.hpp" // IWYU pragma: keep
 #include "conveyor_ctrls.hpp"
+#include "lemlib/pose.hpp"
 #include "pros/misc.h"
 #include "pros/misc.hpp"
 #include "pros/motors.h"
@@ -29,15 +30,15 @@ pros::Task* fish_mech_task = nullptr;
 
 pros::Task* telemetry_task = nullptr;
 
-#define IS_DEBUGGING_OTOS false
+#define IS_DEBUGGING_OTOS true
 
 #define ENABLE_SCREEN_FOR_DEBUG false
 
 // drivetrain, chassis and PID controllers definitions===================================
-/*
-lemlib::ControllerSettings lateralPIDController(9, // proportional gain (kP)
-                                                0.5, // integral gain (kI)
-                                                0.9, // derivative gain (kD)
+#ifdef GREEN_BOT
+lemlib::ControllerSettings lateralPIDController(18, // proportional gain (kP)
+                                                0.10, // integral gain (kI)
+                                                80, // derivative gain (kD)
                                                 3, // anti windup
                                                 0.25, // small error range, in inches
                                                 100, // small error range timeout, in milliseconds
@@ -45,9 +46,9 @@ lemlib::ControllerSettings lateralPIDController(9, // proportional gain (kP)
                                                 500, // large error range timeout, in milliseconds
                                                 16 // maximum acceleration (slew)
 );
-lemlib::ControllerSettings angularPIDController(2, // proportional gain (kP)
-                                                0, // integral gain (kI)
-                                                10, // derivative gain (kD)
+lemlib::ControllerSettings angularPIDController(2.8, // proportional gain (kP)
+                                                0.06, // integral gain (kI)
+                                                18, // derivative gain (kD)
                                                 3, // anti windup
                                                 0.5, // small error range, in degrees
                                                 100, // small error range timeout, in milliseconds
@@ -55,8 +56,10 @@ lemlib::ControllerSettings angularPIDController(2, // proportional gain (kP)
                                                 500, // large error range timeout, in milliseconds
                                                 0 // maximum acceleration (slew)
 );
-*/
+#endif
 
+
+#ifdef GOLD_BOT
 lemlib::ControllerSettings lateralPIDController(7, // proportional gain (kP)
                                                 0.07, // integral gain (kI)
                                                 20, // derivative gain (kD)
@@ -77,7 +80,7 @@ lemlib::ControllerSettings angularPIDController(2.8, // proportional gain (kP)
                                                 500, // large error range timeout, in milliseconds
                                                 0 // maximum acceleration (slew)
 );
-
+#endif
 lemlib::Drivetrain drivetrain(&leftMG, &rightMG, 12.25, lemlib::Omniwheel::NEW_325, 450, 0);
 
 lemlib::Chassis chassis(drivetrain, lateralPIDController, angularPIDController);
@@ -90,13 +93,9 @@ lemlib::Chassis chassis(drivetrain, lateralPIDController, angularPIDController);
  */
 
 void initialize() {
-  fish_mech.move_velocity(-600);
-  pros::delay(200);
-  fish_mech.tare_position();
-  fish_mech.brake();
-  pros::delay(200);
+  
   // initialize_screen();
-  lemlib::init(); // initialize lemlib
+  
   // pros::delay(300);
   // printf("%f, %f, %f", lemlib::getPose().x, lemlib::getPose().y, lemlib::getPose().theta);
 
@@ -134,12 +133,15 @@ void initialize() {
   } else {
     print_text_at(5, "color sensor sees nothing");
   }
-
+  pros::delay(1000);
+  lemlib::init(); // initialize lemlib
+  pros::delay(200);
   lemlib::calibrate_otos(true);
 
   //}
 
   // lemlib::calibrate_otos(true);
+
   pros::delay(600); // dont do anything for half a sec so we can init the otos
 
   print_text_at(8, "done calibrating");
@@ -157,7 +159,13 @@ void initialize() {
   }
 
   while (IS_DEBUGGING_OTOS) {
-    update_robot_position_on_screen(lemlib::getPose(true)); // this also updates screen
+    
+    printf("\n");
+    lemlib::Pose odomPose = lemlib::getPose(true);
+    printf("Pose: (%f, %f, %f) \n", odomPose.x, odomPose.y, odomPose.theta);
+    printf("\n");
+    
+    //update_robot_position_on_screen(lemlib::getPose(true)); // this also updates screen
     // printf("Pose: (%f, %f, %f) \n", lemlib::getPose().x, lemlib::getPose().y, lemlib::getPose().theta);
     // print_text_at(3, fmt::format("millis = {}", pros::millis()).c_str());
 
@@ -165,6 +173,12 @@ void initialize() {
   }
   conveyor_color_detector.set_led_pwm(0);
 
+
+  fish_mech.move_velocity(-600);
+  pros::delay(200);
+  fish_mech.tare_position();
+  fish_mech.brake();
+  pros::delay(200);
   // initialize the fish mech to a VERY tight zero.
 }
 
@@ -224,8 +238,8 @@ void autonomous() {
   doinker.retract();
   */
   // chassis.moveToPoint(-40, 24, 3000);
-  chassis.moveToPoint(-28, 24, 3000, params);
-  // chassis.turnToHeading(0, 3000);
+  //chassis.moveToPoint(-28, 24, 3000, params);
+  chassis.turnToHeading(0, 3000);
   // chassis.waitUntilDone();
   // pros::delay(1000);
   // chassis.turnToHeading(-90, 3000);
@@ -248,7 +262,14 @@ void autonomous() {
 #endif
 
 #ifdef GREEN_BOT
-void autonomous() {}
+void autonomous() {
+  
+  //chassis.moveToPose(-34.75, -24, 90, 3000);
+  chassis.moveToPoint(-32.75, -24, 3000);
+  chassis.waitUntilDone();
+  chassis.setBrakeMode(pros::E_MOTOR_BRAKE_COAST);
+
+}
 #endif
 
 void deadband(int& val, int deadband) {
@@ -271,9 +292,14 @@ void opcontrol() {
 
   while (1) {
     print_text_at(5, fmt::format("fish pos = {}", fish_mech.get_position()).c_str());
+    
+    pros::delay(50);
+
     // FISH MECH
     int fish_axis = controller.get_analog(FISH_MANUAL_AXIS);
     deadband(fish_axis, 30);
+
+    fishing = fishing and (fish_axis == 0); //disable fishing if fish_axis != 0
 
     if (controller.get_digital_new_press(FISH_SCORE_BUTTON)) {
       fishing = true; // start fishing
@@ -283,8 +309,7 @@ void opcontrol() {
     printf("TARGET POS = %f\n", fish_mech.get_target_position());
     printf("CUR POS = %f\n", fish_mech.get_position());
     if (fishing) { // if currently fishing
-      if (fish_mech.get_flags() &
-          pros::E_MOTOR_FLAGS_ZERO_VELOCITY) { // check if we are stopped (the method DNE) BRUUUUUUUHHHHH
+      if (fish_mech.get_flags() & pros::E_MOTOR_FLAGS_ZERO_VELOCITY) { // check if we are stopped (the method DNE) BRUUUUUUUHHHHH
 
         // if we at target, zero.
         printf("TRAPPED IN TARGET CALL\n");
@@ -333,7 +358,6 @@ void opcontrol() {
       intake.move_velocity(100); // keep a little bit of intake to hold rings
     }
     if (controller.get_digital_new_press(LOAD_NEXT_RING)) { // load next ring
-      // TODO CHECK THIS TO SEE IF IT WORKS (MIGHT BE BUGGED)
       is_loading = !is_loading; // toggle loading
       if (is_loading) { // rumble on enable
         controller.rumble("....");
@@ -391,6 +415,6 @@ void opcontrol() {
     chassis.arcade(controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y),
                    controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X));
     // controller.print(1, 0, "Pose:(%1.1f, %1.1f)", lemlib::getPose().x, lemlib::getPose().y);
-    pros::delay(50);
+    
   }
 }
