@@ -38,7 +38,7 @@ pros::Task* telemetry_task = nullptr;
 #ifdef GREEN_BOT
 lemlib::ControllerSettings lateralPIDController(18, // proportional gain (kP)
                                                 0.10, // integral gain (kI)
-                                                80, // derivative gain (kD)
+                                                180, // derivative gain (kD)
                                                 3, // anti windup
                                                 0.25, // small error range, in inches
                                                 100, // small error range timeout, in milliseconds
@@ -131,7 +131,7 @@ void initialize() {
   } else {
     print_text_at(5, "color sensor sees nothing");
   }
-  pros::delay(1000);
+  pros::delay(100);
   lemlib::init(); // initialize lemlib
   pros::delay(200);
   lemlib::calibrate_otos(true);
@@ -139,9 +139,6 @@ void initialize() {
   //}
 
   // lemlib::calibrate_otos(true);
-
-  pros::delay(600); // dont do anything for half a sec so we can init the otos
-
   print_text_at(8, "done calibrating");
 
   if (ENABLE_SCREEN_FOR_DEBUG) {
@@ -169,9 +166,10 @@ void initialize() {
     pros::delay(10);
   }
   conveyor_color_detector.set_led_pwm(0);
+  conveyor_color_detector.set_integration_time(5);
 
-  fish_mech.move_velocity(-600);
-  pros::delay(200);
+  fish_mech.move_velocity(-1);
+  pros::delay(1400);
   fish_mech.tare_position();
   fish_mech.brake();
   pros::delay(200);
@@ -259,8 +257,9 @@ void autonomous() {
 
 #ifdef GREEN_BOT
 void autonomous() {
-  // chassis.moveToPose(-34.75, -24, 90, 3000);
-  chassis.moveToPoint(-32.75, -24, 3000);
+  
+  //chassis.moveToPose(-34.75, -24, 90, 3000);
+  chassis.moveToPoint(-32.75, -24, 3000); //12 in
   chassis.waitUntilDone();
   chassis.setBrakeMode(pros::E_MOTOR_BRAKE_COAST);
 }
@@ -284,9 +283,15 @@ void opcontrol() {
   bool fishing = false;
   uint32_t last_time = pros::millis();
 
-  while (1) {
-    print_text_at(5, fmt::format("fish pos = {}", fish_mech.get_position()).c_str());
+  while (1) 
+  {
+    printf("\n");
+    lemlib::Pose odomPose = lemlib::getPose(true);
+    printf("Pose: (%f, %f, %f) \n", odomPose.x, odomPose.y, odomPose.theta);
+    printf("\n");
 
+    //print_text_at(5, fmt::format("fish pos = {}", fish_mech.get_position()).c_str());
+    
     pros::delay(50);
 
     // FISH MECH
@@ -300,14 +305,14 @@ void opcontrol() {
       score_with_fish_mech(); // set target on a newpress
     }
 
-    printf("TARGET POS = %f\n", fish_mech.get_target_position());
-    printf("CUR POS = %f\n", fish_mech.get_position());
+    //printf("TARGET POS = %f\n", fish_mech.get_target_position());
+    //printf("CUR POS = %f\n", fish_mech.get_position());
     if (fishing) { // if currently fishing
       if (fish_mech.get_flags() &
           pros::E_MOTOR_FLAGS_ZERO_VELOCITY) { // check if we are stopped (the method DNE) BRUUUUUUUHHHHH
 
         // if we at target, zero.
-        printf("TRAPPED IN TARGET CALL\n");
+        //printf("TRAPPED IN TARGET CALL\n");
         if ((pros::millis() - last_time) > FISH_SCORE_DELAY) { // if we zeroing and past delay, complete zero
           last_time = pros::millis();
           fish_mech.move_absolute(0, 600);
@@ -315,21 +320,21 @@ void opcontrol() {
         }
 
       } else {
-        printf("TRAPPED IN LAST ELSE\n");
+        //printf("TRAPPED IN LAST ELSE\n");
         last_time = pros::millis();
       }
 
     } else {
       if (fish_axis != 0) { // manual override
-        printf("fish axis is %d\n", fish_axis);
+        //printf("fish axis is %d\n", fish_axis);
         fish_mech.move_velocity(fish_axis); // move by stick
       } else if (fish_mech.get_position() <= 175 and (fish_mech.get_position() != 0) and
                  not(fish_mech.get_flags() & pros::E_MOTOR_FLAGS_ZERO_VELOCITY)) {
         // if we below 160, above 0, and we ARE moving, zero
-        printf("TRAPPED IN ZERO FOR MANL\n");
+        //printf("TRAPPED IN ZERO FOR MANL\n");
         fish_mech.move_absolute(0, 600);
       } else {
-        printf("TRAPPED IN BRAKE\n");
+        //printf("TRAPPED IN BRAKE\n");
         fish_mech.brake();
       }
     }
