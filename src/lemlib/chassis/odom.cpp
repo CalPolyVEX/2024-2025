@@ -3,7 +3,7 @@
 // Here is a link to the original document
 // http://thepilons.ca/wp-content/uploads/2018/10/Tracking.pdf
 
-//#include <atomic>
+// #include <atomic>
 #include <cstdio>
 #include <math.h>
 #include <mutex>
@@ -186,7 +186,7 @@ void lemlib::update() {
   // printf("fish_mech current draw = %d\n", fish_mech.get_current_draw());
 
   if (read_success) {
-    //printf("success_read_num = %d\n", success_read_num);
+    // printf("success_read_num = %d\n", success_read_num);
     success_read_num++;
     res = musty_cobs_decode(decode_buffer, MAX_BUFFER_SIZE, receive_buffer, RECEIVE_OTOS_PACKET_SIZE);
     // printf("res.status = %d\n", res.status);
@@ -232,47 +232,40 @@ void lemlib::init() {
 
     trackingTask = new pros::Task {[=] {
                                      while (true) {
-                                        tracking_mutex.take();
-                                        printf("updating\n");
-                                        update();
-                                        
+                                       tracking_mutex.take();
+                                       printf("updating\n");
+                                       update();
 
                                        tracking_mutex.give();
                                        pros::delay(10);
                                      }
-                                    },"odom task"};
+                                   },
+                                   "odom task"};
 
+    enable_task = new pros::Task {[=] {
+                                    while (1) {
+                                      // printf("success = %d, old_success = %d, dist = %d\n", success_read_num,
+                                      // old_success_num, (success_read_num - old_success_num));
 
-                                  
-    enable_task = new pros::Task { [=] {
-      
-      while (1) {
-        
+                                      tracking_mutex.take();
+                                      printf("checking my data state\n");
+                                      // printf("heloo");
+                                      if ((success_read_num - old_success_num) < 4) {
+                                        printf("success_read_num is %d\n", success_read_num);
+                                        // pros::Serial s2(MUSTY_PORT, MUSTY_BAUDRATE);
+                                        // pros::delay(100);
+                                        s = std::make_unique<pros::Serial>(MUSTY_PORT, MUSTY_BAUDRATE);
+                                        pros::delay(100); // let vex os configure port
 
-        //printf("success = %d, old_success = %d, dist = %d\n", success_read_num, old_success_num, (success_read_num - old_success_num));
-        
-        tracking_mutex.take();
-        printf("checking my data state\n");
-        //printf("heloo");
-        if ((success_read_num - old_success_num) < 4){
-          printf("success_read_num is %d\n", success_read_num);
-          //pros::Serial s2(MUSTY_PORT, MUSTY_BAUDRATE);
-          //pros::delay(100);
-          s = std::make_unique<pros::Serial>(MUSTY_PORT, MUSTY_BAUDRATE);
-          pros::delay(100); // let vex os configure port
-          
-          for (int i = 0; i < 20; i++){
-            printf("qqqqqqqqqqqqqqqqqqqqqqqqqqqq\n");
-          }
-          
-        }
-        
-        old_success_num = success_read_num;
-        
-        tracking_mutex.give();
-        pros::delay(200);
-        
-      }
-    }, "enable task"};
+                                        for (int i = 0; i < 20; i++) { printf("qqqqqqqqqqqqqqqqqqqqqqqqqqqq\n"); }
+                                      }
+
+                                      old_success_num = success_read_num;
+
+                                      tracking_mutex.give();
+                                      pros::delay(200);
+                                    }
+                                  },
+                                  "enable task"};
   }
 }

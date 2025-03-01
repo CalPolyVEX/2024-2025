@@ -2,7 +2,7 @@
 #define CONFIG_H
 
 /* Tim */
-//#define GOLD_BOT
+// #define GOLD_BOT
 
 /* Joseph */
 #define GREEN_BOT
