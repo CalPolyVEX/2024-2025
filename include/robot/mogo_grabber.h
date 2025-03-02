@@ -4,16 +4,15 @@
 #include "pros/adi.hpp"
 
 class MogoGrabber {
-public:
+  public:
     MogoGrabber(char port);
     void toggle();
     void grab();
     void release();
     bool is_grabbed();
-
-private:
+  private:
     pros::adi::DigitalOut piston;
     bool grabbed;
 };
-    
+
 #endif

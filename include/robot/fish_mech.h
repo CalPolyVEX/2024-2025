@@ -4,22 +4,21 @@
 #include "pros/motors.hpp"
 
 class FishMech {
-public:
+  public:
     FishMech(int motor_port);
     void initialize();
     void score();
     void manual(int velocity);
     void update();
-
-private:
+  private:
     bool motor_stopped();
 
     enum State {
-        HOME,
-        DEPLOYING,
-        HOLDING,
-        RETRACTING,
-        MANUAL,
+      HOME,
+      DEPLOYING,
+      HOLDING,
+      RETRACTING,
+      MANUAL,
     };
 
     pros::Motor motor;
