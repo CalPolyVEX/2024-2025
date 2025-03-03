@@ -1,9 +1,7 @@
 #include "robot/doinker.hpp"
 
-
-
-Doinker::Doinker(char port): 
-    piston(port, false),
+Doinker::Doinker(char port)
+  : piston(port, false),
     extended(false) {}
 
 void Doinker::toggle() {
