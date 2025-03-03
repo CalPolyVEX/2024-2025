@@ -2,9 +2,9 @@
 #define GLOBALS_H
 
 #include "api.h"
-#include "robot/fish_mech.h"
-#include "robot/mogo_grabber.h"
-#include "robot/doinker.h"
+#include "robot/fish_mech.hpp"
+#include "robot/mogo_grabber.hpp"
+#include "robot/doinker.hpp"
 
 // state variables
 extern bool alliance_color; // true if red

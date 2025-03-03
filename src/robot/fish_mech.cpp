@@ -1,4 +1,4 @@
-#include "fish_mech.h"
+#include "robot/fish_mech.hpp"
 
 #define SCORE_POS 175.0
 #define FISH_SCORE_DELAY 400

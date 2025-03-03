@@ -1,4 +1,4 @@
-#include "mogo_grabber.h"
+#include "robot/mogo_grabber.hpp"
 
 MogoGrabber::MogoGrabber(char port)
   : piston(port, false),

@@ -1,9 +1,9 @@
 #include "globals.h"
 #include "ports.h"
 #include "api.h"
-#include "robot/fish_mech.h"
-#include "robot/mogo_grabber.h"
-#include "robot/doinker.h"
+//#include "robot/fish_mech.hpp"
+//#include "robot/mogo_grabber.hpp"
+//#include "robot/doinker.hpp"
 
 bool alliance_color = true;
 
