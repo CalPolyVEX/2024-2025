@@ -14,8 +14,8 @@ extern bool alliance_color; // true if red
 // motors
 extern pros::MotorGroup leftMG;
 extern pros::MotorGroup rightMG;
-//extern pros::Motor conveyor;
-//extern pros::Motor intake;
+// extern pros::Motor conveyor;
+// extern pros::Motor intake;
 
 // sensors
 extern pros::Optical conveyor_color_detector;

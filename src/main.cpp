@@ -285,14 +285,13 @@ void opcontrol() {
 
     // end fish mech section
 
-
-    //CONVEYOR SECTION BEGIN
-    //TODO COLOR REJECTION
+    // CONVEYOR SECTION BEGIN
+    // TODO COLOR REJECTION
     if (controller.get_digital_new_press(CONVEYOR_ENABLE)) { // enable conveyor
       conveyor_is_enabled = !conveyor_is_enabled;
     } else if (controller.get_digital(CONVEYOR_REVERSE)) { // reverse conveyor
       conveyor.move_at_speed(-600);
-      
+
       conveyor_is_enabled = false; // disable conveyor
 
     } else if (!conveyor_is_enabled) { // disabled conveyor
@@ -332,9 +331,9 @@ void opcontrol() {
     } else {
       controller.clear_line(2);
     }
-    //END CONVEYOR SECTION
+    // END CONVEYOR SECTION
 
-    //BEGIN MOGO SECTION
+    // BEGIN MOGO SECTION
 #ifdef GREEN_BOT // JOSEPH
     if (controller.get_digital_new_press(MOGO_GRAB)) {
       mogo_grabber.toggle();
@@ -352,18 +351,17 @@ void opcontrol() {
       mogo_grabber.release();
     }
 #endif
-    //END MOGO SECTION
+    // END MOGO SECTION
 
-    //BEGIN DOINKER SECTION
+    // BEGIN DOINKER SECTION
     if (controller.get_digital_new_press(DOINKER_BUTTON)) { doinker.toggle(); } // doinker is a newpress toggle
-    //END DOINKER SECTION
+    // END DOINKER SECTION
 
-
-    //CHASSIS
+    // CHASSIS
     chassis.arcade(controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y),
                    controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X));
-    //END CHASSIS
-    
-                   // controller.print(1, 0, "Pose:(%1.1f, %1.1f)", lemlib::getPose().x, lemlib::getPose().y);
+    // END CHASSIS
+
+    // controller.print(1, 0, "Pose:(%1.1f, %1.1f)", lemlib::getPose().x, lemlib::getPose().y);
   }
 }

@@ -25,7 +25,6 @@
 
 #define MUSTY_PORT 18
 
-
 #endif
 
 #ifdef GREEN_BOT

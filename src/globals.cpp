@@ -19,7 +19,7 @@ bool alliance_color = true;
 pros::MotorGroup leftMG({PORT_LEFT_MOTOR_1, PORT_LEFT_MOTOR_2, PORT_LEFT_MOTOR_3}, pros::MotorGearset::blue);
 pros::MotorGroup rightMG({PORT_RIGHT_MOTOR_1, PORT_RIGHT_MOTOR_2, PORT_RIGHT_MOTOR_3}, pros::MotorGearset::blue);
 
-//pros::Motor intake(PORT_INTAKE_MOTOR, pros::MotorCartridge::blue);
+// pros::Motor intake(PORT_INTAKE_MOTOR, pros::MotorCartridge::blue);
 
 // sensors
 pros::Optical conveyor_color_detector(PORT_CONVEYOR_COLOR_SENSOR);
