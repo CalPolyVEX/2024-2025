@@ -71,7 +71,7 @@ void FishMech::update() {
     case State::MANUAL:
       motor.move_velocity(manual_velocity);
 
-      if (manual_velocity == 0 && motor.get_position() <= MANUAL_RESET_THRESHOLD) {
+      if (manual_velocity == 0 && (motor.get_position() <= MANUAL_RESET_THRESHOLD)) {
         motor.move_absolute(0, MOTOR_VELOCITY);
         state = State::RETRACTING;
       }

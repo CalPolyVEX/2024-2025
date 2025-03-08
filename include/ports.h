@@ -10,14 +10,21 @@
 #define PORT_RIGHT_MOTOR_1 1
 #define PORT_RIGHT_MOTOR_2 -2
 #define PORT_RIGHT_MOTOR_3 3
+
 #define PORT_FISH_MOTOR -9
+
 #define PORT_CONVEYOR_MOTOR -4
 #define PORT_INTAKE_MOTOR -5
+
 #define PORT_CONVEYOR_COLOR_SENSOR 21
+#define PORT_DISTANCE_SENSOR 14
+
 #define PORT_MOGO_GRABBER 'A'
 #define PORT_REJECTOR 'C'
 #define PORT_DOINKER 'B'
+
 #define MUSTY_PORT 18
+
 
 #endif
 
@@ -37,13 +44,15 @@
 #define PORT_CONVEYOR_MOTOR -4
 #define PORT_INTAKE_MOTOR -5
 
-#define MUSTY_PORT 19
-
 #define PORT_CONVEYOR_COLOR_SENSOR 21
+
+#define PORT_DISTANCE_SENSOR 12
 
 #define PORT_MOGO_GRABBER 'D'
 #define PORT_REJECTOR 'C'
 #define PORT_DOINKER 'B'
+
+#define MUSTY_PORT 19
 
 #endif
 

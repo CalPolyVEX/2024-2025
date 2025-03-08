@@ -30,7 +30,7 @@ pros::Task* fish_mech_task = nullptr;
 
 pros::Task* telemetry_task = nullptr;
 
-#define IS_DEBUGGING_OTOS true
+#define IS_DEBUGGING_OTOS false
 
 #define ENABLE_SCREEN_FOR_DEBUG false
 
@@ -98,21 +98,12 @@ void initialize() {
 
   // pros::delay(300);
   // printf("%f, %f, %f", lemlib::getPose().x, lemlib::getPose().y, lemlib::getPose().theta);
-
+  ring_detector.initialize();
   // pros::Serial* s = lemlib::get_serial_ptr();
 
   chassis.setBrakeMode(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_BRAKE);
   conveyor_color_detector.set_led_pwm(100);
-
-  // the conveyor is already tensioned and frictioned.
-  // it seems to stop abruptly as hard braking anyway
-  conveyor.set_brake_mode_all(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_COAST);
-
-  conveyor.set_encoder_units(pros::motor_encoder_units_e_t::E_MOTOR_ENCODER_COUNTS);
-
-  // this coast behavior makes sense though, the roller doesnt need to brake hard.
-  intake.set_brake_mode_all(pros::motor_brake_mode_e_t::E_MOTOR_BRAKE_COAST);
-
+  conveyor.initialize();
   conveyor_color_detector.disable_gesture();
   // while (true) {
   // print_text_at(7, fmt::format("color sensor sees: ({}, {}, {})", color.red, color.green, color.blue).c_str());
@@ -120,10 +111,10 @@ void initialize() {
   // while (true) {
   // print_text_at(7, fmt::format("color sensor sees: ({}, {}, {})", color.red, color.green, color.blue).c_str());
   // print_text_at(8, fmt::format("prox sensor sees: {}", conveyor_color_detector.get_proximity()).c_str());
-  if (has_red_ring()) {
+  if (ring_detector.has_red_ring()) {
     alliance_color = true;
     print_text_at(5, "color sensor sees red");
-  } else if (has_blue_ring()) {
+  } else if (ring_detector.has_blue_ring()) {
     alliance_color = false;
 
     print_text_at(5, "color sensor sees blue");
@@ -294,29 +285,32 @@ void opcontrol() {
 
     // end fish mech section
 
+
+    //CONVEYOR SECTION BEGIN
+    //TODO COLOR REJECTION
     if (controller.get_digital_new_press(CONVEYOR_ENABLE)) { // enable conveyor
       conveyor_is_enabled = !conveyor_is_enabled;
     } else if (controller.get_digital(CONVEYOR_REVERSE)) { // reverse conveyor
-      conveyor_deposit_and_intake(-600);
+      conveyor.move_at_speed(-600);
+      
       conveyor_is_enabled = false; // disable conveyor
 
     } else if (!conveyor_is_enabled) { // disabled conveyor
-      conveyor.move_velocity(0);
-      intake.move_velocity(100); // keep a little bit of intake to hold rings
+      conveyor.move_at_speed(0);
     }
     if (controller.get_digital_new_press(LOAD_NEXT_RING)) { // load next ring
       is_loading = !is_loading; // toggle loading
       if (is_loading) { // rumble on enable
         controller.rumble("....");
-      } else { // rumble on cancel
+      } else { // rumble diff on cancel
         controller.rumble("..");
       }
     }
 
     if (is_loading) {
-      conveyor_color_detector.set_led_pwm(100);
-      if (not fish_mech_is_loaded()) { // if we have neither color ring
-        conveyor_deposit_and_intake(); // color sort and intake
+      ring_detector.enable_led(); // enable led on color sensor
+      if (not ring_detector.has_ring()) { // if we have neither color ring
+        conveyor.move_at_speed(600); // color sort and intake
 
       } else {
         is_loading = false; // we have finished loading bc there is a ring
@@ -326,7 +320,7 @@ void opcontrol() {
     } else if (conveyor_is_enabled) { // if conveyor is enabled
       conveyor_color_detector.set_led_pwm(100);
 
-      conveyor_deposit_and_intake(); // color sort and intake
+      conveyor.move_at_speed(600); // move conveyor fast
     } else {
       conveyor_color_detector.set_led_pwm(0); // disable led on color sensor
     }
@@ -338,29 +332,38 @@ void opcontrol() {
     } else {
       controller.clear_line(2);
     }
+    //END CONVEYOR SECTION
 
+    //BEGIN MOGO SECTION
 #ifdef GREEN_BOT // JOSEPH
     if (controller.get_digital_new_press(MOGO_GRAB)) {
       mogo_grabber.toggle();
       if (mogo_grabber.is_grabbed()) {
-        conveyor.move_velocity(-600);
+        conveyor.move_at_speed(-600);
         pros::delay(100);
       }
     }
 #else // TIM
     if (controller.get_digital_new_press(MOGO_GRAB)) {
       mogo_grabber.grab();
-      conveyor.move_velocity(-600);
+      conveyor.move_at_speed(-600);
       pros::delay(100);
     } else if (controller.get_digital_new_press(MOGO_DROP)) {
       mogo_grabber.release();
     }
 #endif
+    //END MOGO SECTION
 
+    //BEGIN DOINKER SECTION
     if (controller.get_digital_new_press(DOINKER_BUTTON)) { doinker.toggle(); } // doinker is a newpress toggle
+    //END DOINKER SECTION
 
+
+    //CHASSIS
     chassis.arcade(controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_LEFT_Y),
                    controller.get_analog(pros::controller_analog_e_t::E_CONTROLLER_ANALOG_RIGHT_X));
-    // controller.print(1, 0, "Pose:(%1.1f, %1.1f)", lemlib::getPose().x, lemlib::getPose().y);
+    //END CHASSIS
+    
+                   // controller.print(1, 0, "Pose:(%1.1f, %1.1f)", lemlib::getPose().x, lemlib::getPose().y);
   }
 }
